@@ -73,18 +73,20 @@
                     </a>
                 @endcan
 
-                <a
-                    href="#"
-                    class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white transition"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 13h2l2-6h10l2 6h2"/>
-                        <path d="M5 13v5a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h8v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-5"/>
-                        <circle cx="7.5" cy="16.5" r="1.5"/>
-                        <circle cx="16.5" cy="16.5" r="1.5"/>
-                    </svg>
-                    Vehicles
-                </a>
+                @if (auth()->user()?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN)
+                    <a
+                        href="{{ route('vehicles.index') }}"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('vehicles.*') ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow' : 'text-gray-300 hover:bg-white/5 hover:text-white' }}"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 13h2l2-6h10l2 6h2"/>
+                            <path d="M5 13v5a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h8v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-5"/>
+                            <circle cx="7.5" cy="16.5" r="1.5"/>
+                            <circle cx="16.5" cy="16.5" r="1.5"/>
+                        </svg>
+                        Vehicles
+                    </a>
+                @endif
             </nav>
 
             {{-- Logged-in user + logout --}}
