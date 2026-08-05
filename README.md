@@ -1,180 +1,58 @@
-# Fleet Management Dashboard (React + TypeScript + Firebase)
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-A React 18 + TypeScript + Vite rebuild of a Laravel fleet-management app, using
-Firebase Authentication for login and Cloud Firestore (free tier) for data —
-no image/file uploads anywhere.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Stack
+## About Laravel
 
-- React 18 + TypeScript + Vite
-- React Router v6
-- Firebase Authentication (Email/Password)
-- Cloud Firestore
-- lucide-react icons
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-## Roles & Authorization
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Three roles, stored on `users/{uid}.role` in Firestore and enforced both in
-the UI and server-side via `firestore.rules`:
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-| Role          | Access                                                                                                            |
-| ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `super_admin` | Everything — Admins, Drivers, Vehicles. Only role that can change a vehicle's plate number after it's registered. |
-| `admin`       | Drivers, Vehicles. Cannot manage other Admins.                                                                    |
-| `driver`      | Dashboard only.                                                                                                   |
+## Learning Laravel
 
----
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-## 1. Setup
+In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-```bash
-npm install
-cp .env.example .env.local   # then fill in your real Firebase project keys
-npm run dev
-```
+You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
 
-### Create a Firebase project
+## Agentic Development
 
-1. [Firebase Console](https://console.firebase.google.com) → **Add project**.
-2. **Build → Authentication** → enable the **Email/Password** sign-in provider.
-3. **Build → Firestore Database** → create a database.
-4. **Project settings → General → Your apps** → add a **Web app** → copy the
-   config values into `.env.local`:
-
-```
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-VITE_FIREBASE_MEASUREMENT_ID=
-```
-
-`.env.local` is gitignored — never commit real keys. Use `.env.example` as the
-template for teammates/CI, and set the same variables in your host's
-dashboard (Netlify, Vercel, etc.) for production.
-
-### Deploy Firestore security rules
-
-`firestore.rules` mirrors the UI's role checks so no one can bypass
-`admin`/`super_admin` restrictions by calling Firestore directly.
-
-**Option A — Firebase Console (fastest, no CLI):**
-Firestore Database → **Rules** tab → paste the contents of `firestore.rules` →
-**Publish**.
-
-**Option B — CLI:**
+Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
 
 ```bash
-npm install -g firebase-tools
-firebase login
-firebase init firestore   # point it at this project, keep firestore.rules as-is
-firebase deploy --only firestore:rules
+composer require laravel/boost --dev
+
+php artisan boost:install
 ```
 
-### Create the required Firestore composite indexes
+Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
-The Drivers and Admins pages filter by `role` **and** sort by `createdAt`,
-which Firestore requires a composite index for. Without it, those pages will
-load with **zero rows and no visible error** in the UI (the failure only
-shows up in the browser console).
+## Contributing
 
-Easiest way: just use the app once, open DevTools → **Console** on `/drivers`,
-and click the link in the error that looks like:
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-```
-FirebaseError: [code=failed-precondition]: The query requires an index.
-You can create it here: https://console.firebase.google.com/...
-```
+## Code of Conduct
 
-Click **Create Index**, wait for status **Building → Enabled** (~1–2 min).
-Repeat on `/admins` — it needs its own separate index since its query uses
-`role in [...]` instead of `role ==`.
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-Or create them manually in **Firestore → Indexes → Add Index**:
+## Security Vulnerabilities
 
-| Page    | Collection | Fields                                   |
-| ------- | ---------- | ---------------------------------------- |
-| Drivers | `users`    | `role` Ascending, `createdAt` Descending |
-| Admins  | `users`    | `role` Ascending, `createdAt` Descending |
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-### Bootstrap your first Super Admin
+## License
 
-The app has no public sign-up page, so the very first account has to be
-created manually, once:
-
-1. **Authentication → Users → Add user** — enter an email + password.
-2. Copy the new user's **UID**.
-3. **Firestore → users collection → Add document** — Document ID = that UID:
-    ```json
-    { "name": "Your Name", "email": "you@example.com", "role": "super_admin" }
-    ```
-4. Log in at `/login` with that email/password.
-
-From there, create Admins and Drivers from inside the app (**Admins → Add
-Admin**, **Drivers → Add Driver**) — don't create them directly in the
-Firebase Console. Console-created users have an Auth login but no matching
-Firestore profile, so they won't show up anywhere in the app.
-
----
-
-## 2. How account creation works
-
-Firebase's client SDK signs you in as whichever account you just created with
-`createUserWithEmailAndPassword`. To let a Super Admin/Admin add a new
-account without being kicked out of their own session, `src/lib/secondaryAuth.ts`
-spins up a temporary second Firebase app instance for the create-account call
-and tears it down right after — the admin's real session is untouched.
-
-**Known limitation:** changing an existing user's email/password, or fully
-deleting their Auth account (not just their Firestore profile), requires the
-Firebase **Admin SDK**, which only runs in a trusted backend (e.g. a Cloud
-Function) — not in the browser. Deleting a user from the UI here removes
-their Firestore profile (which revokes app access) but the Auth account
-itself needs cleanup from the Console or a backend.
-
----
-
-## 3. Troubleshooting
-
-| Symptom                                                              | Cause                                                                              | Fix                                                                                                        |
-| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Sidebar shows no Vehicles/Drivers/Admins, "Signed in as —"           | Firestore rules not published, or blocking the read of your own `users/{uid}` doc  | Publish `firestore.rules`; confirm your doc's `role` field is exactly `admin` or `super_admin` (lowercase) |
-| New driver/admin appears in Authentication but not in the app's list | Missing Firestore composite index — `onSnapshot` fails silently in the UI          | See "Create the required Firestore composite indexes" above                                                |
-| Account created via Firebase Console doesn't show in the app         | Console-created users only exist in Authentication, no Firestore `users/{uid}` doc | Always create accounts via **Add Driver**/**Add Admin** in the app, not the Console                        |
-| "Missing or insufficient permissions" in console                     | Firestore rules reject the read/write                                              | Check rules are Published and your role field is correct                                                   |
-| Chrome "Change your password" popup on account creation              | Chrome's built-in breach-check on the password you typed — unrelated to the app    | Safe to dismiss; use a stronger temp password                                                              |
-
----
-
-## 4. Project structure
-
-```
-src/
-  firebase.ts               Firebase app/auth/db init, reads keys from .env.local
-  types.ts                  AppUser, UserRole, Vehicle types
-  lib/secondaryAuth.ts       Create-user-without-signing-out helper
-  contexts/AuthContext.tsx   Auth state + live Firestore role
-  components/
-    ProtectedRoute.tsx       Route guard (auth + role allow-list)
-    Layout.tsx                Sidebar/topbar shell, role-aware nav
-    Modal.tsx, StatCard.tsx
-  pages/
-    Login.tsx
-    Dashboard.tsx
-    Vehicles.tsx             Admin + Super Admin
-    Drivers.tsx              Admin + Super Admin
-    Admins.tsx                Super Admin only
-    Unauthorized.tsx
-firestore.rules             Server-side role enforcement
-```
-
-## 5. What's intentionally different from the original Laravel app
-
-- No image/file uploads anywhere (no vehicle photo, avatar, or driver's
-  license images) — Firestore-only, free tier.
-- Role-based authorization (`super_admin` / `admin` / `driver`) added; the
-  original reference UI this was patterned after had no roles at all.
-- No public self-registration — all accounts are created by an Admin or
-  Super Admin from within the app.
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
