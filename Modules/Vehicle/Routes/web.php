@@ -11,4 +11,6 @@ Route::middleware(['web', 'auth', 'verified'])
     ->group(function () {
         Route::get('/', [VehicleController::class, 'index'])->name('index');
         Route::post('/', [VehicleController::class, 'store'])->name('store');
+        Route::put('/{vehicle}', [VehicleController::class, 'update'])->name('update');
+        Route::delete('/{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
     });

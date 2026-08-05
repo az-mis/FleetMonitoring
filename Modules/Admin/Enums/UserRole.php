@@ -8,12 +8,14 @@ enum UserRole: string
 {
     case SUPER_ADMIN = 'super_admin';
     case ADMIN = 'admin';
+    case DRIVER = 'driver';
 
     public function label(): string
     {
         return match ($this) {
             self::SUPER_ADMIN => 'Super Admin',
             self::ADMIN => 'Admin',
+            self::DRIVER => 'Driver',
         };
     }
 
@@ -22,6 +24,7 @@ enum UserRole: string
         return match ($this) {
             self::SUPER_ADMIN => 'purple',
             self::ADMIN => 'blue',
+            self::DRIVER => 'green',
         };
     }
 }

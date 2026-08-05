@@ -15,7 +15,7 @@
         $hasPhoto = filled($user?->avatar_url ?? null);
     @endphp
 
-    <div class="flex min-h-screen">
+    <div class="flex h-screen overflow-hidden">
         {{-- Mobile sidebar overlay --}}
         <div
             id="sidebar-overlay"
@@ -73,7 +73,21 @@
                     </a>
                 @endcan
 
-                @if (auth()->user()?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN)
+                @can('manage-drivers')
+                    <a
+                        href="{{ route('driver.index') }}"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('driver.*') ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow' : 'text-gray-300 hover:bg-white/5 hover:text-white' }}"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="7" r="4"/>
+                            <path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
+                            <path d="M9 13.5 12 16l3-2.5"/>
+                        </svg>
+                        Drivers
+                    </a>
+                @endcan
+
+                @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
                     <a
                         href="{{ route('vehicles.index') }}"
                         class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('vehicles.*') ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow' : 'text-gray-300 hover:bg-white/5 hover:text-white' }}"
@@ -128,7 +142,7 @@
         </aside>
 
         {{-- Main --}}
-        <div class="flex flex-1 flex-col min-w-0">
+        <div class="flex flex-1 flex-col min-w-0 overflow-hidden">
             {{-- Topbar --}}
             <header class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-4 sm:px-6">
                 <div class="flex items-center gap-3 min-w-0">
@@ -168,7 +182,7 @@
                 @endif
             </header>
 
-            <main class="flex-1 bg-gray-50 p-4 sm:p-6">
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
                 @if (session('success'))
                     <div id="flash-success" class="mb-6 flex items-start justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                         <span>{{ session('success') }}</span>
