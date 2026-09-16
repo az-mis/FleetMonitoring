@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Modules\Vehicle\Controllers\VehicleController;
+use Modules\Vehicle\Controllers\VehicleAssigningController;
 
 Route::middleware(['web', 'auth', 'verified'])
     ->prefix('vehicles')
@@ -13,4 +14,12 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::post('/', [VehicleController::class, 'store'])->name('store');
         Route::put('/{vehicle}', [VehicleController::class, 'update'])->name('update');
         Route::delete('/{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['web', 'auth', 'verified'])
+    ->prefix('vehicle-assigning')
+    ->name('vehicle-assigning.')
+    ->group(function () {
+        Route::get('/', [VehicleAssigningController::class, 'index'])->name('index');
+        Route::patch('/{vehicle}', [VehicleAssigningController::class, 'update'])->name('update');
     });

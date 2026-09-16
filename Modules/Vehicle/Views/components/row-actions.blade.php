@@ -15,6 +15,7 @@
         data-odometer="{{ number_format($vehicle->odometer) }}"
         data-vehicle_type="{{ $vehicle->vehicle_type ? ucfirst($vehicle->vehicle_type) : 'None' }}"
         data-fuel_type="{{ $vehicle->fuel_type ? ucfirst($vehicle->fuel_type) : 'None' }}"
+        data-location="{{ $vehicle->location }}"
         data-created="{{ $vehicle->created_at->format('M d, Y \a\t g:i A') }}"
         data-updated="{{ $vehicle->updated_at->format('M d, Y \a\t g:i A') }}"
         title="View"
@@ -41,6 +42,7 @@
         data-odometer="{{ $vehicle->odometer }}"
         data-vehicle_type="{{ $vehicle->vehicle_type }}"
         data-fuel_type="{{ $vehicle->fuel_type }}"
+        data-location="{{ $vehicle->location }}"
         title="Edit"
         class="rounded-lg p-2 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition"
     >

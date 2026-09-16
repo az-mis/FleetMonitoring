@@ -32,6 +32,8 @@ class Vehicle extends Model
         'odometer',
         'vehicle_type',
         'fuel_type',
+        'assigned_driver_id',
+        'location',
     ];
 
     protected $appends = ['photo_url'];
@@ -41,5 +43,10 @@ class Vehicle extends Model
         return Attribute::make(
             get: fn () => $this->photo ? Storage::disk('public')->url($this->photo) : null,
         );
+    }
+
+    public function assignedDriver(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'assigned_driver_id');
     }
 }

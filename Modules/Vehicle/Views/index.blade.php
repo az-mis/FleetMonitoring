@@ -178,6 +178,11 @@
                         </div>
                     </div>
 
+                    <div>
+                        <label for="rv-location" class="block text-sm font-medium text-gray-700">Office / Location</label>
+                        <input type="text" name="location" id="rv-location" value="{{ old('_vehicle_form') === 'create' ? old('location') : '' }}" placeholder="e.g. Oriental Mindoro" class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-emerald-500">
+                    </div>
+
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="rv-brand" class="block text-sm font-medium text-gray-700">Brand</label>
@@ -209,6 +214,11 @@
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
+
+                    <div>
+                        <label for="ev-location" class="block text-sm font-medium text-gray-700">Office / Location</label>
+                        <input type="text" name="location" id="ev-location" value="{{ old('_vehicle_form') === 'edit' ? old('location') : '' }}" placeholder="e.g. Oriental Mindoro" class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-emerald-500">
                     </div>
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -952,6 +962,7 @@
                 document.getElementById('ev-odometer').value = btn.dataset.odometer;
                 document.getElementById('ev-vehicle_type').value = btn.dataset.vehicle_type || '';
                 document.getElementById('ev-fuel_type').value = btn.dataset.fuel_type || '';
+                document.getElementById('ev-location').value = btn.dataset.location || '';
 
                 const img = document.getElementById('ev-photo-preview-img');
                 const icon = document.getElementById('ev-photo-preview-icon');

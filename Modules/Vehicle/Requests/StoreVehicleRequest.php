@@ -28,6 +28,7 @@ class StoreVehicleRequest extends FormRequest
             'odometer' => ['required', 'integer', 'min:0'],
             'vehicle_type' => ['nullable', 'string', 'max:50'],
             'fuel_type' => ['nullable', 'string', 'max:50'],
+            'location' => ['nullable', 'string', 'max:120'],
         ];
     }
 

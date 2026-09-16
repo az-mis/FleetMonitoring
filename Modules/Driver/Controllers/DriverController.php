@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Gate;
 use Modules\Driver\Requests\StoreDriverRequest;
 use Modules\Driver\Requests\UpdateDriverRequest;
 use Modules\Driver\Services\DriverService;
+use Modules\Admin\Enums\UserRole;
 
 class DriverController extends Controller
 {
@@ -24,8 +25,16 @@ class DriverController extends Controller
     {
         Gate::authorize('manage-drivers');
 
+        $perPage = (int) request('per_page', 10);
+        $search = request('search');
+        $location = request('location') ?: (auth()->user()?->role === UserRole::ADMIN ? auth()->user()->location : null);
+
         return view('driver::index', [
-            'drivers' => $this->driverService->list(search: request('search')),
+            'drivers' => $this->driverService->list(
+                search: $search,
+                location: $location,
+                perPage: $perPage,
+            ),
         ]);
     }
 
@@ -40,7 +49,11 @@ class DriverController extends Controller
     {
         Gate::authorize('manage-drivers');
 
-        $this->driverService->createDriver($request->validated());
+        $data = $request->validated();
+        if (auth()->user()?->role === UserRole::ADMIN) {
+            $data['location'] = auth()->user()->location;
+        }
+        $this->driverService->createDriver($data);
 
         return redirect()->route('driver.index')->with('success', 'Driver created successfully.');
     }
@@ -48,6 +61,7 @@ class DriverController extends Controller
     public function edit(User $driver): View
     {
         Gate::authorize('manage-drivers');
+        $this->authorizeLocation($driver);
 
         return view('driver::edit', compact('driver'));
     }
@@ -55,18 +69,31 @@ class DriverController extends Controller
     public function update(UpdateDriverRequest $request, User $driver): RedirectResponse
     {
         Gate::authorize('manage-drivers');
+        $this->authorizeLocation($driver);
 
-        $this->driverService->updateDriver($driver, $request->validated());
+        $data = $request->validated();
+        if (auth()->user()?->role === UserRole::ADMIN) {
+            $data['location'] = auth()->user()->location;
+        }
+        $this->driverService->updateDriver($driver, $data);
 
-        return redirect()->route('driver.index')->with('success', 'Driver updated successfully.');
+        return redirect()->route('driver.index')
+            ->with('success', "{$driver->name} updated.")
+            ->with('driver_name', $driver->name);
     }
 
     public function destroy(User $driver): RedirectResponse
     {
         Gate::authorize('manage-drivers');
+        $this->authorizeLocation($driver);
 
         $this->driverService->deleteDriver($driver);
 
         return redirect()->route('driver.index')->with('success', 'Driver deleted.');
+    }
+
+    private function authorizeLocation(User $driver): void
+    {
+        abort_unless(auth()->user()?->role !== UserRole::ADMIN || $driver->location === auth()->user()->location, 403);
     }
 }

@@ -12,10 +12,12 @@ use Modules\Admin\Enums\UserRole;
 
 class DriverRepository implements DriverRepositoryInterface
 {
-    public function paginate(int $perPage = 15, ?string $search = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator
     {
         return User::query()
+            ->with(['assignedVehicles'])
             ->where('role', UserRole::DRIVER->value)
+            ->when($location, fn ($q) => $q->where('location', $location))
             ->when($search, fn($q) => $q->where(fn($inner) => $inner
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")
@@ -31,9 +33,12 @@ class DriverRepository implements DriverRepositoryInterface
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => $data['role'],
+            'phone_number' => $data['phone_number'] ?? null,
+            'location' => $data['location'] ?? null,
             'avatar' => $this->storeFile($data['avatar'] ?? null, 'avatars'),
             'birth_date' => $data['birth_date'] ?? null,
             'address' => $data['address'] ?? null,
+            'license_number' => $data['license_number'] ?? null,
             'license_front' => $this->storeFile($data['license_front'] ?? null, 'licenses'),
             'license_back' => $this->storeFile($data['license_back'] ?? null, 'licenses'),
             'license_expiration_date' => $data['license_expiration_date'] ?? null,
@@ -46,8 +51,11 @@ class DriverRepository implements DriverRepositoryInterface
             'name' => $data['name'],
             'email' => $data['email'],
             'role' => $data['role'],
+            'phone_number' => $data['phone_number'] ?? null,
+            'location' => array_key_exists('location', $data) ? $data['location'] : $driver->location,
             'birth_date' => $data['birth_date'] ?? null,
             'address' => $data['address'] ?? null,
+            'license_number' => $data['license_number'] ?? null,
             'license_expiration_date' => $data['license_expiration_date'] ?? null,
         ]);
 

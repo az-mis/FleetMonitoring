@@ -11,6 +11,7 @@ use Illuminate\View\View;
 use Modules\Admin\Requests\StoreAdminRequest;
 use Modules\Admin\Requests\UpdateAdminRequest;
 use Modules\Admin\Services\AdminService;
+use Modules\ApprovingOfficer\Models\ApprovingOfficer;
 
 class AdminController extends Controller
 {
@@ -24,7 +25,8 @@ class AdminController extends Controller
         $this->authorize('viewAny', User::class);
 
         return view('admin::index', [
-            'admins' => $this->adminService->list(search: request('search')),
+            'admins' => $this->adminService->list(search: request('search'), location: request('location'), perPage: (int) request('per_page', 10)),
+            'approvingOfficers' => ApprovingOfficer::query()->get()->keyBy('location'),
         ]);
     }
 

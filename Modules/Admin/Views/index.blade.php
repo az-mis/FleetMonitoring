@@ -4,28 +4,36 @@
 @section('page-title', 'Admins')
 
 @section('content')
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-900">Manage Admins</h2>
-            <p class="mt-1 text-sm text-gray-500">View, create, update, and remove admin accounts.</p>
-        </div>
+    @php
+        $locationOptions = [
+            'Oriental Mindoro',
+            'Occidental Mindoro',
+            'Marinduque',
+            'Palawan',
+            'Romblon',
+            'Quezon City Satellite Office',
+        ];
+        $selectedLocation = request('location');
+        $locationButtonLabel = $selectedLocation ?: 'All Locations';
+    @endphp
 
-        <button
-            type="button"
-            onclick="openAddAdminModal()"
-            class="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Add Admin
-        </button>
-    </div>
+    <div class="mb-4 rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] p-4 text-white shadow-lg shadow-emerald-900/15">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div class="flex min-w-0 items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.68-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                    </svg>
+                </span>
+                <div class="min-w-0">
+                    <h2 class="truncate text-lg font-extrabold tracking-tight">Admins</h2>
+                    <p class="truncate text-xs text-white/80">{{ $admins->total() }} accounts • Super Admin only</p>
+                </div>
+            </div>
 
-    {{-- Toolbar: search + view toggle --}}
-    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <form method="GET" action="{{ route('admin.index') }}" id="admin-search-form" class="flex w-full max-w-sm items-center gap-2" onsubmit="return false;">
-            <div class="relative w-full">
+            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
+                <form method="GET" action="{{ route('admin.index') }}" id="admin-search-form" class="flex w-full min-w-0 items-center gap-2 md:w-56 xl:w-80" onsubmit="return false;">
+                    <div class="relative w-full">
                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="7"/>
                     <path d="m21 21-4.3-4.3"/>
@@ -36,210 +44,201 @@
                     id="admin-search-input"
                     value="{{ request('search') }}"
                     autocomplete="off"
-                    placeholder="Search by name or email…"
+                    placeholder="Search name or email..."
                     oninput="onAdminSearchInput()"
-                    class="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-8 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    class="w-full rounded-lg border border-white/20 bg-white py-2.5 pl-9 pr-8 text-sm text-gray-900 placeholder-gray-400 shadow-sm focus:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/30"
                 >
                 <svg id="admin-search-spinner" xmlns="http://www.w3.org/2000/svg" class="hidden absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                 </svg>
+                    </div>
+
+                    <a href="{{ route('admin.index') }}" id="admin-search-clear" onclick="return clearAdminSearch(event)" class="shrink-0 text-sm font-semibold text-white/80 hover:text-white {{ request('search') ? '' : 'hidden' }}">Clear</a>
+                </form>
+
+                <div class="inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/10 p-1 ring-1 ring-white/20">
+                    <button type="button" id="view-toggle-list" onclick="setAdminView('list')" title="List view" class="view-toggle-btn flex h-9 w-9 items-center justify-center rounded-md transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 6h13M8 12h13M8 18h13"/>
+                            <path d="M3 6h.01M3 12h.01M3 18h.01"/>
+                        </svg>
+                    </button>
+                    <button type="button" id="view-toggle-grid" onclick="setAdminView('grid')" title="Grid view" class="view-toggle-btn flex h-9 w-9 items-center justify-center rounded-md transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="relative shrink-0">
+                    <button type="button" onclick="toggleAdminLocationMenu()" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-sm font-semibold text-white shadow-sm md:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span>{{ $locationButtonLabel }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition" id="admin-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </button>
+
+                    <div id="admin-location-menu" class="absolute right-0 z-20 mt-2 hidden w-64 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 text-gray-900 shadow-2xl shadow-gray-900/20">
+                        <p class="px-3 py-2 text-[11px] font-extrabold uppercase tracking-wide text-slate-500">Filter by Location</p>
+                        <a href="{{ route('admin.index', array_filter(['search' => request('search')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'hover:bg-gray-50' }}">
+                            All Locations
+                            @if(blank($selectedLocation))
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 6 9 17l-5-5"/>
+                                </svg>
+                            @endif
+                        </a>
+                        @foreach($locationOptions as $locationOption)
+                            <a href="{{ route('admin.index', array_filter(['search' => request('search'), 'location' => $locationOption])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition {{ $selectedLocation === $locationOption ? 'bg-emerald-50 font-semibold text-emerald-800' : 'hover:bg-gray-50' }}">
+                                {{ $locationOption }}
+                                @if($selectedLocation === $locationOption)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 6 9 17l-5-5"/>
+                                    </svg>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <button type="button" onclick="openAddAdminModal()" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Admin
+                </button>
             </div>
-
-            <a href="{{ route('admin.index') }}" id="admin-search-clear" onclick="return clearAdminSearch(event)" class="shrink-0 text-sm font-medium text-gray-500 hover:text-gray-700 {{ request('search') ? '' : 'hidden' }}">Clear</a>
-        </form>
-
-        {{-- View toggle --}}
-        <div class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 self-start">
-            <button
-                type="button"
-                id="view-toggle-list"
-                onclick="setAdminView('list')"
-                class="view-toggle-btn flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-                List
-            </button>
-            <button
-                type="button"
-                id="view-toggle-grid"
-                onclick="setAdminView('grid')"
-                class="view-toggle-btn flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-                Grid
-            </button>
         </div>
     </div>
 
     <div id="admin-results">
-        @include('admin::partials.admin-results', ['admins' => $admins])
+        @include('admin::partials.admin-results', ['admins' => $admins, 'approvingOfficers' => $approvingOfficers ?? collect()])
     </div>
 
     {{-- Add Admin modal --}}
-    <div id="add-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl my-auto">
-
-            {{-- Step 1: form --}}
-            <div id="add-admin-step-form">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">New admin account</h2>
-                    <button type="button" onclick="closeAddAdminModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-                <p class="mt-1 text-sm text-gray-500">Create a new admin user.</p>
-
-                <form method="POST" action="{{ route('admin.store') }}" id="add-admin-form" class="mt-5 space-y-4" enctype="multipart/form-data" onsubmit="return handleAddAdminSubmit(event)">
-                    @csrf
-                    <input type="hidden" name="role" value="{{ \Modules\Admin\Enums\UserRole::ADMIN->value }}">
-                    <input type="hidden" name="_admin_form" value="create">
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Profile picture <span class="font-normal text-gray-400">(optional)</span></label>
-                        <div class="mt-1.5 flex items-center gap-4">
-                            <div class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-gray-400">
-                                <img id="add-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
-                                <svg id="add-avatar-preview-icon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
-                                </svg>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <label for="add-avatar" class="inline-flex w-fit cursor-pointer items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                                    Choose photo
-                                </label>
-                                <input type="file" name="avatar" id="add-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewAvatarFile(this, 'add-avatar-preview-img', 'add-avatar-preview-icon')">
-                                <span class="text-xs text-gray-400">JPG, PNG or WEBP, up to 2MB.</span>
-                            </div>
-                        </div>
-                        @error('avatar')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="add-name" class="block text-sm font-medium text-gray-700">Full name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            id="add-name"
-                            value="{{ old('_admin_form') === 'create' ? old('name') : '' }}"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror"
-                            required
-                        >
-                        @error('name')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="add-email" class="block text-sm font-medium text-gray-700">Email address</label>
-                        <input
-                            type="email"
-                            name="email"
-                            id="add-email"
-                            value="{{ old('_admin_form') === 'create' ? old('email') : '' }}"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('email') border-red-300 @enderror"
-                            required
-                        >
-                        @error('email')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Role</label>
-                        <div class="mt-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-                            <x-admin::role-badge :role="\Modules\Admin\Enums\UserRole::ADMIN" />
-                            <span class="text-sm text-gray-500">This form only creates Admin accounts.</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="add-password" class="block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            id="add-password"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror"
-                            required
-                        >
-                        @error('password')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="add-password_confirmation" class="block text-sm font-medium text-gray-700">Confirm password</label>
-                        <input
-                            type="password"
-                            name="password_confirmation"
-                            id="add-password_confirmation"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            required
-                        >
-                    </div>
-
-                    <div class="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
-                        <button type="button" onclick="closeAddAdminModal()" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition"
-                        >
-                            Continue
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            {{-- Step 2: confirmation --}}
-            <div id="add-admin-step-confirm" class="hidden">
-                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+    <div id="add-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto bg-black/45 px-4 py-6 backdrop-blur-sm">
+        <div class="my-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+                <h2 class="text-base font-extrabold text-emerald-900">Add Admin</h2>
+                <button type="button" onclick="closeAddAdminModal()" class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                     </svg>
-                </div>
-                <h2 class="mt-4 text-lg font-semibold text-gray-900">Add this admin?</h2>
-                <p class="mt-1 text-sm text-gray-500">Please confirm the details below before creating the account.</p>
-
-                <dl class="mt-4 space-y-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Name</dt>
-                        <dd id="add-confirm-name" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Email</dt>
-                        <dd id="add-confirm-email" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Role</dt>
-                        <dd class="text-sm font-medium text-gray-900">Admin</dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Photo</dt>
-                        <dd id="add-confirm-avatar" class="text-sm font-medium text-gray-900"></dd>
-                    </div>
-                </dl>
-
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="backToAddAdminForm()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        Back
-                    </button>
-                    <button type="button" onclick="confirmAddAdmin()" class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition">
-                        Yes, add admin
-                    </button>
-                </div>
+                </button>
             </div>
+
+            <form method="POST" action="{{ route('admin.store') }}" id="add-admin-form" class="max-h-[82vh] space-y-3 overflow-y-auto px-5 py-4" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="_admin_form" value="create">
+
+                <div class="flex flex-col items-center text-center">
+                    <div class="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-700 text-2xl font-extrabold text-white ring-4 ring-emerald-50">
+                        <img id="add-avatar-preview-img" src="" alt="" class="hidden h-full w-full rounded-full object-cover">
+                        <span id="add-avatar-preview-initial">?</span>
+                        <button type="button" id="add-avatar-remove-btn" onclick="removeAddAvatar()" class="absolute -right-1 -top-1 hidden h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
+                            </svg>
+                        </button>
+                        <label for="add-avatar" class="absolute bottom-0 -right-1 flex items-center justify-center rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-white transition hover:bg-emerald-700 cursor-pointer">
+                            Select
+                        </label>
+                        <input type="file" name="avatar" id="add-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewAddAvatarFile(this)">
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500">Photo (optional, max 5MB)</p>
+                    <p id="add-avatar-warning" class="mt-1 hidden text-xs font-semibold text-red-600"></p>
+                    @error('avatar')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label for="add-name" class="text-xs font-extrabold text-slate-700">Full Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" id="add-name" value="{{ old('_admin_form') === 'create' ? old('name') : '' }}" placeholder="Enter Full Name" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror" required>
+                        @error('name')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="add-email" class="text-xs font-extrabold text-slate-700">Email <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" id="add-email" value="{{ old('_admin_form') === 'create' ? old('email') : '' }}" placeholder="Enter email" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('email') border-red-300 @enderror" required>
+                        @error('email')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="add-password" class="text-xs font-extrabold text-slate-700">Temporary Password <span class="text-red-500">*</span></label>
+                        <input type="password" name="password" id="add-password" placeholder="Set temporary password" oninput="document.getElementById('add-password_confirmation').value = this.value" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror" required>
+                        <input type="hidden" name="password_confirmation" id="add-password_confirmation">
+                        @error('password')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="add-role" class="text-xs font-extrabold text-slate-700">Role <span class="text-red-500">*</span></label>
+                        <select name="role" id="add-role" onchange="syncAddRoleFields()" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" required>
+                            <option value="{{ \Modules\Admin\Enums\UserRole::ADMIN->value }}" @selected(old('_admin_form') === 'create' ? old('role') === \Modules\Admin\Enums\UserRole::ADMIN->value : true)>Admin</option>
+                            <option value="{{ \Modules\Admin\Enums\UserRole::SUPER_ADMIN->value }}" @selected(old('_admin_form') === 'create' && old('role') === \Modules\Admin\Enums\UserRole::SUPER_ADMIN->value)>Super Admin</option>
+                        </select>
+                    </div>
+
+                    <div id="add-admin-location-field">
+                        <label for="add-location" class="text-xs font-extrabold text-slate-700">Assigned Location / Office Province</label>
+                        <select name="location" id="add-location" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <option value="" @selected(blank(old('location')))>— All Locations (No restriction) —</option>
+                            @foreach ($locationOptions as $locationOption)
+                                <option value="{{ $locationOption }}" @selected(old('_admin_form') === 'create' && old('location') === $locationOption)>{{ $locationOption }}</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs leading-snug text-slate-500">Admins assigned to a specific province will only see vehicle requests from that location.</p>
+                    </div>
+
+                    <div>
+                        <label for="add-phone-number" class="text-xs font-extrabold text-slate-700">Phone Number <span class="text-red-500">*</span></label>
+                        <input type="text" name="phone_number" id="add-phone-number" value="{{ old('_admin_form') === 'create' ? old('phone_number') : '' }}" placeholder="e.g. 09171234567" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('phone_number') border-red-300 @enderror" required>
+                        @error('phone_number')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div id="add-admin-signatories-field" class="border-t border-slate-200 pt-3">
+                    <h3 class="text-xs font-extrabold text-slate-900">Trip Ticket Signatories (Approved by)</h3>
+                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                            <label for="add-signee1-name" class="text-xs font-bold text-slate-700">Signatory 1 Name</label>
+                            <input type="text" name="signee1_name" id="add-signee1-name" value="{{ old('_admin_form') === 'create' ? old('signee1_name') : '' }}" placeholder="e.g. ARW D. BURGOS" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label for="add-signee1-title" class="text-xs font-bold text-slate-700">Signatory 1 Title / Office</label>
+                            <input type="text" name="signee1_title" id="add-signee1-title" value="{{ old('_admin_form') === 'create' ? old('signee1_title') : '' }}" placeholder="e.g. OIC - ARDO - Oriental Mindoro" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label for="add-signee2-name" class="text-xs font-bold text-slate-700">Signatory 2 Name</label>
+                            <input type="text" name="signee2_name" id="add-signee2-name" value="{{ old('_admin_form') === 'create' ? old('signee2_name') : '' }}" placeholder="e.g. EDSARDO F. LEIDO, JR." class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label for="add-signee2-title" class="text-xs font-bold text-slate-700">Signatory 2 Title / Office</label>
+                            <input type="text" name="signee2_title" id="add-signee2-title" value="{{ old('_admin_form') === 'create' ? old('signee2_title') : '' }}" placeholder="e.g. GSS Regional Office Calapan" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-700">
+                    Add Admin
+                </button>
+            </form>
         </div>
     </div>
 
@@ -248,168 +247,116 @@
     @endif
 
     {{-- Edit Admin modal --}}
-    <div id="edit-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl my-auto">
-
-            {{-- Step 1: form --}}
-            <div id="edit-admin-step-form">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Edit admin account</h2>
-                    <button type="button" onclick="closeEditAdminModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-                <p id="edit-admin-subtitle" class="mt-1 text-sm text-gray-500">Leave password blank to keep it unchanged.</p>
-
-                <form method="POST" action="{{ old('_admin_action', route('admin.index')) }}" id="edit-admin-form" class="mt-5 space-y-4" enctype="multipart/form-data" onsubmit="return handleEditAdminSubmit(event)">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="role" value="{{ \Modules\Admin\Enums\UserRole::ADMIN->value }}">
-                    <input type="hidden" name="_admin_form" value="edit">
-                    <input type="hidden" name="_admin_action" id="edit-admin-action-field" value="{{ old('_admin_action') }}">
-                    <input type="hidden" name="remove_avatar" id="edit-remove-avatar" value="0">
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Profile picture <span class="font-normal text-gray-400">(optional)</span></label>
-                        <div class="mt-1.5 flex items-center gap-4">
-                            <div class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-lg font-semibold text-emerald-700">
-                                <img id="edit-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
-                                <span id="edit-avatar-preview-initial"></span>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <div class="flex items-center gap-3">
-                                    <label for="edit-avatar" class="inline-flex w-fit cursor-pointer items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                                        Choose photo
-                                    </label>
-                                    <button type="button" id="edit-avatar-remove-btn" onclick="removeEditAvatar()" class="hidden text-sm font-medium text-red-600 hover:text-red-700">
-                                        Remove
-                                    </button>
-                                </div>
-                                <input type="file" name="avatar" id="edit-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewEditAvatarFile(this)">
-                                <span class="text-xs text-gray-400">JPG, PNG or WEBP, up to 2MB.</span>
-                            </div>
-                        </div>
-                        @error('avatar')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="edit-name" class="block text-sm font-medium text-gray-700">Full name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            id="edit-name"
-                            value="{{ old('_admin_form') === 'edit' ? old('name') : '' }}"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror"
-                            required
-                        >
-                        @error('name')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="edit-email" class="block text-sm font-medium text-gray-700">Email address</label>
-                        <input
-                            type="email"
-                            name="email"
-                            id="edit-email"
-                            value="{{ old('_admin_form') === 'edit' ? old('email') : '' }}"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('email') border-red-300 @enderror"
-                            required
-                        >
-                        @error('email')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Role</label>
-                        <div class="mt-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-                            <x-admin::role-badge :role="\Modules\Admin\Enums\UserRole::ADMIN" />
-                            <span class="text-sm text-gray-500">This form only manages Admin accounts.</span>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-gray-100 pt-4">
-                        <label for="edit-password" class="block text-sm font-medium text-gray-700">New password <span class="font-normal text-gray-400">(optional)</span></label>
-                        <input
-                            type="password"
-                            name="password"
-                            id="edit-password"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror"
-                        >
-                        @error('password')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="edit-password_confirmation" class="block text-sm font-medium text-gray-700">Confirm new password</label>
-                        <input
-                            type="password"
-                            name="password_confirmation"
-                            id="edit-password_confirmation"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        >
-                    </div>
-
-                    <div class="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
-                        <button type="button" onclick="closeEditAdminModal()" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition"
-                        >
-                            Continue
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            {{-- Step 2: confirmation --}}
-            <div id="edit-admin-step-confirm" class="hidden">
-                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/>
+    <div id="edit-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto bg-black/45 px-4 py-6 backdrop-blur-sm">
+        <div class="my-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+                <h2 class="text-base font-extrabold text-emerald-900">Edit Admin</h2>
+                <button type="button" onclick="closeEditAdminModal()" class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                     </svg>
-                </div>
-                <h2 class="mt-4 text-lg font-semibold text-gray-900">Save these changes?</h2>
-                <p class="mt-1 text-sm text-gray-500">Please confirm the updated details below.</p>
-
-                <dl class="mt-4 space-y-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Name</dt>
-                        <dd id="edit-confirm-name" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Email</dt>
-                        <dd id="edit-confirm-email" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Password</dt>
-                        <dd id="edit-confirm-password" class="text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Photo</dt>
-                        <dd id="edit-confirm-avatar" class="text-sm font-medium text-gray-900"></dd>
-                    </div>
-                </dl>
-
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="backToEditAdminForm()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        Back
-                    </button>
-                    <button type="button" onclick="confirmEditAdmin()" class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition">
-                        Yes, save changes
-                    </button>
-                </div>
+                </button>
             </div>
+
+            <form method="POST" action="{{ old('_admin_action', route('admin.index')) }}" id="edit-admin-form" class="max-h-[82vh] space-y-3 overflow-y-auto px-5 py-4" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="_admin_form" value="edit">
+                <input type="hidden" name="_admin_action" id="edit-admin-action-field" value="{{ old('_admin_action') }}">
+                <input type="hidden" name="remove_avatar" id="edit-remove-avatar" value="0">
+
+                <div class="flex flex-col items-center text-center">
+                    <div class="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-700 text-2xl font-extrabold text-white ring-4 ring-emerald-50">
+                        <img id="edit-avatar-preview-img" src="" alt="" class="hidden h-full w-full rounded-full object-cover">
+                        <span id="edit-avatar-preview-initial"></span>
+                        <button type="button" id="edit-avatar-remove-btn" onclick="removeEditAvatar()" class="absolute -right-1 -top-1 hidden h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
+                            </svg>
+                        </button>
+                        <label for="edit-avatar" class="absolute bottom-0 right-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-emerald-600 text-white ring-2 ring-white transition hover:bg-emerald-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                                <circle cx="12" cy="13" r="3"/>
+                            </svg>
+                        </label>
+                        <input type="file" name="avatar" id="edit-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewEditAvatarFile(this)">
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500">Photo (optional, max 5MB)</p>
+                    @error('avatar')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label for="edit-name" class="text-xs font-extrabold text-slate-700">Full Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" id="edit-name" value="{{ old('_admin_form') === 'edit' ? old('name') : '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror" required>
+                        @error('name')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="edit-email" class="text-xs font-extrabold text-slate-700">Email <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" id="edit-email" value="{{ old('_admin_form') === 'edit' ? old('email') : '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('email') border-red-300 @enderror" required>
+                        <p class="mt-1 text-xs text-slate-500">Email changes require a backend admin action.</p>
+                        @error('email')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="edit-role" class="text-xs font-extrabold text-slate-700">Role <span class="text-red-500">*</span></label>
+                        <select name="role" id="edit-role" onchange="syncEditRoleFields()" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" required>
+                            <option value="{{ \Modules\Admin\Enums\UserRole::ADMIN->value }}" @selected(old('_admin_form') === 'edit' && old('role') === \Modules\Admin\Enums\UserRole::ADMIN->value)>Admin</option>
+                            <option value="{{ \Modules\Admin\Enums\UserRole::SUPER_ADMIN->value }}" @selected(old('_admin_form') === 'edit' && old('role') === \Modules\Admin\Enums\UserRole::SUPER_ADMIN->value)>Super Admin</option>
+                        </select>
+                    </div>
+
+                    <div id="edit-admin-location-field">
+                        <label for="edit-location" class="text-xs font-extrabold text-slate-700">Assigned Location / Office Province</label>
+                        <select name="location" id="edit-location" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <option value="" @selected(old('_admin_form') === 'edit' && blank(old('location')))>— All Locations (No restriction) —</option>
+                            @foreach ($locationOptions as $locationOption)
+                                <option value="{{ $locationOption }}" @selected(old('_admin_form') === 'edit' && old('location') === $locationOption)>{{ $locationOption }}</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs leading-snug text-slate-500">Admins assigned to a specific province will only see vehicle requests from that location.</p>
+                    </div>
+
+                    <div>
+                        <label for="edit-phone-number" class="text-xs font-extrabold text-slate-700">Phone Number <span class="text-red-500">*</span></label>
+                        <input type="text" name="phone_number" id="edit-phone-number" value="{{ old('_admin_form') === 'edit' ? old('phone_number') : '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" required>
+                    </div>
+                </div>
+
+                <div id="edit-admin-signatories-field" class="border-t border-slate-200 pt-3">
+                    <h3 class="text-xs font-extrabold text-slate-900">Trip Ticket Signatories (Approved by)</h3>
+                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                            <label for="edit-signee1-name" class="text-xs font-bold text-slate-700">Signatory 1 Name</label>
+                            <input type="text" name="signee1_name" id="edit-signee1-name" value="{{ old('_admin_form') === 'edit' ? old('signee1_name') : '' }}" placeholder="e.g. ARJAY D. BURGOS" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label for="edit-signee1-title" class="text-xs font-bold text-slate-700">Signatory 1 Title / Office</label>
+                            <input type="text" name="signee1_title" id="edit-signee1-title" value="{{ old('_admin_form') === 'edit' ? old('signee1_title') : '' }}" placeholder="e.g. OIC - APCO-Oriental Mindoro" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label for="edit-signee2-name" class="text-xs font-bold text-slate-700">Signatory 2 Name</label>
+                            <input type="text" name="signee2_name" id="edit-signee2-name" value="{{ old('_admin_form') === 'edit' ? old('signee2_name') : '' }}" placeholder="e.g. EDGARDO F. LEIDO, Jr." class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label for="edit-signee2-title" class="text-xs font-bold text-slate-700">Signatory 2 Title / Office</label>
+                            <input type="text" name="signee2_title" id="edit-signee2-title" value="{{ old('_admin_form') === 'edit' ? old('signee2_title') : '' }}" placeholder="e.g. GSS Regional Office Calapan" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-700 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-700/20 transition hover:from-emerald-600 hover:to-emerald-800">
+                    Save Changes
+                </button>
+            </form>
         </div>
     </div>
 
@@ -506,11 +453,27 @@
     </div>
 
     <style>
-        .view-toggle-btn { color: #6b7280; }
-        .view-toggle-btn.active { background: linear-gradient(to right, #059669, #16a34a); color: #fff; }
+        .view-toggle-btn { color: rgba(255, 255, 255, 0.78); }
+        .view-toggle-btn.active { background: #fff; color: #0f6b3d; }
     </style>
 
     <script>
+        function toggleAdminLocationMenu() {
+            const menu = document.getElementById('admin-location-menu');
+            const chevron = document.getElementById('admin-location-chevron');
+            menu?.classList.toggle('hidden');
+            chevron?.classList.toggle('rotate-180');
+        }
+
+        document.addEventListener('click', function (event) {
+            const menu = document.getElementById('admin-location-menu');
+            const chevron = document.getElementById('admin-location-chevron');
+            if (!menu || menu.classList.contains('hidden')) return;
+            if (event.target.closest('#admin-location-menu') || event.target.closest('[onclick="toggleAdminLocationMenu()"]')) return;
+            menu.classList.add('hidden');
+            chevron?.classList.remove('rotate-180');
+        });
+
         function applyAdminView(mode) {
             const list = document.getElementById('admin-view-list');
             const grid = document.getElementById('admin-view-grid');
@@ -593,9 +556,8 @@
 
         function openAddAdminModal() {
             const modal = document.getElementById('add-admin-modal');
-            document.getElementById('add-admin-step-confirm').classList.add('hidden');
-            document.getElementById('add-admin-step-form').classList.remove('hidden');
-            resetAvatarPreview('add-avatar', 'add-avatar-preview-img', 'add-avatar-preview-icon');
+            removeAddAvatar();
+            syncAddRoleFields();
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
@@ -606,59 +568,86 @@
             modal.classList.remove('flex');
         }
 
-        function resetAvatarPreview(inputId, imgId, iconId) {
-            document.getElementById(inputId).value = '';
-            document.getElementById(imgId).src = '';
-            document.getElementById(imgId).classList.add('hidden');
-            document.getElementById(iconId).classList.remove('hidden');
+        function syncAddRoleFields() {
+            const roleSelect = document.getElementById('add-role');
+            if (!roleSelect) return;
+
+            const role = roleSelect.value;
+            const isAdmin = role === '{{ \Modules\Admin\Enums\UserRole::ADMIN->value }}';
+            const locationField = document.getElementById('add-admin-location-field');
+            const signatoriesField = document.getElementById('add-admin-signatories-field');
+            const adminOnlyInputs = [
+                'add-location',
+                'add-signee1-name',
+                'add-signee1-title',
+                'add-signee2-name',
+                'add-signee2-title',
+            ];
+
+            [locationField, signatoriesField].forEach((field) => {
+                if (field) field.classList.toggle('hidden', !isAdmin);
+            });
+
+            adminOnlyInputs.forEach((id) => {
+                const input = document.getElementById(id);
+                if (input) input.disabled = !isAdmin;
+            });
         }
 
-        function previewAvatarFile(input, imgId, iconId) {
+        function previewAddAvatarFile(input) {
+            const warning = document.getElementById('add-avatar-warning');
+            if (warning) {
+                warning.classList.add('hidden');
+                warning.textContent = '';
+            }
+
             const file = input.files && input.files[0];
             if (!file) return;
 
+            if (file.size > 5 * 1024 * 1024) {
+                if (warning) {
+                    warning.textContent = 'Warning: Image size exceeds 5MB limit. Please select a smaller file.';
+                    warning.classList.remove('hidden');
+                } else {
+                    alert('Warning: Image size exceeds 5MB limit.');
+                }
+                input.value = '';
+                removeAddAvatar();
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = (e) => {
-                const img = document.getElementById(imgId);
+                const img = document.getElementById('add-avatar-preview-img');
                 img.src = e.target.result;
                 img.classList.remove('hidden');
-                document.getElementById(iconId).classList.add('hidden');
+                document.getElementById('add-avatar-preview-initial').classList.add('hidden');
+                const removeBtn = document.getElementById('add-avatar-remove-btn');
+                if (removeBtn) {
+                    removeBtn.classList.remove('hidden');
+                    removeBtn.classList.add('flex');
+                }
             };
             reader.readAsDataURL(file);
         }
 
-        function handleAddAdminSubmit(event) {
-            event.preventDefault();
-            const form = document.getElementById('add-admin-form');
-
-            if (!form.reportValidity()) {
-                return false;
+        function removeAddAvatar() {
+            document.getElementById('add-avatar').value = '';
+            const warning = document.getElementById('add-avatar-warning');
+            if (warning) {
+                warning.classList.add('hidden');
+                warning.textContent = '';
             }
 
-            const password = document.getElementById('add-password').value;
-            const confirmation = document.getElementById('add-password_confirmation').value;
-            if (password !== confirmation) {
-                alert('Password and confirmation do not match.');
-                return false;
+            const img = document.getElementById('add-avatar-preview-img');
+            img.src = '';
+            img.classList.add('hidden');
+            document.getElementById('add-avatar-preview-initial').classList.remove('hidden');
+            const removeBtn = document.getElementById('add-avatar-remove-btn');
+            if (removeBtn) {
+                removeBtn.classList.add('hidden');
+                removeBtn.classList.remove('flex');
             }
-
-            document.getElementById('add-confirm-name').textContent = document.getElementById('add-name').value;
-            document.getElementById('add-confirm-email').textContent = document.getElementById('add-email').value;
-            const addAvatarFile = document.getElementById('add-avatar').files[0];
-            document.getElementById('add-confirm-avatar').textContent = addAvatarFile ? addAvatarFile.name : 'None';
-
-            document.getElementById('add-admin-step-form').classList.add('hidden');
-            document.getElementById('add-admin-step-confirm').classList.remove('hidden');
-            return false;
-        }
-
-        function backToAddAdminForm() {
-            document.getElementById('add-admin-step-confirm').classList.add('hidden');
-            document.getElementById('add-admin-step-form').classList.remove('hidden');
-        }
-
-        function confirmAddAdmin() {
-            document.getElementById('add-admin-form').submit();
         }
 
         /* ---------------- Edit Admin modal ---------------- */
@@ -675,9 +664,13 @@
                 document.getElementById('edit-admin-action-field').value = btn.dataset.updateUrl;
                 document.getElementById('edit-name').value = btn.dataset.name;
                 document.getElementById('edit-email').value = btn.dataset.email;
-                document.getElementById('edit-admin-subtitle').textContent = "Update " + btn.dataset.name + "'s details. Leave password blank to keep it unchanged.";
-                document.getElementById('edit-password').value = '';
-                document.getElementById('edit-password_confirmation').value = '';
+                document.getElementById('edit-role').value = btn.dataset.roleValue || '{{ \Modules\Admin\Enums\UserRole::ADMIN->value }}';
+                document.getElementById('edit-phone-number').value = btn.dataset.phoneNumber || '';
+                document.getElementById('edit-location').value = btn.dataset.location || '';
+                document.getElementById('edit-signee1-name').value = btn.dataset.signee1Name || '';
+                document.getElementById('edit-signee1-title').value = btn.dataset.signee1Title || '';
+                document.getElementById('edit-signee2-name').value = btn.dataset.signee2Name || '';
+                document.getElementById('edit-signee2-title').value = btn.dataset.signee2Title || '';
 
                 const img = document.getElementById('edit-avatar-preview-img');
                 const initial = document.getElementById('edit-avatar-preview-initial');
@@ -687,21 +680,44 @@
                     img.classList.remove('hidden');
                     initial.classList.add('hidden');
                     removeBtn.classList.remove('hidden');
+                    removeBtn.classList.add('flex');
                 } else {
                     img.src = '';
                     img.classList.add('hidden');
                     initial.classList.remove('hidden');
                     initial.textContent = btn.dataset.initial || '';
                     removeBtn.classList.add('hidden');
+                    removeBtn.classList.remove('flex');
                 }
             }
             // When re-opened automatically after a validation error, the form
             // already has the posted values (action + old input) rendered server-side.
 
-            document.getElementById('edit-admin-step-confirm').classList.add('hidden');
-            document.getElementById('edit-admin-step-form').classList.remove('hidden');
+            syncEditRoleFields();
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+        }
+
+        function syncEditRoleFields() {
+            const role = document.getElementById('edit-role').value;
+            const isAdmin = role === '{{ \Modules\Admin\Enums\UserRole::ADMIN->value }}';
+            const locationField = document.getElementById('edit-admin-location-field');
+            const signatoriesField = document.getElementById('edit-admin-signatories-field');
+            const adminOnlyInputs = [
+                'edit-location',
+                'edit-signee1-name',
+                'edit-signee1-title',
+                'edit-signee2-name',
+                'edit-signee2-title',
+            ];
+
+            [locationField, signatoriesField].forEach((field) => {
+                field.classList.toggle('hidden', !isAdmin);
+            });
+
+            adminOnlyInputs.forEach((id) => {
+                document.getElementById(id).disabled = !isAdmin;
+            });
         }
 
         function previewEditAvatarFile(input) {
@@ -717,6 +733,7 @@
                 img.classList.remove('hidden');
                 document.getElementById('edit-avatar-preview-initial').classList.add('hidden');
                 document.getElementById('edit-avatar-remove-btn').classList.remove('hidden');
+                document.getElementById('edit-avatar-remove-btn').classList.add('flex');
             };
             reader.readAsDataURL(file);
         }
@@ -730,6 +747,7 @@
             img.classList.add('hidden');
             document.getElementById('edit-avatar-preview-initial').classList.remove('hidden');
             document.getElementById('edit-avatar-remove-btn').classList.add('hidden');
+            document.getElementById('edit-avatar-remove-btn').classList.remove('flex');
         }
 
         function closeEditAdminModal() {
@@ -835,6 +853,42 @@
                 })
                 .finally(() => {
                     spinner.classList.add('hidden');
+                });
+        }
+
+        function changePerPage(size) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', size);
+            url.searchParams.set('page', '1');
+            fetchAndSwapAdminResults(url);
+        }
+
+        function goToAdminPage(page) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('page', page);
+            fetchAndSwapAdminResults(url);
+        }
+
+        function fetchAndSwapAdminResults(url) {
+            const spinner = document.getElementById('admin-search-spinner');
+            if (spinner) spinner.classList.remove('hidden');
+
+            fetch(url.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+                .then((response) => response.text())
+                .then((html) => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const fresh = doc.getElementById('admin-results');
+                    if (fresh) {
+                        document.getElementById('admin-results').innerHTML = fresh.innerHTML;
+                        applyAdminView(currentAdminViewMode());
+                    }
+                    window.history.replaceState({}, '', url.toString());
+                })
+                .catch((error) => console.error('Admin pagination failed', error))
+                .finally(() => {
+                    if (spinner) spinner.classList.add('hidden');
                 });
         }
     </script>

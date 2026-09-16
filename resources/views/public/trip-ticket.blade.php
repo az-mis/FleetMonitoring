@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trip Ticket {{ $requestRecord->trip_ticket_number }}</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>@media print {.no-print{display:none!important} body{background:#fff!important}.ticket{box-shadow:none!important;border:1px solid #d1d5db!important}}</style>
+</head>
+<body class="min-h-screen bg-gray-100 p-4 text-gray-900 sm:p-8">
+    <div class="no-print mx-auto mb-4 flex max-w-3xl justify-end gap-2"><a href="{{ route('check-status', ['code' => $requestRecord->reference_code]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">Back</a><button onclick="window.print()" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white">Print Trip Ticket</button></div>
+    <article class="ticket mx-auto max-w-3xl rounded-xl border border-gray-200 bg-white p-6 shadow-lg sm:p-10">
+        <header class="border-b-2 border-gray-900 pb-5 text-center"><img src="{{ asset('trip-ticket-header.png') }}" alt="Department of Agriculture" class="mx-auto mb-4 h-16 object-contain"><p class="text-xs font-semibold uppercase tracking-widest">Official Government Fleet Management System</p><h1 class="mt-2 text-2xl font-bold uppercase">Driver's Trip Ticket</h1><p class="mt-2 font-mono text-sm">Ticket No. {{ $requestRecord->trip_ticket_number }}</p></header>
+        <div class="mt-6 grid gap-4 text-sm sm:grid-cols-2"><div><p class="text-xs uppercase text-gray-500">Requester</p><p class="font-semibold">{{ $requestRecord->requester_name }}</p></div><div><p class="text-xs uppercase text-gray-500">Office / Location</p><p class="font-semibold">{{ $requestRecord->requester_office ?: $requestRecord->location }}</p></div><div><p class="text-xs uppercase text-gray-500">Destination</p><p class="font-semibold">{{ $requestRecord->destination }}</p></div><div><p class="text-xs uppercase text-gray-500">Travel date</p><p class="font-semibold">{{ $requestRecord->travel_date->format('F j, Y') }}{{ $requestRecord->travel_date_end ? ' – ' . $requestRecord->travel_date_end->format('F j, Y') : '' }}</p></div><div><p class="text-xs uppercase text-gray-500">Vehicle</p><p class="font-semibold">{{ $requestRecord->vehicle?->plate_number }} · {{ $requestRecord->vehicle?->brand }} {{ $requestRecord->vehicle?->model }}</p></div><div><p class="text-xs uppercase text-gray-500">Driver</p><p class="font-semibold">{{ $requestRecord->confirmedDriver?->name ?: 'To be assigned' }}</p></div></div>
+        <section class="mt-6 rounded-lg border border-gray-200 p-4"><h2 class="text-xs font-bold uppercase tracking-wide">Official purpose</h2><p class="mt-2 whitespace-pre-line text-sm">{{ $requestRecord->purpose }}</p></section>
+        @if($requestRecord->passengers)<section class="mt-4"><h2 class="text-xs font-bold uppercase tracking-wide">Passengers</h2><p class="mt-2 text-sm">{{ implode(', ', $requestRecord->passengers) }}</p></section>@endif
+        <div class="mt-14 grid gap-10 text-center text-sm sm:grid-cols-3"><div class="border-t border-gray-900 pt-2"><p class="font-semibold">{{ $officer?->signee1_name ?: ($requestRecord->approvedBy?->name ?: 'Authorized Approver') }}</p><p class="text-xs text-gray-500">{{ $officer?->signee1_title ?: 'Approving Officer' }}</p></div><div class="border-t border-gray-900 pt-2"><p class="font-semibold">{{ $officer?->signee2_name ?: '________________' }}</p><p class="text-xs text-gray-500">{{ $officer?->signee2_title ?: 'Approving Officer' }}</p></div><div class="border-t border-gray-900 pt-2"><p class="font-semibold">{{ $requestRecord->confirmedDriver?->name ?: '________________' }}</p><p class="text-xs text-gray-500">Driver's signature / name</p></div></div>
+        <footer class="mt-10 border-t pt-4 text-center text-[10px] text-gray-500">Reference code: {{ $requestRecord->reference_code }} · Approved {{ optional($requestRecord->approved_at)->format('F j, Y') }}</footer>
+    </article>
+</body>
+</html>

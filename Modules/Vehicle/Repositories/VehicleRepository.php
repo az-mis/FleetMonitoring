@@ -47,6 +47,7 @@ class VehicleRepository implements VehicleRepositoryInterface
             'odometer' => $data['odometer'],
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
+            'location' => $data['location'] ?? null,
         ]);
     }
 
@@ -63,6 +64,7 @@ class VehicleRepository implements VehicleRepositoryInterface
             'odometer' => $data['odometer'],
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
+            'location' => $data['location'] ?? null,
         ]);
 
         if (!empty($data['photo'])) {

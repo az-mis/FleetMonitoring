@@ -9,29 +9,47 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Modules\Admin\Enums\UserRole;
+use Modules\ApprovingOfficer\Models\ApprovingOfficer;
 
 class AdminRepository implements AdminRepositoryInterface
 {
-    public function paginate(int $perPage = 15, ?string $search = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator
     {
         return User::query()
-            ->where('role', UserRole::ADMIN->value)
+            ->whereIn('role', [UserRole::SUPER_ADMIN->value, UserRole::ADMIN->value])
             ->when($search, fn($q) => $q->where(fn($inner) => $inner
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")))
+            ->when($location, fn($q) => $q->where('location', $location))
             ->latest()
             ->paginate($perPage);
     }
 
     public function create(array $data): User
     {
-        return User::create([
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => $data['role'],
             'avatar' => $this->storeAvatar($data['avatar'] ?? null),
+            'phone_number' => $data['phone_number'] ?? null,
+            'location' => $data['role'] === UserRole::ADMIN->value ? ($data['location'] ?? null) : null,
         ]);
+        if ($data['role'] === UserRole::ADMIN->value && !empty($data['location']) && array_key_exists('signee1_name', $data)) {
+            ApprovingOfficer::query()->updateOrCreate(
+                ['location' => $data['location']],
+                [
+                    'signee1_name' => $data['signee1_name'] ?? null,
+                    'signee1_title' => $data['signee1_title'] ?? null,
+                    'signee2_name' => $data['signee2_name'] ?? null,
+                    'signee2_title' => $data['signee2_title'] ?? null,
+                    'updated_by' => auth()->id(),
+                ],
+            );
+        }
+
+        return $user;
     }
 
     public function update(User $admin, array $data): User
@@ -40,6 +58,8 @@ class AdminRepository implements AdminRepositoryInterface
             'name' => $data['name'],
             'email' => $data['email'],
             'role' => $data['role'],
+            'phone_number' => $data['phone_number'] ?? null,
+            'location' => $data['location'] ?? null,
         ]);
 
         if (!empty($data['password'])) {
@@ -55,6 +75,19 @@ class AdminRepository implements AdminRepositoryInterface
         }
 
         $admin->save();
+
+        if (!empty($data['location']) && array_key_exists('signee1_name', $data)) {
+            ApprovingOfficer::query()->updateOrCreate(
+                ['location' => $data['location']],
+                [
+                    'signee1_name' => $data['signee1_name'] ?? null,
+                    'signee1_title' => $data['signee1_title'] ?? null,
+                    'signee2_name' => $data['signee2_name'] ?? null,
+                    'signee2_title' => $data['signee2_title'] ?? null,
+                    'updated_by' => auth()->id(),
+                ],
+            );
+        }
 
         return $admin;
     }

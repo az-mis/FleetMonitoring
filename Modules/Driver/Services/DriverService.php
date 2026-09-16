@@ -15,9 +15,9 @@ class DriverService
     ) {
     }
 
-    public function list(?string $search = null): LengthAwarePaginator
+    public function list(?string $search = null, ?string $location = null, int $perPage = 10): LengthAwarePaginator
     {
-        return $this->repository->paginate(search: $search);
+        return $this->repository->paginate(perPage: $perPage, search: $search, location: $location);
     }
 
     public function createDriver(array $data): User

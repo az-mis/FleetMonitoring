@@ -51,6 +51,19 @@
                 @enderror
             </div>
 
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone number</label>
+                    <input type="text" name="phone_number" id="phone_number" value="{{ old('phone_number', $admin->phone_number) }}" class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('phone_number') border-red-300 @enderror" required>
+                    @error('phone_number') <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700">Office / Location</label>
+                    <input type="text" name="location" id="location" value="{{ old('location', $admin->location) }}" placeholder="e.g. Oriental Mindoro" class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('location') border-red-300 @enderror" required>
+                    @error('location') <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700">Role</label>
                 <div class="mt-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">

@@ -1,4 +1,4 @@
-@props(['admin'])
+@props(['admin', 'officer' => null])
 
 <div class="flex items-center justify-end gap-1">
     <button
@@ -27,6 +27,13 @@
         data-email="{{ $admin->email }}"
         data-avatar="{{ $admin->avatar_url }}"
         data-initial="{{ Illuminate\Support\Str::upper(Illuminate\Support\Str::substr($admin->name, 0, 1)) }}"
+        data-role-value="{{ $admin->role->value }}"
+        data-phone-number="{{ $admin->phone_number }}"
+        data-location="{{ $admin->location }}"
+        data-signee1-name="{{ $officer?->signee1_name }}"
+        data-signee1-title="{{ $officer?->signee1_title }}"
+        data-signee2-name="{{ $officer?->signee2_name }}"
+        data-signee2-title="{{ $officer?->signee2_title }}"
         data-update-url="{{ route('admin.update', $admin) }}"
         title="Edit"
         class="rounded-lg p-2 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition"

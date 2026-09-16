@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'role', 'avatar', 'birth_date', 'address', 'license_front', 'license_back', 'license_expiration_date'])]
+#[Fillable(['name', 'email', 'password', 'role', 'avatar', 'phone_number', 'location', 'birth_date', 'address', 'license_number', 'license_front', 'license_back', 'license_expiration_date'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -62,5 +62,10 @@ class User extends Authenticatable
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
             get: fn () => $this->birth_date ? $this->birth_date->age : null,
         );
+    }
+
+    public function assignedVehicles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\Modules\Vehicle\Models\Vehicle::class, 'assigned_driver_id');
     }
 }

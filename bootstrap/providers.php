@@ -5,6 +5,9 @@ use Modules\Admin\Providers\AdminServiceProvider;
 use Modules\Authentication\Providers\AuthenticationServiceProvider;
 use Modules\Driver\Providers\DriverServiceProvider;
 use Modules\Vehicle\Providers\VehicleServiceProvider;
+use Modules\VehicleRequest\Providers\VehicleRequestServiceProvider;
+use Modules\ApprovingOfficer\Providers\ApprovingOfficerServiceProvider;
+use Modules\Settings\Providers\SettingsServiceProvider;
 
 return [
     AppServiceProvider::class,
@@ -12,4 +15,7 @@ return [
     AdminServiceProvider::class,
     DriverServiceProvider::class,
     VehicleServiceProvider::class,
+    VehicleRequestServiceProvider::class,
+    ApprovingOfficerServiceProvider::class,
+    SettingsServiceProvider::class,
 ];
