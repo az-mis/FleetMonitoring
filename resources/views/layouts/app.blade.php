@@ -58,14 +58,18 @@
             display: none !important;
         }
 
-        /* Animated Toast Banner Entry */
+        /* Animated Toast Banner Entry with Spring Popdown */
         @keyframes toastSlideDown {
             0% {
                 opacity: 0;
-                transform: translate(-50%, -20px) scale(0.95);
+                transform: translate(-50%, -40px) scale(0.9);
             }
-            70% {
-                transform: translate(-50%, 4px) scale(1.02);
+            60% {
+                opacity: 1;
+                transform: translate(-50%, 8px) scale(1.03);
+            }
+            85% {
+                transform: translate(-50%, -2px) scale(0.99);
             }
             100% {
                 opacity: 1;
@@ -73,7 +77,7 @@
             }
         }
         .toast-animate-in {
-            animation: toastSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: toastSlideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
     </style>
 </head>
