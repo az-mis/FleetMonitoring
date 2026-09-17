@@ -730,7 +730,8 @@
                                 Decline
                             </button>
                             <button
-                                type="submit"
+                                type="button"
+                                onclick="openApprovalConfirm()"
                                 id="modal-approve-action-btn"
                                 class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center"
                             >
@@ -738,6 +739,51 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Confirm Request Approval Modal --}}
+    <div id="confirm-approval-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl transition-all scale-100">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Confirm Request Approval?</h4>
+                <button type="button" onclick="closeApprovalConfirm()" class="text-slate-400 hover:text-slate-600 text-base font-bold cursor-pointer leading-none">&times;</button>
+            </div>
+
+            <div class="mt-3.5 space-y-3">
+                <div class="flex items-start gap-2.5 rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-3 text-xs text-slate-700">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 font-bold">
+                        ⚠️
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-800">
+                            Are you sure you want to approve this travel request for <strong id="confirm-modal-requester" class="font-extrabold text-slate-900"></strong>?
+                        </p>
+                        <div class="mt-2 space-y-0.5 text-[11px] text-slate-600 font-medium">
+                            <p>&bull; Vehicle: <span id="confirm-modal-vehicle" class="font-bold text-slate-800"></span></p>
+                            <p>&bull; Destination: <span id="confirm-modal-destination" class="font-bold text-slate-800"></span></p>
+                            <p>&bull; Assigned Driver: <span id="confirm-modal-driver" class="font-bold text-slate-800"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button
+                        type="button"
+                        onclick="closeApprovalConfirm()"
+                        class="flex-1 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onclick="submitApprovalForm()"
+                        class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                    >
+                        Yes, Approve Request
+                    </button>
                 </div>
             </div>
         </div>
@@ -794,6 +840,33 @@
 
         function closeReviewModal() {
             document.getElementById('review-modal').classList.add('hidden');
+        }
+
+        function openApprovalConfirm() {
+            document.getElementById('confirm-modal-requester').textContent = document.getElementById('modal-detail-requester').textContent;
+            document.getElementById('confirm-modal-vehicle').textContent = document.getElementById('modal-detail-vehicle').textContent;
+            document.getElementById('confirm-modal-destination').textContent = document.getElementById('modal-detail-destination').textContent;
+
+            const isYesDriver = !document.getElementById('modal-driver-select-container').classList.contains('hidden');
+            let driverName = document.getElementById('modal-driver-name').textContent;
+            if (isYesDriver) {
+                const sel = document.getElementById('modal-driver-select');
+                if (sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].text) {
+                    driverName = sel.options[sel.selectedIndex].text.split('(')[0].trim();
+                }
+            }
+            document.getElementById('confirm-modal-driver').textContent = driverName;
+
+            document.getElementById('confirm-approval-modal').classList.remove('hidden');
+        }
+
+        function closeApprovalConfirm() {
+            document.getElementById('confirm-approval-modal').classList.add('hidden');
+        }
+
+        function submitApprovalForm() {
+            document.getElementById('modal-status-input').value = 'approved';
+            document.getElementById('review-form').submit();
         }
 
         function copyModalCode() {

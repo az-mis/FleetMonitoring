@@ -57,6 +57,24 @@
         #sidebar.sidebar-collapsed #sidebar-close-btn {
             display: none !important;
         }
+
+        /* Animated Toast Banner Entry */
+        @keyframes toastSlideDown {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -20px) scale(0.95);
+            }
+            70% {
+                transform: translate(-50%, 4px) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, 0) scale(1);
+            }
+        }
+        .toast-animate-in {
+            animation: toastSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="antialiased bg-gray-50 text-gray-900">
@@ -381,7 +399,7 @@
 
             <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
                 @if (session('success'))
-                    <div id="flash-success" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white p-3.5 shadow-xl shadow-gray-900/10 min-w-[280px] max-w-md transition-opacity duration-300">
+                    <div id="flash-success" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white p-3.5 shadow-xl shadow-gray-900/10 min-w-[280px] max-w-md transition-all duration-300">
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 6 9 17l-5-5"/>
@@ -402,6 +420,7 @@
                             const el = document.getElementById('flash-success');
                             if (el) {
                                 el.style.opacity = '0';
+                                el.style.transform = 'translate(-50%, -20px)';
                                 setTimeout(() => el.remove(), 300);
                             }
                         }, 5000);
@@ -409,7 +428,7 @@
                 @endif
 
                 @if (session('error'))
-                    <div id="flash-error" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-start gap-3 rounded-2xl border border-red-100 bg-white p-3.5 shadow-xl shadow-gray-900/10 min-w-[280px] max-w-md transition-opacity duration-300">
+                    <div id="flash-error" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-start gap-3 rounded-2xl border border-red-100 bg-white p-3.5 shadow-xl shadow-gray-900/10 min-w-[280px] max-w-md transition-all duration-300">
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -430,6 +449,7 @@
                             const el = document.getElementById('flash-error');
                             if (el) {
                                 el.style.opacity = '0';
+                                el.style.transform = 'translate(-50%, -20px)';
                                 setTimeout(() => el.remove(), 300);
                             }
                         }, 5000);

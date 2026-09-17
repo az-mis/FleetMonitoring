@@ -88,7 +88,8 @@ class VehicleRequestController
         }
         $vehicleRequest->update($updates);
 
-        return back()->with('success', 'Vehicle request status updated.');
+        $actionText = $data['status'] === 'approved' ? 'approved.' : 'declined.';
+        return back()->with('success', "Request from {$vehicleRequest->requester_name} {$actionText}");
     }
 
     public function tripTicket(VehicleRequest $vehicleRequest): View
