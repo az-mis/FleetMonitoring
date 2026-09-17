@@ -40,8 +40,20 @@
         </section>
 
         @if($isAdmin)
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                @foreach([['Pending Requests', $requestCounts['pending'] ?? 0, 'amber', '◷'], ['Approved Trips', $requestCounts['approved'] ?? 0, 'emerald', '✓'], ['Total Vehicles', $vehicleCount, 'blue', '▣'], ['Total Drivers', $driverCount, 'violet', '♙'], ['Admins', $adminCount, 'orange', '♢']] as [$label, $value, $color, $icon])
+            @php
+                $isSuperAdmin = $user?->role?->value === 'super_admin';
+                $kpiCards = [
+                    ['Pending Requests', $requestCounts['pending'] ?? 0, 'amber', '◷'],
+                    ['Approved Trips', $requestCounts['approved'] ?? 0, 'emerald', '✓'],
+                    ['Total Vehicles', $vehicleCount, 'blue', '▣'],
+                    ['Total Drivers', $driverCount, 'violet', '♙'],
+                ];
+                if ($isSuperAdmin) {
+                    $kpiCards[] = ['Admins', $adminCount, 'orange', '♢'];
+                }
+            @endphp
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-{{ count($kpiCards) }}">
+                @foreach($kpiCards as [$label, $value, $color, $icon])
                     <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"><div class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-{{ $color }}-100 text-{{ $color }}-700">{{ $icon }}</span><div><p class="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{{ $label }}</p><p class="text-xl font-bold text-gray-900">{{ $value }}</p></div></div></div>
                 @endforeach
             </div>
