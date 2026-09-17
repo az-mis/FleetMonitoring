@@ -14,4 +14,9 @@ class FleetSetting extends Model
     {
         return ['setting_value' => 'array'];
     }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+    }
 }
