@@ -62,8 +62,9 @@
 <body class="antialiased bg-gray-50 text-gray-900">
     @php
         $user = auth()->user();
+        $isSuperAdmin = $user?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN;
         $hasPhoto = filled($user?->avatar_url ?? null);
-        $vehiclesOpen = request()->routeIs('vehicles.*') || request()->routeIs('vehicle-assigning.*');
+        $vehiclesOpen = request()->routeIs('vehicles.*') || request()->routeIs('vehicle-assigning.*') || request()->is('vehicles*') || request()->is('vehicle-assigning*');
         $moduleFlags = ['vehicles' => true, 'vehicleAssigning' => true, 'vehicleRequests' => true, 'drivers' => true];
         try {
             $storedFlags = \Modules\Settings\Models\FleetSetting::where('setting_key', 'admin_modules')->value('setting_value');
@@ -71,6 +72,24 @@
         } catch (\Throwable $exception) {
             // Keep defaults until the settings migration is available.
         }
+
+        $currentModuleKey = null;
+        $currentModuleName = '';
+        if (request()->routeIs('driver.*') || request()->is('driver*')) {
+            $currentModuleKey = 'drivers';
+            $currentModuleName = 'Drivers Management';
+        } elseif (request()->routeIs('vehicles.*') || request()->is('vehicles*')) {
+            $currentModuleKey = 'vehicles';
+            $currentModuleName = 'Vehicles List';
+        } elseif (request()->routeIs('vehicle-assigning.*') || request()->is('vehicle-assigning*')) {
+            $currentModuleKey = 'vehicleAssigning';
+            $currentModuleName = 'Vehicle Assigning';
+        } elseif (request()->routeIs('vehicle-requests.*') || request()->is('vehicle-requests*')) {
+            $currentModuleKey = 'vehicleRequests';
+            $currentModuleName = 'Travel Requests';
+        }
+
+        $isModuleLocked = !$isSuperAdmin && $currentModuleKey && !($moduleFlags[$currentModuleKey] ?? true);
     @endphp
 
     <div class="flex h-screen overflow-hidden">
@@ -87,7 +106,7 @@
             class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-[#005a36] transition-all duration-200 ease-in-out md:static md:w-64 md:translate-x-0 md:shrink-0"
         >
             <div class="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-                <img src="{{ asset('da-logo.png') }}" alt="Agency logo" class="h-8 w-8 shrink-0 rounded-full bg-white object-contain p-0.5 shadow">
+                <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-8 w-8 shrink-0 rounded-full bg-white object-contain p-0.5 shadow">
                 <div class="sidebar-label-block leading-tight">
                     <p class="text-sm font-extrabold text-white">Fleet Management</p>
                 </div>
@@ -147,7 +166,6 @@
                 @endcan
 
                 @can('manage-drivers')
-                @if($moduleFlags['drivers'])
                     <a
                         href="{{ route('driver.index') }}"
                         title="Drivers"
@@ -159,9 +177,16 @@
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
-                        <span class="sidebar-label">Drivers</span>
+                        <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
+                            <span>Drivers</span>
+                            @if(!$isSuperAdmin && !($moduleFlags['drivers'] ?? true))
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            @endif
+                        </span>
                     </a>
-                @endif
                 @endcan
                 @if (auth()->user()?->role?->value === 'driver')
                     <a href="{{ route('travel-history') }}" title="Travel History" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('travel-history') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
@@ -171,7 +196,6 @@
                 @endif
 
                 @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
-                    @if ($moduleFlags['vehicles'])
                     <div id="vehicles-menu-container" class="{{ $vehiclesOpen ? 'rounded-lg bg-white/10' : '' }}">
                         <button
                             type="button"
@@ -185,27 +209,47 @@
                                 <circle cx="7" cy="17" r="2"/>
                                 <circle cx="17" cy="17" r="2"/>
                             </svg>
-                            <span class="sidebar-label">Vehicles</span>
+                            <span class="sidebar-label flex flex-1 items-center justify-between min-w-0 pr-1">
+                                <span>Vehicles</span>
+                                @if(!$isSuperAdmin && (!($moduleFlags['vehicles'] ?? true) && !($moduleFlags['vehicleAssigning'] ?? true)))
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                @endif
+                            </span>
                             <svg id="vehicles-chevron" xmlns="http://www.w3.org/2000/svg" class="sidebar-label ml-auto h-4 w-4 transition-transform duration-200 {{ $vehiclesOpen ? 'rotate-180' : '' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m6 9 6 6 6-6"/>
                             </svg>
                         </button>
                         <div id="vehicles-submenu" class="sidebar-label-block {{ $vehiclesOpen ? '' : 'hidden' }} space-y-1 pb-2 pl-8 pr-2">
-                            <a href="{{ route('vehicles.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('vehicles.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/></svg>
-                                Vehicles List
+                            <a href="{{ route('vehicles.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs font-medium {{ (request()->routeIs('vehicles.*') || request()->is('vehicles*')) ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/></svg>
+                                    Vehicles List
+                                </span>
+                                @if(!$isSuperAdmin && !($moduleFlags['vehicles'] ?? true))
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                @endif
                             </a>
-                            @if ($moduleFlags['vehicleAssigning'])
-                                <a href="{{ route('vehicle-assigning.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('vehicle-assigning.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
+                            <a href="{{ route('vehicle-assigning.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs font-medium {{ (request()->routeIs('vehicle-assigning.*') || request()->is('vehicle-assigning*')) ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
+                                <span class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>
                                     Vehicle Assigning
-                                </a>
-                            @endif
+                                </span>
+                                @if(!$isSuperAdmin && !($moduleFlags['vehicleAssigning'] ?? true))
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                @endif
+                            </a>
                         </div>
                     </div>
-                    @endif
 
-                    @if ($moduleFlags['vehicleRequests'])
                     <a
                         href="{{ route('vehicle-requests.index') }}"
                         title="Travel Requests"
@@ -216,16 +260,23 @@
                             <rect width="16" height="16" x="4" y="5" rx="2"/>
                             <path d="M8 11h8M8 15h5"/>
                         </svg>
-                        <span class="sidebar-label">Travel Requests</span>
+                        <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
+                            <span>Travel Requests</span>
+                            @if(!$isSuperAdmin && !($moduleFlags['vehicleRequests'] ?? true))
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            @endif
+                        </span>
                     </a>
-                    @endif
 
                     <a href="{{ route('approving-officers.index') }}" title="Approving Officers" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('approving-officers.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="m16 18 2 2 4-4"/></svg>
                         <span class="sidebar-label">Approving Officers</span>
                     </a>
 
-                    @if (auth()->user()?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN)
+                    @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
                         <a href="{{ route('content-settings') }}" title="Content Settings" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('content-settings*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>
                             <span class="sidebar-label">Content Settings</span>
@@ -269,10 +320,6 @@
                         <span class="sidebar-label">Logout</span>
                     </button>
                 </div>
-
-                <div class="sidebar-footer-text pt-1 text-center text-[10px] font-semibold text-emerald-200/60">
-                    Powered by DA-MIMAROPA MIS
-                </div>
             </div>
         </aside>
 
@@ -281,7 +328,7 @@
             {{-- Topbar --}}
             <header class="relative flex min-h-[60px] items-center justify-between border-b border-emerald-800/30 bg-[#0f5d33] px-4 py-3 shadow-sm sm:border-gray-200 sm:bg-white sm:px-6">
                 <div class="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5">
-                    <img src="{{ asset('da-logo.png') }}" alt="Agency logo" class="h-8 w-8 rounded-full object-contain">
+                    <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-8 w-8 rounded-full object-contain">
                     <span class="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:hidden">FMS</span>
                     <span class="hidden whitespace-nowrap text-lg font-bold tracking-tight text-[#155f35] sm:inline">Fleet Management System</span>
                 </div>
@@ -373,7 +420,38 @@
                     </script>
                 @endif
 
-                @yield('content')
+                @if ($isModuleLocked)
+                    <div class="mx-auto max-w-3xl py-12 px-4 text-center">
+                        <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-amber-50 text-amber-600 ring-8 ring-amber-50/50 shadow-sm border border-amber-200/60 mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                        
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 px-3.5 py-1 text-xs font-extrabold text-amber-800 ring-1 ring-amber-200/80 mb-3 shadow-xs">
+                            <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            Module Access Restricted
+                        </span>
+
+                        <h2 class="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{{ $currentModuleName }} Disabled</h2>
+                        
+                        <p class="mt-3 text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+                            Access to this feature has been temporarily disabled by your <strong>Super Admin</strong>. Please refer to your Super Admin for more information.
+                        </p>
+
+                        <div class="mt-8 flex justify-center gap-3">
+                            <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-emerald-800 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                                </svg>
+                                Return to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                @else
+                    @yield('content')
+                @endif
             </main>
         </div>
     </div>
@@ -530,6 +608,8 @@
             }
         }
     </script>
+
+    @stack('scripts')
 </body>
 </html>
 
