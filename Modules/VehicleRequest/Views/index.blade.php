@@ -418,9 +418,27 @@
                                 {{-- Action --}}
                                 <td class="whitespace-nowrap px-3 py-3 text-right">
                                     @if($item->status === 'pending')
+                                        @php
+                                            $modalData = [
+                                                'id' => $item->id,
+                                                'code' => $item->reference_code,
+                                                'requester' => $item->requester_name,
+                                                'location' => $item->location,
+                                                'is_passenger' => $item->requester_is_passenger,
+                                                'office' => $item->requester_office ?: $item->location,
+                                                'contact' => $item->requester_contact ?: '—',
+                                                'vehicle' => $item->vehicle?->plate_number ? ($item->vehicle->plate_number . ' · ' . $item->vehicle->brand . ' ' . $item->vehicle->model) : 'Unassigned',
+                                                'destination' => $item->destination,
+                                                'travel_date' => $item->travel_date->format('M d, Y') . ($item->travel_date_end ? (' – ' . $item->travel_date_end->format('M d, Y')) : ''),
+                                                'purpose' => $item->purpose,
+                                                'passengers' => is_array($item->passengers) ? implode(', ', array_filter($item->passengers)) : '',
+                                                'driver_id' => $item->vehicle?->assigned_driver_id,
+                                                'driver_name' => $item->vehicle?->assignedDriver?->name ?? 'Assigned Driver',
+                                            ];
+                                        @endphp
                                         <button
                                             type="button"
-                                            onclick="openReviewModal({{ $item->id }}, '{{ addslashes($item->requester_name) }}', '{{ addslashes($item->vehicle?->plate_number ?? 'Unassigned') }}', '{{ addslashes($item->destination) }}', {{ $item->vehicle?->assigned_driver_id ?? 'null' }})"
+                                            onclick='openReviewModal(@json($modalData))'
                                             class="inline-flex items-center justify-center rounded-lg bg-[#008751] hover:bg-[#007345] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
                                         >
                                             Review
@@ -483,88 +501,281 @@
         </div>
     @endif
 
-    {{-- Review Modal --}}
-    <div id="review-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 class="text-base font-extrabold text-slate-800">Review Travel Request</h3>
-                <button type="button" onclick="closeReviewModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">&times;</button>
+    {{-- Review Request Modal --}}
+    <div id="review-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-xs">
+        <div class="w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Review Request</h3>
+                <button type="button" onclick="closeReviewModal()" class="text-slate-400 hover:text-slate-600 text-base font-bold cursor-pointer leading-none">&times;</button>
             </div>
 
-            <div class="mt-4 space-y-2 text-xs">
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-semibold uppercase">Requester:</span>
-                    <span class="font-bold text-slate-800" id="modal-requester"></span>
+            <div class="mt-2.5 overflow-y-auto pr-1 space-y-2.5 text-xs flex-1">
+                {{-- Request Reference Code Banner --}}
+                <div class="rounded-xl border border-blue-200 bg-blue-50/70 p-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <div>
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-blue-600">REQUEST REFERENCE CODE</p>
+                            <p class="text-sm font-black font-mono tracking-widest text-slate-900 leading-tight mt-0.5" id="modal-ref-code"></p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="copyModalCode()"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                            </svg>
+                            <span id="modal-copy-btn-txt">Copy Code</span>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-1">The requester can use this code to check or ask about this pending request.</p>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-semibold uppercase">Vehicle:</span>
-                    <span class="font-bold text-slate-800" id="modal-vehicle"></span>
+
+                {{-- Key-Value Details List with Icons (Compact) --}}
+                <div class="grid grid-cols-1 gap-2 pl-0.5">
+                    {{-- Requester --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">REQUESTER</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-requester"></p>
+                        </div>
+                    </div>
+
+                    {{-- Location --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                            <path d="M2 12h20"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">LOCATION</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-location"></p>
+                        </div>
+                    </div>
+
+                    {{-- Riding Along --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">RIDING ALONG</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-riding"></p>
+                        </div>
+                    </div>
+
+                    {{-- Office --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                            <path d="M10 6h4"/>
+                            <path d="M10 10h4"/>
+                            <path d="M10 14h4"/>
+                            <path d="M10 18h4"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">OFFICE</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-office"></p>
+                        </div>
+                    </div>
+
+                    {{-- Contact --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">CONTACT</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-contact"></p>
+                        </div>
+                    </div>
+
+                    {{-- Vehicle --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 17h4V5H2v12h3"/>
+                            <path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/>
+                            <circle cx="7" cy="17" r="2"/>
+                            <circle cx="17" cy="17" r="2"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">VEHICLE</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-vehicle"></p>
+                        </div>
+                    </div>
+
+                    {{-- Destination --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">DESTINATION</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-destination"></p>
+                        </div>
+                    </div>
+
+                    {{-- Travel Date --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">TRAVEL DATE</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-travel-date"></p>
+                        </div>
+                    </div>
+
+                    {{-- Purpose --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">PURPOSE</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-purpose"></p>
+                        </div>
+                    </div>
+
+                    {{-- Passengers --}}
+                    <div class="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">PASSENGERS</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-passengers"></p>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-semibold uppercase">Destination:</span>
-                    <span class="font-bold text-slate-800" id="modal-destination"></span>
+
+                <div class="pt-2 border-t border-gray-100">
+                    <form id="review-form" method="POST" action="" class="space-y-2.5">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="status" id="modal-status-input" value="approved">
+
+                        {{-- Driver Availability Selection --}}
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-800 mb-1.5">
+                                Is <span id="modal-driver-name" class="font-extrabold"></span> available for this trip?
+                            </p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    id="driver-avail-yes-btn"
+                                    onclick="setDriverAvailability(true)"
+                                    class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                >
+                                    Yes, available
+                                </button>
+                                <button
+                                    type="button"
+                                    id="driver-avail-no-btn"
+                                    onclick="setDriverAvailability(false)"
+                                    class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                >
+                                    Not available
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Dropdown for selecting alternative driver when needed --}}
+                        <div id="modal-driver-select-container" class="hidden">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Driver</label>
+                            <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                <option value="">Select Driver</option>
+                                @foreach($drivers as $driver)
+                                    <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Decline Reason Container --}}
+                        <div id="modal-decline-reason-container" class="hidden">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Reason for Declining</label>
+                            <textarea name="decline_reason" rows="2" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="State reason..."></textarea>
+                        </div>
+
+                        {{-- Action Buttons --}}
+                        <div class="flex gap-2 pt-0.5">
+                            <button
+                                type="button"
+                                onclick="triggerDecline()"
+                                id="modal-decline-action-btn"
+                                class="flex-1 rounded-xl border border-red-200 bg-white py-2 text-xs font-bold text-red-500 hover:bg-red-50 transition cursor-pointer text-center"
+                            >
+                                Decline
+                            </button>
+                            <button
+                                type="submit"
+                                id="modal-approve-action-btn"
+                                class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center"
+                            >
+                                Approve Request
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <form id="review-form" method="POST" action="" class="mt-5 space-y-4">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="status" id="modal-status-input" value="approved">
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Assign Driver (Required for Approval)</label>
-                    <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                        <option value="">Select Driver</option>
-                        @foreach($drivers as $driver)
-                            <option value="{{ $driver->id }}">{{ $driver->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div id="modal-decline-reason-container" class="hidden">
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Reason for Declining</label>
-                    <textarea name="decline_reason" rows="2" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="State reason..."></textarea>
-                </div>
-
-                <div class="flex gap-2 pt-2">
-                    <button
-                        type="submit"
-                        onclick="document.getElementById('modal-status-input').value='approved'; document.getElementById('modal-decline-reason-container').classList.add('hidden');"
-                        class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
-                    >
-                        Approve Request
-                    </button>
-                    <button
-                        type="button"
-                        onclick="toggleDeclineMode()"
-                        id="modal-decline-btn"
-                        class="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer"
-                    >
-                        Decline
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
     <script>
-        function openReviewModal(id, requester, vehicle, destination, driverId) {
-            document.getElementById('modal-requester').textContent = requester;
-            document.getElementById('modal-vehicle').textContent = vehicle;
-            document.getElementById('modal-destination').textContent = destination;
-            
+        let currentModalCode = '';
+
+        function openReviewModal(data) {
+            currentModalCode = data.code || '';
+            document.getElementById('modal-ref-code').textContent = data.code || '—';
+            document.getElementById('modal-detail-requester').textContent = data.requester || '—';
+            document.getElementById('modal-detail-location').textContent = data.location || '—';
+            document.getElementById('modal-detail-riding').textContent = data.is_passenger ? 'Yes — requester is also a passenger' : 'No';
+            document.getElementById('modal-detail-office').textContent = data.office || '—';
+            document.getElementById('modal-detail-contact').textContent = data.contact || '—';
+            document.getElementById('modal-detail-vehicle').textContent = data.vehicle || '—';
+            document.getElementById('modal-detail-destination').textContent = data.destination || '—';
+            document.getElementById('modal-detail-travel-date').textContent = data.travel_date || '—';
+            document.getElementById('modal-detail-purpose').textContent = data.purpose || '—';
+            document.getElementById('modal-detail-passengers').textContent = data.passengers || 'None';
+            document.getElementById('modal-driver-name').textContent = data.driver_name || 'Assigned Driver';
+
             const form = document.getElementById('review-form');
-            form.action = `/vehicle-requests/${id}/status`;
+            form.action = `/vehicle-requests/${data.id}/status`;
 
             const driverSelect = document.getElementById('modal-driver-select');
-            if (driverId) {
-                driverSelect.value = driverId;
+            if (data.driver_id) {
+                driverSelect.value = data.driver_id;
             } else {
                 driverSelect.value = '';
             }
 
+            // Reset driver availability buttons & containers
+            setDriverAvailability(true);
             document.getElementById('modal-decline-reason-container').classList.add('hidden');
             document.getElementById('modal-status-input').value = 'approved';
+
             document.getElementById('review-modal').classList.remove('hidden');
         }
 
@@ -572,16 +783,46 @@
             document.getElementById('review-modal').classList.add('hidden');
         }
 
-        function toggleDeclineMode() {
-            const container = document.getElementById('modal-decline-reason-container');
+        function copyModalCode() {
+            if (!currentModalCode) return;
+            navigator.clipboard.writeText(currentModalCode).then(() => {
+                const txt = document.getElementById('modal-copy-btn-txt');
+                if (txt) {
+                    txt.textContent = 'Copied!';
+                    setTimeout(() => { txt.textContent = 'Copy Code'; }, 2000);
+                }
+            }).catch(() => {
+                alert('Code: ' + currentModalCode);
+            });
+        }
+
+        function setDriverAvailability(isAvailable) {
+            const yesBtn = document.getElementById('driver-avail-yes-btn');
+            const noBtn = document.getElementById('driver-avail-no-btn');
+            const selectContainer = document.getElementById('modal-driver-select-container');
+
+            if (isAvailable) {
+                yesBtn.className = 'rounded-xl border border-emerald-500 bg-emerald-50 py-2.5 px-3 text-xs font-bold text-emerald-800 shadow-xs transition cursor-pointer';
+                noBtn.className = 'rounded-xl border border-gray-200 bg-white py-2.5 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer';
+                selectContainer.classList.add('hidden');
+            } else {
+                noBtn.className = 'rounded-xl border border-amber-500 bg-amber-50 py-2.5 px-3 text-xs font-bold text-amber-800 shadow-xs transition cursor-pointer';
+                yesBtn.className = 'rounded-xl border border-gray-200 bg-white py-2.5 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer';
+                selectContainer.classList.remove('hidden');
+            }
+        }
+
+        function triggerDecline() {
+            const reasonContainer = document.getElementById('modal-decline-reason-container');
             const statusInput = document.getElementById('modal-status-input');
             const form = document.getElementById('review-form');
-            
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
+
+            if (reasonContainer.classList.contains('hidden')) {
+                reasonContainer.classList.remove('hidden');
                 statusInput.value = 'declined';
-                document.getElementById('modal-decline-btn').textContent = 'Confirm Decline';
-                document.getElementById('modal-decline-btn').type = 'submit';
+                document.getElementById('modal-decline-action-btn').textContent = 'Confirm Decline';
+                document.getElementById('modal-decline-action-btn').type = 'submit';
+                document.getElementById('modal-decline-action-btn').className = 'flex-1 rounded-xl bg-red-600 hover:bg-red-700 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center';
             }
         }
 
