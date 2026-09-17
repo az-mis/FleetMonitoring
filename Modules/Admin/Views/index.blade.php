@@ -74,7 +74,7 @@
                 </div>
 
                 <div class="relative shrink-0">
-                    <button type="button" onclick="toggleAdminLocationMenu()" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-sm font-semibold text-white shadow-sm md:w-auto">
+                    <button type="button" onclick="toggleAdminLocationMenu()" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-sm font-semibold text-white shadow-sm md:w-auto cursor-pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
                             <circle cx="12" cy="10" r="3"/>
