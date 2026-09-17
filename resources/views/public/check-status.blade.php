@@ -27,8 +27,23 @@
             <button type="submit" class="rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-5 py-3 text-xs font-bold shadow-lg hover:from-emerald-500 hover:to-green-500">Check Status</button>
         </form>
         @if (session('request_submitted'))
-            <div class="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-3 text-xs text-emerald-200">
-                Request submitted successfully. Save your reference code: <strong>{{ session('request_submitted') }}</strong>
+            <div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-200">
+                <div class="min-w-0">
+                    Request submitted successfully. Save your reference code:
+                    <strong class="font-mono text-sm text-white tracking-widest block sm:inline sm:ml-1 mt-0.5 sm:mt-0" id="submitted-code-val">{{ session('request_submitted') }}</strong>
+                </div>
+                <button
+                    type="button"
+                    onclick="copyCode('{{ session('request_submitted') }}')"
+                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-emerald-500 transition cursor-pointer"
+                    id="copy-btn-el"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                    </svg>
+                    <span id="copy-btn-txt">Copy Code</span>
+                </button>
             </div>
         @elseif (request('code') && !$requestRecord)
             <div class="mt-4 rounded-xl border border-red-300/25 bg-red-500/10 p-3 text-xs text-red-200">
@@ -38,12 +53,39 @@
             <div class="mt-4 rounded-xl border border-emerald-300/20 bg-[#062512]/70 p-4 text-sm">
                 <div class="flex items-center justify-between">
                     <span class="text-xs uppercase tracking-wide text-emerald-100/55">Request status</span>
-                    <span class="rounded-full bg-amber-400/15 px-2 py-1 text-xs font-bold uppercase text-amber-300">{{ $requestRecord->status }}</span>
+                    @if ($requestRecord->status === 'approved')
+                        <span class="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2.5 py-0.5 text-xs font-bold uppercase text-emerald-300">Approved</span>
+                    @elseif ($requestRecord->status === 'declined')
+                        <span class="rounded-full bg-rose-500/20 border border-rose-400/40 px-2.5 py-0.5 text-xs font-bold uppercase text-rose-300">Declined</span>
+                    @else
+                        <span class="rounded-full bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 text-xs font-bold uppercase text-amber-300">Pending</span>
+                    @endif
                 </div>
                 <p class="mt-3 font-semibold text-white">{{ $requestRecord->requester_name }}</p>
                 <p class="mt-1 text-xs text-emerald-100/65">{{ $requestRecord->destination }} · {{ $requestRecord->travel_date->format('M j, Y') }}</p>
                 <p class="mt-1 text-xs text-emerald-100/65">Vehicle: {{ $requestRecord->vehicle?->plate_number ?? 'Pending assignment' }}</p>
-                <a href="{{ route('trip-ticket', $requestRecord) }}" target="_blank" class="mt-3 inline-flex rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">Open Printable Trip Ticket →</a>
+
+                @if ($requestRecord->status === 'approved')
+                    <a href="{{ route('trip-ticket', $requestRecord) }}" target="_blank" class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect width="12" height="8" x="6" y="14"/>
+                        </svg>
+                        <span>Open Printable Trip Ticket →</span>
+                    </a>
+                @elseif ($requestRecord->status === 'declined')
+                    <div class="mt-3 rounded-lg border border-rose-400/20 bg-rose-500/10 p-2.5 text-xs text-rose-200">
+                        This travel request was <strong>Declined</strong>. Trip Ticket is unavailable.
+                        @if ($requestRecord->decline_reason)
+                            <p class="mt-1 text-rose-300/80">Reason: {{ $requestRecord->decline_reason }}</p>
+                        @endif
+                    </div>
+                @else
+                    <div class="mt-3 rounded-lg border border-amber-400/20 bg-amber-500/10 p-2.5 text-xs text-amber-200">
+                        Trip Ticket will be available once your request is <strong>Approved</strong> by the administrator.
+                    </div>
+                @endif
             </div>
         @endif
         <div class="mt-4 rounded-xl border border-emerald-200/15 bg-[#062512]/70 p-3">
@@ -53,5 +95,18 @@
         <footer class="mt-4 border-t border-emerald-200/15 pt-3 text-center text-[11px] text-emerald-100/55">♧ Official Government Fleet Management System<br><span class="text-[9px]">© {{ date('Y') }} {{ config('app.name', 'Fleet Monitoring') }}</span></footer>
     </div>
 </main>
+<script>
+    function copyCode(code) {
+        navigator.clipboard.writeText(code).then(() => {
+            const txt = document.getElementById('copy-btn-txt');
+            if (txt) {
+                txt.textContent = 'Copied!';
+                setTimeout(() => { txt.textContent = 'Copy Code'; }, 2000);
+            }
+        }).catch(() => {
+            alert('Code: ' + code);
+        });
+    }
+</script>
 </body>
 </html>
