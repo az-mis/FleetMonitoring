@@ -21,66 +21,39 @@
             <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-11 w-11 rounded-full bg-white object-contain p-1">
             <div><h1 class="text-2xl font-bold">Official Vehicle Request</h1><p class="mt-1 text-sm text-emerald-100/70">Complete the form below to request government vehicle transport for official travel. A unique tracking code will be generated upon submission.</p></div>
         </div>
+        @if ($errors->any())
+            <div class="mb-4 rounded-xl border border-rose-400/40 bg-rose-950/80 p-4 text-xs text-rose-200">
+                <p class="font-bold text-rose-100 mb-1">Please fix the following issues before submitting:</p>
+                <ul class="list-disc list-inside space-y-0.5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form class="space-y-4" method="POST" action="{{ route('request-vehicle.store') }}">
             @csrf
-            <div><label class="mb-1 block text-xs font-semibold">Your Full Name <span class="text-emerald-300">*</span></label><input name="requesterName" required placeholder="e.g. Juan Dela Cruz" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
-            <label class="flex items-center gap-2 text-xs text-emerald-100/80"><input type="checkbox" name="requesterIsPassenger" class="rounded border-emerald-300/30 bg-[#062512] text-emerald-500"> I am riding along on this trip as a passenger</label>
-            <div><label class="mb-1 block text-xs font-semibold">Location / Office Province <span class="text-emerald-300">*</span></label><select name="location" required class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"><option value="">— Select Location / Building —</option><option>Oriental Mindoro</option><option>Occidental Mindoro</option><option>Marinduque</option><option>Palawan</option><option>Romblon</option><option>Quezon City Satellite Office</option></select></div>
-@php
-$offices = [
-    ['value' => 'ORED', 'label' => 'Office of the Regional Executive Director (ORED)'],
-    ['value' => 'RAFIS', 'label' => 'Regional Agriculture and Fisheries Information Section (RAFIS)'],
-    ['value' => 'ORTDO', 'label' => 'Office of the Regional Technical Director for Operations (ORTDO)'],
-    ['value' => 'FOD', 'label' => 'Field Operations Division (FOD)'],
-    ['value' => 'FOD-RICE', 'label' => 'FOD - Rice Banner Program'],
-    ['value' => 'FOD-CORN', 'label' => 'FOD - Corn Banner Program'],
-    ['value' => 'FOD-LIVESTOCK', 'label' => 'FOD - Livestock Program'],
-    ['value' => 'FOD-HVCDP', 'label' => 'FOD - High Value Crops Development Program (HVCDP)'],
-    ['value' => 'FOD-IDS', 'label' => 'FOD - Institutional Development Section (IDS)'],
-    ['value' => 'FOD-DRRM', 'label' => 'FOD - Disaster Risk Reduction and Management (DRRM)'],
-    ['value' => 'FOD-RSBSA', 'label' => 'FOD - Registry System for Basic Sectors in Agriculture (RSBSA)'],
-    ['value' => 'FOD-SAAD', 'label' => 'FOD - Special Area for Agricultural Development (SAAD)'],
-    ['value' => 'FOD-4KS', 'label' => 'FOD - Kabuhayan at Kaunlaran ng Kababayang Katututbo (4Ks)'],
-    ['value' => 'FOD-NUPAP', 'label' => 'FOD - National Urban and Peri-Urban Agriculture Program (NUPAP)'],
-    ['value' => 'FOD-F2C2', 'label' => 'FOD - Farm and Fisheries Clustering and Consolidation Program (F2C2)'],
-    ['value' => 'FOD-PAFES', 'label' => 'FOD - Province-led Agriculture and Fisheries Extension Systems (PAFES)'],
-    ['value' => 'FOD-HFIDP', 'label' => 'FOD - Halal Food Industry Development Program (HFIDP)'],
-    ['value' => 'FOD-PRDP', 'label' => 'FOD - Philippine Rural Development Program (PRDP)'],
-    ['value' => 'ORTDRR', 'label' => 'Office of the Regional Technical Director for Research & Regulations (ORTDRR)'],
-    ['value' => 'RD', 'label' => 'Research Division (RD)'],
-    ['value' => 'ORMAES', 'label' => 'Oriental Mindoro Agricultural Experiment Station (ORMAES)'],
-    ['value' => 'PRES', 'label' => 'Palawan Research Experiment Station (PRES)'],
-    ['value' => 'PRES-LRC', 'label' => 'PRES - Livestock Resource Center (LRC)'],
-    ['value' => 'PRES-DPDC', 'label' => 'PRES - Dairy Production and Development Center (DPDC)'],
-    ['value' => 'PRES-PAC', 'label' => 'PRES - Palawan Agricultural Center (PAC)'],
-    ['value' => 'PRES-ABOABO', 'label' => 'PRES - Abo-Abo Rural Agricultural Center'],
-    ['value' => 'REGDIV', 'label' => 'Regulatory Division'],
-    ['value' => 'REGDIV-OAP', 'label' => 'Regulatory Division - Organic Agriculture Program'],
-    ['value' => 'AFD', 'label' => 'Administrative and Finance Division (AFD)'],
-    ['value' => 'AFD-ACCTG', 'label' => 'AFD - Accounting Section'],
-    ['value' => 'AFD-CASH', 'label' => 'AFD - Cashiering Unit'],
-    ['value' => 'AFD-BUDGET', 'label' => 'AFD - Budget Section'],
-    ['value' => 'AFD-HRS', 'label' => 'AFD - Human Resource Section'],
-    ['value' => 'AFD-RECORDS', 'label' => 'AFD - Records Section'],
-    ['value' => 'AFD-GSS', 'label' => 'AFD - General Services Section'],
-    ['value' => 'AFD-PSU', 'label' => 'AFD - Property & Supply Unit'],
-    ['value' => 'BAC', 'label' => 'Bids & Awards Committee (BAC)'],
-    ['value' => 'PMED', 'label' => 'Planning, Monitoring & Evaluation Division (PMED)'],
-    ['value' => 'MIS', 'label' => 'Management Information Systems Section (MIS)'],
-    ['value' => 'RAFC', 'label' => 'Regional Agricultural and Fishery Council (RAFC)'],
-    ['value' => 'AMAD', 'label' => 'Agribusiness & Marketing Assistance Division (AMAD)'],
-    ['value' => 'ILD', 'label' => 'Integrated Laboratory Division (ILD)'],
-    ['value' => 'ILD-RSL', 'label' => 'ILD - Regional Soils Laboratory'],
-    ['value' => 'ILD-RCPC', 'label' => 'ILD - Regional Crop Protection Center (RCPC)'],
-    ['value' => 'RAED', 'label' => 'Regional Agricultural Engineering Division (RAED)'],
-    ['value' => 'APCO-OCCIDENTAL', 'label' => 'APCO - Occidental Mindoro (San Jose)'],
-    ['value' => 'APCO-ORIENTAL', 'label' => 'APCO - Oriental Mindoro (Calapan City)'],
-    ['value' => 'APCO-MARINDUQUE', 'label' => 'APCO - Marinduque (Boac)'],
-    ['value' => 'APCO-ROMBLON', 'label' => 'APCO - Romblon (Odiongan)'],
-    ['value' => 'APCO-PALAWAN', 'label' => 'APCO - Palawan (Puerto Princesa City)'],
-    ['value' => 'COA', 'label' => 'Commission on Audit (COA)'],
-];
-@endphp
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Your Full Name <span class="text-emerald-300">*</span></label>
+                <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+            </div>
+
+            <label class="flex items-center gap-2 text-xs text-emerald-100/80">
+                <input type="checkbox" name="requesterIsPassenger" value="1" @checked(old('requesterIsPassenger')) class="rounded border-emerald-300/30 bg-[#062512] text-emerald-500">
+                I am riding along on this trip as a passenger
+            </label>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Location / Office Province <span class="text-emerald-300">*</span></label>
+                <select name="location" required class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                    <option value="">— Select Location / Building —</option>
+                    @foreach(['Oriental Mindoro', 'Occidental Mindoro', 'Marinduque', 'Palawan', 'Romblon', 'Quezon City Satellite Office'] as $loc)
+                        <option value="{{ $loc }}" @selected(old('location') === $loc)>{{ $loc }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             {{-- Custom Searchable Office / Section Dropdown --}}
             <div class="relative" id="custom-office-dropdown-container">
                 <label class="mb-1 block text-xs font-semibold text-emerald-100">
@@ -88,7 +61,7 @@ $offices = [
                 </label>
 
                 {{-- Hidden input for form submission --}}
-                <input type="hidden" name="requesterOffice" id="requester-office-input" value="">
+                <input type="hidden" name="requesterOffice" id="requester-office-input" value="{{ old('requesterOffice') }}">
 
                 {{-- Trigger Button --}}
                 <button
@@ -97,7 +70,7 @@ $offices = [
                     onclick="toggleOfficeDropdown()"
                     class="flex w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-left text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none transition cursor-pointer"
                 >
-                    <span id="office-dropdown-selected-label" class="truncate text-emerald-100/40">— Select your office / division —</span>
+                    <span id="office-dropdown-selected-label" class="truncate {{ old('requesterOffice') ? 'text-emerald-100' : 'text-emerald-100/40' }}">{{ old('requesterOffice') ?: '— Select your office / division —' }}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-emerald-300/70 transition-transform duration-200" id="office-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="m6 9 6 6 6-6"/>
                     </svg>
@@ -147,13 +120,61 @@ $offices = [
                     </div>
                 </div>
             </div>
-            <div><label class="mb-1 block text-xs font-semibold">Contact Number <span class="font-normal text-emerald-100/55">(Optional)</span></label><input name="requesterContact" placeholder="09XX-XXX-XXXX" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
-            <div><label class="mb-1 block text-xs font-semibold">Select Vehicle <span class="text-emerald-300">*</span></label><select id="vehicle-select" name="vehicleId" required disabled class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"><option value="">— Select a location first —</option>@foreach($vehicles as $vehicle)<option value="{{ $vehicle->id }}" data-location="{{ $vehicle->location }}">{{ $vehicle->plate_number }} · {{ $vehicle->brand }} {{ $vehicle->model }}</option>@endforeach</select></div>
-            <div><label class="mb-1 block text-xs font-semibold">Destination <span class="text-emerald-300">*</span></label><input name="destination" required placeholder="e.g. Provincial Capitol, Calapan City" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
-            <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-xs font-semibold">Travel Date (From) <span class="text-emerald-300">*</span></label><input type="date" name="travelDate" required class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"></div><div><label class="mb-1 block text-xs font-semibold">Travel Date (To, optional)</label><input type="date" name="travelDateEnd" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"></div></div>
-            <div><label class="mb-1 block text-xs font-semibold">Official Purpose <span class="text-emerald-300">*</span></label><textarea name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></textarea></div>
-            <div><label class="mb-1 block text-xs font-semibold">Additional Passengers <span class="font-normal text-emerald-100/55">(Optional)</span></label><div id="passenger-list"><input name="passengers[]" placeholder="Passenger 1 full name" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div><button type="button" id="add-passenger" class="mt-2 text-xs font-semibold text-emerald-200 hover:text-white">＋ Add another passenger</button></div>
-            <div><label class="mb-1 block text-xs font-semibold">Previous Trip Ticket Date <span class="font-normal text-emerald-100/55">(Optional)</span></label><input type="date" name="previousTripTicketDate" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"></div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Contact Number <span class="font-normal text-emerald-100/55">(Optional)</span></label>
+                <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09XX-XXX-XXXX" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Select Vehicle <span class="text-emerald-300">*</span></label>
+                <select id="vehicle-select" name="vehicleId" required disabled class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                    <option value="">— Select a location first —</option>
+                    @foreach($vehicles as $vehicle)
+                        <option value="{{ $vehicle->id }}" data-location="{{ $vehicle->location }}" @selected((int) old('vehicleId') === $vehicle->id)>
+                            {{ $vehicle->plate_number }} · {{ $vehicle->brand }} {{ $vehicle->model }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Destination <span class="text-emerald-300">*</span></label>
+                <input name="destination" required value="{{ old('destination') }}" placeholder="e.g. Provincial Capitol, Calapan City" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-xs font-semibold">Travel Date (From) <span class="text-emerald-300">*</span></label>
+                    <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold">Travel Date (To, optional)</label>
+                    <input type="date" name="travelDateEnd" value="{{ old('travelDateEnd') }}" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Official Purpose <span class="text-emerald-300">*</span></label>
+                <textarea name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">{{ old('purpose') }}</textarea>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Additional Passengers <span class="font-normal text-emerald-100/55">(Optional)</span></label>
+                <div id="passenger-list">
+                    @php $oldPassengers = old('passengers', ['']); @endphp
+                    @foreach($oldPassengers as $index => $pass)
+                        <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="{{ $index > 0 ? 'mt-2 ' : '' }}w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+                    @endforeach
+                </div>
+                <button type="button" id="add-passenger" class="mt-2 text-xs font-semibold text-emerald-200 hover:text-white">＋ Add another passenger</button>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Previous Trip Ticket Date <span class="font-normal text-emerald-100/55">(Optional)</span></label>
+                <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none">
+            </div>
+
             <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 px-4 py-3 text-sm font-bold shadow-lg hover:from-emerald-400 hover:to-green-400">Submit Vehicle Request&nbsp; →</button>
         </form>
         <footer class="mt-5 border-t border-emerald-200/15 pt-4 text-center text-xs text-emerald-100/55">♧ Official Government Fleet Management System<br><span class="text-[10px]">© {{ date('Y') }} {{ config('app.name', 'Fleet Monitoring') }}</span></footer>
@@ -240,14 +261,24 @@ $offices = [
         const locationSelect = document.querySelector('select[name="location"]');
         const vehicleSelect = document.getElementById('vehicle-select');
         const vehicleOptions = Array.from(vehicleSelect.querySelectorAll('option[data-location]'));
-        locationSelect.addEventListener('change', () => {
+        const previousVehicleId = "{{ old('vehicleId') }}";
+
+        const filterVehicles = (isInit = false) => {
             const location = locationSelect.value;
             vehicleSelect.disabled = !location;
-            vehicleSelect.value = '';
+            if (!isInit) {
+                vehicleSelect.value = '';
+            }
             vehicleOptions.forEach((option) => {
                 option.hidden = Boolean(location) && option.dataset.location && option.dataset.location !== location;
             });
-        });
+            if (isInit && previousVehicleId) {
+                vehicleSelect.value = previousVehicleId;
+            }
+        };
+
+        locationSelect.addEventListener('change', () => filterVehicles(false));
+        document.addEventListener('DOMContentLoaded', () => filterVehicles(true));
         document.getElementById('add-passenger').addEventListener('click', () => {
             const list = document.getElementById('passenger-list');
             if (list.children.length >= 20) return;
