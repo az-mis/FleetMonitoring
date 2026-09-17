@@ -4,7 +4,7 @@
 <body class="min-h-screen bg-[#082b16] text-white antialiased">
 <main class="flex min-h-screen items-center justify-center bg-cover bg-center p-6" style="background-image:linear-gradient(rgba(5,38,18,.72),rgba(5,38,18,.82)),url('{{ asset('FleetMS-bg.jpg') }}')">
     <div class="w-full max-w-4xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-8 text-center shadow-2xl backdrop-blur-sm sm:p-12">
-        <img src="{{ asset('da-logo.png') }}" alt="Agency logo" class="mx-auto h-16 w-16 rounded-full bg-white object-contain p-1">
+        <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="mx-auto h-16 w-16 rounded-full bg-white object-contain p-1">
         <span class="mt-5 inline-flex rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">Fleet Management System</span>
         <h1 class="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl">Smart Fleet Operations<br><span class="text-emerald-300">&amp; Monitoring</span></h1>
         <p class="mx-auto mt-4 max-w-2xl text-sm leading-6 text-emerald-100/75">A unified, secure platform for tracking vehicles, assigning drivers, and managing official trip requests in real time.</p>
