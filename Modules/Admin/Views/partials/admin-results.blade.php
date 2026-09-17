@@ -119,17 +119,19 @@
     </div>
 
     <div class="mt-4 flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div class="text-xs text-slate-500 font-medium">
-            Showing <span class="font-bold text-slate-700">{{ $admins->firstItem() ?? 0 }}</span> to <span class="font-bold text-slate-700">{{ $admins->lastItem() ?? 0 }}</span> of <span class="font-bold text-slate-700">{{ $admins->total() }}</span> admins
-        </div>
+        <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium">
+            <div>
+                Showing <span class="font-bold text-slate-700">{{ $admins->firstItem() ?? 0 }}</span> to <span class="font-bold text-slate-700">{{ $admins->lastItem() ?? 0 }}</span> of <span class="font-bold text-slate-700">{{ $admins->total() }}</span> admins
+            </div>
 
-        <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <span>Rows per page:</span>
-            <select id="admin-per-page-select" onchange="changePerPage(this.value)" class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
-                @foreach ([10, 15, 20, 25, 50, 75, 100] as $size)
-                    <option value="{{ $size }}" @selected((int) request('per_page', 10) === $size)>{{ $size }}</option>
-                @endforeach
-            </select>
+            <div class="flex items-center gap-2">
+                <span>Rows per page:</span>
+                <select id="admin-per-page-select" onchange="changePerPage(this.value)" class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                    @foreach ([10, 15, 20, 25, 50, 75, 100] as $size)
+                        <option value="{{ $size }}" @selected((int) request('per_page', 10) === $size)>{{ $size }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
         <div class="flex items-center gap-1">
