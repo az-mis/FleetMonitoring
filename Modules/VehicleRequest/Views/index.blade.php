@@ -241,20 +241,25 @@
                 <table class="min-w-full divide-y divide-gray-100 text-left text-xs">
                     <thead class="bg-gray-50/80 font-bold uppercase tracking-wider text-slate-400">
                         <tr>
-                            <th class="px-4 py-3 font-semibold">VEHICLE</th>
-                            <th class="px-4 py-3 font-semibold">REFERENCE / TRIP NO.</th>
-                            <th class="px-4 py-3 font-semibold">PLATE & TRAVEL DATE</th>
-                            <th class="px-4 py-3 font-semibold">OFFICE PROVINCE</th>
-                            <th class="px-4 py-3 font-semibold">DRIVER</th>
-                            <th class="px-4 py-3 font-semibold">REQUESTER</th>
-                            <th class="px-4 py-3 text-right font-semibold"></th>
+                            <th class="px-3 py-3 font-semibold">VEHICLE</th>
+                            <th class="px-3 py-3 font-semibold">REFERENCE / TRIP NO.</th>
+                            <th class="px-3 py-3 font-semibold">PLATE & TRAVEL DATE</th>
+                            <th class="px-3 py-3 font-semibold">OFFICE PROVINCE</th>
+                            <th class="px-3 py-3 font-semibold">DRIVER</th>
+                            <th class="px-3 py-3 font-semibold">REQUESTER</th>
+                            <th class="px-3 py-3 font-semibold">PASSENGERS</th>
+                            <th class="px-3 py-3 font-semibold">DESTINATION</th>
+                            <th class="px-3 py-3 font-semibold">PURPOSE</th>
+                            <th class="px-3 py-3 font-semibold">STATUS</th>
+                            <th class="px-3 py-3 font-semibold">APPROVER</th>
+                            <th class="px-3 py-3 text-right font-semibold">ACTION</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 text-slate-700">
                         @foreach ($requests as $item)
                             <tr class="hover:bg-slate-50/70 transition">
                                 {{-- Vehicle Thumbnail --}}
-                                <td class="whitespace-nowrap px-4 py-3">
+                                <td class="whitespace-nowrap px-3 py-3">
                                     @if ($item->vehicle?->photo_url)
                                         <img src="{{ $item->vehicle->photo_url }}" alt="{{ $item->vehicle->plate_number }}" class="h-9 w-12 shrink-0 rounded object-cover shadow-sm border border-slate-100">
                                     @else
@@ -270,20 +275,23 @@
                                 </td>
 
                                 {{-- Reference / Trip No. --}}
-                                <td class="whitespace-nowrap px-4 py-3">
+                                <td class="whitespace-nowrap px-3 py-3">
                                     @if ($item->trip_ticket_number)
                                         <span class="inline-block rounded bg-emerald-50 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-800 ring-1 ring-emerald-200">
                                             {{ $item->trip_ticket_number }}
                                         </span>
                                     @else
-                                        <span class="inline-block rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-700 ring-1 ring-slate-200">
-                                            {{ $item->reference_code }}
-                                        </span>
+                                        <div>
+                                            <span class="inline-block rounded bg-indigo-50 px-2 py-0.5 font-mono text-[11px] font-bold text-indigo-700 ring-1 ring-indigo-200">
+                                                {{ $item->reference_code }}
+                                            </span>
+                                            <p class="text-[10px] text-slate-400 mt-0.5 font-medium">Pending approval</p>
+                                        </div>
                                     @endif
                                 </td>
 
                                 {{-- Plate & Travel Date --}}
-                                <td class="whitespace-nowrap px-4 py-3">
+                                <td class="whitespace-nowrap px-3 py-3">
                                     <p class="font-extrabold text-slate-900">{{ $item->vehicle?->plate_number ?? '—' }}</p>
                                     <p class="text-[11px] text-slate-500 font-medium">
                                         {{ $item->travel_date->format('M d') }}
@@ -296,12 +304,12 @@
                                 </td>
 
                                 {{-- Office Province / Location --}}
-                                <td class="whitespace-nowrap px-4 py-3 text-slate-600 font-medium">
+                                <td class="whitespace-nowrap px-3 py-3 text-slate-600 font-medium">
                                     {{ $item->location ?: '—' }}
                                 </td>
 
                                 {{-- Driver --}}
-                                <td class="whitespace-nowrap px-4 py-3">
+                                <td class="whitespace-nowrap px-3 py-3">
                                     @php
                                         $assignedDriver = $item->confirmedDriver ?? $item->vehicle?->assignedDriver;
                                     @endphp
@@ -317,56 +325,94 @@
                                             <span class="text-xs font-bold text-slate-900">{{ $assignedDriver->name }}</span>
                                         </div>
                                     @else
-                                        <span class="text-slate-400 italic">No driver</span>
+                                        <span class="text-slate-400 italic text-[11px]">Unassigned</span>
                                     @endif
                                 </td>
 
                                 {{-- Requester --}}
-                                <td class="whitespace-nowrap px-4 py-3">
+                                <td class="whitespace-nowrap px-3 py-3">
                                     <p class="font-bold text-slate-900">{{ $item->requester_name }}</p>
-                                    <p class="text-[11px] text-slate-500">{{ $item->requester_office ?: $item->destination }}</p>
+                                    <p class="text-[11px] text-slate-500">{{ $item->requester_office ?: $item->location }}</p>
                                 </td>
 
-                                {{-- Actions --}}
-                                <td class="whitespace-nowrap px-4 py-3 text-right">
-                                    @if($item->status === 'pending')
-                                        <div class="inline-flex items-center gap-1.5">
-                                            <form method="POST" action="{{ route('vehicle-requests.status', $item) }}" class="inline-flex items-center gap-1.5">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="approved">
-                                                <select name="confirmed_driver_id" class="rounded-lg border-slate-300 bg-white py-1 pl-2.5 pr-7 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
-                                                    <option value="">Select Driver</option>
-                                                    @foreach($drivers as $driver)
-                                                        <option value="{{ $driver->id }}" @selected($item->vehicle && $item->vehicle->assigned_driver_id === $driver->id)>
-                                                            {{ $driver->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <button type="submit" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700 shadow-xs">
-                                                    Approve
-                                                </button>
-                                            </form>
-
-                                            <form method="POST" action="{{ route('vehicle-requests.status', $item) }}" class="inline-flex">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="declined">
-                                                <button type="submit" class="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-600 hover:text-white shadow-xs">
-                                                    Decline
-                                                </button>
-                                            </form>
+                                {{-- Passengers --}}
+                                <td class="whitespace-nowrap px-3 py-3">
+                                    @php
+                                        $passengerList = is_array($item->passengers) ? array_filter($item->passengers) : [];
+                                        $pCount = count($passengerList);
+                                    @endphp
+                                    @if ($item->requester_is_passenger || $pCount > 0)
+                                        <div class="text-xs">
+                                            <p class="font-semibold text-slate-800">
+                                                {{ $item->requester_name }} <span class="text-slate-400 font-normal">(Requester)</span>
+                                            </p>
+                                            @if ($pCount > 0)
+                                                <span class="font-bold text-emerald-700 cursor-pointer underline text-[11px]" title="{{ implode(', ', $passengerList) }}">
+                                                    +{{ $pCount }} more
+                                                </span>
+                                            @endif
                                         </div>
                                     @else
-                                        @if($item->status === 'approved')
-                                            <a href="{{ route('trip-ticket', $item) }}" target="_blank" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-slate-100">
-                                                Trip Ticket
-                                            </a>
-                                        @else
-                                            <span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700 ring-1 ring-red-200">
-                                                Declined
-                                            </span>
-                                        @endif
+                                        <span class="text-slate-400 italic text-[11px]">None</span>
+                                    @endif
+                                </td>
+
+                                {{-- Destination --}}
+                                <td class="whitespace-nowrap px-3 py-3">
+                                    <span class="inline-flex items-center gap-1 font-semibold text-slate-800 text-xs">
+                                        <span class="text-rose-500">📍</span> {{ $item->destination }}
+                                    </span>
+                                </td>
+
+                                {{-- Purpose --}}
+                                <td class="whitespace-nowrap px-3 py-3 text-slate-600 font-medium max-w-[140px] truncate" title="{{ $item->purpose }}">
+                                    {{ $item->purpose ?: '—' }}
+                                </td>
+
+                                {{-- Status --}}
+                                <td class="whitespace-nowrap px-3 py-3">
+                                    @if($item->status === 'approved')
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-800 uppercase tracking-wide">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span> APPROVED
+                                        </span>
+                                    @elseif($item->status === 'declined')
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-red-100/80 px-2.5 py-0.5 text-[10px] font-extrabold text-red-800 uppercase tracking-wide">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-red-600"></span> DECLINED
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-100/90 px-2.5 py-0.5 text-[10px] font-extrabold text-amber-800 uppercase tracking-wide ring-1 ring-amber-300/50">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-600 animate-pulse"></span> PENDING
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Approver --}}
+                                <td class="whitespace-nowrap px-3 py-3 text-slate-600 font-medium">
+                                    @if($item->approvedBy)
+                                        <span class="font-bold text-slate-900">{{ $item->approvedBy->name }}</span>
+                                    @else
+                                        <span class="text-slate-400">—</span>
+                                    @endif
+                                </td>
+
+                                {{-- Action --}}
+                                <td class="whitespace-nowrap px-3 py-3 text-right">
+                                    @if($item->status === 'pending')
+                                        <button
+                                            type="button"
+                                            onclick="openReviewModal({{ $item->id }}, '{{ addslashes($item->requester_name) }}', '{{ addslashes($item->vehicle?->plate_number ?? 'Unassigned') }}', '{{ addslashes($item->destination) }}', {{ $item->vehicle?->assigned_driver_id ?? 'null' }})"
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#008751] hover:bg-[#007345] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                                        >
+                                            Review
+                                        </button>
+                                    @else
+                                        <div class="inline-flex items-center gap-1">
+                                            @if($item->status === 'approved')
+                                                <a href="{{ route('trip-ticket', $item) }}" target="_blank" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-slate-100">
+                                                    Trip Ticket
+                                                </a>
+                                            @endif
+                                        </div>
                                     @endif
                                 </td>
                             </tr>
@@ -417,7 +463,108 @@
         </div>
     @endif
 
+    {{-- Review Modal --}}
+    <div id="review-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h3 class="text-base font-extrabold text-slate-800">Review Travel Request</h3>
+                <button type="button" onclick="closeReviewModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <div class="mt-4 space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-semibold uppercase">Requester:</span>
+                    <span class="font-bold text-slate-800" id="modal-requester"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-semibold uppercase">Vehicle:</span>
+                    <span class="font-bold text-slate-800" id="modal-vehicle"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-semibold uppercase">Destination:</span>
+                    <span class="font-bold text-slate-800" id="modal-destination"></span>
+                </div>
+            </div>
+
+            <form id="review-form" method="POST" action="" class="mt-5 space-y-4">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="status" id="modal-status-input" value="approved">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Assign Driver (Required for Approval)</label>
+                    <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        <option value="">Select Driver</option>
+                        @foreach($drivers as $driver)
+                            <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div id="modal-decline-reason-container" class="hidden">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Reason for Declining</label>
+                    <textarea name="decline_reason" rows="2" class="w-full rounded-xl border border-slate-300 bg-white p-2.5 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="State reason..."></textarea>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button
+                        type="submit"
+                        onclick="document.getElementById('modal-status-input').value='approved'; document.getElementById('modal-decline-reason-container').classList.add('hidden');"
+                        class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                    >
+                        Approve Request
+                    </button>
+                    <button
+                        type="button"
+                        onclick="toggleDeclineMode()"
+                        id="modal-decline-btn"
+                        class="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer"
+                    >
+                        Decline
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        function openReviewModal(id, requester, vehicle, destination, driverId) {
+            document.getElementById('modal-requester').textContent = requester;
+            document.getElementById('modal-vehicle').textContent = vehicle;
+            document.getElementById('modal-destination').textContent = destination;
+            
+            const form = document.getElementById('review-form');
+            form.action = `/vehicle-requests/${id}/status`;
+
+            const driverSelect = document.getElementById('modal-driver-select');
+            if (driverId) {
+                driverSelect.value = driverId;
+            } else {
+                driverSelect.value = '';
+            }
+
+            document.getElementById('modal-decline-reason-container').classList.add('hidden');
+            document.getElementById('modal-status-input').value = 'approved';
+            document.getElementById('review-modal').classList.remove('hidden');
+        }
+
+        function closeReviewModal() {
+            document.getElementById('review-modal').classList.add('hidden');
+        }
+
+        function toggleDeclineMode() {
+            const container = document.getElementById('modal-decline-reason-container');
+            const statusInput = document.getElementById('modal-status-input');
+            const form = document.getElementById('review-form');
+            
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                statusInput.value = 'declined';
+                document.getElementById('modal-decline-btn').textContent = 'Confirm Decline';
+                document.getElementById('modal-decline-btn').type = 'submit';
+            }
+        }
+
         function toggleTravelLocationMenu() {
             const menu = document.getElementById('travel-location-menu');
             if (menu) {
