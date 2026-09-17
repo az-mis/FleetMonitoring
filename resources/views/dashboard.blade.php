@@ -200,7 +200,7 @@
             {{-- 4 Stat Cards --}}
             <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {{-- Completed Travels --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -209,14 +209,13 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Completed Travels</p>
-                            <p class="text-xl font-black text-slate-900 leading-tight">{{ $completedTravelsCount }}</p>
-                            <p class="text-[10px] font-medium text-slate-400">{{ $completedTravelsCount }} Past trips finished</p>
+                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $completedTravelsCount }}</strong> Past trips finished</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Future Assigned Trips --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -228,14 +227,13 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Future Assigned Trips</p>
-                            <p class="text-xl font-black text-slate-900 leading-tight">{{ $futureTripsCount }}</p>
-                            <p class="text-[10px] font-medium text-slate-400">{{ $futureTripsCount }} Scheduled ahead</p>
+                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $futureTripsCount }}</strong> Scheduled ahead</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Active Trips Today --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -244,14 +242,13 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Trips Today</p>
-                            <p class="text-xl font-black text-slate-900 leading-tight">{{ $activeTripsTodayCount }}</p>
-                            <p class="text-[10px] font-medium text-slate-400">{{ $activeTripsTodayCount }} Happening now</p>
+                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $activeTripsTodayCount }}</strong> Happening now</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Total Dispatches --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -261,8 +258,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Dispatches</p>
-                            <p class="text-xl font-black text-slate-900 leading-tight">{{ $totalDispatchesCount }}</p>
-                            <p class="text-[10px] font-medium text-slate-400">{{ $totalDispatchesCount }} All time trips</p>
+                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $totalDispatchesCount }}</strong> All time trips</p>
                         </div>
                     </div>
                 </div>
