@@ -6,8 +6,11 @@
     <title>Request a Vehicle</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-[#082b16] text-white antialiased">
-<main class="min-h-screen bg-cover bg-center px-4 py-6 sm:px-8" style="background-image:linear-gradient(rgba(5,38,18,.68),rgba(5,38,18,.78)),url('{{ asset('FleetMS-bg.jpg') }}');">
+<body class="relative min-h-screen bg-[#082b16] text-white antialiased">
+    {{-- Fixed Full-screen Background --}}
+    <div class="fixed inset-0 -z-10 bg-cover bg-center bg-fixed" style="background-image:linear-gradient(rgba(5,38,18,.68),rgba(5,38,18,.78)),url('{{ asset('FleetMS-bg.jpg') }}');"></div>
+
+<main class="min-h-screen px-4 py-6 sm:px-8">
     <div class="mx-auto max-w-2xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-6 shadow-2xl backdrop-blur-sm sm:p-8">
         <nav class="mb-6 flex items-center justify-between border-b border-emerald-200/15 pb-4 text-xs text-emerald-100/75">
             <a href="{{ route('check-status') }}" class="hover:text-white">⌕ Check Request Status</a>
