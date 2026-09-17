@@ -57,7 +57,7 @@ class VehicleRequestController
         return view('vehicle-request::index', [
             'requests' => $query->paginate($perPage)->withQueryString(),
             'drivers' => User::where('role', UserRole::DRIVER)
-                ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
+                ->when($location, fn ($builder) => $builder->where('location', $location))
                 ->orderBy('name')
                 ->get(),
             'counts' => $counts,

@@ -708,7 +708,7 @@
                             <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                 <option value="">Select Driver</option>
                                 @foreach($drivers as $driver)
-                                    <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+                                    <option value="{{ $driver->id }}" data-location="{{ $driver->location }}">{{ $driver->name }} ({{ $driver->location ?: 'No location' }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -765,6 +765,19 @@
             form.action = `/vehicle-requests/${data.id}/status`;
 
             const driverSelect = document.getElementById('modal-driver-select');
+            Array.from(driverSelect.options).forEach(opt => {
+                if (!opt.value) {
+                    opt.hidden = false;
+                    return;
+                }
+                const drvLoc = opt.getAttribute('data-location');
+                if (!data.location || drvLoc === data.location || String(opt.value) === String(data.driver_id)) {
+                    opt.hidden = false;
+                } else {
+                    opt.hidden = true;
+                }
+            });
+
             if (data.driver_id) {
                 driverSelect.value = data.driver_id;
             } else {
