@@ -78,14 +78,71 @@ $offices = [
     ['value' => 'COA', 'label' => 'Commission on Audit (COA)'],
 ];
 @endphp
-            <div>
-                <label class="mb-1 block text-xs font-semibold">Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></label>
-                <select name="requesterOffice" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none cursor-pointer">
-                    <option value="" class="bg-[#062512] text-emerald-100/60">— Select your office / division —</option>
-                    @foreach($offices as $office)
-                        <option value="{{ $office['label'] }}" class="bg-[#062512] text-emerald-100">{{ $office['label'] }}</option>
-                    @endforeach
-                </select>
+            {{-- Custom Searchable Office / Section Dropdown --}}
+            <div class="relative" id="custom-office-dropdown-container">
+                <label class="mb-1 block text-xs font-semibold text-emerald-100">
+                    Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span>
+                </label>
+
+                {{-- Hidden input for form submission --}}
+                <input type="hidden" name="requesterOffice" id="requester-office-input" value="">
+
+                {{-- Trigger Button --}}
+                <button
+                    type="button"
+                    id="office-dropdown-trigger"
+                    onclick="toggleOfficeDropdown()"
+                    class="flex w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-left text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none transition cursor-pointer"
+                >
+                    <span id="office-dropdown-selected-label" class="truncate text-emerald-100/40">— Select your office / division —</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-emerald-300/70 transition-transform duration-200" id="office-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                </button>
+
+                {{-- Dropdown Menu Panel --}}
+                <div
+                    id="office-dropdown-panel"
+                    class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
+                >
+                    {{-- Search Bar inside Dropdown --}}
+                    <div class="relative mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+                        <input
+                            type="text"
+                            id="office-search-input"
+                            oninput="filterOfficeOptions()"
+                            placeholder="Search office..."
+                            class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none"
+                        >
+                    </div>
+
+                    {{-- Options List --}}
+                    <div id="office-options-list" class="max-h-56 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
+                        <div
+                            onclick="selectOffice('', '— Select your office / division —')"
+                            class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100/60 hover:bg-emerald-800/40 hover:text-emerald-200 transition"
+                            data-label="— select your office / division —"
+                        >
+                            <span>— Select your office / division —</span>
+                        </div>
+                        @foreach($offices as $office)
+                            <div
+                                onclick="selectOffice('{{ addslashes($office['label']) }}')"
+                                class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100 hover:bg-emerald-800/50 hover:text-white transition"
+                                data-label="{{ strtolower($office['label'] . ' ' . $office['value']) }}"
+                            >
+                                <span>{{ $office['label'] }}</span>
+                            </div>
+                        @endforeach
+                        <div id="no-office-found" class="hidden px-3 py-4 text-center text-xs text-emerald-100/50">
+                            No office found matching search.
+                        </div>
+                    </div>
+                </div>
             </div>
             <div><label class="mb-1 block text-xs font-semibold">Contact Number <span class="font-normal text-emerald-100/55">(Optional)</span></label><input name="requesterContact" placeholder="09XX-XXX-XXXX" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
             <div><label class="mb-1 block text-xs font-semibold">Select Vehicle <span class="text-emerald-300">*</span></label><select id="vehicle-select" name="vehicleId" required disabled class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"><option value="">— Select a location first —</option>@foreach($vehicles as $vehicle)<option value="{{ $vehicle->id }}" data-location="{{ $vehicle->location }}">{{ $vehicle->plate_number }} · {{ $vehicle->brand }} {{ $vehicle->model }}</option>@endforeach</select></div>
@@ -100,6 +157,83 @@ $offices = [
     </div>
     </main>
     <script>
+        function toggleOfficeDropdown() {
+            const panel = document.getElementById('office-dropdown-panel');
+            const chevron = document.getElementById('office-dropdown-chevron');
+            const searchInput = document.getElementById('office-search-input');
+            
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-180');
+                if (searchInput) {
+                    searchInput.value = '';
+                    filterOfficeOptions();
+                    setTimeout(() => searchInput.focus(), 50);
+                }
+            } else {
+                closeOfficeDropdown();
+            }
+        }
+
+        function closeOfficeDropdown() {
+            const panel = document.getElementById('office-dropdown-panel');
+            const chevron = document.getElementById('office-dropdown-chevron');
+            if (panel) panel.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+
+        function selectOffice(val, displayLabel = null) {
+            const hiddenInput = document.getElementById('requester-office-input');
+            const labelSpan = document.getElementById('office-dropdown-selected-label');
+            
+            if (hiddenInput) hiddenInput.value = val;
+            if (labelSpan) {
+                labelSpan.textContent = val || (displayLabel || '— Select your office / division —');
+                if (val) {
+                    labelSpan.classList.remove('text-emerald-100/40');
+                    labelSpan.classList.add('text-emerald-100');
+                } else {
+                    labelSpan.classList.remove('text-emerald-100');
+                    labelSpan.classList.add('text-emerald-100/40');
+                }
+            }
+            closeOfficeDropdown();
+        }
+
+        function filterOfficeOptions() {
+            const query = (document.getElementById('office-search-input')?.value || '').toLowerCase().trim();
+            const items = document.querySelectorAll('.office-option-item');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const text = item.getAttribute('data-label') || '';
+                if (!query || text.includes(query)) {
+                    item.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            const noFound = document.getElementById('no-office-found');
+            if (noFound) {
+                if (visibleCount === 0) {
+                    noFound.classList.remove('hidden');
+                } else {
+                    noFound.classList.add('hidden');
+                }
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('custom-office-dropdown-container');
+            if (container && !container.contains(e.target)) {
+                closeOfficeDropdown();
+            }
+        });
+
         const locationSelect = document.querySelector('select[name="location"]');
         const vehicleSelect = document.getElementById('vehicle-select');
         const vehicleOptions = Array.from(vehicleSelect.querySelectorAll('option[data-location]'));
