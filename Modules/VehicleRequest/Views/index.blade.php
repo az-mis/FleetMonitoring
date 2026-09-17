@@ -409,7 +409,12 @@
                                 {{-- Approver --}}
                                 <td class="whitespace-nowrap px-3 py-3 text-slate-600 font-medium">
                                     @if($item->approvedBy)
-                                        <span class="font-bold text-slate-900">{{ $item->approvedBy->name }}</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-[10px] font-bold text-white shadow-xs">
+                                                {{ strtoupper(substr($item->approvedBy->name, 0, 1)) }}
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-900">{{ $item->approvedBy->name }}</span>
+                                        </div>
                                     @else
                                         <span class="text-slate-400">—</span>
                                     @endif
@@ -417,25 +422,27 @@
 
                                 {{-- Action --}}
                                 <td class="whitespace-nowrap px-3 py-3 text-right">
+                                    @php
+                                        $modalData = [
+                                            'id' => $item->id,
+                                            'code' => $item->reference_code,
+                                            'requester' => $item->requester_name,
+                                            'location' => $item->location,
+                                            'is_passenger' => $item->requester_is_passenger,
+                                            'office' => $item->requester_office ?: $item->location,
+                                            'contact' => $item->requester_contact ?: '—',
+                                            'vehicle' => $item->vehicle?->plate_number ? ($item->vehicle->plate_number . ' · ' . $item->vehicle->brand . ' ' . $item->vehicle->model) : 'Unassigned',
+                                            'destination' => $item->destination,
+                                            'travel_date' => $item->travel_date->format('M d, Y') . ($item->travel_date_end ? (' – ' . $item->travel_date_end->format('M d, Y')) : ''),
+                                            'purpose' => $item->purpose,
+                                            'passengers' => is_array($item->passengers) ? implode(', ', array_filter($item->passengers)) : '',
+                                            'driver_id' => $item->confirmed_driver_id ?: $item->vehicle?->assigned_driver_id,
+                                            'driver_name' => $item->confirmedDriver?->name ?: ($item->vehicle?->assignedDriver?->name ?? 'Assigned Driver'),
+                                            'status' => $item->status,
+                                        ];
+                                    @endphp
+
                                     @if($item->status === 'pending')
-                                        @php
-                                            $modalData = [
-                                                'id' => $item->id,
-                                                'code' => $item->reference_code,
-                                                'requester' => $item->requester_name,
-                                                'location' => $item->location,
-                                                'is_passenger' => $item->requester_is_passenger,
-                                                'office' => $item->requester_office ?: $item->location,
-                                                'contact' => $item->requester_contact ?: '—',
-                                                'vehicle' => $item->vehicle?->plate_number ? ($item->vehicle->plate_number . ' · ' . $item->vehicle->brand . ' ' . $item->vehicle->model) : 'Unassigned',
-                                                'destination' => $item->destination,
-                                                'travel_date' => $item->travel_date->format('M d, Y') . ($item->travel_date_end ? (' – ' . $item->travel_date_end->format('M d, Y')) : ''),
-                                                'purpose' => $item->purpose,
-                                                'passengers' => is_array($item->passengers) ? implode(', ', array_filter($item->passengers)) : '',
-                                                'driver_id' => $item->vehicle?->assigned_driver_id,
-                                                'driver_name' => $item->vehicle?->assignedDriver?->name ?? 'Assigned Driver',
-                                            ];
-                                        @endphp
                                         <button
                                             type="button"
                                             onclick='openReviewModal(@json($modalData))'
@@ -444,10 +451,26 @@
                                             Review
                                         </button>
                                     @else
-                                        <div class="inline-flex items-center gap-1">
+                                        <div class="inline-flex items-center gap-1.5">
+                                            <button
+                                                type="button"
+                                                onclick='openReviewModal(@json($modalData))'
+                                                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                                            >
+                                                View
+                                            </button>
                                             @if($item->status === 'approved')
-                                                <a href="{{ route('trip-ticket', $item) }}" target="_blank" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-slate-100">
-                                                    Trip Ticket
+                                                <a
+                                                    href="{{ route('trip-ticket', $item) }}"
+                                                    target="_blank"
+                                                    class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="6 9 6 2 18 2 18 9"/>
+                                                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                                        <rect width="12" height="8" x="6" y="14"/>
+                                                    </svg>
+                                                    <span>Print</span>
                                                 </a>
                                             @endif
                                         </div>
@@ -671,7 +694,7 @@
                     </div>
                 </div>
 
-                <div class="pt-2 border-t border-gray-100">
+                <div id="modal-action-section" class="pt-2 border-t border-gray-100">
                     <form id="review-form" method="POST" action="" class="space-y-2.5">
                         @csrf
                         @method('PATCH')
@@ -809,6 +832,13 @@
 
             const form = document.getElementById('review-form');
             form.action = `/vehicle-requests/${data.id}/status`;
+
+            const actionContainer = document.getElementById('modal-action-section');
+            if (data.status && data.status !== 'pending') {
+                if (actionContainer) actionContainer.classList.add('hidden');
+            } else {
+                if (actionContainer) actionContainer.classList.remove('hidden');
+            }
 
             const driverSelect = document.getElementById('modal-driver-select');
             Array.from(driverSelect.options).forEach(opt => {
