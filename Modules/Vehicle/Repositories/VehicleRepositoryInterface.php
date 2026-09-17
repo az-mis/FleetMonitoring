@@ -9,7 +9,7 @@ use Modules\Vehicle\Models\Vehicle;
 
 interface VehicleRepositoryInterface
 {
-    public function paginate(int $perPage = 12, ?string $search = null): LengthAwarePaginator;
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator;
 
     public function create(array $data): Vehicle;
 
