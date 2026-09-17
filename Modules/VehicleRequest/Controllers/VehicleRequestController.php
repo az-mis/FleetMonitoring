@@ -22,27 +22,47 @@ class VehicleRequestController
         abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
 
         $user = $request->user();
-        $location = $user?->role === UserRole::ADMIN ? $user->location : null;
-        $query = VehicleRequest::query()->with('vehicle')->when($location, fn ($builder) => $builder->where('location', $location))->latest();
-        if ($status = $request->string('status')->toString()) {
+        $userLocation = $user?->role === UserRole::ADMIN ? $user->location : null;
+        $location = $request->input('location', $userLocation);
+        $search = trim($request->string('search')->toString());
+        $status = $request->string('status', 'pending')->toString();
+        $perPage = (int) $request->input('per_page', 10);
+
+        $baseQuery = VehicleRequest::query()
+            ->with(['vehicle', 'confirmedDriver', 'approvedBy'])
+            ->when($location, fn ($builder) => $builder->where('location', $location));
+
+        $counts = [
+            'total' => (clone $baseQuery)->count(),
+            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'approved' => (clone $baseQuery)->where('status', 'approved')->count(),
+            'declined' => (clone $baseQuery)->where('status', 'declined')->count(),
+        ];
+
+        $query = (clone $baseQuery)->latest();
+
+        if ($status !== 'all' && in_array($status, ['pending', 'approved', 'declined'], true)) {
             $query->where('status', $status);
         }
-        if ($search = trim($request->string('search')->toString())) {
+
+        if ($search) {
             $query->where(function ($builder) use ($search): void {
                 $builder->where('reference_code', 'like', "%{$search}%")
                     ->orWhere('requester_name', 'like', "%{$search}%")
-                    ->orWhere('destination', 'like', "%{$search}%");
+                    ->orWhere('destination', 'like', "%{$search}%")
+                    ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate_number', 'like', "%{$search}%"));
             });
         }
 
         return view('vehicle-request::index', [
-            'requests' => $query->paginate(10)->withQueryString(),
-            'drivers' => User::where('role', UserRole::DRIVER)->orderBy('name')->get(),
-            'counts' => [
-                'pending' => VehicleRequest::when($location, fn ($builder) => $builder->where('location', $location))->where('status', 'pending')->count(),
-                'approved' => VehicleRequest::when($location, fn ($builder) => $builder->where('location', $location))->where('status', 'approved')->count(),
-                'declined' => VehicleRequest::when($location, fn ($builder) => $builder->where('location', $location))->where('status', 'declined')->count(),
-            ],
+            'requests' => $query->paginate($perPage)->withQueryString(),
+            'drivers' => User::where('role', UserRole::DRIVER)
+                ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
+                ->orderBy('name')
+                ->get(),
+            'counts' => $counts,
+            'selectedLocation' => $location,
+            'currentStatus' => $status,
         ]);
     }
 
