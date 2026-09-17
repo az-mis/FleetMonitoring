@@ -148,67 +148,57 @@
 
     {{-- Register Vehicle modal --}}
     <div id="register-vehicle-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl my-auto">
+        <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl my-auto">
 
             {{-- Step 1: form --}}
             <div id="register-vehicle-step-form">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Register New Vehicle</h2>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base font-semibold text-gray-900">Register Vehicle</h2>
                     <button type="button" onclick="closeRegisterVehicleModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
-                <p class="mt-1 text-sm text-gray-500">Fill out the details below to add a new vehicle record.</p>
 
-                <form method="POST" action="{{ route('vehicles.store') }}" id="register-vehicle-form" class="mt-5 space-y-4" enctype="multipart/form-data" onsubmit="return handleRegisterVehicleSubmit(event)">
+                <form method="POST" action="{{ route('vehicles.store') }}" id="register-vehicle-form" class="space-y-2.5" enctype="multipart/form-data" onsubmit="return handleRegisterVehicleSubmit(event)">
                     @csrf
                     <input type="hidden" name="_vehicle_form" value="create">
 
-                    <div>
-                        <label for="rv-plate_number" class="block text-sm font-medium text-gray-700">Plate Number</label>
-                        <input
-                            type="text"
-                            name="plate_number"
-                            id="rv-plate_number"
-                            value="{{ old('_vehicle_form') === 'create' ? old('plate_number') : '' }}"
-                            placeholder="E.G. ABC 1234"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('plate_number') border-red-300 @enderror"
-                            required
-                        >
-                        <p class="mt-1 text-xs text-gray-400">Letters, numbers, dashes, and spaces only.</p>
-                        @error('plate_number')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Vehicle Photo</label>
-                        <div class="mt-1.5 flex items-center gap-4">
-                            <div class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 text-gray-400">
-                                <img id="rv-photo-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
-                                <svg id="rv-photo-preview-icon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    {{-- Vehicle Photo (centered, clickable uploader) --}}
+                    <div class="flex flex-col items-center gap-1.5 pb-1">
+                        <label for="rv-photo" class="cursor-pointer group">
+                            <div class="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-emerald-50 text-emerald-400 border-2 border-dashed border-emerald-200 group-hover:bg-emerald-100 transition">
+                                <img id="rv-photo-preview-img" src="" alt="" class="hidden h-full w-full object-cover rounded-xl">
+                                <svg id="rv-photo-preview-icon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                     <circle cx="12" cy="13" r="4"/>
                                 </svg>
                             </div>
-                            <div class="flex flex-col gap-1">
-                                <div class="flex items-center gap-2">
-                                    <label for="rv-photo" class="inline-flex w-fit cursor-pointer items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition">
-                                        Choose File
-                                    </label>
-                                    <span id="rv-photo-filename" class="text-sm text-gray-500">No file chosen</span>
-                                </div>
-                                <input type="file" name="photo" id="rv-photo" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="handleVehiclePhotoChange(this)">
-                                <span class="text-xs text-gray-400">Optional. JPG, PNG, or WEBP. Max 5MB.</span>
-                            </div>
-                        </div>
+                        </label>
+                        <input type="file" name="photo" id="rv-photo" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="handleVehiclePhotoChange(this)">
+                        <span id="rv-photo-filename" class="text-xs text-gray-400">Vehicle photo (optional, max 5MB)</span>
                         @error('photo')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
+                    {{-- Plate Number --}}
+                    <div>
+                        <label for="rv-plate_number" class="block text-xs font-medium text-gray-600 mb-1">Plate Number <span class="text-red-400">*</span></label>
+                        <input
+                            type="text" name="plate_number" id="rv-plate_number"
+                            value="{{ old('_vehicle_form') === 'create' ? old('plate_number') : '' }}"
+                            placeholder="e.g. ABC 1234"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('plate_number') border-red-300 @enderror"
+                            required
+                        >
+                        @error('plate_number')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Chassis/VIN | Engine Number --}}
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="rv-chassis_number" class="block text-sm font-medium text-gray-700">Chassis/VIN Number</label>
@@ -242,11 +232,7 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label for="rv-location" class="block text-sm font-medium text-gray-700">Office / Location</label>
-                        <input type="text" name="location" id="rv-location" value="{{ old('_vehicle_form') === 'create' ? old('location') : '' }}" placeholder="e.g. Oriental Mindoro" class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-emerald-500">
-                    </div>
-
+                    {{-- Brand | Model --}}
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="rv-brand" class="block text-sm font-medium text-gray-700">Brand</label>
@@ -280,34 +266,7 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label for="rv-location" class="block text-sm font-medium text-gray-700">Assigned Location / Office Province</label>
-                        <select
-                            name="location"
-                            id="rv-location"
-                            @if(!$isSuperAdmin) disabled @endif
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('location') border-red-300 @enderror {{ !$isSuperAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
-                        >
-                            <option value="">-- Select Location / Office --</option>
-                            @foreach($locationOptions as $loc)
-                                <option value="{{ $loc }}" @selected(old('location', auth()->user()?->location) === $loc)>{{ $loc }}</option>
-                            @endforeach
-                        </select>
-                        @if(!$isSuperAdmin)
-                            <input type="hidden" name="location" value="{{ auth()->user()?->location }}">
-                        @endif
-                        <p class="mt-1 text-xs text-gray-400">
-                            @if($isSuperAdmin)
-                                Requesters will only see this vehicle when selecting this location.
-                            @else
-                                Only a Super Admin can change the assigned location.
-                            @endif
-                        </p>
-                        @error('location')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
+                    {{-- Year | Color --}}
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="rv-year" class="block text-sm font-medium text-gray-700">Year</label>
@@ -343,6 +302,7 @@
                         </div>
                     </div>
 
+                    {{-- Current Odometer --}}
                     <div>
                         <label for="rv-odometer" class="block text-sm font-medium text-gray-700">Current Odometer (km)</label>
                         <input
@@ -360,47 +320,68 @@
                         @enderror
                     </div>
 
+                    {{-- Vehicle Type | Fuel Type --}}
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="rv-vehicle_type" class="block text-sm font-medium text-gray-700">Vehicle Type</label>
-                            <select
+                            <input
+                                type="text"
                                 name="vehicle_type"
                                 id="rv-vehicle_type"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('vehicle_type') border-red-300 @enderror"
+                                value="{{ old('_vehicle_form') === 'create' ? old('vehicle_type') : '' }}"
+                                placeholder="e.g. MPV, SUV, Sedan"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('vehicle_type') border-red-300 @enderror"
                             >
-                                <option value="">-- Select Type --</option>
-                                <option value="sedan">Sedan</option>
-                                <option value="suv">SUV</option>
-                                <option value="pickup">Pickup Truck</option>
-                                <option value="van">Van</option>
-                                <option value="truck">Truck</option>
-                                <option value="motorcycle">Motorcycle</option>
-                                <option value="other">Other</option>
-                            </select>
                             @error('vehicle_type')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
                         <div>
                             <label for="rv-fuel_type" class="block text-sm font-medium text-gray-700">Fuel Type</label>
-                            <select
+                            <input
+                                type="text"
                                 name="fuel_type"
                                 id="rv-fuel_type"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('fuel_type') border-red-300 @enderror"
+                                value="{{ old('_vehicle_form') === 'create' ? old('fuel_type') : '' }}"
+                                placeholder="e.g. Hybrid (Gasoline), Diesel"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('fuel_type') border-red-300 @enderror"
                             >
-                                <option value="">-- Select Fuel Type --</option>
-                                <option value="gasoline">Gasoline</option>
-                                <option value="diesel">Diesel</option>
-                                <option value="electric">Electric</option>
-                                <option value="hybrid">Hybrid</option>
-                                <option value="other">Other</option>
-                            </select>
                             @error('fuel_type')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
+                    {{-- Assigned Location (Super Admin editable, others read-only) --}}
+                    <div>
+                        <label for="rv-location" class="block text-sm font-medium text-gray-700">Assigned Location / Office Province</label>
+                        <select
+                            name="location"
+                            id="rv-location"
+                            @if(!$isSuperAdmin) disabled @endif
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('location') border-red-300 @enderror {{ !$isSuperAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
+                        >
+                            <option value="">-- Select Location / Office --</option>
+                            @foreach($locationOptions as $loc)
+                                <option value="{{ $loc }}" @selected(old('location', auth()->user()?->location) === $loc)>{{ $loc }}</option>
+                            @endforeach
+                        </select>
+                        @if(!$isSuperAdmin)
+                            <input type="hidden" name="location" value="{{ auth()->user()?->location }}">
+                        @endif
+                        <p class="mt-1 text-xs text-gray-400">
+                            @if($isSuperAdmin)
+                                Requesters will only see this vehicle when selecting this location.
+                            @else
+                                Only a Super Admin can change the assigned location.
+                            @endif
+                        </p>
+                        @error('location')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Actions --}}
                     <div class="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
                         <button type="button" onclick="closeRegisterVehicleModal()" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                             Cancel
@@ -409,7 +390,7 @@
                             type="submit"
                             class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition"
                         >
-                            Save Vehicle
+                            Register Vehicle
                         </button>
                     </div>
                 </form>
@@ -476,11 +457,11 @@
                 </dl>
 
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="backToRegisterVehicleForm()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        Back
+                    <button type="button" onclick="closeRegisterVehicleModal()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                        Cancel
                     </button>
                     <button type="button" onclick="confirmRegisterVehicle()" class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition">
-                        Yes, register vehicle
+                        Register
                     </button>
                 </div>
             </div>
@@ -507,37 +488,14 @@
                 </div>
                 <p id="edit-vehicle-subtitle" class="mt-1 text-sm text-gray-500">Update this vehicle's details below.</p>
 
-                <form method="POST" action="{{ old('_ev_action', route('vehicles.index')) }}" id="edit-vehicle-form" class="mt-5 space-y-4" enctype="multipart/form-data" onsubmit="return handleEditVehicleSubmit(event)">
+                <form method="POST" action="{{ old('_ev_action', route('vehicles.index')) }}" id="edit-vehicle-form" class="mt-5 space-y-4" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="_vehicle_form" value="edit">
                     <input type="hidden" name="_ev_action" id="edit-vehicle-action-field" value="{{ old('_ev_action') }}">
                     <input type="hidden" name="remove_photo" id="ev-remove-photo" value="0">
 
-                    <div>
-                        <label for="ev-plate_number" class="block text-sm font-medium text-gray-700">Plate Number</label>
-                        <input
-                            type="text"
-                            name="plate_number"
-                            id="ev-plate_number"
-                            value="{{ old('_vehicle_form') === 'edit' ? old('plate_number') : '' }}"
-                            placeholder="E.G. ABC 1234"
-                            @if (!$isSuperAdmin) readonly @endif
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('plate_number') border-red-300 @enderror {{ !$isSuperAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
-                            required
-                        >
-                        <p class="mt-1 text-xs text-gray-400">
-                            @if ($isSuperAdmin)
-                                Letters, numbers, dashes, and spaces only.
-                            @else
-                                Only a Super Admin can change the plate number.
-                            @endif
-                        </p>
-                        @error('plate_number')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
+                    {{-- Vehicle Photo --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Vehicle Photo</label>
                         <div class="mt-1.5 flex items-center gap-4">
@@ -567,6 +525,64 @@
                         @enderror
                     </div>
 
+                    {{-- Row 1: Plate Number & Brand --}}
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="ev-plate_number" class="block text-sm font-medium text-gray-700">Plate Number <span class="text-red-500">*</span></label>
+                            <input
+                                type="text"
+                                name="plate_number"
+                                id="ev-plate_number"
+                                value="{{ old('_vehicle_form') === 'edit' ? old('plate_number') : '' }}"
+                                placeholder="E.G. ABC 1234"
+                                @if (!$isSuperAdmin) readonly @endif
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('plate_number') border-red-300 @enderror {{ !$isSuperAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
+                                required
+                            >
+                            <p class="mt-1 text-xs text-gray-400">
+                                @if ($isSuperAdmin)
+                                    Letters, numbers, dashes, and spaces only.
+                                @else
+                                    Only a Super Admin can change the plate number.
+                                @endif
+                            </p>
+                            @error('plate_number')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="ev-brand" class="block text-sm font-medium text-gray-700">Brand <span class="text-red-500">*</span></label>
+                            <input
+                                type="text"
+                                name="brand"
+                                id="ev-brand"
+                                value="{{ old('_vehicle_form') === 'edit' ? old('brand') : '' }}"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('brand') border-red-300 @enderror"
+                                required
+                            >
+                            @error('brand')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    {{-- Row 2: Model --}}
+                    <div>
+                        <label for="ev-model" class="block text-sm font-medium text-gray-700">Model <span class="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            name="model"
+                            id="ev-model"
+                            value="{{ old('_vehicle_form') === 'edit' ? old('model') : '' }}"
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('model') border-red-300 @enderror"
+                            required
+                        >
+                        @error('model')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Row 3: Chassis/VIN Number & Engine Number --}}
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="ev-chassis_number" class="block text-sm font-medium text-gray-700">Chassis/VIN Number</label>
@@ -598,40 +614,10 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {{-- Row 4: Year, Color, Odometer (3 Columns) --}}
+                    <div class="grid grid-cols-3 gap-3">
                         <div>
-                            <label for="ev-brand" class="block text-sm font-medium text-gray-700">Brand</label>
-                            <input
-                                type="text"
-                                name="brand"
-                                id="ev-brand"
-                                value="{{ old('_vehicle_form') === 'edit' ? old('brand') : '' }}"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('brand') border-red-300 @enderror"
-                                required
-                            >
-                            @error('brand')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label for="ev-model" class="block text-sm font-medium text-gray-700">Model</label>
-                            <input
-                                type="text"
-                                name="model"
-                                id="ev-model"
-                                value="{{ old('_vehicle_form') === 'edit' ? old('model') : '' }}"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('model') border-red-300 @enderror"
-                                required
-                            >
-                            @error('model')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                            <label for="ev-year" class="block text-sm font-medium text-gray-700">Year</label>
+                            <label for="ev-year" class="block text-sm font-medium text-gray-700">Year <span class="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 name="year"
@@ -647,7 +633,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="ev-color" class="block text-sm font-medium text-gray-700">Color</label>
+                            <label for="ev-color" class="block text-sm font-medium text-gray-700">Color <span class="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="color"
@@ -660,63 +646,53 @@
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                    </div>
-
-                    <div>
-                        <label for="ev-odometer" class="block text-sm font-medium text-gray-700">Current Odometer (km)</label>
-                        <input
-                            type="number"
-                            name="odometer"
-                            id="ev-odometer"
-                            value="{{ old('_vehicle_form') === 'edit' ? old('odometer', 0) : 0 }}"
-                            min="0"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('odometer') border-red-300 @enderror"
-                            required
-                        >
-                        @error('odometer')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <div>
+                            <label for="ev-odometer" class="block text-sm font-medium text-gray-700">Odometer (km) <span class="text-red-500">*</span></label>
+                            <input
+                                type="number"
+                                name="odometer"
+                                id="ev-odometer"
+                                value="{{ old('_vehicle_form') === 'edit' ? old('odometer', 0) : 0 }}"
+                                min="0"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('odometer') border-red-300 @enderror"
+                                required
+                            >
+                            @error('odometer')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="ev-vehicle_type" class="block text-sm font-medium text-gray-700">Vehicle Type</label>
-                            <select
+                            <input
+                                type="text"
                                 name="vehicle_type"
                                 id="ev-vehicle_type"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('vehicle_type') border-red-300 @enderror"
+                                value="{{ old('_vehicle_form') === 'edit' ? old('vehicle_type') : '' }}"
+                                placeholder="e.g. MPV, SUV, Sedan"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('vehicle_type') border-red-300 @enderror"
                             >
-                                <option value="">-- Select Type --</option>
-                                <option value="sedan">Sedan</option>
-                                <option value="suv">SUV</option>
-                                <option value="pickup">Pickup Truck</option>
-                                <option value="van">Van</option>
-                                <option value="truck">Truck</option>
-                                <option value="motorcycle">Motorcycle</option>
-                                <option value="other">Other</option>
-                            </select>
                             @error('vehicle_type')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
                         <div>
                             <label for="ev-fuel_type" class="block text-sm font-medium text-gray-700">Fuel Type</label>
-                            <select
+                            <input
+                                type="text"
                                 name="fuel_type"
                                 id="ev-fuel_type"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('fuel_type') border-red-300 @enderror"
+                                value="{{ old('_vehicle_form') === 'edit' ? old('fuel_type') : '' }}"
+                                placeholder="e.g. Hybrid (Gasoline), Diesel"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('fuel_type') border-red-300 @enderror"
                             >
-                                <option value="">-- Select Fuel Type --</option>
-                                <option value="gasoline">Gasoline</option>
-                                <option value="diesel">Diesel</option>
-                                <option value="electric">Electric</option>
-                                <option value="hybrid">Hybrid</option>
-                                <option value="other">Other</option>
-                            </select>
                             @error('fuel_type')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
-
                     <div>
                         <label for="ev-location" class="block text-sm font-medium text-gray-700">Assigned Location / Office Province</label>
                         <select
@@ -745,90 +721,15 @@
                         @enderror
                     </div>
 
-                    <div class="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
-                        <button type="button" onclick="closeEditVehicleModal()" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                            Cancel
-                        </button>
+                    <div class="pt-4 border-t border-gray-100">
                         <button
                             type="submit"
-                            class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition"
+                            class="w-full rounded-xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] py-3 text-sm font-extrabold text-white shadow-md hover:opacity-95 transition cursor-pointer"
                         >
-                            Continue
+                            Save Changes
                         </button>
                     </div>
                 </form>
-            </div>
-
-            {{-- Step 2: confirmation --}}
-            <div id="edit-vehicle-step-confirm" class="hidden">
-                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/>
-                    </svg>
-                </div>
-                <h2 class="mt-4 text-lg font-semibold text-gray-900">Save these changes?</h2>
-                <p class="mt-1 text-sm text-gray-500">Please confirm the updated details below.</p>
-
-                <dl class="mt-4 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-100 bg-gray-50 p-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Plate Number</dt>
-                        <dd id="ev-confirm-plate_number" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Photo</dt>
-                        <dd id="ev-confirm-photo" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Chassis/VIN Number</dt>
-                        <dd id="ev-confirm-chassis_number" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Engine Number</dt>
-                        <dd id="ev-confirm-engine_number" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Brand</dt>
-                        <dd id="ev-confirm-brand" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Model</dt>
-                        <dd id="ev-confirm-model" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Year</dt>
-                        <dd id="ev-confirm-year" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Color</dt>
-                        <dd id="ev-confirm-color" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Odometer</dt>
-                        <dd id="ev-confirm-odometer" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Vehicle Type</dt>
-                        <dd id="ev-confirm-vehicle_type" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Fuel Type</dt>
-                        <dd id="ev-confirm-fuel_type" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <dt class="text-sm text-gray-500">Location</dt>
-                        <dd id="ev-confirm-location" class="truncate text-sm font-medium text-gray-900"></dd>
-                    </div>
-                </dl>
-
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="backToEditVehicleForm()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        Back
-                    </button>
-                    <button type="button" onclick="confirmEditVehicle()" class="rounded-lg bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 transition">
-                        Yes, save changes
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -1107,8 +1008,6 @@
             // When re-opened automatically after a validation error, the form
             // already has the posted values (action + old input) rendered server-side.
 
-            document.getElementById('edit-vehicle-step-confirm').classList.add('hidden');
-            document.getElementById('edit-vehicle-step-form').classList.remove('hidden');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
@@ -1353,15 +1252,11 @@
         }
 
         function vehicleTypeLabel(value) {
-            const select = document.getElementById('rv-vehicle_type');
-            const option = select.querySelector(`option[value="${value}"]`);
-            return option ? option.textContent : 'None';
+            return value || 'None';
         }
 
         function fuelTypeLabel(value) {
-            const select = document.getElementById('rv-fuel_type');
-            const option = select.querySelector(`option[value="${value}"]`);
-            return option ? option.textContent : 'None';
+            return value || 'None';
         }
 
         function handleRegisterVehicleSubmit(event) {

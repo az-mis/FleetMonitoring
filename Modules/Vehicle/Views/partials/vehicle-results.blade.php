@@ -125,7 +125,7 @@
                     {{-- Top Section: Vehicle Thumbnail / Photo + Edit/Delete Actions --}}
                     <div class="relative p-3">
                         @if ($vehicle->photo_url)
-                            <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->plate_number }}" class="h-40 w-full rounded-xl object-cover">
+                            <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->plate_number }}" class="h-40 w-full rounded-xl object-cover border border-gray-200">
                         @else
                             <div class="flex h-40 w-full items-center justify-center rounded-xl bg-slate-100 text-slate-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
