@@ -338,18 +338,38 @@
                                 {{-- Passengers --}}
                                 <td class="whitespace-nowrap px-3 py-3">
                                     @php
-                                        $passengerList = is_array($item->passengers) ? array_filter($item->passengers) : [];
+                                        $passengerList = is_array($item->passengers) ? array_values(array_filter($item->passengers)) : [];
                                         $pCount = count($passengerList);
                                     @endphp
                                     @if ($item->requester_is_passenger || $pCount > 0)
                                         <div class="text-xs">
-                                            <p class="font-semibold text-slate-800">
-                                                {{ $item->requester_name }} <span class="text-slate-400 font-normal">(Requester)</span>
-                                            </p>
+                                            @if ($item->requester_is_passenger)
+                                                <p class="font-semibold text-slate-800">
+                                                    {{ $item->requester_name }} <span class="text-slate-400 font-normal">(Requester)</span>
+                                                </p>
+                                            @endif
                                             @if ($pCount > 0)
-                                                <span class="font-bold text-emerald-700 cursor-pointer underline text-[11px]" title="{{ implode(', ', $passengerList) }}">
-                                                    +{{ $pCount }} more
-                                                </span>
+                                                <div id="passengers-collapsed-{{ $item->id }}">
+                                                    <button
+                                                        type="button"
+                                                        onclick="document.getElementById('passengers-collapsed-{{ $item->id }}').classList.add('hidden'); document.getElementById('passengers-expanded-{{ $item->id }}').classList.remove('hidden');"
+                                                        class="font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer underline text-[11px] block mt-0.5"
+                                                    >
+                                                        +{{ $pCount }} more
+                                                    </button>
+                                                </div>
+                                                <div id="passengers-expanded-{{ $item->id }}" class="hidden mt-0.5 space-y-0.5">
+                                                    @foreach ($passengerList as $pName)
+                                                        <p class="text-[11px] font-medium text-slate-700">&bull; {{ $pName }}</p>
+                                                    @endforeach
+                                                    <button
+                                                        type="button"
+                                                        onclick="document.getElementById('passengers-expanded-{{ $item->id }}').classList.add('hidden'); document.getElementById('passengers-collapsed-{{ $item->id }}').classList.remove('hidden');"
+                                                        class="font-bold text-slate-500 hover:text-slate-700 cursor-pointer underline text-[10px] block pt-0.5"
+                                                    >
+                                                        Show less
+                                                    </button>
+                                                </div>
                                             @endif
                                         </div>
                                     @else

@@ -250,6 +250,18 @@
                         </div>
                     </div>
 
+                    @php
+                        $pendingTravelCount = 0;
+                        try {
+                            $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
+                            $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
+                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                                ->count();
+                        } catch (\Throwable $e) {
+                            $pendingTravelCount = 0;
+                        }
+                    @endphp
+
                     <a
                         href="{{ route('vehicle-requests.index') }}"
                         title="Travel Requests"
@@ -261,8 +273,12 @@
                             <path d="M8 11h8M8 15h5"/>
                         </svg>
                         <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
-                            <span>Travel Requests</span>
-                            @if(!$isSuperAdmin && !($moduleFlags['vehicleRequests'] ?? true))
+                            <span class="truncate">Travel Requests</span>
+                            @if ($pendingTravelCount > 0)
+                                <span class="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold text-white shadow-xs">
+                                    {{ $pendingTravelCount }}
+                                </span>
+                            @elseif(!$isSuperAdmin && !($moduleFlags['vehicleRequests'] ?? true))
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
                                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
