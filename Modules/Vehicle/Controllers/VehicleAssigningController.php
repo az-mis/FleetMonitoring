@@ -17,10 +17,41 @@ class VehicleAssigningController
     {
         abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
 
-        $location = $request->user()?->role === UserRole::ADMIN ? $request->user()->location : null;
+        $userLocation = $request->user()?->role === UserRole::ADMIN ? $request->user()->location : null;
+        $location = $request->input('location', $userLocation);
+        $search = $request->input('search');
+        $perPage = (int) $request->input('per_page', 10);
+
+        $query = Vehicle::with('assignedDriver')
+            ->when($location, fn ($builder) => $builder->where('location', $location))
+            ->when($search, function ($builder) use ($search) {
+                $builder->where(function ($q) use ($search) {
+                    $q->where('plate_number', 'like', "%{$search}%")
+                        ->orWhere('brand', 'like', "%{$search}%")
+                        ->orWhere('model', 'like', "%{$search}%")
+                        ->orWhereHas('assignedDriver', fn ($dq) => $dq->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->orderBy('plate_number');
+
+        $totalVehicles = (clone $query)->count();
+        $assignedCount = (clone $query)->whereNotNull('assigned_driver_id')->count();
+        $unassignedCount = (clone $query)->whereNull('assigned_driver_id')->count();
+
+        $vehicles = $query->paginate($perPage)->withQueryString();
+
+        $drivers = User::where('role', UserRole::DRIVER)
+            ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
+            ->orderBy('name')
+            ->get();
+
         return view('vehicle::assigning', [
-            'vehicles' => Vehicle::with('assignedDriver')->when($location, fn ($builder) => $builder->where('location', $location))->orderBy('plate_number')->get(),
-            'drivers' => User::where('role', UserRole::DRIVER)->when($location, fn ($builder) => $builder->where('location', $location))->orderBy('name')->get(),
+            'vehicles' => $vehicles,
+            'drivers' => $drivers,
+            'totalVehicles' => $totalVehicles,
+            'assignedCount' => $assignedCount,
+            'unassignedCount' => $unassignedCount,
+            'selectedLocation' => $location,
         ]);
     }
 
