@@ -25,7 +25,10 @@ class UpdateVehicleRequest extends FormRequest
             /** @var Vehicle $vehicle */
             $vehicle = $this->route('vehicle');
 
-            $this->merge(['plate_number' => $vehicle?->plate_number]);
+            $this->merge([
+                'plate_number' => $vehicle?->plate_number,
+                'location' => $vehicle?->location,
+            ]);
         }
     }
 

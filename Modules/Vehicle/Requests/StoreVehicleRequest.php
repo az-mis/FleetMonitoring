@@ -14,6 +14,15 @@ class StoreVehicleRequest extends FormRequest
         return in_array($this->user()?->role, [UserRole::SUPER_ADMIN, UserRole::ADMIN], true);
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->user()?->role !== UserRole::SUPER_ADMIN) {
+            $this->merge([
+                'location' => $this->user()?->location,
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [

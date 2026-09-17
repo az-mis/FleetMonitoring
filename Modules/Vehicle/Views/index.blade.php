@@ -281,8 +281,31 @@
                     </div>
 
                     <div>
-                        <label for="ev-location" class="block text-sm font-medium text-gray-700">Office / Location</label>
-                        <input type="text" name="location" id="ev-location" value="{{ old('_vehicle_form') === 'edit' ? old('location') : '' }}" placeholder="e.g. Oriental Mindoro" class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-emerald-500">
+                        <label for="rv-location" class="block text-sm font-medium text-gray-700">Assigned Location / Office Province</label>
+                        <select
+                            name="location"
+                            id="rv-location"
+                            @if(!$isSuperAdmin) disabled @endif
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('location') border-red-300 @enderror {{ !$isSuperAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
+                        >
+                            <option value="">-- Select Location / Office --</option>
+                            @foreach($locationOptions as $loc)
+                                <option value="{{ $loc }}" @selected(old('location', auth()->user()?->location) === $loc)>{{ $loc }}</option>
+                            @endforeach
+                        </select>
+                        @if(!$isSuperAdmin)
+                            <input type="hidden" name="location" value="{{ auth()->user()?->location }}">
+                        @endif
+                        <p class="mt-1 text-xs text-gray-400">
+                            @if($isSuperAdmin)
+                                Requesters will only see this vehicle when selecting this location.
+                            @else
+                                Only a Super Admin can change the assigned location.
+                            @endif
+                        </p>
+                        @error('location')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -692,8 +715,34 @@
                             </select>
                             @error('fuel_type')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    </div>
+
+                    <div>
+                        <label for="ev-location" class="block text-sm font-medium text-gray-700">Assigned Location / Office Province</label>
+                        <select
+                            name="location"
+                            id="ev-location"
+                            @if(!$isSuperAdmin) disabled @endif
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('location') border-red-300 @enderror {{ !$isSuperAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
+                        >
+                            <option value="">-- Select Location / Office --</option>
+                            @foreach($locationOptions as $loc)
+                                <option value="{{ $loc }}">{{ $loc }}</option>
+                            @endforeach
+                        </select>
+                        @if(!$isSuperAdmin)
+                            <input type="hidden" name="location" id="ev-location-hidden">
+                        @endif
+                        <p class="mt-1 text-xs text-gray-400">
+                            @if($isSuperAdmin)
+                                Requesters will only see this vehicle when selecting this location.
+                            @else
+                                Only a Super Admin can change the assigned location.
+                            @endif
+                        </p>
+                        @error('location')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
@@ -765,6 +814,10 @@
                     <div class="flex items-center justify-between gap-3">
                         <dt class="text-sm text-gray-500">Fuel Type</dt>
                         <dd id="ev-confirm-fuel_type" class="truncate text-sm font-medium text-gray-900"></dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <dt class="text-sm text-gray-500">Location</dt>
+                        <dd id="ev-confirm-location" class="truncate text-sm font-medium text-gray-900"></dd>
                     </div>
                 </dl>
 
@@ -1026,7 +1079,12 @@
                 document.getElementById('ev-odometer').value = btn.dataset.odometer;
                 document.getElementById('ev-vehicle_type').value = btn.dataset.vehicle_type || '';
                 document.getElementById('ev-fuel_type').value = btn.dataset.fuel_type || '';
-                document.getElementById('ev-location').value = btn.dataset.location || '';
+                const locVal = btn.dataset.location || '';
+                document.getElementById('ev-location').value = locVal;
+                const evLocHidden = document.getElementById('ev-location-hidden');
+                if (evLocHidden) {
+                    evLocHidden.value = locVal;
+                }
 
                 const img = document.getElementById('ev-photo-preview-img');
                 const icon = document.getElementById('ev-photo-preview-icon');
@@ -1120,6 +1178,9 @@
 
             const fuelTypeValue = document.getElementById('ev-fuel_type').value;
             document.getElementById('ev-confirm-fuel_type').textContent = fuelTypeValue ? editFuelTypeLabel(fuelTypeValue) : 'None';
+
+            const locationValue = document.getElementById('ev-location').value;
+            document.getElementById('ev-confirm-location').textContent = locationValue || 'None';
 
             document.getElementById('edit-vehicle-step-form').classList.add('hidden');
             document.getElementById('edit-vehicle-step-confirm').classList.remove('hidden');
