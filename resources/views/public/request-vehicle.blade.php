@@ -23,7 +23,70 @@
             <div><label class="mb-1 block text-xs font-semibold">Your Full Name <span class="text-emerald-300">*</span></label><input name="requesterName" required placeholder="e.g. Juan Dela Cruz" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
             <label class="flex items-center gap-2 text-xs text-emerald-100/80"><input type="checkbox" name="requesterIsPassenger" class="rounded border-emerald-300/30 bg-[#062512] text-emerald-500"> I am riding along on this trip as a passenger</label>
             <div><label class="mb-1 block text-xs font-semibold">Location / Office Province <span class="text-emerald-300">*</span></label><select name="location" required class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"><option value="">— Select Location / Building —</option><option>Oriental Mindoro</option><option>Occidental Mindoro</option><option>Marinduque</option><option>Palawan</option><option>Romblon</option><option>Quezon City Satellite Office</option></select></div>
-            <div><label class="mb-1 block text-xs font-semibold">Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></label><input name="requesterOffice" placeholder="— Select your office / division —" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
+@php
+$offices = [
+    ['value' => 'ORED', 'label' => 'Office of the Regional Executive Director (ORED)'],
+    ['value' => 'RAFIS', 'label' => 'Regional Agriculture and Fisheries Information Section (RAFIS)'],
+    ['value' => 'ORTDO', 'label' => 'Office of the Regional Technical Director for Operations (ORTDO)'],
+    ['value' => 'FOD', 'label' => 'Field Operations Division (FOD)'],
+    ['value' => 'FOD-RICE', 'label' => 'FOD - Rice Banner Program'],
+    ['value' => 'FOD-CORN', 'label' => 'FOD - Corn Banner Program'],
+    ['value' => 'FOD-LIVESTOCK', 'label' => 'FOD - Livestock Program'],
+    ['value' => 'FOD-HVCDP', 'label' => 'FOD - High Value Crops Development Program (HVCDP)'],
+    ['value' => 'FOD-IDS', 'label' => 'FOD - Institutional Development Section (IDS)'],
+    ['value' => 'FOD-DRRM', 'label' => 'FOD - Disaster Risk Reduction and Management (DRRM)'],
+    ['value' => 'FOD-RSBSA', 'label' => 'FOD - Registry System for Basic Sectors in Agriculture (RSBSA)'],
+    ['value' => 'FOD-SAAD', 'label' => 'FOD - Special Area for Agricultural Development (SAAD)'],
+    ['value' => 'FOD-4KS', 'label' => 'FOD - Kabuhayan at Kaunlaran ng Kababayang Katututbo (4Ks)'],
+    ['value' => 'FOD-NUPAP', 'label' => 'FOD - National Urban and Peri-Urban Agriculture Program (NUPAP)'],
+    ['value' => 'FOD-F2C2', 'label' => 'FOD - Farm and Fisheries Clustering and Consolidation Program (F2C2)'],
+    ['value' => 'FOD-PAFES', 'label' => 'FOD - Province-led Agriculture and Fisheries Extension Systems (PAFES)'],
+    ['value' => 'FOD-HFIDP', 'label' => 'FOD - Halal Food Industry Development Program (HFIDP)'],
+    ['value' => 'FOD-PRDP', 'label' => 'FOD - Philippine Rural Development Program (PRDP)'],
+    ['value' => 'ORTDRR', 'label' => 'Office of the Regional Technical Director for Research & Regulations (ORTDRR)'],
+    ['value' => 'RD', 'label' => 'Research Division (RD)'],
+    ['value' => 'ORMAES', 'label' => 'Oriental Mindoro Agricultural Experiment Station (ORMAES)'],
+    ['value' => 'PRES', 'label' => 'Palawan Research Experiment Station (PRES)'],
+    ['value' => 'PRES-LRC', 'label' => 'PRES - Livestock Resource Center (LRC)'],
+    ['value' => 'PRES-DPDC', 'label' => 'PRES - Dairy Production and Development Center (DPDC)'],
+    ['value' => 'PRES-PAC', 'label' => 'PRES - Palawan Agricultural Center (PAC)'],
+    ['value' => 'PRES-ABOABO', 'label' => 'PRES - Abo-Abo Rural Agricultural Center'],
+    ['value' => 'REGDIV', 'label' => 'Regulatory Division'],
+    ['value' => 'REGDIV-OAP', 'label' => 'Regulatory Division - Organic Agriculture Program'],
+    ['value' => 'AFD', 'label' => 'Administrative and Finance Division (AFD)'],
+    ['value' => 'AFD-ACCTG', 'label' => 'AFD - Accounting Section'],
+    ['value' => 'AFD-CASH', 'label' => 'AFD - Cashiering Unit'],
+    ['value' => 'AFD-BUDGET', 'label' => 'AFD - Budget Section'],
+    ['value' => 'AFD-HRS', 'label' => 'AFD - Human Resource Section'],
+    ['value' => 'AFD-RECORDS', 'label' => 'AFD - Records Section'],
+    ['value' => 'AFD-GSS', 'label' => 'AFD - General Services Section'],
+    ['value' => 'AFD-PSU', 'label' => 'AFD - Property & Supply Unit'],
+    ['value' => 'BAC', 'label' => 'Bids & Awards Committee (BAC)'],
+    ['value' => 'PMED', 'label' => 'Planning, Monitoring & Evaluation Division (PMED)'],
+    ['value' => 'MIS', 'label' => 'Management Information Systems Section (MIS)'],
+    ['value' => 'RAFC', 'label' => 'Regional Agricultural and Fishery Council (RAFC)'],
+    ['value' => 'AMAD', 'label' => 'Agribusiness & Marketing Assistance Division (AMAD)'],
+    ['value' => 'ILD', 'label' => 'Integrated Laboratory Division (ILD)'],
+    ['value' => 'ILD-RSL', 'label' => 'ILD - Regional Soils Laboratory'],
+    ['value' => 'ILD-RCPC', 'label' => 'ILD - Regional Crop Protection Center (RCPC)'],
+    ['value' => 'RAED', 'label' => 'Regional Agricultural Engineering Division (RAED)'],
+    ['value' => 'APCO-OCCIDENTAL', 'label' => 'APCO - Occidental Mindoro (San Jose)'],
+    ['value' => 'APCO-ORIENTAL', 'label' => 'APCO - Oriental Mindoro (Calapan City)'],
+    ['value' => 'APCO-MARINDUQUE', 'label' => 'APCO - Marinduque (Boac)'],
+    ['value' => 'APCO-ROMBLON', 'label' => 'APCO - Romblon (Odiongan)'],
+    ['value' => 'APCO-PALAWAN', 'label' => 'APCO - Palawan (Puerto Princesa City)'],
+    ['value' => 'COA', 'label' => 'Commission on Audit (COA)'],
+];
+@endphp
+            <div>
+                <label class="mb-1 block text-xs font-semibold">Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></label>
+                <select name="requesterOffice" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none cursor-pointer">
+                    <option value="" class="bg-[#062512] text-emerald-100/60">— Select your office / division —</option>
+                    @foreach($offices as $office)
+                        <option value="{{ $office['label'] }}" class="bg-[#062512] text-emerald-100">{{ $office['label'] }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div><label class="mb-1 block text-xs font-semibold">Contact Number <span class="font-normal text-emerald-100/55">(Optional)</span></label><input name="requesterContact" placeholder="09XX-XXX-XXXX" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
             <div><label class="mb-1 block text-xs font-semibold">Select Vehicle <span class="text-emerald-300">*</span></label><select id="vehicle-select" name="vehicleId" required disabled class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none"><option value="">— Select a location first —</option>@foreach($vehicles as $vehicle)<option value="{{ $vehicle->id }}" data-location="{{ $vehicle->location }}">{{ $vehicle->plate_number }} · {{ $vehicle->brand }} {{ $vehicle->model }}</option>@endforeach</select></div>
             <div><label class="mb-1 block text-xs font-semibold">Destination <span class="text-emerald-300">*</span></label><input name="destination" required placeholder="e.g. Provincial Capitol, Calapan City" class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-4 py-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"></div>
