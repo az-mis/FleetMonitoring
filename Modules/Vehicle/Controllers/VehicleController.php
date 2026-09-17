@@ -28,16 +28,21 @@ class VehicleController extends Controller
     {
         $this->authorizeSuperAdmin();
 
+        $user = auth()->user();
+        $isSuperAdmin = $user?->role === UserRole::SUPER_ADMIN;
+        $location = $isSuperAdmin ? request('location') : $user?->location;
+
         $perPage = (int) request('per_page', 10);
         $vehicles = $this->vehicleService->list(
             search: request('search'),
-            location: request('location'),
+            location: $location,
             perPage: $perPage
         );
 
         return view('vehicle::index', [
             'vehicles' => $vehicles,
-            'isSuperAdmin' => auth()->user()?->role === UserRole::SUPER_ADMIN,
+            'isSuperAdmin' => $isSuperAdmin,
+            'selectedLocation' => $location,
         ]);
     }
 

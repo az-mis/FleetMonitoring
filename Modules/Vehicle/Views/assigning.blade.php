@@ -56,52 +56,62 @@
                 </form>
 
                 {{-- Location filter dropdown --}}
-                <div class="relative shrink-0" id="assign-location-dropdown">
-                    <button
-                        type="button"
-                        id="assign-location-menu-btn"
-                        onclick="toggleAssignLocationMenu()"
-                        class="inline-flex w-full items-center justify-between gap-2 rounded-xl bg-black/20 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/30 md:w-auto cursor-pointer"
-                    >
-                        <span class="flex items-center gap-1.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            <span class="truncate">{{ $locationButtonLabel }}</span>
-                        </span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m6 9 6 6 6-6"/>
-                        </svg>
-                    </button>
-
-                    <div
-                        id="assign-location-menu"
-                        class="absolute right-0 top-full z-30 mt-1.5 hidden w-56 overflow-hidden rounded-xl border border-gray-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5"
-                    >
-                        <a
-                            href="{{ route('vehicle-assigning.index', array_filter(['search' => request('search'), 'per_page' => request('per_page')])) }}"
-                            class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold {{ empty($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-slate-50' }}"
+                @if ($isSuperAdmin)
+                    <div class="relative shrink-0" id="assign-location-dropdown">
+                        <button
+                            type="button"
+                            id="assign-location-menu-btn"
+                            onclick="toggleAssignLocationMenu()"
+                            class="inline-flex w-full items-center justify-between gap-2 rounded-xl bg-black/20 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/30 md:w-auto cursor-pointer"
                         >
-                            <span>All Locations</span>
-                            @if (empty($selectedLocation))
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                            @endif
-                        </a>
-                        <div class="my-1 border-t border-gray-100"></div>
-                        @foreach ($locationOptions as $loc)
+                            <span class="flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                <span class="truncate">{{ $locationButtonLabel }}</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </button>
+
+                        <div
+                            id="assign-location-menu"
+                            class="absolute right-0 top-full z-30 mt-1.5 hidden w-56 overflow-hidden rounded-xl border border-gray-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5"
+                        >
                             <a
-                                href="{{ route('vehicle-assigning.index', array_filter(['location' => $loc, 'search' => request('search'), 'per_page' => request('per_page')])) }}"
-                                class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold {{ $selectedLocation === $loc ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-slate-50' }}"
+                                href="{{ route('vehicle-assigning.index', array_filter(['search' => request('search'), 'per_page' => request('per_page')])) }}"
+                                class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold {{ empty($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-slate-50' }}"
                             >
-                                <span class="truncate">{{ $loc }}</span>
-                                @if ($selectedLocation === $loc)
+                                <span>All Locations</span>
+                                @if (empty($selectedLocation))
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                                 @endif
                             </a>
-                        @endforeach
+                            <div class="my-1 border-t border-gray-100"></div>
+                            @foreach ($locationOptions as $loc)
+                                <a
+                                    href="{{ route('vehicle-assigning.index', array_filter(['location' => $loc, 'search' => request('search'), 'per_page' => request('per_page')])) }}"
+                                    class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold {{ $selectedLocation === $loc ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-slate-50' }}"
+                                >
+                                    <span class="truncate">{{ $loc }}</span>
+                                    @if ($selectedLocation === $loc)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
+                @else
+                    <div class="inline-flex items-center gap-1.5 rounded-xl bg-black/20 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span>{{ $selectedLocation ?: 'All Locations' }}</span>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -219,6 +229,16 @@
                             @csrf
                             @method('PATCH')
 
+                            @php
+                                $availableDrivers = $drivers->filter(function ($d) use ($vehicle) {
+                                    // 1. Must match location if specified
+                                    $locMatch = empty($vehicle->location) || empty($d->location) || $d->location === $vehicle->location;
+                                    // 2. Must be unassigned OR assigned to THIS vehicle
+                                    $isUnassignedOrCurrent = $d->assignedVehicles->isEmpty() || $d->assignedVehicles->pluck('id')->contains($vehicle->id);
+                                    return $locMatch && $isUnassignedOrCurrent;
+                                });
+                            @endphp
+
                             <div>
                                 <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PERMANENT DRIVER</label>
                                 <div class="relative">
@@ -228,7 +248,7 @@
                                         class="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-3 pr-8 text-xs font-semibold text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
                                     >
                                         <option value="">Unassigned</option>
-                                        @foreach ($drivers as $driver)
+                                        @foreach ($availableDrivers as $driver)
                                             <option value="{{ $driver->id }}" @selected($vehicle->assigned_driver_id === $driver->id)>
                                                 {{ $driver->name }}
                                             </option>

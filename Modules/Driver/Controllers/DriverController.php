@@ -27,7 +27,7 @@ class DriverController extends Controller
 
         $perPage = (int) request('per_page', 10);
         $search = request('search');
-        $location = request('location') ?: (auth()->user()?->role === UserRole::ADMIN ? auth()->user()->location : null);
+        $location = auth()->user()?->role === UserRole::ADMIN ? auth()->user()->location : request('location');
 
         return view('driver::index', [
             'drivers' => $this->driverService->list(

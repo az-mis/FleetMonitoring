@@ -17,8 +17,9 @@ class VehicleAssigningController
     {
         abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
 
+        $isSuperAdmin = $request->user()?->role === UserRole::SUPER_ADMIN;
         $userLocation = $request->user()?->role === UserRole::ADMIN ? $request->user()->location : null;
-        $location = $request->input('location', $userLocation);
+        $location = $isSuperAdmin ? $request->input('location') : $userLocation;
         $search = $request->input('search');
         $perPage = (int) $request->input('per_page', 10);
 
@@ -42,6 +43,7 @@ class VehicleAssigningController
 
         $drivers = User::where('role', UserRole::DRIVER)
             ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
+            ->with(['assignedVehicles'])
             ->orderBy('name')
             ->get();
 
@@ -52,6 +54,7 @@ class VehicleAssigningController
             'assignedCount' => $assignedCount,
             'unassignedCount' => $unassignedCount,
             'selectedLocation' => $location,
+            'isSuperAdmin' => $isSuperAdmin,
         ]);
     }
 
@@ -59,15 +62,29 @@ class VehicleAssigningController
     {
         abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
         abort_unless($request->user()?->role !== UserRole::ADMIN || $vehicle->location === $request->user()->location, 403);
+
         $data = $request->validate([
             'assigned_driver_id' => ['nullable', 'integer', 'exists:users,id'],
-            'location' => ['nullable', 'string', 'max:120'],
         ]);
-        if (!empty($data['assigned_driver_id']) && !User::whereKey($data['assigned_driver_id'])->where('role', UserRole::DRIVER)->exists()) {
-            return back()->withErrors(['assigned_driver_id' => 'The selected user is not a driver.']);
+
+        if (!empty($data['assigned_driver_id'])) {
+            $driver = User::find($data['assigned_driver_id']);
+            if (!$driver || $driver->role !== UserRole::DRIVER) {
+                return back()->withErrors(['assigned_driver_id' => 'The selected user is not a driver.']);
+            }
+
+            if (!empty($vehicle->location) && !empty($driver->location) && $driver->location !== $vehicle->location) {
+                return back()->withErrors(['assigned_driver_id' => 'The selected driver is not assigned to ' . $vehicle->location . '.']);
+            }
+
+            // Enforce 1 driver -> 1 vehicle limit: unassign from previous vehicle if any
+            Vehicle::where('assigned_driver_id', $driver->id)
+                ->where('id', '!=', $vehicle->id)
+                ->update(['assigned_driver_id' => null]);
         }
 
-        $vehicle->update($data);
+        $vehicle->update(['assigned_driver_id' => $data['assigned_driver_id'] ?? null]);
+
         return back()->with('success', 'Vehicle assignment updated.');
     }
 }
