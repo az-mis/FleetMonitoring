@@ -15,7 +15,7 @@
             <a href="{{ route('login') }}" class="hover:text-white">Staff Login →</a>
         </nav>
         <div class="mb-7 flex items-center gap-3">
-            <img src="{{ asset('da-logo.png') }}" alt="Agency logo" class="h-11 w-11 rounded-full bg-white object-contain p-1">
+            <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-11 w-11 rounded-full bg-white object-contain p-1">
             <div><h1 class="text-2xl font-bold">Official Vehicle Request</h1><p class="mt-1 text-sm text-emerald-100/70">Complete the form below to request government vehicle transport for official travel. A unique tracking code will be generated upon submission.</p></div>
         </div>
         <form class="space-y-4" method="POST" action="{{ route('request-vehicle.store') }}">
