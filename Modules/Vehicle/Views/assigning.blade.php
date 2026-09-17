@@ -192,11 +192,11 @@
                     <div>
                         {{-- Vehicle Header Info --}}
                         <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                 @if ($vehicle->photo_url)
-                                    <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->plate_number }}" class="h-10 w-14 shrink-0 rounded-lg object-cover ring-1 ring-slate-100">
+                                    <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->plate_number }}" class="h-10 w-12 shrink-0 rounded-lg object-cover ring-1 ring-slate-100">
                                 @else
-                                    <div class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                                    <div class="flex h-10 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M10 17h4V5H2v12h3"/>
                                             <path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/>
@@ -205,12 +205,12 @@
                                         </svg>
                                     </div>
                                 @endif
-                                <div class="min-w-0">
-                                    <p class="truncate text-sm font-extrabold text-slate-900">{{ $vehicle->plate_number }}</p>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-xs font-extrabold text-slate-900">{{ $vehicle->plate_number }}</p>
                                     <p class="truncate text-[11px] font-semibold text-slate-500">{{ $vehicle->brand }} {{ $vehicle->model }}</p>
                                     @if ($vehicle->location)
                                         <p class="truncate text-[10px] font-medium text-emerald-700 flex items-center gap-0.5 mt-0.5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                                             <span class="truncate">{{ $vehicle->location }}</span>
                                         </p>
                                     @endif
@@ -219,12 +219,12 @@
 
                             {{-- Status Pill --}}
                             @if ($vehicle->assignedDriver)
-                                <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
+                                <span class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
                                     ASSIGNED
                                 </span>
                             @else
-                                <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-600">
+                                <span class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-600">
                                     UNASSIGNED
                                 </span>
                             @endif
