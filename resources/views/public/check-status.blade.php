@@ -15,7 +15,7 @@
             <a href="{{ route('login') }}" class="hover:text-white">Staff Login →</a>
         </nav>
         <div class="mb-5">
-            <img src="{{ asset('da-logo.png') }}" alt="Agency logo" class="mb-4 h-11 w-11 rounded-full bg-white object-contain p-1">
+            <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="mb-4 h-11 w-11 rounded-full bg-white object-contain p-1">
             <h1 class="text-xl font-bold">Check Request Status</h1>
             <p class="mt-1 text-xs leading-5 text-emerald-100/70">Enter your 7-character reference code to view real-time trip approval, assigned driver details, and access your printable Trip Ticket.</p>
         </div>
