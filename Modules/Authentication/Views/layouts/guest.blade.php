@@ -23,7 +23,7 @@
                             Fleet Management System
                         </div>
                         <div class="flex items-center gap-3">
-                            <img src="{{ asset('da-logo.png') }}" alt="Agency logo" class="h-11 w-11 rounded-full bg-white object-contain p-1">
+                            <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-11 w-11 rounded-full bg-white object-contain p-1">
                             <h2 class="text-xl font-bold leading-tight text-white">Smart Fleet Operations &amp;<br>Monitoring</h2>
                         </div>
                         <p class="mt-3 max-w-md text-xs leading-5 text-emerald-100/75">A unified, secure platform for tracking vehicles, assigning drivers, and managing trip requests in real time.</p>
