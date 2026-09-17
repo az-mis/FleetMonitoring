@@ -15,9 +15,21 @@ class ApprovingOfficerController
     public function index(Request $request): View
     {
         abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
-        $query = ApprovingOfficer::query()->orderBy('location');
+        $search = trim($request->string('search')->toString());
+
+        $query = ApprovingOfficer::query()->with('updatedBy')->orderBy('location');
         if ($request->user()->role === UserRole::ADMIN && $request->user()->location) {
             $query->where('location', $request->user()->location);
+        }
+
+        if ($search) {
+            $query->where(function ($builder) use ($search) {
+                $builder->where('location', 'like', "%{$search}%")
+                    ->orWhere('signee1_name', 'like', "%{$search}%")
+                    ->orWhere('signee1_title', 'like', "%{$search}%")
+                    ->orWhere('signee2_name', 'like', "%{$search}%")
+                    ->orWhere('signee2_title', 'like', "%{$search}%");
+            });
         }
 
         return view('approving-officer::index', ['officers' => $query->get()]);
