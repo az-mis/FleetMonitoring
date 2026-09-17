@@ -10,9 +10,11 @@ use Modules\Vehicle\Models\Vehicle;
 
 class VehicleRepository implements VehicleRepositoryInterface
 {
-    public function paginate(int $perPage = 12, ?string $search = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator
     {
         return Vehicle::query()
+            ->with(['assignedDriver'])
+            ->when($location, fn ($q) => $q->where('location', $location))
             ->when($search, function ($q) use ($search) {
                 $terms = preg_split('/\s+/', trim($search), -1, PREG_SPLIT_NO_EMPTY);
 
