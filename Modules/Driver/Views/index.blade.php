@@ -524,6 +524,42 @@
                         >
                     </div>
 
+                    {{-- Change Password (Optional) --}}
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-3">
+                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>Change Password <span class="font-normal text-slate-400">(Leave blank to keep unchanged)</span></span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div>
+                                <label for="edit-driver-password" class="block text-[11px] font-semibold text-gray-700">New Password</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    id="edit-driver-password"
+                                    placeholder="••••••••"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror"
+                                >
+                                @error('password')
+                                    <p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="edit-driver-password-confirm" class="block text-[11px] font-semibold text-gray-700">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    name="password_confirmation"
+                                    id="edit-driver-password-confirm"
+                                    placeholder="••••••••"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="pt-3">
                         <button
                             type="submit"
