@@ -439,6 +439,9 @@
                                             'driver_id' => $item->confirmed_driver_id ?: $item->vehicle?->assigned_driver_id,
                                             'driver_name' => $item->confirmedDriver?->name ?: ($item->vehicle?->assignedDriver?->name ?? 'Assigned Driver'),
                                             'status' => $item->status,
+                                            'trip_ticket_number' => $item->trip_ticket_number,
+                                            'approved_by_name' => $item->approvedBy?->name,
+                                            'trip_ticket_url' => $item->trip_ticket_number ? route('trip-ticket', $item) : null,
                                         ];
                                     @endphp
 
@@ -529,7 +532,7 @@
         <div class="w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
             {{-- Modal Header --}}
             <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Review Request</h3>
+                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide" id="modal-title">Review Request</h3>
                 <button type="button" onclick="closeReviewModal()" class="text-slate-400 hover:text-slate-600 text-base font-bold cursor-pointer leading-none">&times;</button>
             </div>
 
@@ -569,6 +572,19 @@
                             <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-requester"></p>
                         </div>
                     </div>
+
+                    {{-- Trip Ticket No. (shown for approved) --}}
+                    <div id="modal-trip-ticket-row" class="flex items-start gap-2 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+                            <path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">TRIP TICKET NO.</p>
+                            <p class="font-bold font-mono text-emerald-700 text-[11px] leading-snug tracking-wide" id="modal-detail-trip-ticket"></p>
+                        </div>
+                    </div>
+
 
                     {{-- Location --}}
                     <div class="flex items-start gap-2">
@@ -691,81 +707,163 @@
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">PASSENGERS</p>
                             <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-passengers"></p>
                         </div>
+                        </div>
+                    </div>
+
+                    {{-- Approved By (shown for approved/declined) --}}
+                    <div id="modal-approved-by-row" class="flex items-start gap-2 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">APPROVED BY</p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-approved-by"></p>
+                        </div>
                     </div>
                 </div>
 
-                <div id="modal-action-section" class="pt-2 border-t border-gray-100">
-                    <form id="review-form" method="POST" action="" class="space-y-2.5">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="status" id="modal-status-input" value="approved">
+                {{-- ── Action Section (two modes: pending / view) ── --}}
+                <div id="modal-action-section" class="pt-2 border-t border-gray-100 space-y-2.5">
 
-                        {{-- Driver Availability Selection --}}
-                        <div>
-                            <p class="text-[11px] font-bold text-slate-800 mb-1.5">
-                                Is <span id="modal-driver-name" class="font-extrabold"></span> available for this trip?
-                            </p>
-                            <div class="grid grid-cols-2 gap-2">
+                    {{-- Status Banner (approved / declined) --}}
+                    <div id="modal-status-banner" class="hidden rounded-xl px-3 py-2 text-[11px] font-semibold">
+                        <span id="modal-status-banner-text"></span>
+                    </div>
+
+                    {{-- MODE 1: Pending — Review Form --}}
+                    <div id="modal-pending-actions">
+                        <form id="review-form" method="POST" action="" class="space-y-2.5">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" id="modal-status-input" value="approved">
+
+                            {{-- Driver Availability Selection --}}
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-800 mb-1.5">
+                                    Is <span id="modal-driver-name" class="font-extrabold"></span> available for this trip?
+                                </p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        id="driver-avail-yes-btn"
+                                        onclick="setDriverAvailability(true)"
+                                        class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                    >
+                                        Yes, available
+                                    </button>
+                                    <button
+                                        type="button"
+                                        id="driver-avail-no-btn"
+                                        onclick="setDriverAvailability(false)"
+                                        class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                    >
+                                        Not available
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Dropdown for selecting alternative driver when needed --}}
+                            <div id="modal-driver-select-container" class="hidden">
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Driver</label>
+                                <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                    <option value="">Select Driver</option>
+                                    @foreach($drivers as $driver)
+                                        <option value="{{ $driver->id }}" data-location="{{ $driver->location }}">{{ $driver->name }} ({{ $driver->location ?: 'No location' }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Decline Reason Container --}}
+                            <div id="modal-decline-reason-container" class="hidden">
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Reason for Declining</label>
+                                <textarea name="decline_reason" rows="2" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="State reason..."></textarea>
+                            </div>
+
+                            {{-- Action Buttons --}}
+                            <div class="flex gap-2 pt-0.5">
                                 <button
                                     type="button"
-                                    id="driver-avail-yes-btn"
-                                    onclick="setDriverAvailability(true)"
-                                    class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                    onclick="triggerDecline()"
+                                    id="modal-decline-action-btn"
+                                    class="flex-1 rounded-xl border border-red-200 bg-white py-2 text-xs font-bold text-red-500 hover:bg-red-50 transition cursor-pointer text-center"
                                 >
-                                    Yes, available
+                                    Decline
                                 </button>
                                 <button
                                     type="button"
-                                    id="driver-avail-no-btn"
-                                    onclick="setDriverAvailability(false)"
-                                    class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                    onclick="openApprovalConfirm()"
+                                    id="modal-approve-action-btn"
+                                    class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center"
                                 >
-                                    Not available
+                                    Approve Request
                                 </button>
                             </div>
-                        </div>
+                        </form>
+                    </div>
 
-                        {{-- Dropdown for selecting alternative driver when needed --}}
-                        <div id="modal-driver-select-container" class="hidden">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Driver</label>
-                            <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                <option value="">Select Driver</option>
-                                @foreach($drivers as $driver)
-                                    <option value="{{ $driver->id }}" data-location="{{ $driver->location }}">{{ $driver->name }} ({{ $driver->location ?: 'No location' }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Decline Reason Container --}}
-                        <div id="modal-decline-reason-container" class="hidden">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Reason for Declining</label>
-                            <textarea name="decline_reason" rows="2" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="State reason..."></textarea>
-                        </div>
-
-                        {{-- Action Buttons --}}
-                        <div class="flex gap-2 pt-0.5">
+                    {{-- MODE 2: View (Approved / Declined) --}}
+                    <div id="modal-view-actions" class="hidden space-y-2.5">
+                        {{-- Print + Change Driver buttons --}}
+                        <div class="flex gap-2">
+                            <a
+                                id="modal-print-btn"
+                                href="#"
+                                target="_blank"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-white py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition cursor-pointer"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 6 2 18 2 18 9"/>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                    <rect width="12" height="8" x="6" y="14"/>
+                                </svg>
+                                Print Ticket
+                            </a>
                             <button
                                 type="button"
-                                onclick="triggerDecline()"
-                                id="modal-decline-action-btn"
-                                class="flex-1 rounded-xl border border-red-200 bg-white py-2 text-xs font-bold text-red-500 hover:bg-red-50 transition cursor-pointer text-center"
+                                onclick="toggleChangeDriver()"
+                                id="modal-change-driver-btn"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
                             >
-                                Decline
-                            </button>
-                            <button
-                                type="button"
-                                onclick="openApprovalConfirm()"
-                                id="modal-approve-action-btn"
-                                class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center"
-                            >
-                                Approve Request
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                </svg>
+                                Change Driver
                             </button>
                         </div>
-                    </form>
+
+                        {{-- Change Driver Expandable Section --}}
+                        <div id="modal-change-driver-section" class="hidden rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-2">
+                            <div>
+                                <p class="text-[11px] font-extrabold text-slate-800">Update Assigned Driver</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Select driver for this trip</p>
+                            </div>
+                            <form id="change-driver-form" method="POST" action="" class="space-y-2">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="approved">
+                                <select name="confirmed_driver_id" id="modal-change-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                    @foreach($drivers as $driver)
+                                        <option value="{{ $driver->id }}" data-location="{{ $driver->location }}">{{ $driver->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="toggleChangeDriver()" class="flex-1 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer">
+                                        Save Driver
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
+
 
     {{-- Confirm Request Approval Modal --}}
     <div id="confirm-approval-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
@@ -817,55 +915,130 @@
 
         function openReviewModal(data) {
             currentModalCode = data.code || '';
-            document.getElementById('modal-ref-code').textContent = data.code || '—';
+
+            // ── Basic detail fields ──────────────────────────────────────────
+            document.getElementById('modal-ref-code').textContent        = data.code || '—';
             document.getElementById('modal-detail-requester').textContent = data.requester || '—';
-            document.getElementById('modal-detail-location').textContent = data.location || '—';
-            document.getElementById('modal-detail-riding').textContent = data.is_passenger ? 'Yes — requester is also a passenger' : 'No';
-            document.getElementById('modal-detail-office').textContent = data.office || '—';
-            document.getElementById('modal-detail-contact').textContent = data.contact || '—';
-            document.getElementById('modal-detail-vehicle').textContent = data.vehicle || '—';
+            document.getElementById('modal-detail-location').textContent  = data.location || '—';
+            document.getElementById('modal-detail-riding').textContent    = data.is_passenger ? 'Yes — requester is also a passenger' : 'No';
+            document.getElementById('modal-detail-office').textContent    = data.office || '—';
+            document.getElementById('modal-detail-contact').textContent   = data.contact || '—';
+            document.getElementById('modal-detail-vehicle').textContent   = data.vehicle || '—';
             document.getElementById('modal-detail-destination').textContent = data.destination || '—';
             document.getElementById('modal-detail-travel-date').textContent = data.travel_date || '—';
-            document.getElementById('modal-detail-purpose').textContent = data.purpose || '—';
+            document.getElementById('modal-detail-purpose').textContent   = data.purpose || '—';
             document.getElementById('modal-detail-passengers').textContent = data.passengers || 'None';
-            document.getElementById('modal-driver-name').textContent = data.driver_name || 'Assigned Driver';
+            document.getElementById('modal-driver-name').textContent      = data.driver_name || 'Assigned Driver';
 
-            const form = document.getElementById('review-form');
-            form.action = `/vehicle-requests/${data.id}/status`;
+            const isPending = !data.status || data.status === 'pending';
 
-            const actionContainer = document.getElementById('modal-action-section');
-            if (data.status && data.status !== 'pending') {
-                if (actionContainer) actionContainer.classList.add('hidden');
+            // ── Modal title ──────────────────────────────────────────────────
+            document.getElementById('modal-title').textContent = isPending ? 'Review Request' : 'Request Details';
+
+            // ── Trip Ticket No. row ──────────────────────────────────────────
+            const tripTicketRow = document.getElementById('modal-trip-ticket-row');
+            const tripTicketEl  = document.getElementById('modal-detail-trip-ticket');
+            if (data.trip_ticket_number) {
+                tripTicketEl.textContent = data.trip_ticket_number;
+                tripTicketRow.classList.remove('hidden');
             } else {
-                if (actionContainer) actionContainer.classList.remove('hidden');
+                tripTicketRow.classList.add('hidden');
             }
+
+            // ── Approved By row ──────────────────────────────────────────────
+            const approvedByRow = document.getElementById('modal-approved-by-row');
+            const approvedByEl  = document.getElementById('modal-detail-approved-by');
+            if (data.approved_by_name) {
+                approvedByEl.textContent = data.approved_by_name;
+                approvedByRow.classList.remove('hidden');
+            } else {
+                approvedByRow.classList.add('hidden');
+            }
+
+            // ── Status banner ────────────────────────────────────────────────
+            const banner     = document.getElementById('modal-status-banner');
+            const bannerText = document.getElementById('modal-status-banner-text');
+            if (!isPending) {
+                const label = data.status === 'approved' ? 'Approved' : 'Declined';
+                let parts = [label];
+                if (data.driver_name && data.driver_name !== 'Assigned Driver') parts.push('Driver: ' + data.driver_name);
+                if (data.approved_by_name) parts.push('Approver: ' + data.approved_by_name);
+                bannerText.textContent = parts.join(' · ');
+                if (data.status === 'approved') {
+                    banner.className = 'rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800';
+                } else {
+                    banner.className = 'rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-800';
+                }
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            // ── Toggle action modes ──────────────────────────────────────────
+            const pendingActions = document.getElementById('modal-pending-actions');
+            const viewActions    = document.getElementById('modal-view-actions');
+            const actionSection  = document.getElementById('modal-action-section');
+            actionSection.classList.remove('hidden');
+
+            if (isPending) {
+                pendingActions.classList.remove('hidden');
+                viewActions.classList.add('hidden');
+            } else {
+                pendingActions.classList.add('hidden');
+                viewActions.classList.remove('hidden');
+
+                // Set print button URL
+                const printBtn = document.getElementById('modal-print-btn');
+                if (printBtn) printBtn.href = data.trip_ticket_url || '#';
+                // Hide print button for declined
+                printBtn.style.display = data.status === 'approved' ? '' : 'none';
+
+                // Set change-driver form action
+                const cdForm = document.getElementById('change-driver-form');
+                if (cdForm) cdForm.action = `/vehicle-requests/${data.id}/status`;
+
+                // Reset change driver panel
+                document.getElementById('modal-change-driver-section').classList.add('hidden');
+
+                // Filter change-driver select by location
+                const cdSelect = document.getElementById('modal-change-driver-select');
+                Array.from(cdSelect.options).forEach(opt => {
+                    if (!opt.value) { opt.hidden = false; return; }
+                    const drvLoc = opt.getAttribute('data-location');
+                    opt.hidden = !!(data.location && drvLoc !== data.location && String(opt.value) !== String(data.driver_id));
+                });
+                if (data.driver_id) cdSelect.value = data.driver_id;
+            }
+
+            // ── Pending-form driver select filter ────────────────────────────
+            const reviewForm = document.getElementById('review-form');
+            reviewForm.action = `/vehicle-requests/${data.id}/status`;
 
             const driverSelect = document.getElementById('modal-driver-select');
             Array.from(driverSelect.options).forEach(opt => {
-                if (!opt.value) {
-                    opt.hidden = false;
-                    return;
-                }
+                if (!opt.value) { opt.hidden = false; return; }
                 const drvLoc = opt.getAttribute('data-location');
-                if (!data.location || drvLoc === data.location || String(opt.value) === String(data.driver_id)) {
-                    opt.hidden = false;
-                } else {
-                    opt.hidden = true;
-                }
+                opt.hidden = !(!data.location || drvLoc === data.location || String(opt.value) === String(data.driver_id));
             });
+            if (data.driver_id) { driverSelect.value = data.driver_id; } else { driverSelect.value = ''; }
 
-            if (data.driver_id) {
-                driverSelect.value = data.driver_id;
-            } else {
-                driverSelect.value = '';
-            }
-
-            // Reset driver availability buttons & containers
+            // Reset pending-form state
             setDriverAvailability(true);
             document.getElementById('modal-decline-reason-container').classList.add('hidden');
             document.getElementById('modal-status-input').value = 'approved';
+            const declineBtn = document.getElementById('modal-decline-action-btn');
+            if (declineBtn) {
+                declineBtn.textContent = 'Decline';
+                declineBtn.type = 'button';
+                declineBtn.className = 'flex-1 rounded-xl border border-red-200 bg-white py-2 text-xs font-bold text-red-500 hover:bg-red-50 transition cursor-pointer text-center';
+            }
 
             document.getElementById('review-modal').classList.remove('hidden');
+        }
+
+        function toggleChangeDriver() {
+            const section = document.getElementById('modal-change-driver-section');
+            section.classList.toggle('hidden');
         }
 
         function closeReviewModal() {
