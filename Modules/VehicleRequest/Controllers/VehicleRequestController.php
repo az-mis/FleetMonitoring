@@ -81,7 +81,38 @@ class VehicleRequestController
         ];
         if ($data['status'] === 'approved') {
             abort_unless(!$data['confirmed_driver_id'] || User::whereKey($data['confirmed_driver_id'])->where('role', UserRole::DRIVER)->exists(), 422);
-            $updates['trip_ticket_number'] = $vehicleRequest->trip_ticket_number ?: 'FMS-' . now()->format('Y-m') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+
+            if (!$vehicleRequest->trip_ticket_number) {
+                // Location abbreviation map
+                $locationAbbreviations = [
+                    'Oriental Mindoro'           => 'OR-MIN',
+                    'Occidental Mindoro'          => 'OC-MIN',
+                    'Marinduque'                  => 'MAR',
+                    'Palawan'                     => 'PAL',
+                    'Romblon'                     => 'ROM',
+                    'Quezon City Satellite Office' => 'QC',
+                ];
+
+                $locationKey = $vehicleRequest->location ?? 'N/A';
+                $abbr = $locationAbbreviations[$locationKey] ?? strtoupper(Str::limit(Str::slug($locationKey, ''), 6, ''));
+
+                $year  = now()->format('Y');
+                $month = now()->format('m');
+
+                // Count approved requests for the same location in the same year-month
+                $count = VehicleRequest::where('status', 'approved')
+                    ->where('location', $locationKey)
+                    ->whereYear('approved_at', $year)
+                    ->whereMonth('approved_at', $month)
+                    ->count();
+
+                $sequence = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+
+                $updates['trip_ticket_number'] = "FMS-{$abbr}-{$year}-{$month}-{$sequence}";
+            } else {
+                $updates['trip_ticket_number'] = $vehicleRequest->trip_ticket_number;
+            }
+
             $updates['approved_by'] = $request->user()->id;
             $updates['approved_at'] = now();
             $updates['confirmed_driver_id'] = $data['confirmed_driver_id'] ?? null;
