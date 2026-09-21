@@ -198,67 +198,67 @@
             @endif
 
             {{-- 4 Stat Cards --}}
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-4">
                 {{-- Completed Travels --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <div class="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Completed Travels</p>
-                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $completedTravelsCount }}</strong> Past trips finished</p>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Completed Travels</p>
+                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $completedTravelsCount }}</strong> Past trips finished</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Future Assigned Trips --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <div class="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
                                 <line x1="16" x2="16" y1="2" y2="6"/>
                                 <line x1="8" x2="8" y1="2" y2="6"/>
                                 <line x1="3" x2="21" y1="10" y2="10"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Future Assigned Trips</p>
-                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $futureTripsCount }}</strong> Scheduled ahead</p>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Future Assigned Trips</p>
+                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $futureTripsCount }}</strong> Scheduled ahead</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Active Trips Today --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <div class="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Trips Today</p>
-                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $activeTripsTodayCount }}</strong> Happening now</p>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Active Trips Today</p>
+                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $activeTripsTodayCount }}</strong> Happening now</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Total Dispatches --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <div class="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
                                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Dispatches</p>
-                            <p class="text-xs font-medium text-slate-500 mt-0.5"><strong class="text-sm font-black text-slate-900">{{ $totalDispatchesCount }}</strong> All time trips</p>
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Total Dispatches</p>
+                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $totalDispatchesCount }}</strong> All time trips</p>
                         </div>
                     </div>
                 </div>
@@ -266,48 +266,48 @@
 
             {{-- My Permanent Assigned Vehicle Card --}}
             @if($showAssignedVehicleSetting)
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs">
-                    <p class="text-[10px] font-black uppercase tracking-wider text-emerald-700 mb-3">My Permanent Assigned Vehicle</p>
+                <div class="rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                    <p class="text-[9px] font-black uppercase tracking-wider text-emerald-700 mb-2">My Permanent Assigned Vehicle</p>
                     @if($driverVehicle)
-                        <div class="flex flex-wrap items-center justify-between gap-4">
-                            <div class="flex items-center gap-4">
-                                <div class="flex h-16 w-24 shrink-0 items-center justify-center rounded-xl bg-slate-100 p-1 border border-slate-200 overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-slate-100 p-0.5 border border-slate-200 overflow-hidden">
                                     @if($driverVehicle->photo_url)
-                                        <img src="{{ $driverVehicle->photo_url }}" alt="{{ $driverVehicle->model }}" class="h-full w-full object-contain">
+                                        <img src="{{ $driverVehicle->photo_url }}" alt="{{ $driverVehicle->model }}" class="h-full w-full object-cover rounded">
                                     @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
                                         </svg>
                                     @endif
                                 </div>
                                 <div>
-                                    <h3 class="text-base font-black text-slate-900">
+                                    <h3 class="text-xs font-black text-slate-900">
                                         {{ $driverVehicle->brand }} {{ $driverVehicle->model }} — <span class="font-extrabold text-slate-800">{{ $driverVehicle->plate_number }}</span>
                                     </h3>
-                                    <p class="mt-0.5 text-xs font-medium text-slate-500">
+                                    <p class="mt-0.5 text-[11px] font-medium text-slate-500">
                                         Color: <span class="font-semibold text-slate-700">{{ $driverVehicle->color ?: 'N/A' }}</span> ·
                                         Year: <span class="font-semibold text-slate-700">{{ $driverVehicle->year ?: 'N/A' }}</span> ·
                                         Type: <span class="font-semibold text-slate-700">{{ $driverVehicle->vehicle_type ?: 'N/A' }}</span>
                                     </p>
                                 </div>
                             </div>
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 border border-emerald-200 shadow-2xs">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200/80 shadow-2xs">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="20 6 9 17 4 12"/>
                                 </svg>
                                 Ready for Dispatch
                             </span>
                         </div>
                     @else
-                        <div class="flex items-center gap-3 rounded-xl bg-slate-50 p-4 border border-dashed border-slate-200">
-                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200/80 text-slate-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="flex items-center gap-2.5 rounded-lg bg-slate-50 p-2.5 border border-dashed border-slate-200">
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-200/80 text-slate-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
                                 </svg>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-800">No Permanent Vehicle Assigned</p>
-                                <p class="text-[11px] text-slate-500">Refer to your Administrator to assign a permanent vehicle to your profile.</p>
+                                <p class="text-[10px] text-slate-500">Refer to your Administrator to assign a permanent vehicle to your profile.</p>
                             </div>
                         </div>
                     @endif
@@ -315,112 +315,93 @@
             @endif
 
             {{-- Two Column Travels Grid --}}
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {{-- Future Assigned Travels --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs flex flex-col justify-between">
+                <div class="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs flex flex-col justify-between">
                     <div>
-                        <div class="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
                                 <line x1="16" x2="16" y1="2" y2="6"/>
                                 <line x1="8" x2="8" y1="2" y2="6"/>
                                 <line x1="3" x2="21" y1="10" y2="10"/>
                             </svg>
-                            <h3 class="text-sm font-extrabold text-slate-900">Future Assigned Travels ({{ $futureTripsCount }})</h3>
+                            <h3 class="text-xs font-extrabold text-slate-900">Future Assigned Travels ({{ $futureTripsCount }})</h3>
                         </div>
 
-                        <div class="space-y-3">
+                        <div class="space-y-1.5">
                             @forelse($driverFutureTrips as $trip)
-                                <div class="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 shadow-2xs">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-red-500">📍</span>
-                                            <h4 class="text-sm font-extrabold text-slate-900">{{ $trip->destination }}</h4>
+                                <div class="rounded-lg border border-emerald-100 bg-emerald-50/40 p-2.5 shadow-2xs">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-red-500 text-xs">📍</span>
+                                            <h4 class="text-xs font-extrabold text-slate-900">{{ $trip->destination }}</h4>
                                         </div>
-                                        <div class="text-right">
-                                            <span class="text-xs font-bold text-slate-800">
+                                        <div class="text-right shrink-0">
+                                            <span class="text-[10px] font-bold text-slate-800">
                                                 {{ $trip->travel_date?->format('M j') }}{{ $trip->travel_date_end ? ' – ' . $trip->travel_date_end->format('j, Y') : ($trip->travel_date ? ', ' . $trip->travel_date->format('Y') : '') }}
                                             </span>
-                                            <div class="mt-1">
-                                                <span class="inline-flex rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800">
+                                            <div class="mt-0.5">
+                                                <span class="inline-flex rounded bg-emerald-100 px-1.5 py-0.5 text-[8px] font-extrabold text-emerald-800 tracking-wider">
                                                     APPROVED
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                    <p class="mt-2 text-xs text-slate-600">
+                                    <p class="mt-1 text-[10px] text-slate-600">
                                         Requester: <span class="font-bold text-slate-800">{{ $trip->requester_name }}</span>
                                         @if($trip->requester_office)
                                             <span class="text-slate-500">({{ $trip->requester_office }})</span>
                                         @endif
                                     </p>
-                                    <p class="mt-0.5 text-[11px] text-slate-500">
+                                    <p class="mt-0.5 text-[10px] text-slate-500">
                                         Vehicle: <span class="font-semibold text-slate-700">{{ $trip->vehicle?->plate_number ?? 'N/A' }}</span> ·
                                         Purpose: <span class="font-semibold text-slate-700">{{ $trip->purpose ?: 'N/A' }}</span>
                                     </p>
                                 </div>
                             @empty
-                                <div class="py-12 text-center text-xs text-slate-400 font-medium">
+                                <div class="py-8 text-center text-[11px] text-slate-400 font-medium">
                                     No future assigned travels yet.
                                 </div>
-                            @endforelse
+                            @endif
                         </div>
                     </div>
                 </div>
 
                 {{-- Travels Already Made --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs flex flex-col justify-between">
+                <div class="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs flex flex-col justify-between">
                     <div>
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                            <div class="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
+                            <div class="flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z"/>
                                 </svg>
-                                <h3 class="text-sm font-extrabold text-slate-900">Travels Already Made ({{ $completedTravelsCount }})</h3>
+                                <h3 class="text-xs font-extrabold text-slate-900">Travels Already Made ({{ $completedTravelsCount }})</h3>
                             </div>
-                            <span class="text-xs font-bold text-emerald-700">View full history &rsaquo;</span>
+                            <span class="text-[11px] font-bold text-emerald-700 cursor-pointer">View full history &rsaquo;</span>
                         </div>
 
-                        <div class="space-y-3">
+                        <div class="space-y-2">
                             @forelse($driverCompletedTrips as $trip)
-                                <div class="rounded-xl border border-slate-100 bg-slate-50/50 p-4 shadow-2xs">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-slate-400">📍</span>
-                                            <h4 class="text-sm font-bold text-slate-800">{{ $trip->destination }}</h4>
+                                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3 shadow-2xs">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-slate-400 text-xs">📍</span>
+                                            <h4 class="text-xs font-bold text-slate-800">{{ $trip->destination }}</h4>
                                         </div>
-                                        <span class="text-xs text-slate-500 font-medium">
+                                        <span class="text-[11px] text-slate-500 font-medium">
                                             {{ $trip->travel_date?->format('M j, Y') }}
                                         </span>
                                     </div>
-                                    <p class="mt-1 text-xs text-slate-600">
+                                    <p class="mt-1 text-[11px] text-slate-600">
                                         Requester: <span class="font-semibold text-slate-700">{{ $trip->requester_name }}</span>
                                     </p>
                                 </div>
                             @empty
-                                <div class="py-12 text-center text-xs text-slate-400 font-medium">
+                                <div class="py-8 text-center text-[11px] text-slate-400 font-medium">
                                     No completed trips yet.
                                 </div>
-                            @endforelse
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Driver Dashboard Bottom Vehicle Graphic Illustration --}}
-            <div class="mt-6 flex justify-center items-center opacity-90">
-                <div class="relative flex flex-col items-center">
-                    <div class="flex items-center gap-2">
-                        <div class="relative">
-                            <div class="flex items-center gap-4 bg-emerald-800/10 px-6 py-3 rounded-2xl border border-emerald-800/20 shadow-xs">
-                                <div class="text-2xl">🛻</div>
-                                <div>
-                                    <span class="rounded-full bg-emerald-700 px-3 py-1 text-[11px] font-black text-white">
-                                        Ops.
-                                    </span>
-                                    <p class="text-[11px] font-bold text-emerald-900 mt-1">Fleet Dispatch Ready</p>
-                                </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
