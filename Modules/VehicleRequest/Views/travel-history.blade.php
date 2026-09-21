@@ -5,18 +5,61 @@
 
 @php
     $today = now()->startOfDay();
-    $upcomingTrips = $trips->filter(function ($trip) use ($today) {
-        $endDate = $trip->travel_date_end ? $trip->travel_date_end->startOfDay() : $trip->travel_date->startOfDay();
-        return $endDate >= $today;
+
+    $mappedTrips = $trips->map(function ($trip) use ($today) {
+        $startDate = $trip->travel_date ? \Carbon\Carbon::parse($trip->travel_date)->startOfDay() : null;
+        $endDate = $trip->travel_date_end ? \Carbon\Carbon::parse($trip->travel_date_end)->startOfDay() : $startDate;
+        $isUpcoming = $endDate ? $endDate >= $today : true;
+
+        if ($trip->travel_date_end && $trip->travel_date && \Carbon\Carbon::parse($trip->travel_date_end)->ne(\Carbon\Carbon::parse($trip->travel_date))) {
+            $formattedDate = \Carbon\Carbon::parse($trip->travel_date)->format('M j') . ' – ' . \Carbon\Carbon::parse($trip->travel_date_end)->format('j, Y');
+        } else {
+            $formattedDate = $trip->travel_date ? \Carbon\Carbon::parse($trip->travel_date)->format('M j, Y') : 'N/A';
+        }
+
+        $passengers = [];
+        if (!empty($trip->requester_name)) {
+            $passengers[] = $trip->requester_name . ' (Requester)';
+        }
+
+        $extraPassengers = is_array($trip->passengers)
+            ? $trip->passengers
+            : (is_string($trip->passengers) ? json_decode($trip->passengers, true) ?: [] : []);
+
+        foreach ($extraPassengers as $p) {
+            $name = is_array($p) ? ($p['name'] ?? $p['passenger_name'] ?? '') : (string) $p;
+            if ($name && strtolower((string)$name) !== strtolower((string)$trip->requester_name)) {
+                $passengers[] = trim((string)$name);
+            }
+        }
+
+        return [
+            'id' => $trip->id,
+            'destination' => $trip->destination ?: 'N/A',
+            'purpose' => $trip->purpose ?: '',
+            'requester_name' => $trip->requester_name ?: 'N/A',
+            'requester_office' => $trip->requester_office ?: '',
+            'requester_contact' => $trip->requester_contact ?: '',
+            'location' => $trip->location ?: '',
+            'approved_by_name' => is_object($trip->approvedBy) ? $trip->approvedBy->name : ($trip->approved_by ?: 'Administrator'),
+            'vehicle_plate' => $trip->vehicle?->plate_number ?: 'N/A',
+            'vehicle_full' => $trip->vehicle ? trim(($trip->vehicle->brand ?? '') . ' ' . ($trip->vehicle->model ?? '') . ' — ' . $trip->vehicle->plate_number) : 'N/A',
+            'formatted_date' => $formattedDate,
+            'is_upcoming' => $isUpcoming,
+            'more_passengers_count' => max(0, count($passengers) - 1),
+            'all_passengers' => count($passengers) > 0 ? $passengers : [$trip->requester_name ?: 'Requester'],
+            'ticket_url' => route('trip-ticket', $trip->id),
+            'search_text' => strtolower(e(($trip->destination ?: '') . ' ' . ($trip->requester_name ?: '') . ' ' . ($trip->vehicle?->plate_number ?: '') . ' ' . ($trip->purpose ?: '') . ' ' . implode(' ', $passengers))),
+        ];
     });
-    $completedTrips = $trips->filter(function ($trip) use ($today) {
-        $endDate = $trip->travel_date_end ? $trip->travel_date_end->startOfDay() : $trip->travel_date->startOfDay();
-        return $endDate < $today;
-    });
+
+    $upcomingCount = $mappedTrips->where('is_upcoming', true)->count();
+    $completedCount = $mappedTrips->where('is_upcoming', false)->count();
+    $totalCount = $mappedTrips->count();
 @endphp
 
 @section('content')
-    <div class="space-y-4" x-data="travelHistoryData()">
+    <div class="space-y-4" x-data="travelHistoryApp()">
         {{-- Header Banner --}}
         <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] px-5 py-3 text-white shadow-lg shadow-emerald-900/15 sm:px-6">
             <div class="absolute -right-8 -top-12 h-40 w-40 rounded-full bg-white/10"></div>
@@ -49,7 +92,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">UPCOMING / ACTIVE</p>
-                        <p class="text-xl font-black text-slate-900">{{ $upcomingTrips->count() }}</p>
+                        <p class="text-xl font-black text-slate-900">{{ $upcomingCount }}</p>
                     </div>
                 </div>
             </div>
@@ -64,7 +107,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">COMPLETED TRAVELS</p>
-                        <p class="text-xl font-black text-slate-900">{{ $completedTrips->count() }}</p>
+                        <p class="text-xl font-black text-slate-900">{{ $completedCount }}</p>
                     </div>
                 </div>
             </div>
@@ -80,7 +123,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">TOTAL DISPATCHES</p>
-                        <p class="text-xl font-black text-slate-900">{{ $trips->count() }}</p>
+                        <p class="text-xl font-black text-slate-900">{{ $totalCount }}</p>
                     </div>
                 </div>
             </div>
@@ -92,20 +135,20 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 {{-- Filter Tabs --}}
                 <div class="inline-flex rounded-lg bg-slate-100 p-1">
-                    <button type="button" @click="activeTab = 'upcoming'; currentPage = 1" :class="activeTab === 'upcoming' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
-                        Active / Upcoming ({{ $upcomingTrips->count() }})
+                    <button type="button" @click="activeTab = 'upcoming'" :class="activeTab === 'upcoming' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
+                        Active / Upcoming ({{ $upcomingCount }})
                     </button>
-                    <button type="button" @click="activeTab = 'completed'; currentPage = 1" :class="activeTab === 'completed' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
-                        Completed ({{ $completedTrips->count() }})
+                    <button type="button" @click="activeTab = 'completed'" :class="activeTab === 'completed' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
+                        Completed ({{ $completedCount }})
                     </button>
-                    <button type="button" @click="activeTab = 'all'; currentPage = 1" :class="activeTab === 'all' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
-                        All ({{ $trips->count() }})
+                    <button type="button" @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
+                        All ({{ $totalCount }})
                     </button>
                 </div>
 
                 {{-- Search Box --}}
                 <div class="relative w-full sm:w-72">
-                    <input type="text" x-model="searchQuery" @input="currentPage = 1" placeholder="Search destination, passenger..." class="w-full rounded-lg border border-slate-200 bg-slate-50/70 pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <input type="text" x-model="searchQuery" placeholder="Search destination, passenger..." class="w-full rounded-lg border border-slate-200 bg-slate-50/70 pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"/>
                         <line x1="21" x2="16.65" y1="21" y2="16.65"/>
@@ -127,20 +170,24 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
-                        <template x-for="trip in paginatedTrips" :key="trip.id">
-                            <tr class="hover:bg-slate-50/50 transition">
+                        @forelse($mappedTrips as $trip)
+                            <tr x-show="matchesRow('{{ $trip['is_upcoming'] ? 'upcoming' : 'completed' }}', '{{ $trip['search_text'] }}')" class="hover:bg-slate-50/50 transition">
                                 {{-- Destination & Purpose --}}
                                 <td class="py-3 px-3">
                                     <div class="flex items-center gap-1.5">
                                         <span class="text-red-500 text-xs shrink-0">📍</span>
-                                        <span class="font-extrabold text-slate-900" x-text="trip.destination"></span>
+                                        <span class="font-extrabold text-slate-900">{{ $trip['destination'] }}</span>
                                     </div>
-                                    <p class="mt-0.5 text-[11px] text-slate-600 font-medium" x-text="trip.purpose || 'N/A'"></p>
-                                    <p class="text-[10px] text-slate-500" x-text="trip.requester_office ? 'Office: ' + trip.requester_office : ''"></p>
+                                    @if($trip['purpose'])
+                                        <p class="mt-0.5 text-[11px] text-slate-600 font-medium">{{ $trip['purpose'] }}</p>
+                                    @endif
+                                    @if($trip['requester_office'])
+                                        <p class="text-[10px] text-slate-500">Office: {{ $trip['requester_office'] }}</p>
+                                    @endif
                                 </td>
 
                                 {{-- Travel Date --}}
-                                <td class="py-3 px-3 font-semibold text-slate-800 whitespace-nowrap" x-text="trip.formatted_date"></td>
+                                <td class="py-3 px-3 font-semibold text-slate-800 whitespace-nowrap">{{ $trip['formatted_date'] }}</td>
 
                                 {{-- Vehicle --}}
                                 <td class="py-3 px-3 whitespace-nowrap">
@@ -148,59 +195,56 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
                                         </svg>
-                                        <span class="font-bold text-slate-900" x-text="trip.vehicle_plate"></span>
+                                        <span class="font-bold text-slate-900">{{ $trip['vehicle_plate'] }}</span>
                                     </div>
                                 </td>
 
                                 {{-- Passengers --}}
                                 <td class="py-3 px-3">
-                                    <div class="font-semibold text-slate-800" x-text="trip.requester_name + ' (Requester)'"></div>
-                                    <template x-if="trip.more_passengers_count > 0">
-                                        <button type="button" @click="openModal(trip)" class="text-[10px] font-bold text-emerald-700 hover:underline cursor-pointer">
-                                            +<span x-text="trip.more_passengers_count"></span> more
+                                    <div class="font-semibold text-slate-800">{{ $trip['requester_name'] }} (Requester)</div>
+                                    @if($trip['more_passengers_count'] > 0)
+                                        <button type="button" @click="openModal({{ json_encode($trip) }})" class="text-[10px] font-bold text-emerald-700 hover:underline cursor-pointer">
+                                            +{{ $trip['more_passengers_count'] }} more
                                         </button>
-                                    </template>
+                                    @endif
                                 </td>
 
                                 {{-- Status --}}
                                 <td class="py-3 px-3 whitespace-nowrap">
-                                    <template x-if="trip.is_upcoming">
+                                    @if($trip['is_upcoming'])
                                         <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                             Scheduled
                                         </span>
-                                    </template>
-                                    <template x-if="!trip.is_upcoming">
+                                    @else
                                         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                             Completed
                                         </span>
-                                    </template>
+                                    @endif
                                 </td>
 
                                 {{-- Action --}}
                                 <td class="py-3 px-3 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        <button type="button" @click="openModal(trip)" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition cursor-pointer">
+                                        <button type="button" @click="openModal({{ json_encode($trip) }})" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                                             View Details
                                         </button>
-                                        <a :href="trip.ticket_url" target="_blank" class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 transition">
+                                        <a href="{{ $trip['ticket_url'] }}" target="_blank" class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 transition">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                                             Ticket
                                         </a>
                                     </div>
                                 </td>
                             </tr>
-                        </template>
-
-                        <template x-if="filteredTrips.length === 0">
+                        @empty
                             <tr>
                                 <td colspan="6" class="py-10 text-center text-xs text-slate-400 font-medium">
-                                    No travel records found matching your filter or search criteria.
+                                    No travel records found.
                                 </td>
                             </tr>
-                        </template>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -209,13 +253,12 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
                 <div class="flex items-center gap-3">
                     <span>
-                        Showing <strong x-text="startIndex + 1"></strong> to <strong x-text="endIndex"></strong> of <strong x-text="filteredTrips.length"></strong> trips
+                        Showing 1 to {{ $totalCount }} of {{ $totalCount }} trips
                     </span>
                     <div class="flex items-center gap-1">
                         <span>Rows per page:</span>
-                        <select x-model.number="rowsPerPage" @change="currentPage = 1" class="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-slate-700 focus:outline-none focus:border-emerald-500">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
+                        <select class="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-emerald-500">
+                            <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
@@ -223,11 +266,11 @@
                 </div>
 
                 <div class="flex items-center gap-1">
-                    <button type="button" @click="currentPage = 1" :disabled="currentPage === 1" class="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">&laquo;</button>
-                    <button type="button" @click="currentPage--" :disabled="currentPage === 1" class="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">&lt;</button>
-                    <span class="px-2 py-1 font-bold text-emerald-800 bg-emerald-50 rounded border border-emerald-200" x-text="currentPage"></span>
-                    <button type="button" @click="currentPage++" :disabled="currentPage >= totalPages" class="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">&gt;</button>
-                    <button type="button" @click="currentPage = totalPages" :disabled="currentPage >= totalPages" class="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">&raquo;</button>
+                    <button type="button" disabled class="rounded border border-slate-200 px-2 py-1 text-xs opacity-40 cursor-not-allowed">&laquo;</button>
+                    <button type="button" disabled class="rounded border border-slate-200 px-2 py-1 text-xs opacity-40 cursor-not-allowed">&lt;</button>
+                    <span class="px-2 py-1 font-bold text-emerald-800 bg-emerald-50 rounded border border-emerald-200">1</span>
+                    <button type="button" disabled class="rounded border border-slate-200 px-2 py-1 text-xs opacity-40 cursor-not-allowed">&gt;</button>
+                    <button type="button" disabled class="rounded border border-slate-200 px-2 py-1 text-xs opacity-40 cursor-not-allowed">&raquo;</button>
                 </div>
             </div>
         </div>
@@ -372,119 +415,28 @@
     </div>
 
     <script>
-        function travelHistoryData() {
-            const rawTrips = @json($trips);
-            const todayStr = '{{ now()->toDateString() }}';
-
-            const formattedTrips = rawTrips.map(trip => {
-                const startDate = trip.travel_date ? new Date(trip.travel_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-                const endDate = trip.travel_date_end ? new Date(trip.travel_date_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-                
-                let formattedDate = startDate;
-                if (trip.travel_date_end && trip.travel_date_end !== trip.travel_date) {
-                    const startMonthDay = new Date(trip.travel_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    const endDayYear = new Date(trip.travel_date_end).toLocaleDateString('en-US', { day: 'numeric', year: 'numeric' });
-                    formattedDate = `${startMonthDay} – ${endDayYear}`;
-                }
-
-                const endComparison = trip.travel_date_end || trip.travel_date;
-                const isUpcoming = endComparison >= todayStr;
-
-                // Process Passengers
-                let passengerList = [];
-                if (trip.passengers && Array.isArray(trip.passengers)) {
-                    passengerList = trip.passengers.map(p => typeof p === 'object' ? (p.name || p.passenger_name || '') : String(p)).filter(Boolean);
-                } else if (typeof trip.passengers === 'string' && trip.passengers.trim()) {
-                    try {
-                        const parsed = JSON.parse(trip.passengers);
-                        if (Array.isArray(parsed)) {
-                            passengerList = parsed.map(p => typeof p === 'object' ? (p.name || p.passenger_name || '') : String(p)).filter(Boolean);
-                        } else {
-                            passengerList = [trip.passengers];
-                        }
-                    } catch (e) {
-                        passengerList = trip.passengers.split(',').map(s => s.trim()).filter(Boolean);
-                    }
-                }
-
-                const allPassengers = [];
-                if (trip.requester_name) {
-                    allPassengers.push(`${trip.requester_name} (Requester)`);
-                }
-                passengerList.forEach(p => {
-                    if (p && p.toLowerCase() !== trip.requester_name?.toLowerCase()) {
-                        allPassengers.push(p);
-                    }
-                });
-
-                return {
-                    id: trip.id,
-                    destination: trip.destination || 'N/A',
-                    purpose: trip.purpose || '',
-                    requester_name: trip.requester_name || 'N/A',
-                    requester_office: trip.requester_office || '',
-                    requester_contact: trip.requester_contact || '',
-                    location: trip.location || '',
-                    approved_by_name: trip.approved_by?.name || trip.approved_by || 'Administrator',
-                    vehicle_plate: trip.vehicle ? trip.vehicle.plate_number : 'N/A',
-                    vehicle_full: trip.vehicle ? `${trip.vehicle.brand || ''} ${trip.vehicle.model || ''} — ${trip.vehicle.plate_number}`.trim() : 'N/A',
-                    formatted_date: formattedDate,
-                    is_upcoming: isUpcoming,
-                    more_passengers_count: Math.max(0, allPassengers.length - 1),
-                    all_passengers: allPassengers.length > 0 ? allPassengers : [trip.requester_name || 'Requester'],
-                    ticket_url: `/trip-ticket/${trip.id}`,
-                    raw_data: trip
-                };
-            });
-
+        function travelHistoryApp() {
             return {
-                allTrips: formattedTrips,
                 activeTab: 'upcoming',
                 searchQuery: '',
-                currentPage: 1,
-                rowsPerPage: 10,
                 isModalOpen: false,
                 selectedTrip: null,
 
-                get filteredTrips() {
-                    let list = this.allTrips;
-
-                    // Tab filter
-                    if (this.activeTab === 'upcoming') {
-                        list = list.filter(t => t.is_upcoming);
-                    } else if (this.activeTab === 'completed') {
-                        list = list.filter(t => !t.is_upcoming);
+                matchesRow(status, searchText) {
+                    // Filter tab
+                    if (this.activeTab !== 'all' && this.activeTab !== status) {
+                        return false;
                     }
 
-                    // Search filter
+                    // Search query
                     if (this.searchQuery.trim()) {
                         const q = this.searchQuery.toLowerCase();
-                        list = list.filter(t => 
-                            t.destination.toLowerCase().includes(q) ||
-                            t.requester_name.toLowerCase().includes(q) ||
-                            t.vehicle_plate.toLowerCase().includes(q) ||
-                            t.purpose.toLowerCase().includes(q) ||
-                            t.all_passengers.some(p => p.toLowerCase().includes(q))
-                        );
+                        if (!searchText.includes(q)) {
+                            return false;
+                        }
                     }
 
-                    return list;
-                },
-
-                get totalPages() {
-                    return Math.ceil(this.filteredTrips.length / this.rowsPerPage) || 1;
-                },
-
-                get startIndex() {
-                    return (this.currentPage - 1) * this.rowsPerPage;
-                },
-
-                get endIndex() {
-                    return Math.min(this.startIndex + this.rowsPerPage, this.filteredTrips.length);
-                },
-
-                get paginatedTrips() {
-                    return this.filteredTrips.slice(this.startIndex, this.endIndex);
+                    return true;
                 },
 
                 openModal(trip) {
