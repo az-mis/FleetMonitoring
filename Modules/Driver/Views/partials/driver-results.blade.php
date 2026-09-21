@@ -128,80 +128,80 @@
             @endphp
             <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col justify-between">
                 <div>
-                    {{-- Top Section: Compact Header with Small Driver Avatar + Floating Edit/Delete Actions --}}
+                    {{-- Top Section: Driver Photo Banner + Floating Edit/Delete Actions --}}
                     <div class="relative p-3">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                @if ($driver->avatar_url)
-                                    <img src="{{ $driver->avatar_url }}" alt="{{ $driver->name }}" class="h-14 w-14 shrink-0 rounded-xl object-cover border border-gray-200 shadow-xs">
-                                @else
-                                    <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-xl font-bold text-white shadow-xs">
-                                        {{ $initial }}
-                                    </div>
-                                @endif
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <p class="truncate text-sm font-bold text-slate-900 leading-tight">{{ $driver->name }}</p>
-                                        <span class="inline-flex items-center gap-1 shrink-0 rounded-full bg-emerald-100/70 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-800">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
-                                            Active
-                                        </span>
-                                    </div>
-                                    <div class="space-y-0.5 text-[11px] text-slate-500 pt-1">
-                                        <p class="truncate flex items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                                            <span class="truncate">{{ $driver->email }}</span>
-                                        </p>
-                                        <p class="flex items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                                            <span>{{ $driver->phone_number ?: '—' }}</span>
-                                        </p>
-                                        <p class="truncate flex items-center gap-1 font-medium text-emerald-800">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                                            <span class="truncate">{{ $driver->location ?: 'No location assigned' }}</span>
-                                        </p>
-                                    </div>
-                                </div>
+                        @if ($driver->avatar_url)
+                            <img src="{{ $driver->avatar_url }}" alt="{{ $driver->name }}" class="h-48 w-full rounded-xl object-cover border border-gray-200">
+                        @else
+                            <div class="flex h-48 w-full items-center justify-center rounded-xl bg-slate-800 text-5xl font-bold text-white border border-gray-200">
+                                {{ $initial }}
                             </div>
+                        @endif
 
-                            {{-- Floating Action Buttons (Edit / Delete) --}}
-                            <div class="flex items-center gap-1 rounded-lg bg-slate-100/80 p-0.5 backdrop-blur-md shadow-2xs shrink-0">
-                                <button
-                                    type="button"
-                                    onclick="openEditDriverModal(this)"
-                                    data-name="{{ $driver->name }}"
-                                    data-email="{{ $driver->email }}"
-                                    data-avatar="{{ $driver->avatar_url }}"
-                                    data-initial="{{ $initial }}"
-                                    data-address="{{ $driver->address }}"
-                                    data-birth-date="{{ optional($driver->birth_date)->format('Y-m-d') }}"
-                                    data-license-number="{{ $driver->license_number }}"
-                                    data-license-expiration="{{ optional($driver->license_expiration_date)->format('Y-m-d') }}"
-                                    data-phone-number="{{ $driver->phone_number }}"
-                                    data-location="{{ $driver->location }}"
-                                    data-update-url="{{ route('driver.update', $driver) }}"
-                                    title="Edit driver"
-                                    class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white text-emerald-600 hover:bg-emerald-600 hover:text-white transition shadow-2xs"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/>
-                                    </svg>
-                                </button>
-                                <button
-                                    type="button"
-                                    onclick="openDeleteDriverModal(this)"
-                                    data-name="{{ $driver->name }}"
-                                    data-delete-url="{{ route('driver.destroy', $driver) }}"
-                                    title="Delete driver"
-                                    class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white text-red-600 hover:bg-red-600 hover:text-white transition shadow-2xs"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M3 6h18"/>
-                                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                                    </svg>
-                                </button>
+                        {{-- Floating Action Buttons (Edit / Delete) top-right --}}
+                        <div class="absolute top-5 right-5 flex items-center gap-1 rounded-lg bg-white/80 p-1 backdrop-blur-md shadow-xs">
+                            <button
+                                type="button"
+                                onclick="openEditDriverModal(this)"
+                                data-name="{{ $driver->name }}"
+                                data-email="{{ $driver->email }}"
+                                data-avatar="{{ $driver->avatar_url }}"
+                                data-initial="{{ $initial }}"
+                                data-address="{{ $driver->address }}"
+                                data-birth-date="{{ optional($driver->birth_date)->format('Y-m-d') }}"
+                                data-license-number="{{ $driver->license_number }}"
+                                data-license-expiration="{{ optional($driver->license_expiration_date)->format('Y-m-d') }}"
+                                data-phone-number="{{ $driver->phone_number }}"
+                                data-location="{{ $driver->location }}"
+                                data-update-url="{{ route('driver.update', $driver) }}"
+                                title="Edit driver"
+                                class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition shadow-xs"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                onclick="openDeleteDriverModal(this)"
+                                data-name="{{ $driver->name }}"
+                                data-delete-url="{{ route('driver.destroy', $driver) }}"
+                                title="Delete driver"
+                                class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition shadow-xs"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"/>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Driver Core Info Details --}}
+                    <div class="px-4 pb-3 space-y-1.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="truncate text-base font-bold text-slate-900">{{ $driver->name }}</p>
+                            <span class="inline-flex items-center gap-1 shrink-0 rounded-full bg-emerald-100/70 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+                                Active
+                            </span>
+                        </div>
+
+                        {{-- Metadata list with icons --}}
+                        <div class="space-y-1 text-xs text-slate-500 pt-0.5">
+                            <div class="flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                <span class="truncate">{{ $driver->email }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                <span>{{ $driver->phone_number ?: '—' }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-emerald-800 font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <span class="truncate">{{ $driver->location ?: 'No location assigned' }}</span>
                             </div>
                         </div>
                     </div>
