@@ -105,7 +105,7 @@ class VehicleRequestController
     public function travelHistory(Request $request): View
     {
         abort_unless($request->user()?->role?->value === 'driver', 403);
-        $trips = VehicleRequest::with('vehicle')
+        $trips = VehicleRequest::with(['vehicle', 'approvedBy'])
             ->where('status', 'approved')
             ->where(function ($query) use ($request): void {
                 $query->where('confirmed_driver_id', $request->user()->id)
