@@ -45,7 +45,32 @@
                             <td class="whitespace-nowrap px-4 py-3.5 text-sm text-slate-500">{{ $driver->email }}</td>
                             <td class="whitespace-nowrap px-4 py-3.5 text-sm text-slate-500">{{ $driver->phone_number ?: '—' }}</td>
                             <td class="whitespace-nowrap px-4 py-3.5 text-sm font-semibold text-emerald-800">{{ $driver->location ?: '—' }}</td>
-                            <td class="whitespace-nowrap px-4 py-3.5 text-sm text-slate-500">{{ optional($driver->license_expiration_date)->format('M d, Y') ?: '—' }}</td>
+                            <td class="whitespace-nowrap px-4 py-3.5 text-sm">
+                                @php
+                                    $expDate = $driver->license_expiration_date;
+                                    $daysLeft = $expDate ? now()->startOfDay()->diffInDays($expDate->startOfDay(), false) : null;
+                                @endphp
+                                @if (!$expDate)
+                                    <span class="text-slate-400">—</span>
+                                @elseif ($daysLeft < 0)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                                        EXPIRED · {{ $expDate->format('M d, Y') }}
+                                    </span>
+                                @elseif ($daysLeft <= 7)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-600 ring-1 ring-red-200">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                        {{ $expDate->format('M d, Y') }} · {{ $daysLeft }}d left
+                                    </span>
+                                @elseif ($daysLeft <= 30)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-200">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        {{ $expDate->format('M d, Y') }} · {{ $daysLeft }}d left
+                                    </span>
+                                @else
+                                    <span class="text-slate-600 font-medium">{{ $expDate->format('M d, Y') }}</span>
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <button
@@ -221,17 +246,62 @@
                         @endif
 
                         {{-- License & Expiry Box --}}
-                        <div class="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-white p-2 text-[10px] border border-slate-100 shadow-2xs">
-                            <div>
-                                <span class="block text-slate-400 font-medium uppercase">LICENSE NO.</span>
-                                <span class="block font-bold text-slate-800 truncate">{{ $driver->license_number ?: '—' }}</span>
+                        @php
+                            $expDate  = $driver->license_expiration_date;
+                            $daysLeft = $expDate ? now()->startOfDay()->diffInDays($expDate->startOfDay(), false) : null;
+                            $licenseStatus = 'ok'; // ok | warn30 | warn7 | expired
+                            if ($expDate) {
+                                if ($daysLeft < 0)      $licenseStatus = 'expired';
+                                elseif ($daysLeft <= 7)  $licenseStatus = 'warn7';
+                                elseif ($daysLeft <= 30) $licenseStatus = 'warn30';
+                            }
+                        @endphp
+                        <div class="mt-3 rounded-lg border text-[10px] shadow-2xs overflow-hidden
+                            {{ $licenseStatus === 'expired' ? 'border-red-300 bg-red-50' :
+                               ($licenseStatus === 'warn7'  ? 'border-red-200 bg-red-50/60' :
+                               ($licenseStatus === 'warn30' ? 'border-amber-200 bg-amber-50/60' :
+                               'border-slate-100 bg-white')) }}">
+                            <div class="grid grid-cols-2 gap-2 p-2">
+                                <div>
+                                    <span class="block font-medium uppercase text-slate-400">LICENSE NO.</span>
+                                    <span class="block font-bold text-slate-800 truncate">{{ $driver->license_number ?: '—' }}</span>
+                                </div>
+                                <div>
+                                    <span class="block font-medium uppercase
+                                        {{ $licenseStatus === 'expired' ? 'text-red-500' :
+                                           ($licenseStatus === 'warn7'  ? 'text-red-500' :
+                                           ($licenseStatus === 'warn30' ? 'text-amber-600' :
+                                           'text-slate-400')) }}">VALID UNTIL</span>
+                                    @if (!$expDate)
+                                        <span class="block font-bold text-slate-400">—</span>
+                                    @else
+                                        <span class="block font-bold
+                                            {{ $licenseStatus === 'expired' ? 'text-red-700' :
+                                               ($licenseStatus === 'warn7'  ? 'text-red-600' :
+                                               ($licenseStatus === 'warn30' ? 'text-amber-700' :
+                                               'text-slate-800')) }}">
+                                            {{ $expDate->format('M d, Y') }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
-                            <div>
-                                <span class="block text-slate-400 font-medium uppercase">VALID UNTIL</span>
-                                <span class="block font-bold text-slate-800 truncate">
-                                    {{ optional($driver->license_expiration_date)->format('M d, Y') ?: '—' }}
-                                </span>
-                            </div>
+                            {{-- Warning strip --}}
+                            @if ($licenseStatus === 'expired')
+                                <div class="flex items-center gap-1.5 bg-red-600 px-2 py-1 text-white">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse shrink-0"></span>
+                                    <span class="font-bold text-[10px] uppercase tracking-wide">License Expired</span>
+                                </div>
+                            @elseif ($licenseStatus === 'warn7')
+                                <div class="flex items-center gap-1.5 bg-red-500 px-2 py-1 text-white">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse shrink-0"></span>
+                                    <span class="font-bold text-[10px] uppercase tracking-wide">Expires in {{ $daysLeft }} day{{ $daysLeft == 1 ? '' : 's' }}!</span>
+                                </div>
+                            @elseif ($licenseStatus === 'warn30')
+                                <div class="flex items-center gap-1.5 bg-amber-500 px-2 py-1 text-white">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse shrink-0"></span>
+                                    <span class="font-bold text-[10px] uppercase tracking-wide">Expires in {{ $daysLeft }} days</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
