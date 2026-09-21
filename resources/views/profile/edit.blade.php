@@ -158,21 +158,57 @@
                             </div>
 
                             <div>
+                                <label class="mb-1 block text-[11px] font-bold text-gray-700">Driver's License Number</label>
+                                <div class="relative">
+                                    <input value="{{ $user->license_number ?: 'Not set' }}" disabled class="w-full rounded-lg border border-gray-200 bg-gray-100/70 px-3 py-2 pr-8 text-xs text-gray-600 font-medium">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="18" height="11" x="3" y="11" rx="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div>
                                 <label class="mb-1 block text-[11px] font-bold text-gray-700">Driver's License Expiration</label>
                                 <div class="relative">
                                     @php
                                         $expDate = $user->license_expiration_date;
-                                        $daysLeft = $expDate ? now()->startOfDay()->diffInDays($expDate->startOfDay(), false) : null;
+                                        $daysLeft = $expDate ? (int) round(now()->startOfDay()->diffInDays($expDate->startOfDay(), false)) : null;
                                         $isExp = !is_null($daysLeft) && $daysLeft < 0;
+                                        $isUrgent = !is_null($daysLeft) && $daysLeft >= 0 && $daysLeft <= 7;
+                                        $isWarning = !is_null($daysLeft) && $daysLeft > 7 && $daysLeft <= 30;
                                     @endphp
-                                    <input value="{{ optional($expDate)->format('Y-m-d') ?: 'Not set' }}" disabled class="w-full rounded-lg border border-gray-200 bg-gray-100/70 px-3 py-2 pr-16 text-xs text-gray-600">
+                                    <input value="{{ optional($expDate)->format('Y-m-d') ?: 'Not set' }}" disabled class="w-full rounded-lg border {{ $isExp || $isUrgent ? 'border-red-300 bg-red-50/50' : ($isWarning ? 'border-amber-300 bg-amber-50/50' : 'border-gray-200 bg-gray-100/70') }} px-3 py-2 pr-32 text-xs text-gray-700 font-semibold">
                                     @if($expDate)
-                                        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase {{ $isExp ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800' }}">
-                                            ✓ {{ $isExp ? 'Expired' : 'Valid' }}
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-0.5 text-[9px] font-extrabold uppercase {{ $isExp ? 'bg-red-600 text-white' : ($isUrgent ? 'bg-red-600 text-white animate-pulse' : ($isWarning ? 'bg-amber-500 text-white' : 'bg-emerald-100 text-emerald-800')) }}">
+                                            @if($isExp)
+                                                EXPIRED
+                                            @elseif($isUrgent || $isWarning)
+                                                EXPIRES IN {{ $daysLeft }} {{ Illuminate\Support\Str::plural('DAY', $daysLeft) }}
+                                            @else
+                                                ✓ VALID
+                                            @endif
                                         </span>
                                     @endif
                                 </div>
-                                <p class="mt-1 text-[10px] text-gray-400">Managed and verified by your fleet administrator.</p>
+                                @if($isExp)
+                                    <p class="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-red-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        License expired on {{ $expDate->format('M d, Y') }}! Please submit your renewed license to your administrator.
+                                    </p>
+                                @elseif($isUrgent)
+                                    <p class="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-red-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        Urgent: Your license expires in {{ $daysLeft }} {{ Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }})!
+                                    </p>
+                                @elseif($isWarning)
+                                    <p class="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-amber-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        Notice: License expires in {{ $daysLeft }} {{ Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }}).
+                                    </p>
+                                @else
+                                    <p class="mt-1 text-[10px] text-gray-400">Managed and verified by your fleet administrator.</p>
+                                @endif
                             </div>
                         </div>
                     </section>

@@ -329,35 +329,37 @@
                             <h3 class="text-xs font-extrabold text-slate-900">Future Assigned Travels ({{ $futureTripsCount }})</h3>
                         </div>
 
-                        <div class="space-y-1.5">
+                        <div class="space-y-2">
                             @forelse($driverFutureTrips as $trip)
-                                <div class="rounded-lg border border-emerald-100 bg-emerald-50/40 p-2.5 shadow-2xs">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-red-500 text-xs">📍</span>
-                                            <h4 class="text-xs font-extrabold text-slate-900">{{ $trip->destination }}</h4>
+                                <div class="rounded-lg border border-emerald-200/80 bg-emerald-50/60 p-3 shadow-2xs">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-red-500 text-xs shrink-0">📍</span>
+                                                <h4 class="text-xs font-extrabold text-slate-900 truncate">{{ $trip->destination }}</h4>
+                                            </div>
+                                            <p class="mt-1 text-xs text-slate-700">
+                                                Requester: <span class="font-extrabold text-slate-950">{{ $trip->requester_name }}</span>
+                                                @if($trip->requester_office)
+                                                    <span class="text-slate-600 font-medium">({{ $trip->requester_office }})</span>
+                                                @endif
+                                            </p>
+                                            <p class="mt-0.5 text-xs text-slate-600">
+                                                Vehicle: <span class="font-bold text-slate-800">{{ $trip->vehicle?->plate_number ?? 'N/A' }}</span> ·
+                                                Purpose: <span class="font-bold text-slate-800">{{ $trip->purpose ?: 'N/A' }}</span>
+                                            </p>
                                         </div>
                                         <div class="text-right shrink-0">
-                                            <span class="text-[10px] font-bold text-slate-800">
+                                            <span class="text-xs font-bold text-slate-900">
                                                 {{ $trip->travel_date?->format('M j') }}{{ $trip->travel_date_end ? ' – ' . $trip->travel_date_end->format('j, Y') : ($trip->travel_date ? ', ' . $trip->travel_date->format('Y') : '') }}
                                             </span>
-                                            <div class="mt-0.5">
-                                                <span class="inline-flex rounded bg-emerald-100 px-1.5 py-0.5 text-[8px] font-extrabold text-emerald-800 tracking-wider">
+                                            <div class="mt-1">
+                                                <span class="inline-flex rounded bg-emerald-200/80 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-900 tracking-wider">
                                                     APPROVED
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                    <p class="mt-1 text-[10px] text-slate-600">
-                                        Requester: <span class="font-bold text-slate-800">{{ $trip->requester_name }}</span>
-                                        @if($trip->requester_office)
-                                            <span class="text-slate-500">({{ $trip->requester_office }})</span>
-                                        @endif
-                                    </p>
-                                    <p class="mt-0.5 text-[10px] text-slate-500">
-                                        Vehicle: <span class="font-semibold text-slate-700">{{ $trip->vehicle?->plate_number ?? 'N/A' }}</span> ·
-                                        Purpose: <span class="font-semibold text-slate-700">{{ $trip->purpose ?: 'N/A' }}</span>
-                                    </p>
                                 </div>
                             @empty
                                 <div class="py-8 text-center text-[11px] text-slate-400 font-medium">
