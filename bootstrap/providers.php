@@ -8,6 +8,8 @@ use Modules\Vehicle\Providers\VehicleServiceProvider;
 use Modules\VehicleRequest\Providers\VehicleRequestServiceProvider;
 use Modules\ApprovingOfficer\Providers\ApprovingOfficerServiceProvider;
 use Modules\Settings\Providers\SettingsServiceProvider;
+use Modules\Maintenance\Providers\MaintenanceServiceProvider;
+use Modules\VehicleReport\Providers\VehicleReportServiceProvider;
 
 return [
     AppServiceProvider::class,
@@ -18,4 +20,6 @@ return [
     VehicleRequestServiceProvider::class,
     ApprovingOfficerServiceProvider::class,
     SettingsServiceProvider::class,
+    MaintenanceServiceProvider::class,
+    VehicleReportServiceProvider::class,
 ];

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\VehicleRequest\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
+use Modules\Maintenance\Models\VehicleMaintenance;
+use Modules\VehicleRequest\Support\PersonName;
 
 class StoreVehicleRequest extends FormRequest
 {
@@ -16,8 +18,10 @@ class StoreVehicleRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        // Names are stored in Title Case so they print cleanly on the Trip Ticket.
         $this->merge([
-            'passengers' => array_values(array_filter($this->input('passengers', []), fn ($name) => filled(trim((string) $name)))),
+            'requesterName' => PersonName::titleCase((string) $this->input('requesterName')),
+            'passengers' => PersonName::titleCaseAll((array) $this->input('passengers', [])),
         ]);
     }
 
@@ -38,5 +42,42 @@ class StoreVehicleRequest extends FormRequest
             'passengers.*' => ['string', 'max:120'],
             'previousTripTicketDate' => ['nullable', 'date'],
         ];
+    }
+
+    /**
+     * Server-side mirror of React's selectedMaintenanceConflict check, so a
+     * conflicting request can't be submitted even if the client-side
+     * calendar/JS never ran (JS disabled, stale page, bypassed request).
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $vehicleId = $this->input('vehicleId');
+            $start = $this->input('travelDate');
+            if (! $vehicleId || ! $start) {
+                return;
+            }
+            $end = $this->input('travelDateEnd') ?: $start;
+
+            $conflict = VehicleMaintenance::query()
+                ->where('vehicle_id', $vehicleId)
+                ->whereIn('status', ['scheduled', 'ongoing'])
+                ->whereDate('scheduled_date', '<=', $end)
+                ->where(function ($query) use ($start): void {
+                    $query->whereDate('scheduled_date_end', '>=', $start)
+                        ->orWhere(function ($query) use ($start): void {
+                            $query->whereNull('scheduled_date_end')
+                                ->whereDate('scheduled_date', '>=', $start);
+                        });
+                })
+                ->first();
+
+            if ($conflict) {
+                $validator->errors()->add(
+                    'vehicleId',
+                    "This vehicle is unavailable due to {$conflict->title} on the selected date(s). Please choose another vehicle or travel date."
+                );
+            }
+        });
     }
 }

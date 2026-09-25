@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -14,9 +16,9 @@ Route::view('/unauthorized', 'public.unauthorized')->name('unauthorized');
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/refresh', [DashboardController::class, 'refresh'])->name('dashboard.refresh');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/my-profile', [ProfileController::class, 'edit'])->name('my-profile');
     Route::put('/my-profile', [ProfileController::class, 'update'])->name('my-profile.update');
     Route::view('/settings', 'settings')->name('settings');

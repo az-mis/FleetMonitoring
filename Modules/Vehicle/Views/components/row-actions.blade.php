@@ -17,6 +17,10 @@
         data-vehicle_type="{{ $vehicle->vehicle_type }}"
         data-fuel_type="{{ $vehicle->fuel_type }}"
         data-location="{{ $vehicle->location }}"
+        data-created="{{ $vehicle->created_at?->format('M j, Y g:i A') }}"
+        data-updated="{{ $vehicle->updated_at?->format('M j, Y g:i A') }}"
+        data-created-by="{{ $vehicle->creator ? $vehicle->creator->name . ($vehicle->creator->role ? ' (' . $vehicle->creator->role->label() . ')' : '') : '' }}"
+        data-updated-by="{{ $vehicle->updater ? $vehicle->updater->name . ($vehicle->updater->role ? ' (' . $vehicle->updater->role->label() . ')' : '') : '' }}"
         title="Edit"
         class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition shadow-xs"
     >

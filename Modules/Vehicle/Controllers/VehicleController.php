@@ -11,6 +11,7 @@ use Illuminate\View\View;
 use Modules\Admin\Enums\UserRole;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\Vehicle\Requests\StoreVehicleRequest;
+use Modules\Vehicle\Requests\StoreVehicleTypeRequest;
 use Modules\Vehicle\Requests\UpdateVehicleRequest;
 use Modules\Vehicle\Services\VehicleService;
 
@@ -39,10 +40,15 @@ class VehicleController extends Controller
             perPage: $perPage
         );
 
+        $typeCounts = $this->vehicleService->typeCounts($location);
+
         return view('vehicle::index', [
             'vehicles' => $vehicles,
             'isSuperAdmin' => $isSuperAdmin,
             'selectedLocation' => $location,
+            'vehicleTypes' => $this->vehicleService->vehicleTypes(),
+            'typeCounts' => $typeCounts['counts'],
+            'totalVehicleCount' => $typeCounts['total'],
         ]);
     }
 
@@ -56,6 +62,19 @@ class VehicleController extends Controller
         $this->vehicleService->createVehicle($request->validated());
 
         return redirect()->route('vehicles.index')->with('success', 'Vehicle registered successfully.');
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function storeType(StoreVehicleTypeRequest $request): RedirectResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $type = $this->vehicleService->createVehicleType($request->validated());
+
+        return redirect()->route('vehicles.index', request()->only(['search', 'per_page', 'location']))
+            ->with('success', "Vehicle type \"{$type->name}\" added.");
     }
 
     /**

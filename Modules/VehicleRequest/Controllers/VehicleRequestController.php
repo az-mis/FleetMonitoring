@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Modules\VehicleRequest\Controllers;
 
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleRequest\Models\VehicleRequest;
 use Modules\VehicleRequest\Requests\StoreVehicleRequest;
+use Modules\Maintenance\Models\VehicleMaintenance;
 use App\Models\User;
 use Modules\Admin\Enums\UserRole;
 use Modules\ApprovingOfficer\Models\ApprovingOfficer;
@@ -153,8 +155,39 @@ class VehicleRequestController
     public function create(): View
     {
         return view('public.request-vehicle', [
-            'vehicles' => Vehicle::query()->orderBy('plate_number')->get(),
+            'vehicles' => Vehicle::query()->with('assignedDriver')->orderBy('plate_number')->get(),
         ]);
+    }
+
+    /**
+     * Bookings + active maintenance for one vehicle, for the public request
+     * form's calendar. Mirrors the React app's combined vehicleAvailability
+     * (pending/approved requests) + active vehicleMaintenance feed.
+     */
+    public function availability(Vehicle $vehicle): JsonResponse
+    {
+        $bookings = VehicleRequest::query()
+            ->where('vehicle_id', $vehicle->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->get(['status', 'travel_date', 'travel_date_end'])
+            ->map(fn (VehicleRequest $r) => [
+                'status' => $r->status,
+                'start' => $r->travel_date->toDateString(),
+                'end' => ($r->travel_date_end ?? $r->travel_date)->toDateString(),
+            ]);
+
+        $maintenance = VehicleMaintenance::query()
+            ->where('vehicle_id', $vehicle->id)
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->get(['title', 'scheduled_date', 'scheduled_date_end'])
+            ->map(fn (VehicleMaintenance $m) => [
+                'status' => 'maintenance',
+                'title' => $m->title,
+                'start' => $m->scheduled_date->toDateString(),
+                'end' => ($m->scheduled_date_end ?? $m->scheduled_date)->toDateString(),
+            ]);
+
+        return response()->json(['bookings' => $bookings->concat($maintenance)->values()]);
     }
 
     public function store(StoreVehicleRequest $request): RedirectResponse

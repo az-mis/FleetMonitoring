@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Vehicle\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Modules\Admin\Enums\UserRole;
 
 class StoreVehicleRequest extends FormRequest
@@ -35,7 +36,7 @@ class StoreVehicleRequest extends FormRequest
             'year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'color' => ['required', 'string', 'max:50'],
             'odometer' => ['required', 'integer', 'min:0'],
-            'vehicle_type' => ['nullable', 'string', 'max:50'],
+            'vehicle_type' => ['required', 'string', 'max:50', Rule::exists('vehicle_types', 'name')],
             'fuel_type' => ['nullable', 'string', 'max:50'],
             'location' => ['nullable', 'string', 'max:120'],
         ];

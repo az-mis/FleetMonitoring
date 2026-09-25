@@ -13,7 +13,7 @@ class VehicleRepository implements VehicleRepositoryInterface
     public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator
     {
         return Vehicle::query()
-            ->with(['assignedDriver'])
+            ->with(['assignedDriver', 'creator', 'updater'])
             ->when($location, fn ($q) => $q->where('location', $location))
             ->when($search, function ($q) use ($search) {
                 $terms = preg_split('/\s+/', trim($search), -1, PREG_SPLIT_NO_EMPTY);
@@ -50,6 +50,8 @@ class VehicleRepository implements VehicleRepositoryInterface
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
         ]);
     }
 
@@ -67,6 +69,7 @@ class VehicleRepository implements VehicleRepositoryInterface
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
+            'updated_by' => auth()->id(),
         ]);
 
         if (!empty($data['photo'])) {

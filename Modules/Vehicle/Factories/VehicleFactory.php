@@ -61,7 +61,7 @@ class VehicleFactory extends Factory
             'year' => $this->faker->numberBetween(2008, (int) date('Y')),
             'color' => $this->faker->randomElement($this->colors),
             'odometer' => $this->faker->numberBetween(500, 180000),
-            'vehicle_type' => $this->faker->randomElement(['sedan', 'suv', 'pickup', 'van', 'truck', 'motorcycle', 'other']),
+            'vehicle_type' => $this->faker->randomElement(['Car', 'Truck', 'Van', 'Motorcycle']),
             'fuel_type' => $this->faker->randomElement(['gasoline', 'diesel', 'electric', 'hybrid', 'other']),
         ];
     }

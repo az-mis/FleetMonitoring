@@ -17,105 +17,110 @@
         $locationButtonLabel = $selectedLocation ?: 'All Locations';
     @endphp
 
-    <div class="mb-4 rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] p-4 text-white shadow-lg shadow-emerald-900/15">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div class="flex min-w-0 items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    {{-- Page header --}}
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Drivers</h1>
+            <p class="text-sm text-slate-500">Manage your fleet drivers</p>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <form method="GET" action="{{ route('driver.index') }}" id="driver-search-form" class="flex w-full min-w-0 items-center gap-2 sm:w-72 xl:w-96" onsubmit="return false;">
+                <div class="relative w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="m21 21-4.3-4.3"/>
                     </svg>
-                </span>
-                <div class="min-w-0">
-                    <h2 class="truncate text-lg font-extrabold tracking-tight">Drivers</h2>
-                    <p class="truncate text-xs text-white/80">{{ $drivers->total() }} on record</p>
+                    <input
+                        type="text"
+                        name="search"
+                        id="driver-search-input"
+                        value="{{ request('search') }}"
+                        autocomplete="off"
+                        placeholder="Search by name or email..."
+                        oninput="onDriverSearchInput()"
+                        class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    >
+                    <svg id="driver-search-spinner" xmlns="http://www.w3.org/2000/svg" class="hidden absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
                 </div>
-            </div>
 
-            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
-                <form method="GET" action="{{ route('driver.index') }}" id="driver-search-form" class="flex w-full min-w-0 items-center gap-2 md:w-56 xl:w-80" onsubmit="return false;">
-                    <div class="relative w-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="7"/>
-                            <path d="m21 21-4.3-4.3"/>
+                <a href="{{ route('driver.index') }}" id="driver-search-clear" onclick="return clearDriverSearch(event)" class="shrink-0 text-xs font-semibold text-slate-500 hover:text-slate-700 {{ request('search') ? '' : 'hidden' }}">Clear</a>
+            </form>
+
+            <div class="flex flex-wrap items-center gap-2">
+                {{-- Location filter dropdown --}}
+                <div class="relative">
+                    <button type="button" onclick="toggleDriverLocationMenu()" class="inline-flex h-10 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 cursor-pointer">
+                        <span class="flex items-center gap-1.5 truncate">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <span class="max-w-[9rem] truncate">{{ $locationButtonLabel }}</span>
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400 shrink-0 transition" id="driver-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m6 9 6 6 6-6"/>
                         </svg>
-                        <input
-                            type="text"
-                            name="search"
-                            id="driver-search-input"
-                            value="{{ request('search') }}"
-                            autocomplete="off"
-                            placeholder="Search by name or email..."
-                            oninput="onDriverSearchInput()"
-                            class="w-full rounded-xl border-0 bg-white py-2 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                        >
-                        <svg id="driver-search-spinner" xmlns="http://www.w3.org/2000/svg" class="hidden absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                        </svg>
-                    </div>
+                    </button>
 
-                    <a href="{{ route('driver.index') }}" id="driver-search-clear" onclick="return clearDriverSearch(event)" class="shrink-0 text-xs font-semibold text-white/80 hover:text-white {{ request('search') ? '' : 'hidden' }}">Clear</a>
-                </form>
-
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    {{-- View toggle buttons --}}
-                    <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-black/20 p-1 backdrop-blur-sm">
-                        <button type="button" id="driver-view-toggle-list" onclick="setDriverView('list')" title="List view" class="driver-view-toggle-btn rounded-lg p-1.5 transition text-white/70 hover:text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M8 6h13M8 12h13M8 18h13"/>
-                                <path d="M3 6h.01M3 12h.01M3 18h.01"/>
-                            </svg>
-                        </button>
-                        <button type="button" id="driver-view-toggle-grid" onclick="setDriverView('grid')" title="Grid view" class="driver-view-toggle-btn rounded-lg p-1.5 transition text-white/70 hover:text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="1"/>
-                                <rect x="14" y="3" width="7" height="7" rx="1"/>
-                                <rect x="3" y="14" width="7" height="7" rx="1"/>
-                                <rect x="14" y="14" width="7" height="7" rx="1"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    {{-- Location filter dropdown --}}
-                    <div class="relative shrink-0 flex-1 md:flex-initial">
-                        <button type="button" onclick="toggleDriverLocationMenu()" class="inline-flex w-full items-center justify-between gap-2 rounded-xl bg-black/20 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/30 md:w-auto cursor-pointer">
-                            <span class="flex items-center gap-1.5 truncate">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white/80 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                <span class="truncate">{{ $locationButtonLabel }}</span>
-                            </span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white/70 shrink-0 transition" id="driver-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m6 9 6 6 6-6"/>
-                            </svg>
-                        </button>
-
-                        <div id="driver-location-menu" class="absolute right-0 z-20 mt-2 hidden w-64 overflow-hidden rounded-xl border border-gray-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
-                            <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
-                                <span>All Locations</span>
-                                @if(blank($selectedLocation))
+                    <div id="driver-location-menu" class="absolute left-0 z-20 mt-2 hidden w-64 sm:left-auto sm:right-0 overflow-hidden rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/5">
+                        <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
+                            <span>All Locations</span>
+                            @if(blank($selectedLocation))
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                            @endif
+                        </a>
+                        @foreach ($locationOptions as $opt)
+                            <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => $opt])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
+                                <span>{{ $opt }}</span>
+                                @if($selectedLocation === $opt)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                                 @endif
                             </a>
-                            @foreach ($locationOptions as $opt)
-                                <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => $opt])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
-                                    <span>{{ $opt }}</span>
-                                    @if($selectedLocation === $opt)
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                                    @endif
-                                </a>
-                            @endforeach
-                        </div>
+                        @endforeach
                     </div>
+                </div>
+
+                {{-- View toggle buttons (segmented switch) --}}
+                <div class="flex h-10 shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1">
+                    <button
+                        type="button"
+                        id="driver-view-toggle-list"
+                        onclick="setDriverView('list')"
+                        class="driver-view-toggle-btn flex h-full w-8 items-center justify-center rounded-lg transition text-slate-400 hover:text-slate-600"
+                        title="List View"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        id="driver-view-toggle-grid"
+                        onclick="setDriverView('grid')"
+                        class="driver-view-toggle-btn flex h-full w-8 items-center justify-center rounded-lg transition text-slate-400 hover:text-slate-600"
+                        title="Grid View"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </button>
                 </div>
 
                 <button
                     type="button"
                     onclick="openAddDriverModal()"
-                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-emerald-800 shadow-sm hover:bg-emerald-50 transition md:w-auto cursor-pointer"
+                    class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm hover:bg-[#00432a] transition cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 5v14M5 12h14"/>
@@ -742,8 +747,8 @@
     </div>
 
     <style>
-        .driver-view-toggle-btn { color: #6b7280; }
-        .driver-view-toggle-btn.active { background: linear-gradient(to right, #059669, #16a34a); color: #fff; }
+        .driver-view-toggle-btn { color: #94a3b8; }
+        .driver-view-toggle-btn.active { background: #005a36; border-color: #005a36; color: #fff; }
     </style>
 
     <script>

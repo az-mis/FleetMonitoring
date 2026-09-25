@@ -8,6 +8,7 @@ use Modules\VehicleRequest\Controllers\VehicleRequestController;
 Route::middleware(['web'])->group(function (): void {
     Route::get('/request-vehicle', [VehicleRequestController::class, 'create'])->name('request-vehicle');
     Route::post('/request-vehicle', [VehicleRequestController::class, 'store'])->name('request-vehicle.store');
+    Route::get('/request-vehicle/{vehicle}/availability', [VehicleRequestController::class, 'availability'])->name('request-vehicle.availability');
     Route::get('/check-status', [VehicleRequestController::class, 'status'])->name('check-status');
     Route::get('/trip-ticket/{vehicleRequest}', [VehicleRequestController::class, 'tripTicket'])->name('trip-ticket');
 });

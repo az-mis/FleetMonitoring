@@ -17,77 +17,54 @@
         $locationButtonLabel = $selectedLocation ?: 'All Locations';
     @endphp
 
-    <div class="mb-4 rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] p-4 text-white shadow-lg shadow-emerald-900/15">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div class="flex min-w-0 items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.68-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+    {{-- Page header --}}
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Admins</h1>
+            <p class="text-sm text-slate-500">Manage your admin accounts</p>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <form method="GET" action="{{ route('admin.index') }}" id="admin-search-form" class="flex w-full min-w-0 items-center gap-2 sm:w-72 xl:w-96" onsubmit="return false;">
+                <div class="relative w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="m21 21-4.3-4.3"/>
                     </svg>
-                </span>
-                <div class="min-w-0">
-                    <h2 class="truncate text-lg font-extrabold tracking-tight">Admins</h2>
-                    <p class="truncate text-xs text-white/80">{{ $admins->total() }} accounts • Super Admin only</p>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
-                <form method="GET" action="{{ route('admin.index') }}" id="admin-search-form" class="flex w-full min-w-0 items-center gap-2 md:w-56 xl:w-80" onsubmit="return false;">
-                    <div class="relative w-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="7"/>
-                    <path d="m21 21-4.3-4.3"/>
-                </svg>
-                <input
-                    type="text"
-                    name="search"
-                    id="admin-search-input"
-                    value="{{ request('search') }}"
-                    autocomplete="off"
-                    placeholder="Search name or email..."
-                    oninput="onAdminSearchInput()"
-                    class="w-full rounded-lg border border-white/20 bg-white py-2.5 pl-9 pr-8 text-sm text-gray-900 placeholder-gray-400 shadow-sm focus:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/30"
-                >
-                <svg id="admin-search-spinner" xmlns="http://www.w3.org/2000/svg" class="hidden absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-                    </div>
-
-                    <a href="{{ route('admin.index') }}" id="admin-search-clear" onclick="return clearAdminSearch(event)" class="shrink-0 text-sm font-semibold text-white/80 hover:text-white {{ request('search') ? '' : 'hidden' }}">Clear</a>
-                </form>
-
-                <div class="inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/10 p-1 ring-1 ring-white/20">
-                    <button type="button" id="view-toggle-list" onclick="setAdminView('list')" title="List view" class="view-toggle-btn flex h-9 w-9 items-center justify-center rounded-md transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 6h13M8 12h13M8 18h13"/>
-                            <path d="M3 6h.01M3 12h.01M3 18h.01"/>
-                        </svg>
-                    </button>
-                    <button type="button" id="view-toggle-grid" onclick="setAdminView('grid')" title="Grid view" class="view-toggle-btn flex h-9 w-9 items-center justify-center rounded-md transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7" rx="1"/>
-                            <rect x="14" y="3" width="7" height="7" rx="1"/>
-                            <rect x="3" y="14" width="7" height="7" rx="1"/>
-                            <rect x="14" y="14" width="7" height="7" rx="1"/>
-                        </svg>
-                    </button>
+                    <input
+                        type="text"
+                        name="search"
+                        id="admin-search-input"
+                        value="{{ request('search') }}"
+                        autocomplete="off"
+                        placeholder="Search name or email..."
+                        oninput="onAdminSearchInput()"
+                        class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    >
+                    <svg id="admin-search-spinner" xmlns="http://www.w3.org/2000/svg" class="hidden absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
                 </div>
 
-                <div class="relative shrink-0">
-                    <button type="button" onclick="toggleAdminLocationMenu()" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-sm font-semibold text-white shadow-sm md:w-auto cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="{{ route('admin.index') }}" id="admin-search-clear" onclick="return clearAdminSearch(event)" class="shrink-0 text-xs font-semibold text-slate-500 hover:text-slate-700 {{ request('search') ? '' : 'hidden' }}">Clear</a>
+            </form>
+
+            <div class="flex flex-wrap items-center gap-2">
+                {{-- Location filter dropdown --}}
+                <div class="relative">
+                    <button type="button" onclick="toggleAdminLocationMenu()" class="inline-flex h-10 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
                             <circle cx="12" cy="10" r="3"/>
                         </svg>
-                        <span>{{ $locationButtonLabel }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition" id="admin-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <span class="max-w-[9rem] truncate">{{ $locationButtonLabel }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400 shrink-0 transition" id="admin-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m6 9 6 6 6-6"/>
                         </svg>
                     </button>
 
-                    <div id="admin-location-menu" class="absolute right-0 z-20 mt-2 hidden w-64 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 text-gray-900 shadow-2xl shadow-gray-900/20">
-                        <p class="px-3 py-2 text-[11px] font-extrabold uppercase tracking-wide text-slate-500">Filter by Location</p>
-                        <a href="{{ route('admin.index', array_filter(['search' => request('search')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'hover:bg-gray-50' }}">
+                    <div id="admin-location-menu" class="absolute left-0 z-20 mt-2 hidden w-64 sm:left-auto sm:right-0 overflow-hidden rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/5">
+                        <a href="{{ route('admin.index', array_filter(['search' => request('search')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
                             All Locations
                             @if(blank($selectedLocation))
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -96,7 +73,7 @@
                             @endif
                         </a>
                         @foreach($locationOptions as $locationOption)
-                            <a href="{{ route('admin.index', array_filter(['search' => request('search'), 'location' => $locationOption])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition {{ $selectedLocation === $locationOption ? 'bg-emerald-50 font-semibold text-emerald-800' : 'hover:bg-gray-50' }}">
+                            <a href="{{ route('admin.index', array_filter(['search' => request('search'), 'location' => $locationOption])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ $selectedLocation === $locationOption ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
                                 {{ $locationOption }}
                                 @if($selectedLocation === $locationOption)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -108,7 +85,41 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="openAddAdminModal()" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50">
+                {{-- View toggle buttons (segmented switch) --}}
+                <div class="flex h-10 shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1">
+                    <button
+                        type="button"
+                        id="view-toggle-list"
+                        onclick="setAdminView('list')"
+                        class="view-toggle-btn flex h-full w-8 items-center justify-center rounded-lg transition text-slate-400 hover:text-slate-600"
+                        title="List View"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        id="view-toggle-grid"
+                        onclick="setAdminView('grid')"
+                        class="view-toggle-btn flex h-full w-8 items-center justify-center rounded-lg transition text-slate-400 hover:text-slate-600"
+                        title="Grid View"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <button type="button" onclick="openAddAdminModal()" class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#00432a] cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 5v14M5 12h14"/>
                     </svg>
@@ -453,8 +464,8 @@
     </div>
 
     <style>
-        .view-toggle-btn { color: rgba(255, 255, 255, 0.78); }
-        .view-toggle-btn.active { background: #fff; color: #0f6b3d; }
+        .view-toggle-btn { color: #94a3b8; }
+        .view-toggle-btn.active { background: #005a36; border-color: #005a36; color: #fff; }
     </style>
 
     <script>

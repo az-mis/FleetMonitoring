@@ -4,53 +4,45 @@
 @section('page-title', 'Approving Officers')
 
 @section('content')
-    {{-- Top Gradient Banner --}}
-    <div class="mb-6 rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] p-4 text-white shadow-lg shadow-emerald-900/15">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div class="flex min-w-0 items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    {{-- Page header --}}
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="min-w-0">
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Approving Officers</h1>
+            <p class="text-sm text-slate-500">Manage the official signatories (Approved By) printed on Driver's Trip Tickets for each Office Location</p>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <form method="GET" action="{{ route('approving-officers.index') }}" class="flex w-full min-w-0 items-center gap-2 sm:w-72 xl:w-96">
+                <div class="relative w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="m21 21-4.3-4.3"/>
                     </svg>
-                </span>
-                <div class="min-w-0">
-                    <h2 class="truncate text-lg font-extrabold tracking-tight">Approving Officers</h2>
-                    <p class="truncate text-xs text-white/80">Manage the official signatories (Approved By) printed on Driver's Trip Tickets for each Office Location.</p>
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        autocomplete="off"
+                        placeholder="Search location or officer..."
+                        class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    >
                 </div>
-            </div>
 
-            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
-                <form method="GET" action="{{ route('approving-officers.index') }}" class="flex w-full min-w-0 items-center gap-2 md:w-56 xl:w-72">
-                    <div class="relative w-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="7"/>
-                            <path d="m21 21-4.3-4.3"/>
-                        </svg>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            placeholder="Search Location or offic..."
-                            class="w-full rounded-xl border-0 bg-white py-2 pl-9 pr-4 text-xs text-slate-800 placeholder-slate-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                        >
-                    </div>
-                </form>
+                @if(request('search'))
+                    <a href="{{ route('approving-officers.index') }}" class="shrink-0 text-xs font-semibold text-slate-500 hover:text-slate-700">Clear</a>
+                @endif
+            </form>
 
-                <button
-                    type="button"
-                    onclick="openOfficerModal()"
-                    class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm ring-1 ring-white/20 transition hover:bg-emerald-500 cursor-pointer shrink-0"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    <span>Add Office</span>
-                </button>
-            </div>
+            <button
+                type="button"
+                onclick="openOfficerModal()"
+                class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#00432a] cursor-pointer"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                <span>Add Office</span>
+            </button>
         </div>
     </div>
 

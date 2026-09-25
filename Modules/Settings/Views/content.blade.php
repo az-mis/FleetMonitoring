@@ -4,37 +4,28 @@
 @section('page-title', 'Content Settings')
 
 @section('content')
-    {{-- Top Premium Banner --}}
-    <div class="mb-6 rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] p-5 text-white shadow-xl shadow-emerald-900/15">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3.5">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 shadow-inner">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                </span>
-                <div>
-                    <h2 class="text-xl font-black tracking-tight text-white">
-                        {{ $isSuperAdmin ? 'System Content & Branding Settings' : 'Content Settings' }}
-                    </h2>
-                    <p class="text-xs font-medium text-emerald-100/90">
-                        {{ $isSuperAdmin ? 'Super Admin Portal — Manage application logo, navigation visibility, and targeted system announcements.' : 'Control what content is shown to Drivers on their Dashboard.' }}
-                    </p>
-                </div>
-            </div>
-            @if($isSuperAdmin)
-                <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-emerald-100 ring-1 ring-white/20 backdrop-blur-xs">
-                    <span class="h-2 w-2 rounded-full bg-emerald-300 animate-pulse"></span>
-                    Super Admin Mode
-                </span>
-            @else
-                <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-emerald-100 ring-1 ring-white/20 backdrop-blur-xs">
-                    <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
-                    Admin Mode
-                </span>
-            @endif
+    {{-- Page header --}}
+    <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="min-w-0">
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">
+                {{ $isSuperAdmin ? 'System Content & Branding Settings' : 'Content Settings' }}
+            </h1>
+            <p class="text-sm text-slate-500">
+                {{ $isSuperAdmin ? 'Super Admin Portal — Manage application logo, navigation visibility, and targeted system announcements' : 'Control what content is shown to Drivers on their Dashboard' }}
+            </p>
         </div>
+
+        @if($isSuperAdmin)
+            <span class="hidden sm:inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-bold text-emerald-800">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Super Admin Mode
+            </span>
+        @else
+            <span class="hidden sm:inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                Admin Mode
+            </span>
+        @endif
     </div>
 
     <div class="space-y-6">

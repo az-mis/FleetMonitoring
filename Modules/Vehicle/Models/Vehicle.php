@@ -34,6 +34,8 @@ class Vehicle extends Model
         'fuel_type',
         'assigned_driver_id',
         'location',
+        'created_by',
+        'updated_by',
     ];
 
     protected $appends = ['photo_url'];
@@ -43,6 +45,16 @@ class Vehicle extends Model
         return Attribute::make(
             get: fn () => $this->photo ? Storage::disk('public')->url($this->photo) : null,
         );
+    }
+
+    public function creator(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
+    }
+
+    public function updater(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'updated_by');
     }
 
     public function assignedDriver(): \Illuminate\Database\Eloquent\Relations\BelongsTo

@@ -10,21 +10,11 @@
     @endphp
 
     <div class="space-y-4">
-        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] px-5 py-3 text-white shadow-lg shadow-emerald-900/15 sm:px-6">
-            <div class="absolute -right-8 -top-12 h-40 w-40 rounded-full bg-white/10"></div>
-            <div class="relative flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
-                    </svg>
-                </span>
-                <div>
-                    <h2 class="text-lg font-extrabold tracking-tight">My Profile</h2>
-                    <p class="mt-0.5 text-xs text-white/80">Manage your personal account settings and credentials.</p>
-                </div>
-            </div>
-        </section>
+        {{-- Page header --}}
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">My Profile</h1>
+            <p class="text-sm text-slate-500">Manage your personal account settings and credentials</p>
+        </div>
 
         <form method="POST" action="{{ route('my-profile.update') }}" enctype="multipart/form-data" class="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             @csrf

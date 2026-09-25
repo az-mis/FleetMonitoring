@@ -4,22 +4,13 @@
 @section('page-title', 'Dashboard')
 
 @php
+    // $isAdmin, $isSuperAdmin, $dashboardLocation, $locationOptions, $alerts, $kpis,
+    // $fleetStatus and $todaysTrips are supplied by DashboardController@index.
     $user = auth()->user();
     $roleValue = $user?->role?->value ?? $user?->role;
-    $isAdmin = in_array($roleValue, ['admin', 'super_admin'], true);
-    $isSuperAdmin = $roleValue === 'super_admin';
     $isDriver = $roleValue === 'driver';
+    $locationParam = $dashboardLocation ? ['location' => $dashboardLocation] : [];
 
-    $dashboardLocation = $roleValue === 'admin' ? $user->location : null;
-    $adminCount = \App\Models\User::where('role', \Modules\Admin\Enums\UserRole::ADMIN)->count();
-    $driverCount = \App\Models\User::where('role', \Modules\Admin\Enums\UserRole::DRIVER)->count();
-    $vehicleCount = \Modules\Vehicle\Models\Vehicle::count();
-    $requestQuery = fn () => \Modules\VehicleRequest\Models\VehicleRequest::query()->when($dashboardLocation, fn ($query) => $query->where('location', $dashboardLocation));
-    $requestCounts = $requestQuery()->selectRaw("status, count(*) as total")->groupBy('status')->pluck('total', 'status');
-    $locationTotals = $requestQuery()->selectRaw('location, count(*) as total')->groupBy('location')->orderByDesc('total')->limit(6)->pluck('total', 'location');
-    $recentRequests = $requestQuery()->with('vehicle')->latest()->limit(5)->get();
-    $upcomingTrips = $requestQuery()->with('vehicle')->where('status', 'approved')->whereDate('travel_date', '>=', now()->toDateString())->orderBy('travel_date')->limit(3)->get();
-    
     $hour = now()->hour;
     $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
     $announcementKey = $isDriver ? 'driver_announcement' : 'admin_announcement';
@@ -111,60 +102,311 @@
             </div>
         @endif
 
-        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] px-5 py-5 text-white shadow-lg shadow-emerald-900/15 sm:px-6">
-            <div class="absolute -right-8 -top-12 h-40 w-40 rounded-full bg-white/10"></div>
-            <div class="absolute -bottom-20 right-16 h-32 w-32 rounded-full bg-white/5"></div>
-            <div class="relative flex flex-wrap items-start justify-between gap-4">
-                <div>
-                    <span class="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold">✦ {{ $greeting }}</span>
-                    <h2 class="text-xl font-extrabold tracking-tight">Welcome back, {{ $user?->name }}</h2>
-                    <p class="mt-1 text-xs text-white/80">Signed in as <strong class="text-white">{{ $user?->role?->label() ?? 'User' }}</strong><span class="mx-2">•</span>{{ now()->format('l, F j, Y') }}</p>
-                </div>
-                @if($isAdmin)
-                    <a href="{{ route('vehicle-requests.index') }}" class="rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-xs font-semibold backdrop-blur hover:bg-white/20">Review Requests →</a>
-                @endif
+        {{-- Page header --}}
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Welcome back, {{ $user?->name }}</h1>
+                <p class="text-sm text-slate-500">{{ $greeting }}<span class="mx-2">•</span>Signed in as <strong class="font-bold text-slate-700">{{ $user?->role?->label() ?? 'User' }}</strong><span class="mx-2">•</span>{{ now()->format('l, F j, Y') }}</p>
             </div>
-        </section>
+            @if($isSuperAdmin)
+                {{-- Location filter (Super Admin) --}}
+                <div class="relative shrink-0">
+                    <button type="button" onclick="toggleDashboardLocationMenu()" class="inline-flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 cursor-pointer md:w-auto">
+                        <span class="flex items-center gap-1.5 truncate">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span class="max-w-[12rem] truncate">{{ $dashboardLocation ?: 'All Locations' }}</span>
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 text-slate-400 transition" id="dashboard-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+
+                    <div id="dashboard-location-menu" class="absolute left-0 z-20 mt-2 hidden w-64 overflow-hidden rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/5 md:left-auto md:right-0">
+                        @foreach (array_merge([null], $locationOptions) as $opt)
+                            @php $isCurrent = $opt === $dashboardLocation; @endphp
+                            <a href="{{ $opt ? route('dashboard', ['location' => $opt]) : route('dashboard') }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $isCurrent ? 'bg-emerald-50 text-emerald-800' : '' }}">
+                                <span>{{ $opt ?? 'All Locations' }}</span>
+                                @if($isCurrent)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <script>
+                    function toggleDashboardLocationMenu() {
+                        const menu = document.getElementById('dashboard-location-menu');
+                        const chevron = document.getElementById('dashboard-location-chevron');
+                        const willOpen = menu.classList.contains('hidden');
+                        menu.classList.toggle('hidden', !willOpen);
+                        chevron.classList.toggle('rotate-180', willOpen);
+                    }
+
+                    document.addEventListener('click', function (e) {
+                        const menu = document.getElementById('dashboard-location-menu');
+                        if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !e.target.closest('button[onclick="toggleDashboardLocationMenu()"]')) {
+                            menu.classList.add('hidden');
+                            document.getElementById('dashboard-location-chevron')?.classList.remove('rotate-180');
+                        }
+                    });
+                </script>
+            @elseif($isAdmin)
+                {{-- Admins are fixed to their assigned location --}}
+                <div class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span class="max-w-[12rem] truncate">{{ $dashboardLocation ?: 'All Locations' }}</span>
+                </div>
+            @endif
+        </div>
 
         @if($isAdmin)
-            @php
-                $kpiCards = [
-                    ['Pending Requests', $requestCounts['pending'] ?? 0, 'amber', '◷'],
-                    ['Approved Trips', $requestCounts['approved'] ?? 0, 'emerald', '✓'],
-                    ['Total Vehicles', $vehicleCount, 'blue', '▣'],
-                    ['Total Drivers', $driverCount, 'violet', '♙'],
-                ];
-                if ($isSuperAdmin) {
-                    $kpiCards[] = ['Admins', $adminCount, 'orange', '♢'];
+            <div
+                x-data="fleetDashboard({
+                    initialAlerts: {{ Illuminate\Support\Js::from($alerts) }},
+                    initialKpis: {{ Illuminate\Support\Js::from($kpis) }},
+                    initialFleetStatus: {{ Illuminate\Support\Js::from($fleetStatus) }},
+                    refreshUrl: '{{ route('dashboard.refresh', $locationParam) }}',
+                })"
+                x-init="init()"
+                class="space-y-5"
+            >
+                {{-- 1. Needs attention strip --}}
+                <section x-show="alerts.length > 0" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h3 class="font-bold text-gray-900">Needs Attention</h3>
+                        <span class="text-[10px] text-gray-400">Updated <span x-text="lastUpdatedLabel"></span></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-6">
+                        <template x-for="alert in alerts" :key="alert.key">
+                            <a :href="alert.url"
+                               class="rounded-lg border p-3 transition hover:shadow-sm"
+                               :class="{
+                                   'border-red-200 bg-red-50': alert.severity === 'high',
+                                   'border-amber-200 bg-amber-50': alert.severity === 'medium',
+                                   'border-gray-200 bg-gray-50': alert.severity === 'low',
+                               }">
+                                <p class="text-xl font-black"
+                                   :class="{
+                                       'text-red-700': alert.severity === 'high',
+                                       'text-amber-700': alert.severity === 'medium',
+                                       'text-gray-700': alert.severity === 'low',
+                                   }"
+                                   x-text="alert.value"></p>
+                                <p class="mt-0.5 text-[11px] font-semibold text-gray-800" x-text="alert.label"></p>
+                                <p class="text-[10px] text-gray-500" x-text="alert.detail" x-show="alert.detail"></p>
+                            </a>
+                        </template>
+                    </div>
+                </section>
+
+                {{-- 2. Clickable KPI cards --}}
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-4" :class="kpis.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'">
+                    <template x-for="kpi in kpis" :key="kpi.key">
+                        <a :href="kpi.url" class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md hover:border-gray-300">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                                      :class="`bg-${kpi.color}-100 text-${kpi.color}-700`"
+                                      x-html="kpiIcon(kpi.icon)"></span>
+                                <div class="min-w-0">
+                                    <p class="truncate text-[10px] font-semibold uppercase tracking-wide text-gray-500" x-text="kpi.label"></p>
+                                    <p class="flex items-baseline gap-1.5">
+                                        <span class="text-xl font-bold text-gray-900" x-text="kpi.value"></span>
+                                        <span class="text-[10px] text-gray-400" x-text="kpi.sub" x-show="kpi.sub"></span>
+                                    </p>
+                                    <p class="text-[10px] font-bold" x-show="kpi.trend"
+                                       :class="kpi.trend && kpi.trend.direction === 'up' ? 'text-emerald-600' : 'text-red-500'">
+                                        <span x-text="kpi.trend ? (kpi.trend.direction === 'up' ? '▲' : '▼') + ' ' + kpi.trend.percent + '%' : ''"></span>
+                                        <span class="font-normal text-gray-400">vs last month</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    </template>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'pending']) }}" class="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100">▣ Review Requests</a>
+                    <a href="{{ route('vehicles.index', $locationParam) }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">▣ Manage Vehicles</a>
+                    <a href="{{ route('vehicle-assigning.index', $locationParam) }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">♙ Driver Assignments</a>
+                </div>
+
+                {{-- 3. Fleet status today --}}
+                <div class="grid gap-5 xl:grid-cols-2">
+                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900">Fleet Status Today</h3>
+                            <span class="rounded-md bg-gray-50 px-2 py-1 text-[10px] font-bold text-gray-600" x-text="fleetStatus.total + ' vehicles'"></span>
+                        </div>
+                        <div class="flex flex-col items-center gap-4 sm:flex-row">
+                            <div class="relative h-40 w-40 shrink-0">
+                                <canvas x-ref="fleetChart" width="160" height="160"></canvas>
+                            </div>
+                            <div class="w-full space-y-2">
+                                <template x-for="seg in fleetStatus.segments" :key="seg.label">
+                                    <a :href="seg.url" class="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs hover:bg-gray-50">
+                                        <span class="flex items-center gap-2 text-gray-600">
+                                            <span class="h-2.5 w-2.5 rounded-full" :style="`background:${seg.color}`"></span>
+                                            <span x-text="seg.label"></span>
+                                        </span>
+                                        <span class="font-bold text-gray-900" x-text="seg.value"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900">Today's Trips</h3>
+                            <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'approved']) }}" class="text-xs font-semibold text-emerald-700 hover:underline">View all →</a>
+                        </div>
+                        <div class="space-y-2">
+                            @forelse($todaysTrips as $trip)
+                                <div class="rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2.5">
+                                    <div class="flex justify-between gap-3">
+                                        <p class="text-sm font-semibold text-emerald-900">{{ $trip->destination }}</p>
+                                        <span class="shrink-0 text-xs font-bold text-emerald-700">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
+                                    </div>
+                                    <p class="mt-1 text-xs text-emerald-800">{{ $trip->requester_name }} · {{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</p>
+                                </div>
+                            @empty
+                                <p class="py-8 text-center text-sm text-gray-500">No trips out today.</p>
+                            @endforelse
+                        </div>
+                    </section>
+                </div>
+
+                {{-- 5. Chart previews (full versions on the Reports page) --}}
+                <div class="grid gap-5 xl:grid-cols-2">
+                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900">Requests per Month</h3>
+                            <a href="{{ route('reports.index', $locationParam) }}" class="text-xs font-semibold text-emerald-700 hover:underline">Full report →</a>
+                        </div>
+                        <canvas id="chart-requests-month" height="160"></canvas>
+                    </section>
+                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900">Top Destinations</h3>
+                            <a href="{{ route('reports.index', $locationParam) }}" class="text-xs font-semibold text-emerald-700 hover:underline">Full report →</a>
+                        </div>
+                        <canvas id="chart-destinations" height="160"></canvas>
+                    </section>
+                </div>
+
+                @if($isSuperAdmin && ! $dashboardLocation && isset($locationComparison))
+                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900">Location Comparison</h3>
+                            <a href="{{ route('reports.index') }}" class="text-xs font-semibold text-emerald-700 hover:underline">Full report →</a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-gray-500">
+                                        <th class="py-2 pr-4 font-semibold">Location</th>
+                                        <th class="py-2 pr-4 font-semibold">Vehicles</th>
+                                        <th class="py-2 pr-4 font-semibold">Pending</th>
+                                        <th class="py-2 pr-4 font-semibold">Trips</th>
+                                        <th class="py-2 pr-4 font-semibold">Maintenance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($locationComparison as $row)
+                                        <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer" onclick="window.location='{{ route('dashboard', ['location' => $row['location']]) }}'">
+                                            <td class="py-2.5 pr-4 font-semibold text-gray-800">{{ $row['location'] }}</td>
+                                            <td class="py-2.5 pr-4 text-gray-600">{{ $row['vehicles'] }}</td>
+                                            <td class="py-2.5 pr-4 text-amber-700 font-semibold">{{ $row['pending'] }}</td>
+                                            <td class="py-2.5 pr-4 text-emerald-700 font-semibold">{{ $row['trips'] }}</td>
+                                            <td class="py-2.5 pr-4 text-gray-600">{{ $row['maintenance'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                @endif
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    if (!window.Chart) return;
+                    const opts = { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
+                    new window.Chart(document.getElementById('chart-requests-month'), {
+                        type: 'line',
+                        data: {
+                            labels: @json($requestsPerMonth['labels']),
+                            datasets: [{ data: @json($requestsPerMonth['data']), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }],
+                        },
+                        options: opts,
+                    });
+                    new window.Chart(document.getElementById('chart-destinations'), {
+                        type: 'bar',
+                        data: {
+                            labels: @json($topDestinations['labels']),
+                            datasets: [{ data: @json($topDestinations['data']), backgroundColor: '#3b82f6' }],
+                        },
+                        options: { ...opts, indexAxis: 'y' },
+                    });
+                });
+
+                function fleetDashboard({ initialAlerts, initialKpis, initialFleetStatus, refreshUrl }) {
+                    return {
+                        alerts: initialAlerts,
+                        kpis: initialKpis,
+                        fleetStatus: initialFleetStatus,
+                        lastUpdatedLabel: 'just now',
+                        chart: null,
+                        init() {
+                            this.$nextTick(() => this.renderChart());
+                            setInterval(() => this.refresh(), 60000);
+                        },
+                        kpiIcon(name) {
+                            const icons = {
+                                clock: '◷', check: '✓', truck: '▣', users: '♙', shield: '♢',
+                            };
+                            return icons[name] ?? '●';
+                        },
+                        renderChart() {
+                            const ctx = this.$refs.fleetChart?.getContext('2d');
+                            if (!ctx || !window.Chart) return;
+                            const segments = this.fleetStatus.segments;
+                            if (this.chart) this.chart.destroy();
+                            this.chart = new window.Chart(ctx, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: segments.map(s => s.label),
+                                    datasets: [{
+                                        data: segments.map(s => s.value),
+                                        backgroundColor: segments.map(s => s.color),
+                                        borderWidth: 0,
+                                    }],
+                                },
+                                options: {
+                                    cutout: '65%',
+                                    plugins: { legend: { display: false } },
+                                    onClick: (evt, elements) => {
+                                        if (elements.length) {
+                                            window.location = segments[elements[0].index].url;
+                                        }
+                                    },
+                                },
+                            });
+                        },
+                        refresh() {
+                            fetch(refreshUrl, { headers: { 'Accept': 'application/json' } })
+                                .then(r => r.ok ? r.json() : Promise.reject())
+                                .then(data => {
+                                    this.alerts = data.alerts;
+                                    this.kpis = data.kpis;
+                                    this.fleetStatus = data.fleetStatus;
+                                    this.lastUpdatedLabel = 'just now';
+                                    this.$nextTick(() => this.renderChart());
+                                })
+                                .catch(() => {});
+                        },
+                    };
                 }
-            @endphp
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-{{ count($kpiCards) }}">
-                @foreach($kpiCards as [$label, $value, $color, $icon])
-                    <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"><div class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-{{ $color }}-100 text-{{ $color }}-700">{{ $icon }}</span><div><p class="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{{ $label }}</p><p class="text-xl font-bold text-gray-900">{{ $value }}</p></div></div></div>
-                @endforeach
-            </div>
-
-            <div class="flex flex-wrap gap-2"><a href="{{ route('vehicle-requests.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100">▣ Review Requests ({{ $requestCounts['pending'] ?? 0 }})</a><a href="{{ route('vehicles.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">▣ Manage Vehicles</a><a href="{{ route('vehicle-assigning.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">♙ Driver Assignments</a></div>
-
-            <div class="grid gap-5 xl:grid-cols-2"><section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><div class="mb-4 flex items-center justify-between"><h3 class="font-bold text-gray-900">Trip Tickets by Location</h3><span class="rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">{{ $locationTotals->sum() }} total</span></div><div class="space-y-3">@forelse($locationTotals as $location => $total)<div class="flex items-center gap-3 text-xs"><span class="w-28 truncate text-gray-500">{{ $location }}</span><div class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-emerald-500" style="width: {{ max(8, min(100, ($total / max(1, $locationTotals->max())) * 100)) }}%"></div></div><span class="w-12 text-right text-gray-500">{{ $total }}</span></div>@empty<p class="py-5 text-center text-sm text-gray-400">No location data yet.</p>@endforelse</div></section><section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><div class="mb-4 flex items-center justify-between"><h3 class="font-bold text-gray-900">Request Status Breakdown</h3><span class="rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">{{ $requestCounts->sum() }} total</span></div><div class="space-y-4"><div class="h-3 overflow-hidden rounded-full bg-gray-100"><div class="h-full bg-emerald-500" style="width: {{ ($requestCounts['approved'] ?? 0) && $requestCounts->sum() ? (($requestCounts['approved'] / $requestCounts->sum()) * 100) : 0 }}%"></div></div><div class="flex flex-wrap gap-4 text-xs text-gray-600"><span class="text-emerald-700">● Approved: {{ $requestCounts['approved'] ?? 0 }}</span><span class="text-amber-600">● Pending: {{ $requestCounts['pending'] ?? 0 }}</span><span class="text-red-600">● Declined: {{ $requestCounts['declined'] ?? 0 }}</span></div></div></section></div>
-
-            <div class="grid gap-5 xl:grid-cols-2">
-                <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="font-bold text-gray-900">Recent Requests</h3><a href="{{ route('vehicle-requests.index') }}" class="text-xs font-semibold text-emerald-700 hover:underline">View all →</a></div><div class="space-y-2">
-                    @forelse($recentRequests as $item)
-                        <div class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5"><div class="min-w-0"><p class="truncate text-sm font-semibold text-gray-900">{{ $item->requester_name }} <span class="ml-1 rounded bg-{{ $item->status === 'approved' ? 'emerald' : ($item->status === 'declined' ? 'red' : 'amber') }}-100 px-1.5 py-0.5 text-[10px] uppercase">{{ $item->status }}</span></p><p class="truncate text-xs text-gray-500">{{ $item->vehicle?->plate_number ?? 'No vehicle' }} · {{ $item->destination }}</p></div><span class="ml-3 shrink-0 text-[11px] text-gray-400">{{ $item->travel_date->format('M j') }}</span></div>
-                    @empty <p class="py-8 text-center text-sm text-gray-500">No requests yet.</p>
-                    @endforelse
-                </div></section>
-
-                <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="font-bold text-gray-900">Upcoming Approved Trips</h3><a href="{{ route('vehicle-requests.index', ['status' => 'approved']) }}" class="text-xs font-semibold text-emerald-700 hover:underline">View all →</a></div><div class="space-y-2">
-                    @forelse($upcomingTrips as $trip)
-                        <div class="rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2.5"><div class="flex justify-between gap-3"><p class="text-sm font-semibold text-emerald-900">{{ $trip->destination }}</p><span class="shrink-0 text-xs font-bold text-emerald-700">{{ $trip->travel_date->format('M j, Y') }}</span></div><p class="mt-1 text-xs text-emerald-800">Vehicle: {{ $trip->vehicle?->plate_number ?? '—' }} · {{ $trip->requester_name }}</p></div>
-                    @empty <p class="py-8 text-center text-sm text-gray-500">No upcoming approved trips.</p>
-                    @endforelse
-                </div></section>
-            </div>
-
-            <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="font-bold text-gray-900">Fleet Overview</h3><a href="{{ route('vehicles.index') }}" class="text-xs font-semibold text-emerald-700 hover:underline">Manage vehicles →</a></div><div class="grid gap-3 sm:grid-cols-3"><div class="rounded-lg bg-gray-50 p-3"><p class="text-xs text-gray-500">Vehicles in fleet</p><p class="mt-1 text-2xl font-bold text-gray-900">{{ $vehicleCount }}</p></div><div class="rounded-lg bg-gray-50 p-3"><p class="text-xs text-gray-500">Active drivers</p><p class="mt-1 text-2xl font-bold text-gray-900">{{ $driverCount }}</p></div><div class="rounded-lg bg-gray-50 p-3"><p class="text-xs text-gray-500">Requests awaiting review</p><p class="mt-1 text-2xl font-bold text-amber-600">{{ $requestCounts['pending'] ?? 0 }}</p></div></div></section>
+            </script>
         @elseif($isDriver)
             {{-- Profile Incomplete Warning Banner --}}
             @if(count($missingProfileItems) > 0)

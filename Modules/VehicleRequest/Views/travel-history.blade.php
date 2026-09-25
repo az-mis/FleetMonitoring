@@ -60,22 +60,11 @@
 
 @section('content')
     <div class="space-y-4" x-data="travelHistoryApp()">
-        {{-- Header Banner --}}
-        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59] px-5 py-3 text-white shadow-lg shadow-emerald-900/15 sm:px-6">
-            <div class="absolute -right-8 -top-12 h-40 w-40 rounded-full bg-white/10"></div>
-            <div class="relative flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </span>
-                <div>
-                    <h2 class="text-lg font-extrabold tracking-tight">History of Travel</h2>
-                    <p class="mt-0.5 text-xs text-white/80">Complete record and details of all your assigned and completed dispatch travels.</p>
-                </div>
-            </div>
-        </section>
+        {{-- Page header --}}
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">History of Travel</h1>
+            <p class="text-sm text-slate-500">Complete record and details of all your assigned and completed dispatch travels</p>
+        </div>
 
         {{-- 3 KPI Stat Cards --}}
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
