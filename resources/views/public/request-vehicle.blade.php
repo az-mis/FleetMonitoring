@@ -103,7 +103,7 @@ $offices = [
                 <div class="relative" id="custom-office-dropdown-container">
                     <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-                        <span>Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></span>
+                        <span>Your Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></span>
                     </label>
 
                     {{-- Hidden input for form submission --}}
@@ -172,7 +172,7 @@ $offices = [
 
             <div class="grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>From (Your Station) <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>From (Station) <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                         <select name="location" required class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none">
