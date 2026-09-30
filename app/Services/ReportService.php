@@ -11,7 +11,7 @@ use Modules\VehicleRequest\Models\VehicleRequest;
 
 class ReportService
 {
-    public const RANGES = ['week', 'month', 'quarter', 'custom'];
+    public const RANGES = ['week', 'month', 'quarter', 'year', 'custom'];
 
     /**
      * Resolve a range key (+ optional custom from/to) into [start, end] Carbon dates.
@@ -21,6 +21,7 @@ class ReportService
         return match ($range) {
             'week' => [now()->startOfWeek(), now()->endOfWeek()],
             'quarter' => [now()->startOfQuarter(), now()->endOfQuarter()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
             'custom' => [
                 $from ? Carbon::parse($from)->startOfDay() : now()->subMonths(3)->startOfDay(),
                 $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay(),
@@ -119,6 +120,99 @@ class ReportService
                 'pending' => VehicleRequest::where('location', $location)->where('status', 'pending')->count(),
                 'trips' => VehicleRequest::where('location', $location)->where('status', 'approved')->count(),
                 'maintenance' => VehicleMaintenance::where('location', $location)->whereIn('status', ['scheduled', 'ongoing'])->count(),
+            ];
+        })->all();
+    }
+
+    /** Headline numbers for the selected range (requests filtered by travel_date). */
+    public function summary(?string $location, $start, $end): array
+    {
+        $requests = fn () => VehicleRequest::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereBetween('travel_date', [$start, $end]);
+
+        $total = $requests()->count();
+        $approved = $requests()->where('status', 'approved')->count();
+        $declined = $requests()->where('status', 'declined')->count();
+        $pending = $requests()->where('status', 'pending')->count();
+        $decided = $approved + $declined;
+
+        $maintenance = VehicleMaintenance::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereNotNull('completed_date')
+            ->whereBetween('completed_date', [$start, $end]);
+
+        return [
+            'total' => $total,
+            'approved' => $approved,
+            'declined' => $declined,
+            'pending' => $pending,
+            'approval_rate' => $decided > 0 ? round($approved / $decided * 100) : null,
+            'fleet' => Vehicle::query()->when($location, fn ($q) => $q->where('location', $location))->count(),
+            'active_maintenance' => VehicleMaintenance::query()
+                ->when($location, fn ($q) => $q->where('location', $location))
+                ->whereIn('status', ['scheduled', 'ongoing'])->count(),
+            'maintenance_cost' => round((float) (clone $maintenance)->sum('cost'), 2),
+            'maintenance_done' => (clone $maintenance)->count(),
+        ];
+    }
+
+    /** Detailed trip log for the range. Pass $limit = null for the full list (exports). */
+    public function tripLog(?string $location, $start, $end, ?int $limit = null)
+    {
+        return VehicleRequest::query()
+            ->with(['vehicle', 'confirmedDriver'])
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereBetween('travel_date', [$start, $end])
+            ->orderByDesc('travel_date')
+            ->orderByDesc('id')
+            ->when($limit, fn ($q) => $q->limit($limit))
+            ->get();
+    }
+
+    /** Requests by status for the range (doughnut). */
+    public function statusBreakdown(array $summary): array
+    {
+        return [
+            'labels' => ['Approved', 'Pending', 'Declined'],
+            'data' => [$summary['approved'], $summary['pending'], $summary['declined']],
+        ];
+    }
+
+    /** Completed maintenance in the range. */
+    public function maintenanceLog(?string $location, $start, $end)
+    {
+        return VehicleMaintenance::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereNotNull('completed_date')
+            ->whereBetween('completed_date', [$start, $end])
+            ->orderByDesc('completed_date')
+            ->get();
+    }
+
+    /**
+     * Super Admin only: per-location figures for the range, including maintenance spend
+     * and approval rate.
+     */
+    public function locationBreakdown(array $locations, $start, $end): array
+    {
+        return collect($locations)->map(function (string $location) use ($start, $end) {
+            $base = fn () => VehicleRequest::where('location', $location)->whereBetween('travel_date', [$start, $end]);
+            $approved = $base()->where('status', 'approved')->count();
+            $declined = $base()->where('status', 'declined')->count();
+            $decided = $approved + $declined;
+
+            return [
+                'location' => $location,
+                'vehicles' => Vehicle::where('location', $location)->count(),
+                'requests' => $base()->count(),
+                'pending' => $base()->where('status', 'pending')->count(),
+                'trips' => $approved,
+                'declined' => $declined,
+                'approval_rate' => $decided > 0 ? round($approved / $decided * 100) : null,
+                'maintenance_active' => VehicleMaintenance::where('location', $location)->whereIn('status', ['scheduled', 'ongoing'])->count(),
+                'maintenance_cost' => round((float) VehicleMaintenance::where('location', $location)
+                    ->whereNotNull('completed_date')->whereBetween('completed_date', [$start, $end])->sum('cost'), 2),
             ];
         })->all();
     }

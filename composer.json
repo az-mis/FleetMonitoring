@@ -12,7 +12,9 @@
         "php": "^8.3",
         "laravel/fortify": "*",
         "laravel/framework": "^13.8",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "phpoffice/phpspreadsheet": "*",
+        "phpoffice/phpword": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

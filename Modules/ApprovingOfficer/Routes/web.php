@@ -11,5 +11,6 @@ Route::middleware(['web', 'auth', 'verified'])
     ->group(function () {
         Route::get('/', [ApprovingOfficerController::class, 'index'])->name('index');
         Route::post('/', [ApprovingOfficerController::class, 'store'])->name('store');
+        Route::patch('/{approvingOfficer}/ticket-signatories', [ApprovingOfficerController::class, 'updateTicketSelection'])->name('ticket-selection');
         Route::delete('/{approvingOfficer}', [ApprovingOfficerController::class, 'destroy'])->name('destroy');
     });

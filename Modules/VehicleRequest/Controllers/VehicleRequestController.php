@@ -96,21 +96,38 @@ class VehicleRequestController
                 ];
 
                 $locationKey = $vehicleRequest->location ?? 'N/A';
-                $abbr = $locationAbbreviations[$locationKey] ?? strtoupper(Str::limit(Str::slug($locationKey, ''), 6, ''));
 
                 $year  = now()->format('Y');
                 $month = now()->format('m');
 
-                // Count approved requests for the same location in the same year-month
-                $count = VehicleRequest::where('status', 'approved')
-                    ->where('location', $locationKey)
-                    ->whereYear('approved_at', $year)
-                    ->whereMonth('approved_at', $month)
-                    ->count();
+                if ($locationKey === 'Palawan') {
+                    // Palawan uses its own numbering scheme, per client request:
+                    // {2-digit year}-{2-digit month}-{3-digit sequence}, e.g. 26-09-001.
+                    // The sequence counts every approved Palawan request for the whole
+                    // calendar year (not just the current month) and resets to 001 every January.
+                    $count = VehicleRequest::where('status', 'approved')
+                        ->where('location', $locationKey)
+                        ->whereYear('approved_at', $year)
+                        ->count();
 
-                $sequence = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+                    $sequence = str_pad((string) ($count + 1), 3, '0', STR_PAD_LEFT);
+                    $yearSuffix = now()->format('y');
 
-                $updates['trip_ticket_number'] = "FMS-{$abbr}-{$year}-{$month}-{$sequence}";
+                    $updates['trip_ticket_number'] = "{$yearSuffix}-{$month}-{$sequence}";
+                } else {
+                    $abbr = $locationAbbreviations[$locationKey] ?? strtoupper(Str::limit(Str::slug($locationKey, ''), 6, ''));
+
+                    // Count approved requests for the same location in the same year-month
+                    $count = VehicleRequest::where('status', 'approved')
+                        ->where('location', $locationKey)
+                        ->whereYear('approved_at', $year)
+                        ->whereMonth('approved_at', $month)
+                        ->count();
+
+                    $sequence = str_pad((string) ($count + 1), 4, '0', STR_PAD_LEFT);
+
+                    $updates['trip_ticket_number'] = "FMS-{$abbr}-{$year}-{$month}-{$sequence}";
+                }
             } else {
                 $updates['trip_ticket_number'] = $vehicleRequest->trip_ticket_number;
             }
@@ -128,10 +145,31 @@ class VehicleRequestController
     public function tripTicket(VehicleRequest $vehicleRequest): View
     {
         abort_unless($vehicleRequest->status === 'approved', 404);
+        $vehicleRequest->load(['vehicle', 'confirmedDriver', 'approvedBy']);
+
+        // Resolve signatories (max 2, the ones ticked on the Approving Officers page):
+        // request location -> approver's location -> Regional Office default
+        $candidates = array_filter([
+            $vehicleRequest->location,
+            $vehicleRequest->approvedBy?->location,
+            'Regional Office (Default)',
+        ]);
+
+        $officer = null;
+        $signatories = collect();
+        foreach (array_unique($candidates) as $location) {
+            $found = ApprovingOfficer::with('signatories')->where('location', $location)->first();
+            if ($found && $found->ticketSignatories()->isNotEmpty()) {
+                $officer = $found;
+                $signatories = $found->ticketSignatories();
+                break;
+            }
+        }
+
         return view('public.trip-ticket', [
-            'requestRecord' => $vehicleRequest->load(['vehicle', 'confirmedDriver', 'approvedBy']),
-            'officer' => ApprovingOfficer::where('location', $vehicleRequest->location)->first()
-                ?? ApprovingOfficer::where('location', 'Regional Office (Default)')->first(),
+            'requestRecord' => $vehicleRequest,
+            'officer' => $officer,
+            'signatories' => $signatories,
         ]);
     }
 
@@ -188,6 +226,59 @@ class VehicleRequestController
             ]);
 
         return response()->json(['bookings' => $bookings->concat($maintenance)->values()]);
+    }
+
+    /**
+     * Every vehicle stationed at one location, with its pending/approved
+     * requests and active maintenance. Powers the station-wide calendar and
+     * the vehicle cards on the public request form.
+     */
+    public function stationAvailability(Request $request): JsonResponse
+    {
+        $location = (string) $request->query('location', '');
+
+        $vehicles = Vehicle::query()
+            ->with('assignedDriver')
+            ->where('location', $location)
+            ->orderBy('plate_number')
+            ->get();
+
+        $requests = VehicleRequest::query()
+            ->whereIn('vehicle_id', $vehicles->pluck('id'))
+            ->whereIn('status', ['pending', 'approved'])
+            ->get(['vehicle_id', 'status', 'travel_date', 'travel_date_end'])
+            ->groupBy('vehicle_id');
+
+        $maintenance = VehicleMaintenance::query()
+            ->whereIn('vehicle_id', $vehicles->pluck('id'))
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->get(['vehicle_id', 'title', 'scheduled_date', 'scheduled_date_end'])
+            ->groupBy('vehicle_id');
+
+        return response()->json([
+            'vehicles' => $vehicles->map(function (Vehicle $v) use ($requests, $maintenance) {
+                $bookings = collect($requests->get($v->id, []))->map(fn (VehicleRequest $r) => [
+                    'status' => $r->status,
+                    'start' => $r->travel_date->toDateString(),
+                    'end' => ($r->travel_date_end ?? $r->travel_date)->toDateString(),
+                ])->concat(collect($maintenance->get($v->id, []))->map(fn (VehicleMaintenance $m) => [
+                    'status' => 'maintenance',
+                    'title' => $m->title,
+                    'start' => $m->scheduled_date->toDateString(),
+                    'end' => ($m->scheduled_date_end ?? $m->scheduled_date)->toDateString(),
+                ]));
+
+                return [
+                    'id' => $v->id,
+                    'plate' => $v->plate_number,
+                    'name' => trim(($v->brand ?? '').' '.($v->model ?? '')),
+                    'photo' => $v->photo_url,
+                    'driver' => $v->assignedDriver->name ?? null,
+                    'driver_photo' => $v->assignedDriver->avatar_url ?? null,
+                    'bookings' => $bookings->values(),
+                ];
+            })->values(),
+        ]);
     }
 
     public function store(StoreVehicleRequest $request): RedirectResponse

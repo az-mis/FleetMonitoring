@@ -19,6 +19,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/refresh', [DashboardController::class, 'refresh'])->name('dashboard.refresh');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');
+    Route::get('/reports/export/{format}', [ReportController::class, 'export'])->name('reports.export');
     Route::get('/my-profile', [ProfileController::class, 'edit'])->name('my-profile');
     Route::put('/my-profile', [ProfileController::class, 'update'])->name('my-profile.update');
     Route::view('/settings', 'settings')->name('settings');

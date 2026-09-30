@@ -46,6 +46,10 @@
         </div>
     </div>
 
+    @if($errors->has('ticket'))
+        <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700">{{ $errors->first('ticket') }}</div>
+    @endif
+
     {{-- Cards Grid --}}
     @if($officers->isEmpty())
         <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
@@ -53,8 +57,16 @@
             <p class="mt-1 text-xs text-slate-400">Click "Add Office" above to set up signatories for an office location.</p>
         </div>
     @else
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-4 {{ $officers->count() > 1 ? '2xl:grid-cols-2' : '' }}">
             @foreach($officers as $officer)
+                @php
+                    $editPayload = [
+                        'location' => $officer->location,
+                        'signatories' => $officer->signatories->map(function ($s) {
+                            return ['name' => $s->name, 'title' => $s->title, 'show_on_ticket' => $s->show_on_ticket];
+                        })->values()->all(),
+                    ];
+                @endphp
                 <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md flex flex-col justify-between">
                     <div>
                         {{-- Card Header --}}
@@ -76,7 +88,7 @@
                             <div class="flex items-center gap-1 shrink-0">
                                 <button
                                     type="button"
-                                    onclick="editOfficer({{ json_encode($officer) }})"
+                                    onclick="editOfficer({{ \Illuminate\Support\Js::from($editPayload) }})"
                                     class="flex h-6 w-6 items-center justify-center rounded-lg text-sky-600 transition hover:bg-sky-50 cursor-pointer"
                                     title="Edit"
                                 >
@@ -106,22 +118,40 @@
                             </div>
                         </div>
 
-                        {{-- Signatories Blocks --}}
-                        <div class="mt-3 space-y-2.5">
-                            {{-- Signatory 1 --}}
-                            <div class="rounded-xl border border-emerald-100/70 bg-emerald-50/40 p-2.5">
-                                <p class="text-[9px] font-black uppercase tracking-wider text-emerald-700">SIGNATORY 1 (APPROVED BY)</p>
-                                <p class="mt-0.5 text-xs font-bold text-slate-800">{{ $officer->signee1_name ?: '—' }}</p>
-                                <p class="text-[10px] text-slate-500">{{ $officer->signee1_title ?: '—' }}</p>
+                        {{-- Signatories list with quick "On Ticket" selection --}}
+                        <form method="POST" action="{{ route('approving-officers.ticket-selection', $officer) }}" class="ticket-select-form mt-3" data-max="{{ \Modules\ApprovingOfficer\Models\ApprovingOfficer::MAX_ON_TICKET }}">
+                            @csrf
+                            @method('PATCH')
+                            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                                <p class="text-[11px] font-semibold text-slate-500">Tick who appears on the approved Trip Ticket <span class="font-bold text-emerald-700">(1 to 2)</span></p>
+                                <span class="text-[10px] font-medium text-slate-400">{{ $officer->signatories->count() }} / {{ \Modules\ApprovingOfficer\Models\ApprovingOfficer::MAX_SIGNATORIES }} signatories</span>
                             </div>
 
-                            {{-- Signatory 2 --}}
-                            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-2.5">
-                                <p class="text-[9px] font-black uppercase tracking-wider text-slate-500">SIGNATORY 2 (APPROVED BY)</p>
-                                <p class="mt-0.5 text-xs font-bold text-slate-800">{{ $officer->signee2_name ?: '—' }}</p>
-                                <p class="text-[10px] text-slate-500">{{ $officer->signee2_title ?: '—' }}</p>
-                            </div>
-                        </div>
+                            @if($officer->signatories->isEmpty())
+                                <p class="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">No signatories yet. Click the edit icon to add some.</p>
+                            @else
+                                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 {{ $officers->count() > 1 ? '' : 'xl:grid-cols-3' }}">
+                                    @foreach($officer->signatories as $sig)
+                                        <label class="sig-card flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition {{ $sig->show_on_ticket ? 'border-emerald-300 bg-emerald-50/60' : 'border-slate-200 bg-white hover:border-emerald-200' }}">
+                                            <input type="checkbox" name="ticket[]" value="{{ $sig->id }}" {{ $sig->show_on_ticket ? 'checked' : '' }}
+                                                   class="ticket-check mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-xs font-bold text-slate-800">{{ $sig->name }}</span>
+                                                <span class="block text-[11px] text-slate-500">{{ $sig->title ?: '—' }}</span>
+                                                <span class="on-ticket-badge mt-1 {{ $sig->show_on_ticket ? 'inline-block' : 'hidden' }} rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white">On Ticket</span>
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+
+                                <div class="mt-3 flex items-center justify-end gap-3">
+                                    <p class="ticket-msg hidden text-[11px] font-semibold text-rose-600"></p>
+                                    <button type="submit" disabled class="ticket-save rounded-xl bg-[#008751] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#007345] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">
+                                        Save Trip Ticket selection
+                                    </button>
+                                </div>
+                            @endif
+                        </form>
                     </div>
 
                     {{-- Updated By Footer --}}
@@ -137,7 +167,7 @@
 
     {{-- Add/Edit Officer Modal --}}
     <div id="officer-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
                 <h3 id="officer-modal-title" class="text-sm font-bold text-slate-900">Add Approving Officers</h3>
                 <button type="button" onclick="closeOfficerModal()" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer">
@@ -148,7 +178,7 @@
                 </button>
             </div>
 
-            <form method="POST" action="{{ route('approving-officers.store') }}" class="p-5 space-y-4">
+            <form method="POST" action="{{ route('approving-officers.store') }}" class="p-5 space-y-4" onsubmit="return validateSignatories()">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">
@@ -184,54 +214,20 @@
                     </div>
                 </div>
 
-                {{-- Signatory 1 Box --}}
-                <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-3.5 space-y-3">
-                    <p class="text-xs font-bold text-emerald-800">Signatory 1 (First Approving Officer)</p>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            name="signee1_name"
-                            id="modal-signee1-name"
-                            placeholder="Name"
-                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        >
+                @if($errors->any())
+                    <div class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+                        @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
                     </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Official Title / Office Designation</label>
-                        <input
-                            type="text"
-                            name="signee1_title"
-                            id="modal-signee1-title"
-                            placeholder="Designation"
-                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        >
-                    </div>
-                </div>
+                @endif
 
-                {{-- Signatory 2 Box --}}
-                <div class="rounded-xl border border-slate-200 bg-slate-50/40 p-3.5 space-y-3">
-                    <p class="text-xs font-bold text-slate-700">Signatory 2 (Second Approving Officer)</p>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            name="signee2_name"
-                            id="modal-signee2-name"
-                            placeholder="Name"
-                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        >
+                <div>
+                    <div class="mb-1 flex items-center justify-between">
+                        <p class="text-xs font-bold text-slate-800">Signatories <span id="sig-count" class="font-medium text-slate-400">(0/10)</span></p>
+                        <button type="button" id="sig-add-btn" onclick="addSignatoryRow()" class="rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 cursor-pointer">+ Add signatory</button>
                     </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Official Title / Office Designation</label>
-                        <input
-                            type="text"
-                            name="signee2_title"
-                            id="modal-signee2-title"
-                            placeholder="Designation"
-                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        >
-                    </div>
+                    <p class="mb-2 text-[11px] text-slate-500">Tick the box for who will appear on the approved Trip Ticket (at least 1, maximum 2).</p>
+                    <div id="sig-rows" class="max-h-72 space-y-2 overflow-y-auto pr-1"></div>
+                    <p id="sig-error" class="mt-2 hidden text-xs font-semibold text-rose-600"></p>
                 </div>
 
                 <div class="pt-2">
@@ -248,6 +244,118 @@
     </div>
 
     <script>
+        document.querySelectorAll('.ticket-select-form').forEach(form => {
+            const max = parseInt(form.dataset.max, 10);
+            const boxes = [...form.querySelectorAll('.ticket-check')];
+            const save = form.querySelector('.ticket-save');
+            const msg = form.querySelector('.ticket-msg');
+            const initial = boxes.map(b => b.checked).join();
+
+            boxes.forEach(box => box.addEventListener('change', () => {
+                const count = boxes.filter(b => b.checked).length;
+                if (count > max) {
+                    box.checked = false;
+                    msg.textContent = `Only ${max} signatories can appear on the Trip Ticket. Untick one first.`;
+                    msg.classList.remove('hidden');
+                    return;
+                }
+                msg.classList.add('hidden');
+                boxes.forEach(b => {
+                    const card = b.closest('.sig-card');
+                    card.classList.toggle('border-emerald-300', b.checked);
+                    card.classList.toggle('bg-emerald-50/60', b.checked);
+                    card.classList.toggle('border-slate-200', !b.checked);
+                    card.classList.toggle('bg-white', !b.checked);
+                    card.querySelector('.on-ticket-badge').classList.toggle('hidden', !b.checked);
+                    card.querySelector('.on-ticket-badge').classList.toggle('inline-block', b.checked);
+                });
+                save.disabled = count < 1 || boxes.map(b => b.checked).join() === initial;
+                if (count < 1) {
+                    msg.textContent = 'Select at least 1 signatory for the Trip Ticket.';
+                    msg.classList.remove('hidden');
+                }
+            }));
+        });
+
+        const MAX_SIGS = {{ \Modules\ApprovingOfficer\Models\ApprovingOfficer::MAX_SIGNATORIES }};
+        const MAX_TICKET = {{ \Modules\ApprovingOfficer\Models\ApprovingOfficer::MAX_ON_TICKET }};
+        const inputCls = 'w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500';
+
+        function esc(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+        function reindexRows() {
+            const rows = document.querySelectorAll('#sig-rows [data-sig-row]');
+            rows.forEach((row, i) => {
+                row.querySelector('[data-f=name]').name = `signatories[${i}][name]`;
+                row.querySelector('[data-f=title]').name = `signatories[${i}][title]`;
+                row.querySelector('[data-f=show]').name = `signatories[${i}][show_on_ticket]`;
+            });
+            document.getElementById('sig-count').textContent = `(${rows.length}/${MAX_SIGS})`;
+            document.getElementById('sig-add-btn').classList.toggle('hidden', rows.length >= MAX_SIGS);
+            enforceTicketLimit();
+        }
+
+        function enforceTicketLimit(changed) {
+            const boxes = [...document.querySelectorAll('#sig-rows [data-f=show]')];
+            const checked = boxes.filter(b => b.checked);
+            if (changed && changed.checked && checked.length > MAX_TICKET) {
+                changed.checked = false;
+                showSigError(`Only ${MAX_TICKET} signatories can appear on the Trip Ticket. Untick one first.`);
+                return;
+            }
+            const full = checked.length >= MAX_TICKET;
+            boxes.forEach(b => { b.parentElement.classList.toggle('opacity-50', full && !b.checked); });
+            if (changed) showSigError('');
+        }
+
+        function showSigError(msg) {
+            const el = document.getElementById('sig-error');
+            el.textContent = msg;
+            el.classList.toggle('hidden', !msg);
+        }
+
+        function addSignatoryRow(data = {}) {
+            const wrap = document.getElementById('sig-rows');
+            if (wrap.children.length >= MAX_SIGS) return;
+            const div = document.createElement('div');
+            div.setAttribute('data-sig-row', '');
+            div.className = 'rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 space-y-2';
+            div.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <input type="text" data-f="name" required maxlength="150" placeholder="Full name" value="${esc(data.name)}" class="${inputCls}">
+                    <button type="button" title="Remove" onclick="this.closest('[data-sig-row]').remove(); reindexRows();" class="shrink-0 rounded-lg p-1.5 text-rose-500 hover:bg-rose-50 cursor-pointer">&#10005;</button>
+                </div>
+                <input type="text" data-f="title" maxlength="150" placeholder="Title / Office designation" value="${esc(data.title)}" class="${inputCls}">
+                <label class="flex items-center gap-2 text-[11px] font-semibold text-slate-700 cursor-pointer">
+                    <input type="checkbox" data-f="show" value="1" ${data.show_on_ticket ? 'checked' : ''} onchange="enforceTicketLimit(this)" class="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                    Show on approved Trip Ticket
+                </label>`;
+            wrap.appendChild(div);
+            reindexRows();
+        }
+
+        function validateSignatories() {
+            const rows = document.querySelectorAll('#sig-rows [data-sig-row]');
+            const selected = document.querySelectorAll('#sig-rows [data-f=show]:checked').length;
+            if (rows.length < 1) { showSigError('Add at least one signatory.'); return false; }
+            if (selected < 1 || selected > MAX_TICKET) {
+                showSigError(`Select at least 1 and at most ${MAX_TICKET} signatories for the Trip Ticket.`);
+                return false;
+            }
+            return true;
+        }
+
+        function fillRows(list) {
+            document.getElementById('sig-rows').innerHTML = '';
+            showSigError('');
+            (list && list.length ? list : [{ show_on_ticket: true }]).forEach(addSignatoryRow);
+        }
+
+        function showModal() {
+            document.getElementById('officer-modal').classList.remove('hidden');
+            document.getElementById('officer-modal').classList.add('flex');
+        }
+
         function openOfficerModal() {
             document.getElementById('officer-modal-title').textContent = 'Add Approving Officers';
             document.getElementById('modal-location-select-wrap').classList.remove('hidden');
@@ -256,13 +364,9 @@
             document.getElementById('modal-location-select').value = '';
             document.getElementById('modal-location-input').removeAttribute('name');
             document.getElementById('modal-location-select').setAttribute('name', 'location');
-            document.getElementById('modal-signee1-name').value = '';
-            document.getElementById('modal-signee1-title').value = '';
-            document.getElementById('modal-signee2-name').value = '';
-            document.getElementById('modal-signee2-title').value = '';
             document.getElementById('modal-submit-btn').textContent = 'Save Approving Officers';
-            document.getElementById('officer-modal').classList.remove('hidden');
-            document.getElementById('officer-modal').classList.add('flex');
+            fillRows([]);
+            showModal();
         }
 
         function editOfficer(officer) {
@@ -273,13 +377,9 @@
             document.getElementById('modal-location-select').removeAttribute('name');
             document.getElementById('modal-location-input').setAttribute('name', 'location');
             document.getElementById('modal-location-input').value = officer.location || '';
-            document.getElementById('modal-signee1-name').value = officer.signee1_name || '';
-            document.getElementById('modal-signee1-title').value = officer.signee1_title || '';
-            document.getElementById('modal-signee2-name').value = officer.signee2_name || '';
-            document.getElementById('modal-signee2-title').value = officer.signee2_title || '';
             document.getElementById('modal-submit-btn').textContent = 'Save Changes';
-            document.getElementById('officer-modal').classList.remove('hidden');
-            document.getElementById('officer-modal').classList.add('flex');
+            fillRows(officer.signatories);
+            showModal();
         }
 
         function closeOfficerModal() {

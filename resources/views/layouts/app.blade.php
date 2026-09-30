@@ -177,17 +177,44 @@
                     <span class="sidebar-label">Dashboard</span>
                 </a>
 
-                <a
-                    href="{{ route('my-profile') }}"
-                    title="My Profile"
-                    class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('my-profile') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
-                    </svg>
-                    <span class="sidebar-label">My Profile</span>
-                </a>
+                @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
+                    @php
+                        $pendingTravelCount = 0;
+                        try {
+                            $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
+                            $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
+                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                                ->count();
+                        } catch (\Throwable $e) {
+                            $pendingTravelCount = 0;
+                        }
+                    @endphp
+
+                    <a
+                        href="{{ route('vehicle-requests.index') }}"
+                        title="Travel Requests"
+                        class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('vehicle-requests.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 3h6v3H9z"/>
+                            <rect width="16" height="16" x="4" y="5" rx="2"/>
+                            <path d="M8 11h8M8 15h5"/>
+                        </svg>
+                        <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
+                            <span class="truncate">Travel Requests</span>
+                            @if ($pendingTravelCount > 0)
+                                <span class="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold text-white shadow-xs">
+                                    {{ $pendingTravelCount }}
+                                </span>
+                            @elseif(!$isSuperAdmin && !($moduleFlags['vehicleRequests'] ?? true))
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            @endif
+                        </span>
+                    </a>
+                @endif
 
                 @can('viewAny', App\Models\User::class)
                     <a
@@ -299,46 +326,14 @@
                         </div>
                     </div>
 
-                    @php
-                        $pendingTravelCount = 0;
-                        try {
-                            $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
-                            $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
-                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->count();
-                        } catch (\Throwable $e) {
-                            $pendingTravelCount = 0;
-                        }
-                    @endphp
-
-                    <a
-                        href="{{ route('vehicle-requests.index') }}"
-                        title="Travel Requests"
-                        class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('vehicle-requests.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 3h6v3H9z"/>
-                            <rect width="16" height="16" x="4" y="5" rx="2"/>
-                            <path d="M8 11h8M8 15h5"/>
-                        </svg>
-                        <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
-                            <span class="truncate">Travel Requests</span>
-                            @if ($pendingTravelCount > 0)
-                                <span class="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold text-white shadow-xs">
-                                    {{ $pendingTravelCount }}
-                                </span>
-                            @elseif(!$isSuperAdmin && !($moduleFlags['vehicleRequests'] ?? true))
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
-                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                            @endif
-                        </span>
-                    </a>
-
                     <a href="{{ route('approving-officers.index') }}" title="Approving Officers" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('approving-officers.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="m16 18 2 2 4-4"/></svg>
                         <span class="sidebar-label">Approving Officers</span>
+                    </a>
+
+                    <a href="{{ route('reports.index') }}" title="Reports" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('reports.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-8"/></svg>
+                        <span class="sidebar-label">Reports</span>
                     </a>
 
                     @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
@@ -352,7 +347,7 @@
 
             {{-- Logged-in user + logout --}}
             <div class="border-t border-white/10 px-3 py-3 space-y-2">
-                <a href="{{ route('my-profile') }}" title="My Profile" class="user-profile-link flex items-center gap-3 rounded-lg px-2 py-1.5 text-gray-300 hover:bg-white/5 hover:text-white transition">
+                <a href="{{ route('my-profile') }}" title="My Profile" class="user-profile-link group flex items-center gap-3 rounded-lg px-2 py-1.5 transition {{ request()->routeIs('my-profile') ? 'sidebar-active text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                     @if ($hasPhoto)
                         <img
                             src="{{ $user->avatar_url }}"
@@ -368,6 +363,9 @@
                         <p class="truncate text-xs font-bold text-white">{{ $user?->name }}</p>
                         <p class="truncate text-[11px] text-emerald-200/80">{{ $user?->role?->value === 'super_admin' ? 'Super Admin' : ($user?->role?->name ?? 'Admin') }}</p>
                     </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-label ml-auto h-4 w-4 shrink-0 text-emerald-200/60 transition group-hover:translate-x-0.5 group-hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
                 </a>
 
                 <div class="logout-btn-container">

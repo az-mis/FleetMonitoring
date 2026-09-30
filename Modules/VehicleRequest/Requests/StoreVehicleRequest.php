@@ -25,18 +25,27 @@ class StoreVehicleRequest extends FormRequest
         ]);
     }
 
+    public function messages(): array
+    {
+        return [
+            'travelDateEnd.required' => 'Please select the Travel Date (To). For a one-day trip, choose the same date as Travel Date (From).',
+            'travelDateEnd.after_or_equal' => 'Travel Date (To) cannot be earlier than Travel Date (From).',
+            'requesterContact.regex' => 'Contact number must start with 09 and be exactly 11 digits (e.g. 09171234567).',
+        ];
+    }
+
     public function rules(): array
     {
         return [
             'requesterName' => ['required', 'string', 'max:120'],
             'location' => ['required', 'string', 'max:120'],
             'requesterOffice' => ['nullable', 'string', 'max:150'],
-            'requesterContact' => ['nullable', 'string', 'max:40'],
+            'requesterContact' => ['required', 'string', 'regex:/^09\d{9}$/'],
             'requesterIsPassenger' => ['nullable', 'boolean'],
             'vehicleId' => ['required', 'integer', 'exists:vehicles,id'],
             'destination' => ['required', 'string', 'max:250'],
             'travelDate' => ['required', 'date'],
-            'travelDateEnd' => ['nullable', 'date', 'after_or_equal:travelDate'],
+            'travelDateEnd' => ['required', 'date', 'after_or_equal:travelDate'],
             'purpose' => ['required', 'string', 'max:500'],
             'passengers' => ['nullable', 'array', 'max:20'],
             'passengers.*' => ['string', 'max:120'],

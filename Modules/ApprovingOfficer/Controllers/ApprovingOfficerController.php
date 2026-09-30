@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Modules\Admin\Enums\UserRole;
+use Illuminate\Validation\ValidationException;
 use Modules\ApprovingOfficer\Models\ApprovingOfficer;
 
 class ApprovingOfficerController
@@ -20,7 +21,7 @@ class ApprovingOfficerController
 
         $search = trim($request->string('search')->toString());
 
-        $query = ApprovingOfficer::query()->with('updatedBy')->orderBy('location');
+        $query = ApprovingOfficer::query()->with(['updatedBy', 'signatories'])->orderBy('location');
         if ($request->user()->role === UserRole::ADMIN && $request->user()->location) {
             $query->where('location', $request->user()->location);
         }
@@ -28,10 +29,9 @@ class ApprovingOfficerController
         if ($search) {
             $query->where(function ($builder) use ($search) {
                 $builder->where('location', 'like', "%{$search}%")
-                    ->orWhere('signee1_name', 'like', "%{$search}%")
-                    ->orWhere('signee1_title', 'like', "%{$search}%")
-                    ->orWhere('signee2_name', 'like', "%{$search}%")
-                    ->orWhere('signee2_title', 'like', "%{$search}%");
+                    ->orWhereHas('signatories', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")->orWhere('title', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -43,14 +43,62 @@ class ApprovingOfficerController
         abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
         $data = $request->validate([
             'location' => ['required', 'string', 'max:120'],
-            'signee1_name' => ['nullable', 'string', 'max:150'],
-            'signee1_title' => ['nullable', 'string', 'max:150'],
-            'signee2_name' => ['nullable', 'string', 'max:150'],
-            'signee2_title' => ['nullable', 'string', 'max:150'],
+            'signatories' => ['required', 'array', 'min:1', 'max:' . ApprovingOfficer::MAX_SIGNATORIES],
+            'signatories.*.name' => ['required', 'string', 'max:150'],
+            'signatories.*.title' => ['nullable', 'string', 'max:150'],
+            'signatories.*.show_on_ticket' => ['nullable', 'boolean'],
+        ], [
+            'signatories.max' => 'You can add a maximum of ' . ApprovingOfficer::MAX_SIGNATORIES . ' signatories per office.',
+            'signatories.required' => 'Add at least one signatory.',
+            'signatories.*.name.required' => 'Every signatory needs a name.',
         ]);
-        $data['updated_by'] = $request->user()->id;
-        ApprovingOfficer::updateOrCreate(['location' => $data['location']], $data);
+
+        $rows = collect($data['signatories'])->map(fn ($r) => [
+            'name' => trim($r['name']),
+            'title' => isset($r['title']) ? trim($r['title']) : null,
+            'show_on_ticket' => !empty($r['show_on_ticket']),
+        ])->values();
+
+        $selected = $rows->where('show_on_ticket', true)->count();
+        if ($selected < 1 || $selected > ApprovingOfficer::MAX_ON_TICKET) {
+            throw ValidationException::withMessages([
+                'signatories' => 'Select at least 1 and at most ' . ApprovingOfficer::MAX_ON_TICKET . ' signatories to appear on the Trip Ticket.',
+            ]);
+        }
+
+        $this->authorizeLocation($request, $data['location']);
+
+        $officer = ApprovingOfficer::firstOrCreate(['location' => $data['location']]);
+        $officer->syncSignatories($rows->all(), $request->user()->id);
+
         return back()->with('success', 'Approving officers updated.');
+    }
+
+    public function updateTicketSelection(Request $request, ApprovingOfficer $approvingOfficer): RedirectResponse
+    {
+        abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
+        $this->authorizeLocation($request, $approvingOfficer->location);
+
+        $ids = collect($request->input('ticket', []))->map(fn ($id) => (int) $id)->unique()->values();
+        $validIds = $approvingOfficer->signatories()->whereIn('id', $ids)->pluck('id');
+
+        if ($validIds->count() < 1 || $validIds->count() > ApprovingOfficer::MAX_ON_TICKET) {
+            throw ValidationException::withMessages([
+                'ticket' => 'Select at least 1 and at most ' . ApprovingOfficer::MAX_ON_TICKET . ' signatories for the Trip Ticket.',
+            ]);
+        }
+
+        $approvingOfficer->setTicketSelection($validIds->all(), $request->user()->id);
+
+        return back()->with('success', 'Trip Ticket signatories updated for ' . $approvingOfficer->location . '.');
+    }
+
+    private function authorizeLocation(Request $request, string $location): void
+    {
+        $user = $request->user();
+        if ($user->role === UserRole::ADMIN && $user->location) {
+            abort_unless($user->location === $location, 403);
+        }
     }
 
     public function destroy(Request $request, ApprovingOfficer $approvingOfficer): RedirectResponse
@@ -117,9 +165,15 @@ class ApprovingOfficerController
         foreach ($defaults as $data) {
             $officer = ApprovingOfficer::where('location', $data['location'])->first();
             if (!$officer) {
-                ApprovingOfficer::create($data);
-            } elseif (empty($officer->signee1_name) && empty($officer->signee2_name)) {
+                $officer = ApprovingOfficer::create($data);
+            } elseif ($officer->signatories()->exists() || filled($officer->signee1_name) || filled($officer->signee2_name)) {
+                continue;
+            } else {
                 $officer->update($data);
+            }
+
+            if (!$officer->signatories()->exists()) {
+                $officer->syncFromPair($data['signee1_name'], $data['signee1_title'], $data['signee2_name'], $data['signee2_title']);
             }
         }
     }

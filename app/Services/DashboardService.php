@@ -128,9 +128,11 @@ class DashboardService
         $approvedLastMonth = $loc(VehicleRequest::query())->where('status', 'approved')->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
 
         $vehicleTotal = $loc(Vehicle::query())->count();
-        $vehiclesOnTrip = $this->vehicleIdsOnTripToday($location)->count();
-        $vehiclesInMaintenance = $this->vehicleIdsInMaintenanceToday($location)->count();
-        $vehiclesAvailable = max(0, $vehicleTotal - $vehiclesOnTrip - $vehiclesInMaintenance);
+        $onTripIds = $this->vehicleIdsOnTripToday($location);
+        $maintenanceIds = $this->vehicleIdsInMaintenanceToday($location);
+        $issueIds = $this->vehicleIdsWithOpenIssue($location);
+        $vehiclesUnavailable = $onTripIds->merge($maintenanceIds)->merge($issueIds)->unique()->count();
+        $vehiclesAvailable = max(0, $vehicleTotal - $vehiclesUnavailable);
 
         $driverTotal = $loc(User::query())->where('role', UserRole::DRIVER)->count();
 
@@ -195,10 +197,7 @@ class DashboardService
         $total = $loc(Vehicle::query())->count();
         $onTripIds = $this->vehicleIdsOnTripToday($location);
         $maintenanceIds = $this->vehicleIdsInMaintenanceToday($location);
-        $issueIds = $loc(VehicleIssueReport::query())
-            ->whereIn('status', ['submitted', 'reviewed', 'ongoing'])
-            ->pluck('vehicle_id')
-            ->unique();
+        $issueIds = $this->vehicleIdsWithOpenIssue($location);
 
         $onTrip = $onTripIds->count();
         $maintenance = $maintenanceIds->diff($onTripIds)->count();
@@ -234,6 +233,23 @@ class DashboardService
             ->orderBy('travel_date')
             ->limit(8)
             ->get();
+    }
+
+    /**
+     * Vehicles with a driver-reported issue that has not been scheduled for repair yet
+     * (submitted / reviewed) or is being worked on (ongoing).
+     *
+     * Reports in "maintenance_scheduled" are intentionally excluded: the vehicle stays
+     * available until the maintenance date arrives, at which point
+     * vehicleIdsInMaintenanceToday() picks it up as "Under Maintenance".
+     */
+    protected function vehicleIdsWithOpenIssue(?string $location): Collection
+    {
+        return VehicleIssueReport::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereIn('status', ['submitted', 'reviewed', 'ongoing'])
+            ->pluck('vehicle_id')
+            ->unique();
     }
 
     protected function vehicleIdsOnTripToday(?string $location): Collection

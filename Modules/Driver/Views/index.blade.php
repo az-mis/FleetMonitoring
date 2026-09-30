@@ -250,7 +250,7 @@
                             @error('birth_date')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="add-driver-license-no" class="block text-sm font-medium text-gray-700">License No.</label>
+                            <label for="add-driver-license-no" class="block text-sm font-medium text-gray-700">License No. <span class="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="license_number"
@@ -258,6 +258,7 @@
                                 placeholder="e.g. N01-23-456789"
                                 value="{{ old('_driver_form') === 'create' ? old('license_number') : '' }}"
                                 class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('license_number') border-red-300 @enderror"
+                                required
                             >
                             @error('license_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
@@ -266,13 +267,14 @@
                     {{-- License Expiration + Phone Number --}}
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="add-driver-license-expiration" class="block text-sm font-medium text-gray-700">License Expiration</label>
+                            <label for="add-driver-license-expiration" class="block text-sm font-medium text-gray-700">License Expiration <span class="text-red-500">*</span></label>
                             <input
                                 type="date"
                                 name="license_expiration_date"
                                 id="add-driver-license-expiration"
                                 value="{{ old('_driver_form') === 'create' ? old('license_expiration_date') : '' }}"
                                 class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('license_expiration_date') border-red-300 @enderror"
+                                required
                             >
                             @error('license_expiration_date')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
@@ -282,10 +284,16 @@
                                 type="text"
                                 name="phone_number"
                                 id="add-driver-phone"
-                                placeholder="e.g. 0917-1234567"
+                                placeholder="e.g. 09171234567"
+                                inputmode="numeric"
+                                maxlength="11"
+                                pattern="09[0-9]{9}"
+                                title="Must start with 09 and be exactly 11 digits"
                                 value="{{ old('_driver_form') === 'create' ? old('phone_number') : '' }}"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('phone_number') border-red-300 @enderror"
+                                required
                             >
+                            @error('phone_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
 
@@ -482,6 +490,7 @@
                                 placeholder="e.g. N01-23-456789"
                                 value="{{ old('_driver_form') === 'edit' ? old('license_number') : '' }}"
                                 class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                required
                             >
                         </div>
                     </div>
@@ -489,13 +498,14 @@
                     {{-- License Expiration & Phone Number --}}
                     <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                         <div>
-                            <label for="edit-driver-license-expiration" class="block text-[11px] font-bold text-gray-700">License Expiration</label>
+                            <label for="edit-driver-license-expiration" class="block text-[11px] font-bold text-gray-700">License Expiration <span class="text-red-500">*</span></label>
                             <input
                                 type="date"
                                 name="license_expiration_date"
                                 id="edit-driver-license-expiration"
                                 value="{{ old('_driver_form') === 'edit' ? old('license_expiration_date') : '' }}"
                                 class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                required
                             >
                         </div>
                         <div>
@@ -504,9 +514,14 @@
                                 type="text"
                                 name="phone_number"
                                 id="edit-driver-phone"
-                                placeholder="09123456789"
+                                placeholder="09171234567"
+                                inputmode="numeric"
+                                maxlength="11"
+                                pattern="09[0-9]{9}"
+                                title="Must start with 09 and be exactly 11 digits"
                                 value="{{ old('_driver_form') === 'edit' ? old('phone_number') : '' }}"
                                 class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                required
                             >
                         </div>
                     </div>

@@ -1,20 +1,175 @@
+@php
+    $longDate = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('F j, Y') : '';
+
+    $driverName = $requestRecord->confirmedDriver?->name ?? '';
+
+    $vehicleLabel = trim(($requestRecord->vehicle?->brand ?? '') . ' ' . ($requestRecord->vehicle?->model ?? ''));
+    $plateLabel = $vehicleLabel !== ''
+        ? $vehicleLabel . ', ' . $requestRecord->vehicle?->plate_number
+        : ($requestRecord->vehicle?->plate_number ?? '');
+
+    $passengerNames = collect($requestRecord->requester_is_passenger ? [$requestRecord->requester_name] : [])
+        ->merge($requestRecord->passengers ?? [])
+        ->filter()
+        ->values();
+    $passengersText = $passengerNames->implode(', ');
+
+    $start = $longDate($requestRecord->travel_date);
+    $end = $longDate($requestRecord->travel_date_end);
+    $duration = ($end && $end !== $start) ? "{$start} to {$end}" : $start;
+
+    // $signatories is resolved in the controller (max 2, the ones ticked on the Approving Officers page)
+    $signatories = $signatories ?? collect();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Trip Ticket {{ $requestRecord->trip_ticket_number }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>@media print {.no-print{display:none!important} body{background:#fff!important}.ticket{box-shadow:none!important;border:1px solid #d1d5db!important}}</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trip_Ticket_{{ $requestRecord->trip_ticket_number }}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #e9ebee; font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; color: #1a1a1a; }
+        .toolbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #fff; border-bottom: 1px solid #d9dde1; position: sticky; top: 0; z-index: 10; }
+        .toolbar a { font-size: 13px; color: #5b6570; text-decoration: none; }
+        .toolbar button { padding: 9px 16px; border-radius: 8px; border: none; background: #008751; color: #fff; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+        .sheet { max-width: 210mm; min-height: 297mm; margin: 24px auto; background: #fff; font-size: 12px; line-height: 1.22; box-shadow: 0 4px 24px rgba(0,0,0,.12); overflow: hidden; }
+        .sheet img.hdr { width: 100%; display: block; }
+        .body { padding: 2mm 12mm 3mm; }
+        .row { display: flex; font-size: 12px; margin-bottom: 2px; }
+        .row .n { width: 20px; flex-shrink: 0; }
+        .row .lbl { width: 220px; flex-shrink: 0; }
+        .row .val { flex: 1; border-bottom: 1px solid #333; padding-bottom: 1px; min-height: 14px; white-space: pre-wrap; }
+        .drow { display: flex; font-size: 12px; margin-bottom: 2px; align-items: flex-end; }
+        .drow .n { width: 20px; flex-shrink: 0; }
+        .drow .lbl { width: 260px; flex-shrink: 0; }
+        .drow .line { flex: 1; border-bottom: 1px solid #333; min-height: 10px; }
+        .drow .sfx { flex-shrink: 0; margin-left: 6px; font-size: 10px; }
+        .drow.sub { padding-left: 20px; }
+        .drow.sub .lbl { }
+        .u { display: inline-block; border-bottom: 1px solid #333; }
+        .sign { width: 260px; margin-left: auto; }
+        .sign .space { min-height: 20px; }
+        .sign .name { border-top: 1px solid #333; text-align: center; font-weight: 700; padding-top: 1px; }
+        .sign .ttl { font-size: 10px; text-align: center; }
+        @page { size: A4; margin: 0; }
+        @media print {
+            body { background: #fff !important; }
+            .no-print { display: none !important; }
+            .sheet { margin: 0 !important; box-shadow: none !important; max-width: none; width: 210mm; height: 297mm; page-break-after: avoid; }
+            .body { padding-bottom: 8mm; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-gray-100 p-4 text-gray-900 sm:p-8">
-    <div class="no-print mx-auto mb-4 flex max-w-3xl justify-end gap-2"><a href="{{ route('check-status', ['code' => $requestRecord->reference_code]) }}" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">Back</a><button onclick="window.print()" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white">Print Trip Ticket</button></div>
-    <article class="ticket mx-auto max-w-3xl rounded-xl border border-gray-200 bg-white p-6 shadow-lg sm:p-10">
-        <header class="border-b-2 border-gray-900 pb-5 text-center"><img src="{{ asset('trip-ticket-header.png') }}" alt="Department of Agriculture" class="mx-auto mb-4 h-16 object-contain"><p class="text-xs font-semibold uppercase tracking-widest">Official Government Fleet Management System</p><h1 class="mt-2 text-2xl font-bold uppercase">Driver's Trip Ticket</h1><p class="mt-2 font-mono text-sm">Ticket No. {{ $requestRecord->trip_ticket_number }}</p></header>
-        <div class="mt-6 grid gap-4 text-sm sm:grid-cols-2"><div><p class="text-xs uppercase text-gray-500">Requester</p><p class="font-semibold">{{ $requestRecord->requester_name }}</p></div><div><p class="text-xs uppercase text-gray-500">Office / Location</p><p class="font-semibold">{{ $requestRecord->requester_office ?: $requestRecord->location }}</p></div><div><p class="text-xs uppercase text-gray-500">Destination</p><p class="font-semibold">{{ $requestRecord->destination }}</p></div><div><p class="text-xs uppercase text-gray-500">Travel date</p><p class="font-semibold">{{ $requestRecord->travel_date->format('F j, Y') }}{{ $requestRecord->travel_date_end ? ' – ' . $requestRecord->travel_date_end->format('F j, Y') : '' }}</p></div><div><p class="text-xs uppercase text-gray-500">Vehicle</p><p class="font-semibold">{{ $requestRecord->vehicle?->plate_number }} · {{ $requestRecord->vehicle?->brand }} {{ $requestRecord->vehicle?->model }}</p></div><div><p class="text-xs uppercase text-gray-500">Driver</p><p class="font-semibold">{{ $requestRecord->confirmedDriver?->name ?: 'To be assigned' }}</p></div></div>
-        <section class="mt-6 rounded-lg border border-gray-200 p-4"><h2 class="text-xs font-bold uppercase tracking-wide">Official purpose</h2><p class="mt-2 whitespace-pre-line text-sm">{{ $requestRecord->purpose }}</p></section>
-        @if($requestRecord->passengers)<section class="mt-4"><h2 class="text-xs font-bold uppercase tracking-wide">Passengers</h2><p class="mt-2 text-sm">{{ implode(', ', $requestRecord->passengers) }}</p></section>@endif
-        <div class="mt-14 grid gap-10 text-center text-sm sm:grid-cols-3"><div class="border-t border-gray-900 pt-2"><p class="font-semibold">{{ $officer?->signee1_name ?: ($requestRecord->approvedBy?->name ?: 'Authorized Approver') }}</p><p class="text-xs text-gray-500">{{ $officer?->signee1_title ?: 'Approving Officer' }}</p></div><div class="border-t border-gray-900 pt-2"><p class="font-semibold">{{ $officer?->signee2_name ?: '________________' }}</p><p class="text-xs text-gray-500">{{ $officer?->signee2_title ?: 'Approving Officer' }}</p></div><div class="border-t border-gray-900 pt-2"><p class="font-semibold">{{ $requestRecord->confirmedDriver?->name ?: '________________' }}</p><p class="text-xs text-gray-500">Driver's signature / name</p></div></div>
-        <footer class="mt-10 border-t pt-4 text-center text-[10px] text-gray-500">Reference code: {{ $requestRecord->reference_code }} · Approved {{ optional($requestRecord->approved_at)->format('F j, Y') }}</footer>
-    </article>
+<body>
+    <div class="toolbar no-print">
+        <a href="{{ route('check-status', ['code' => $requestRecord->reference_code]) }}">&larr; Back to status</a>
+        <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+
+    <div class="sheet">
+        <img class="hdr" src="{{ asset('trip-ticket-header.png') }}" alt="Department of Agriculture MIMAROPA Region">
+
+        <div class="body">
+            <div style="text-align:right;font-size:11px">Appendix A</div>
+
+            <h1 style="text-align:center;font-size:17px;font-weight:700;letter-spacing:.75px;margin:3px 0">DRIVER'S TRIP TICKET</h1>
+
+            <div style="text-align:right;font-size:12px;margin-bottom:4px">
+                <div>No. <span class="u" style="min-width:140px">{{ $requestRecord->trip_ticket_number ?: '—' }}</span></div>
+                <div style="margin-top:2px"><span class="u" style="min-width:160px">{{ ($requestRecord->approved_at ?? now())->format('F j, Y') }}</span></div>
+            </div>
+
+            <p style="font-size:12px;font-weight:700;margin:0 0 3px">A. To be filled by the Administrative Official Authorizing Official Travel:</p>
+
+            <div style="line-height:1.1">
+                <div class="row"><div class="n">1</div><div class="lbl">Name of Driver of the vehicle</div><div class="val">{{ $driverName }}</div></div>
+                <div class="row"><div class="n">2</div><div class="lbl">Government car to be used, Plate No.</div><div class="val">{{ $plateLabel }}</div></div>
+                <div class="row"><div class="n">3</div><div class="lbl">Name of authorized passenger</div><div class="val">{{ $passengersText }}</div></div>
+                <div class="row"><div class="n">4</div><div class="lbl">Duration or Date of travel</div><div class="val">{{ $duration }}</div></div>
+                <div class="row"><div class="n">5</div><div class="lbl">Place or places to be visited</div><div class="val">{{ $requestRecord->destination }}</div></div>
+                <div class="row"><div class="n">6</div><div class="lbl">Purpose :</div><div class="val">{{ $requestRecord->purpose }}</div></div>
+                <div class="row"><div class="n">7</div><div class="lbl">Previous date of Travel Trip Ticket</div><div class="val">{{ $longDate($requestRecord->previous_trip_ticket_date) }}</div></div>
+            </div>
+
+            <div style="margin-top:5px;font-size:12px">
+                <div style="text-align:center">Approved by:</div>
+                @forelse($signatories as $i => $signee)
+                    <div class="sign" style="margin-top:{{ $i === 0 ? '3px' : '6px' }}">
+                        <div class="space"></div>
+                        <div class="name">{{ $signee->name }}</div>
+                        <div class="ttl">{{ $signee->title }}</div>
+                    </div>
+                @empty
+                    <div class="sign" style="margin-top:3px">
+                        <div class="space"></div>
+                        <div class="name">{{ $requestRecord->approvedBy?->name ?: 'Authorized Approver' }}</div>
+                        <div class="ttl">Approving Officer</div>
+                    </div>
+                @endforelse
+            </div>
+
+            <p style="font-size:12px;font-weight:700;margin:6px 0 3px">B. To be filled by the Driver:</p>
+
+            <div style="line-height:1.1">
+                @foreach([
+                    [1, 'Time of departure for Office/Garage', 'a.m./p.m.'],
+                    [2, 'Time of arrival at (per No. 4 above)', 'a.m./p.m.'],
+                    [3, 'Time of departure from (per No. 4)', 'a.m./p.m.'],
+                    [4, 'Time of arrival back to Office/Garage', 'a.m./p.m.'],
+                    [5, 'Approximate distance travelled (to and from)', 'kms.'],
+                ] as [$n, $label, $sfx])
+                    <div class="drow"><div class="n">{{ $n }}</div><div class="lbl">{{ $label }}</div><div class="line"></div><div class="sfx">{{ $sfx }}</div></div>
+                @endforeach
+
+                <div class="drow"><div class="n">6</div><div style="flex:1">Gasoline issued, purchase and consumed:</div></div>
+                @foreach([
+                    ['a. Balance in tank', 'liters', false],
+                    ['b. Issued by office from stock', 'liters', false],
+                    ['c. Add-purchased during trip', 'liters', false],
+                    ['Total', 'liters', true],
+                    ['d. Deduct: Used during the trip (to and from)', 'liters', false],
+                    ['e. Balance in tank at the end of trip', 'liters', false],
+                ] as [$label, $sfx, $bold])
+                    <div class="drow sub"><div class="lbl" @if($bold) style="font-weight:700" @endif>{{ $label }}</div><div class="line"></div><div class="sfx">{{ $sfx }}</div></div>
+                @endforeach
+
+                @foreach([[7, 'Gear oil issued'], [8, 'Lub oil issued'], [9, 'Grease issued']] as [$n, $label])
+                    <div class="drow"><div class="n">{{ $n }}</div><div class="lbl">{{ $label }}</div><div class="line"></div><div class="sfx">liters</div></div>
+                @endforeach
+
+                <div class="drow"><div class="n">10</div><div style="flex:1">Speedometer readings, if any:</div></div>
+                @foreach(['At beginning of trip', 'At end of trip', 'Distance travelled (per 5 above)'] as $label)
+                    <div class="drow sub"><div class="lbl">{{ $label }}</div><div class="line"></div><div class="sfx">miles/kms.</div></div>
+                @endforeach
+
+                <div class="drow"><div class="n">11</div><div class="lbl">Remarks</div><div class="line"></div></div>
+            </div>
+
+            <p style="font-size:9.5px;margin:4px 0 0">I hereby certify to the correctness of the above statement of record of travel.</p>
+
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:6px">
+                <div style="font-size:9.5px;max-width:260px">I hereby certify that I used this car on official business as stated above.</div>
+                <div style="text-align:center;width:220px">
+                    <div style="font-weight:700;font-size:12px;min-height:15px">{{ $driverName }}</div>
+                    <div style="border-top:1px solid #333;margin-top:2px"></div>
+                    <div style="font-size:9.5px">Driver</div>
+                </div>
+            </div>
+
+            <div style="margin-top:5px;text-align:center">
+                <div style="min-height:15px">{{ $passengersText }}</div>
+                <div style="border-top:1px solid #333;margin-top:2px"></div>
+                <div style="font-size:9.5px;margin-top:1px">Name of Passengers</div>
+            </div>
+
+            <div style="font-size:10px;color:#333;margin-top:3px;line-height:1.2">
+                <div>Doc. No.: DAMIMAROPA-F083-2023</div>
+                <div>Rev. No.: 0</div>
+                <div>Issued Date: 10/23/23</div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

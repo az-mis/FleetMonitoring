@@ -37,15 +37,12 @@ class AdminRepository implements AdminRepositoryInterface
             'location' => $data['role'] === UserRole::ADMIN->value ? ($data['location'] ?? null) : null,
         ]);
         if ($data['role'] === UserRole::ADMIN->value && !empty($data['location']) && array_key_exists('signee1_name', $data)) {
-            ApprovingOfficer::query()->updateOrCreate(
-                ['location' => $data['location']],
-                [
-                    'signee1_name' => $data['signee1_name'] ?? null,
-                    'signee1_title' => $data['signee1_title'] ?? null,
-                    'signee2_name' => $data['signee2_name'] ?? null,
-                    'signee2_title' => $data['signee2_title'] ?? null,
-                    'updated_by' => auth()->id(),
-                ],
+            ApprovingOfficer::query()->firstOrCreate(['location' => $data['location']])->syncFromPair(
+                $data['signee1_name'] ?? null,
+                $data['signee1_title'] ?? null,
+                $data['signee2_name'] ?? null,
+                $data['signee2_title'] ?? null,
+                auth()->id(),
             );
         }
 
@@ -77,15 +74,12 @@ class AdminRepository implements AdminRepositoryInterface
         $admin->save();
 
         if (!empty($data['location']) && array_key_exists('signee1_name', $data)) {
-            ApprovingOfficer::query()->updateOrCreate(
-                ['location' => $data['location']],
-                [
-                    'signee1_name' => $data['signee1_name'] ?? null,
-                    'signee1_title' => $data['signee1_title'] ?? null,
-                    'signee2_name' => $data['signee2_name'] ?? null,
-                    'signee2_title' => $data['signee2_title'] ?? null,
-                    'updated_by' => auth()->id(),
-                ],
+            ApprovingOfficer::query()->firstOrCreate(['location' => $data['location']])->syncFromPair(
+                $data['signee1_name'] ?? null,
+                $data['signee1_title'] ?? null,
+                $data['signee2_name'] ?? null,
+                $data['signee2_title'] ?? null,
+                auth()->id(),
             );
         }
 

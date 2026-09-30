@@ -31,12 +31,19 @@ class UpdateDriverRequest extends FormRequest
             'remove_avatar' => ['nullable', 'boolean'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone_number' => ['nullable', 'string', 'max:40'],
+            'phone_number' => ['required', 'string', 'regex:/^09\d{9}$/'],
             'location' => ['nullable', 'string', 'max:120'],
-            'license_number' => ['nullable', 'string', 'max:100'],
+            'license_number' => ['required', 'string', 'max:100'],
             'license_front' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'license_back' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'license_expiration_date' => ['nullable', 'date'],
+            'license_expiration_date' => ['required', 'date'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone_number.regex' => 'Phone Number must start with 09 and be exactly 11 digits (e.g. 09171234567).',
         ];
     }
 }
