@@ -148,11 +148,14 @@
 <div class="mb-3 flex flex-wrap gap-2">
     @foreach($statusFilters as $sf)
     <a href="{{ route('maintenance.index', array_filter(['search' => request('search'), 'location' => $selectedLocation, 'status' => $sf, 'per_page' => request('per_page',10)])) }}"
-       class="rounded-full px-4 py-1.5 text-xs font-bold transition
+       class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition
               {{ $statusFilter === $sf
                  ? 'bg-emerald-600 text-white shadow-sm'
                  : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50' }}">
-        {{ ucfirst($sf) }}
+        <span>{{ ucfirst($sf) }}</span>
+        <span class="rounded-full px-1.5 text-[10px] {{ $statusFilter === $sf ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            {{ $counts[$sf] ?? 0 }}
+        </span>
     </a>
     @endforeach
 </div>

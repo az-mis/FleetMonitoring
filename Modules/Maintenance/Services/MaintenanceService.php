@@ -55,6 +55,8 @@ class MaintenanceService
             'scheduled' => (clone $query)->where('status', 'scheduled')->count(),
             'ongoing'   => (clone $query)->where('status', 'ongoing')->count(),
             'completed' => (clone $query)->where('status', 'completed')->count(),
+            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            'all'       => (clone $query)->count(),
         ];
     }
 
