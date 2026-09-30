@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\VehicleRequest\Controllers;
 
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -190,10 +192,18 @@ class VehicleRequestController
         return view('vehicle-request::travel-history', ['trips' => $trips]);
     }
 
-    public function create(): View
+    public function create(): Response
     {
-        return view('public.request-vehicle', [
+        // no-store keeps the browser from showing a cached (already submitted)
+        // copy of the form when the user presses Back after submitting.
+        return response()->view('public.request-vehicle', [
             'vehicles' => Vehicle::query()->with('assignedDriver')->orderBy('plate_number')->get(),
+            // One-time token: each rendered form gets its own, and store() accepts it once.
+            'formToken' => (string) Str::uuid(),
+        ])->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
     }
 
@@ -283,6 +293,17 @@ class VehicleRequestController
 
     public function store(StoreVehicleRequest $request): RedirectResponse
     {
+        // Claim the one-time form token. Cache::add() is atomic, so a second
+        // submit of the same form (Back button + resubmit, double click,
+        // refresh) fails here instead of creating a duplicate request.
+        $token = (string) $request->input('form_token', '');
+        if (! Str::isUuid($token)
+            || ! Cache::add('vehicle-request-form:'.$token, true, now()->addHours(12))) {
+            return redirect()->route('request-vehicle')->withErrors([
+                'form' => 'This form was already submitted (or has expired). If you still need another trip, please fill in a fresh form. You can check your earlier request using its reference code.',
+            ]);
+        }
+
         do {
             $code = Str::upper(Str::random(7));
         } while (VehicleRequest::where('reference_code', $code)->exists());

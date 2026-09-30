@@ -32,8 +32,9 @@
             </div>
         @endif
 
-        <form class="space-y-3" method="POST" action="{{ route('request-vehicle.store') }}">
+        <form class="space-y-3" method="POST" autocomplete="off" action="{{ route('request-vehicle.store') }}">
             @csrf
+            <input type="hidden" name="form_token" value="{{ $formToken ?? '' }}">
 @php
 $offices = [
     ['value' => 'ORED', 'label' => 'Office of the Regional Executive Director (ORED)'],
@@ -655,6 +656,11 @@ $offices = [
 
         // Vehicle cards replace the old dropdown, so guard the submit here.
         document.querySelector('form').addEventListener('submit', (event) => {
+            if (event.target.dataset.submitting === '1') {
+                // Already sent: ignore double clicks / repeated Enter presses.
+                event.preventDefault();
+                return;
+            }
             if (!vehicleIdInput.value) {
                 event.preventDefault();
                 stationPanel.classList.remove('hidden');
@@ -663,6 +669,22 @@ $offices = [
                     : 'Please select your station first, then choose a vehicle.';
                 vehicleHint.style.color = '#fca5a5';
                 stationPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            event.target.dataset.submitting = '1';
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            }
+        });
+
+        // Back/forward can restore this page from the browser's cache with the old
+        // (already submitted) values. Reload so the user always gets a clean form.
+        window.addEventListener('pageshow', (event) => {
+            const nav = performance.getEntriesByType('navigation')[0];
+            if (event.persisted || (nav && nav.type === 'back_forward')) {
+                window.location.reload();
             }
         });
 
