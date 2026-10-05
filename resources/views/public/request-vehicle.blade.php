@@ -334,7 +334,7 @@ $offices = [
                     <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><span>Select Vehicle <span class="text-emerald-300">*</span></span></label>
                     <p id="vehicle-hint" class="mb-2 text-[11px] text-emerald-100/70"></p>
                     <input type="hidden" name="vehicleId" id="vehicle-id-input" value="{{ old('vehicleId') }}">
-                    <div id="vehicle-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;"></div>
+                    <div id="vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
                     <p class="mt-2 text-[10.5px] text-emerald-100/60">The driver shown is the vehicle's default driver. Admin reviewers may designate a substitute if the default driver is unavailable on your travel date.</p>
                 </div>
             </div>

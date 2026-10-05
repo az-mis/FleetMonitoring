@@ -1302,8 +1302,8 @@
                     <p id="manual-vehicle-hint" class="text-xs font-semibold text-slate-700 mb-2.5"></p>
                     <input type="hidden" name="vehicle_id" id="manual-vehicle-id-input" value="{{ old('vehicle_id') }}" required>
 
-                    {{-- Vehicle Cards Grid --}}
-                    <div id="manual-vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1"></div>
+                    {{-- Vehicle Cards Grid (3 Columns) --}}
+                    <div id="manual-vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-80 overflow-y-auto pr-1"></div>
 
                     {{-- Driver Assignment Dropdown --}}
                     <div class="mt-4 pt-3 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
