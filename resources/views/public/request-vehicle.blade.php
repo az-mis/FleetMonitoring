@@ -244,7 +244,6 @@ $offices = [
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0 ml-2">
-                            <span id="public-dest-total-km" class="hidden rounded-md bg-emerald-900/80 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-extrabold text-emerald-300"></span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-300/70 transition-transform duration-200" id="public-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m6 9 6 6 6-6"/>
                             </svg>
@@ -591,24 +590,14 @@ $offices = [
                 } else {
                     let pillsHtml = '';
                     selectedPublicDestinations.forEach((item, index) => {
-                        const distLabel = item.distance_km > 0 ? ` (${item.distance_km} km)` : '';
                         pillsHtml += `
                             <span class="inline-flex items-center gap-1 rounded-md bg-emerald-800/90 border border-emerald-400/60 px-2 py-0.5 text-xs font-bold text-white shadow-2xs">
-                                <span>${item.name}${distLabel}</span>
+                                <span>${item.name}</span>
                                 <button type="button" onclick="removePublicSelectedDest(${index}, event)" class="hover:text-red-300 text-emerald-300 font-extrabold ml-1 cursor-pointer">✕</button>
                             </span>
                         `;
                     });
                     container.innerHTML = pillsHtml;
-                }
-            }
-
-            if (totalKmSpan) {
-                if (totalDistance > 0) {
-                    totalKmSpan.textContent = `Total: ${totalDistance} kms`;
-                    totalKmSpan.classList.remove('hidden');
-                } else {
-                    totalKmSpan.classList.add('hidden');
                 }
             }
 

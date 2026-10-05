@@ -1026,27 +1026,30 @@
                                 </svg>
                             </button>
 
-                            {{-- Dropdown Panel --}}
+                            {{-- Dropdown Panel (Fixed 230px max height box with sticky search bar) --}}
                             <div
                                 id="admin-office-dropdown-panel"
-                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                                style="max-height: 230px; overflow-y: auto; overscroll-behavior: contain;"
+                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl max-h-[230px] overflow-y-auto overscroll-contain"
                             >
-                                {{-- Search --}}
-                                <div class="relative mb-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-                                    </svg>
-                                    <input
-                                        type="text"
-                                        id="admin-office-search-input"
-                                        oninput="filterAdminOfficeOptions()"
-                                        placeholder="Search office..."
-                                        class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
-                                    >
+                                {{-- Sticky Search Bar --}}
+                                <div class="sticky top-0 z-10 bg-white pb-2 pt-0.5">
+                                    <div class="relative">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            id="admin-office-search-input"
+                                            oninput="filterAdminOfficeOptions()"
+                                            placeholder="Search office..."
+                                            class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
+                                        >
+                                    </div>
                                 </div>
 
                                 {{-- Options --}}
-                                <div id="admin-office-options-list" class="max-h-52 overflow-y-auto space-y-0.5 pr-0.5">
+                                <div id="admin-office-options-list" class="space-y-0.5 pr-0.5">
                                     <div
                                         onclick="selectAdminOffice('', '— Select office / division —')"
                                         class="admin-office-option flex cursor-pointer items-center rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-50 transition"
@@ -1189,7 +1192,6 @@
                                 </div>
 
                                 <div class="flex items-center gap-2 shrink-0 ml-2">
-                                    <span id="admin-dest-total-km" class="hidden rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800"></span>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200" id="admin-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="m6 9 6 6 6-6"/>
                                     </svg>
@@ -2135,26 +2137,14 @@
                 } else {
                     let pillsHtml = '';
                     selectedAdminDestinations.forEach((item, index) => {
-                        const distLabel = item.distance_km > 0 ? ` (${item.distance_km} km)` : '';
-                        const escapedName = (item.name || '').replace(/'/g, "\\'");
                         pillsHtml += `
-                            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-1 text-xs font-bold text-emerald-900 shadow-2xs">
-                                <span>${item.name}${distLabel}</span>
+                            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-xs font-bold text-emerald-900 shadow-2xs">
+                                <span>${item.name}</span>
                                 <button type="button" onclick="removeAdminSelectedDest(${index}, event)" class="hover:text-red-700 text-emerald-700 font-extrabold ml-1 cursor-pointer">✕</button>
                             </span>
                         `;
                     });
                     container.innerHTML = pillsHtml;
-                }
-            }
-
-            // 3. Update Total Distance Badge
-            if (totalKmSpan) {
-                if (totalDistance > 0) {
-                    totalKmSpan.textContent = `Total: ${totalDistance} kms`;
-                    totalKmSpan.classList.remove('hidden');
-                } else {
-                    totalKmSpan.classList.add('hidden');
                 }
             }
 
