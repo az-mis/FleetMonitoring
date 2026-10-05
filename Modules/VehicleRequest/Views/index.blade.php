@@ -1195,10 +1195,10 @@
                                 </svg>
                             </button>
 
-                            {{-- Dropdown Panel --}}
+                            {{-- Dropdown Panel (positioned via JS fixed coords — escapes modal scroll) --}}
                             <div
                                 id="admin-dest-dropdown-panel"
-                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                                class="hidden rounded-xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-black/5"
                             >
                                 {{-- Search --}}
                                 <div class="relative mb-2">
@@ -1214,9 +1214,9 @@
                                     >
                                 </div>
 
-                                {{-- Options List --}}
-                                <div id="admin-dest-options-list" class="max-h-52 overflow-y-auto space-y-0.5 pr-0.5">
-                                    {{-- Dynamically loaded via fetchDestinationsByLocation() --}}
+                                {{-- Options List — internal scroll, max 12 rows --}}
+                                <div id="admin-dest-options-list" class="max-h-48 overflow-y-auto space-y-0.5">
+                                    {{-- Dynamically loaded via loadAdminDestinations() --}}
                                 </div>
                             </div>
 
@@ -2071,16 +2071,26 @@
 
         function toggleAdminDestDropdown() {
             const panel = document.getElementById('admin-dest-dropdown-panel');
+            const trigger = document.getElementById('admin-dest-dropdown-trigger');
             const chevron = document.getElementById('admin-dest-dropdown-chevron');
             const searchInput = document.getElementById('admin-dest-search-input');
-            if (!panel) return;
+            if (!panel || !trigger) return;
             const isHidden = panel.classList.contains('hidden');
             if (isHidden) {
+                // Position the panel using fixed coords so it escapes the modal scroll container
+                const rect = trigger.getBoundingClientRect();
+                panel.style.position = 'fixed';
+                panel.style.top = (rect.bottom + 4) + 'px';
+                panel.style.left = rect.left + 'px';
+                panel.style.width = rect.width + 'px';
+                panel.style.zIndex = '9999';
                 panel.classList.remove('hidden');
                 if (chevron) chevron.style.transform = 'rotate(180deg)';
-                searchInput.value = '';
-                filterAdminDestOptions();
-                searchInput.focus();
+                if (searchInput) {
+                    searchInput.value = '';
+                    filterAdminDestOptions();
+                    searchInput.focus();
+                }
             } else {
                 closeAdminDestDropdown();
             }

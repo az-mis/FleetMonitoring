@@ -250,10 +250,10 @@ $offices = [
                         </svg>
                     </button>
 
-                    {{-- Dropdown Panel --}}
+                    {{-- Dropdown Panel (positioned via JS fixed coords) --}}
                     <div
                         id="public-dest-dropdown-panel"
-                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
+                        class="hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
                     >
                         <div class="relative mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -268,8 +268,8 @@ $offices = [
                             >
                         </div>
 
-                        <div id="public-dest-options-list" class="max-h-56 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
-                            {{-- Loaded dynamically via fetchPublicDestinations() --}}
+                        <div id="public-dest-options-list" class="max-h-48 overflow-y-auto space-y-0.5">
+                            {{-- Loaded dynamically via loadPublicDestinations() --}}
                         </div>
                     </div>
 
@@ -473,7 +473,23 @@ $offices = [
 
         function loadPublicDestinations() {
             const locSelect = document.querySelector('select[name="location"]');
-            const location = locSelect?.value || 'Palawan';
+            const location = locSelect?.value || '';
+
+            if (!location) {
+                // No station selected yet — show prompt, don't fetch
+                const list = document.getElementById('public-dest-options-list');
+                if (list) {
+                    list.innerHTML = `
+                        <div class="flex items-center gap-2 px-3 py-4 text-xs text-emerald-100/50 italic">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-emerald-400/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            Please select your station first
+                        </div>
+                    `;
+                }
+                currentPublicDestinations = [];
+                return;
+            }
+
             fetch(`/api/destinations-by-location?location=${encodeURIComponent(location)}`)
                 .then(res => res.json())
                 .then(data => {
@@ -520,11 +536,18 @@ $offices = [
 
         function togglePublicDestDropdown() {
             const panel = document.getElementById('public-dest-dropdown-panel');
+            const trigger = document.getElementById('public-dest-dropdown-trigger');
             const chevron = document.getElementById('public-dest-dropdown-chevron');
             const searchInput = document.getElementById('public-dest-search-input');
-            if (!panel) return;
+            if (!panel || !trigger) return;
             const isHidden = panel.classList.contains('hidden');
             if (isHidden) {
+                const rect = trigger.getBoundingClientRect();
+                panel.style.position = 'fixed';
+                panel.style.top = (rect.bottom + 4) + 'px';
+                panel.style.left = rect.left + 'px';
+                panel.style.width = rect.width + 'px';
+                panel.style.zIndex = '9999';
                 panel.classList.remove('hidden');
                 if (chevron) chevron.classList.add('rotate-180');
                 if (searchInput) {
@@ -880,6 +903,8 @@ $offices = [
 
         locationSelect.addEventListener('change', () => {
             loadStation(false);
+            // Reset destination selection when station changes
+            selectPublicDest('', null);
             loadPublicDestinations();
         });
         document.addEventListener('DOMContentLoaded', () => {
