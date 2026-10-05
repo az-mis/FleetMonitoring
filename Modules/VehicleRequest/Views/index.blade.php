@@ -1004,9 +1004,125 @@
                             <input type="text" name="requester_name" value="{{ old('requester_name') }}" required placeholder="e.g. Juan Dela Cruz" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
 
-                        <div>
+                        {{-- Searchable Office / Division / Section Dropdown --}}
+                        <div class="relative" id="admin-office-dropdown-container">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1">Office / Division / Section</label>
-                            <input type="text" name="requester_office" value="{{ old('requester_office') }}" placeholder="e.g. Planning Section, PMED" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+
+                            {{-- Hidden input submitted with form --}}
+                            <input type="hidden" name="requester_office" id="admin-requester-office-input" value="{{ old('requester_office') }}">
+
+                            {{-- Trigger Button --}}
+                            <button
+                                type="button"
+                                id="admin-office-dropdown-trigger"
+                                onclick="toggleAdminOfficeDropdown()"
+                                class="flex h-[34px] w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 text-left text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition cursor-pointer"
+                            >
+                                <span id="admin-office-dropdown-label" class="truncate {{ old('requester_office') ? 'text-slate-800' : 'text-slate-400' }}">
+                                    {{ old('requester_office') ?: '— Select office / division —' }}
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200" id="admin-office-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </button>
+
+                            {{-- Dropdown Panel --}}
+                            <div
+                                id="admin-office-dropdown-panel"
+                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                            >
+                                {{-- Search --}}
+                                <div class="relative mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                                    </svg>
+                                    <input
+                                        type="text"
+                                        id="admin-office-search-input"
+                                        oninput="filterAdminOfficeOptions()"
+                                        placeholder="Search office..."
+                                        class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
+                                    >
+                                </div>
+
+                                {{-- Options --}}
+                                <div id="admin-office-options-list" class="max-h-52 overflow-y-auto space-y-0.5 pr-0.5">
+                                    <div
+                                        onclick="selectAdminOffice('', '— Select office / division —')"
+                                        class="admin-office-option flex cursor-pointer items-center rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-50 transition"
+                                        data-label="— select office / division —"
+                                    >
+                                        <span>— Select office / division —</span>
+                                    </div>
+                                    @php
+                                        $adminOffices = [
+                                            ['value' => 'ORED', 'label' => 'Office of the Regional Executive Director (ORED)'],
+                                            ['value' => 'RAFIS', 'label' => 'Regional Agriculture and Fisheries Information Section (RAFIS)'],
+                                            ['value' => 'ORTDO', 'label' => 'Office of the Regional Technical Director for Operations (ORTDO)'],
+                                            ['value' => 'FOD', 'label' => 'Field Operations Division (FOD)'],
+                                            ['value' => 'FOD-RICE', 'label' => 'FOD - Rice Banner Program'],
+                                            ['value' => 'FOD-CORN', 'label' => 'FOD - Corn Banner Program'],
+                                            ['value' => 'FOD-LIVESTOCK', 'label' => 'FOD - Livestock Program'],
+                                            ['value' => 'FOD-HVCDP', 'label' => 'FOD - High Value Crops Development Program (HVCDP)'],
+                                            ['value' => 'FOD-IDS', 'label' => 'FOD - Institutional Development Section (IDS)'],
+                                            ['value' => 'FOD-DRRM', 'label' => 'FOD - Disaster Risk Reduction and Management (DRRM)'],
+                                            ['value' => 'FOD-RSBSA', 'label' => 'FOD - Registry System for Basic Sectors in Agriculture (RSBSA)'],
+                                            ['value' => 'FOD-SAAD', 'label' => 'FOD - Special Area for Agricultural Development (SAAD)'],
+                                            ['value' => 'FOD-4KS', 'label' => 'FOD - Kabuhayan at Kaunlaran ng Kababayang Katututbo (4Ks)'],
+                                            ['value' => 'FOD-NUPAP', 'label' => 'FOD - National Urban and Peri-Urban Agriculture Program (NUPAP)'],
+                                            ['value' => 'FOD-F2C2', 'label' => 'FOD - Farm and Fisheries Clustering and Consolidation Program (F2C2)'],
+                                            ['value' => 'FOD-PAFES', 'label' => 'FOD - Province-led Agriculture and Fisheries Extension Systems (PAFES)'],
+                                            ['value' => 'FOD-HFIDP', 'label' => 'FOD - Halal Food Industry Development Program (HFIDP)'],
+                                            ['value' => 'FOD-PRDP', 'label' => 'FOD - Philippine Rural Development Program (PRDP)'],
+                                            ['value' => 'ORTDRR', 'label' => 'Office of the Regional Technical Director for Research & Regulations (ORTDRR)'],
+                                            ['value' => 'RD', 'label' => 'Research Division (RD)'],
+                                            ['value' => 'ORMAES', 'label' => 'Oriental Mindoro Agricultural Experiment Station (ORMAES)'],
+                                            ['value' => 'PRES', 'label' => 'Palawan Research Experiment Station (PRES)'],
+                                            ['value' => 'PRES-LRC', 'label' => 'PRES - Livestock Resource Center (LRC)'],
+                                            ['value' => 'PRES-DPDC', 'label' => 'PRES - Dairy Production and Development Center (DPDC)'],
+                                            ['value' => 'PRES-PAC', 'label' => 'PRES - Palawan Agricultural Center (PAC)'],
+                                            ['value' => 'PRES-ABOABO', 'label' => 'PRES - Abo-Abo Rural Agricultural Center'],
+                                            ['value' => 'REGDIV', 'label' => 'Regulatory Division'],
+                                            ['value' => 'REGDIV-OAP', 'label' => 'Regulatory Division - Organic Agriculture Program'],
+                                            ['value' => 'AFD', 'label' => 'Administrative and Finance Division (AFD)'],
+                                            ['value' => 'AFD-ACCTG', 'label' => 'AFD - Accounting Section'],
+                                            ['value' => 'AFD-CASH', 'label' => 'AFD - Cashiering Unit'],
+                                            ['value' => 'AFD-BUDGET', 'label' => 'AFD - Budget Section'],
+                                            ['value' => 'AFD-HRS', 'label' => 'AFD - Human Resource Section'],
+                                            ['value' => 'AFD-RECORDS', 'label' => 'AFD - Records Section'],
+                                            ['value' => 'AFD-GSS', 'label' => 'AFD - General Services Section'],
+                                            ['value' => 'AFD-PSU', 'label' => 'AFD - Property & Supply Unit'],
+                                            ['value' => 'BAC', 'label' => 'Bids & Awards Committee (BAC)'],
+                                            ['value' => 'PMED', 'label' => 'Planning, Monitoring & Evaluation Division (PMED)'],
+                                            ['value' => 'MIS', 'label' => 'Management Information Systems Section (MIS)'],
+                                            ['value' => 'RAFC', 'label' => 'Regional Agricultural and Fishery Council (RAFC)'],
+                                            ['value' => 'AMAD', 'label' => 'Agribusiness & Marketing Assistance Division (AMAD)'],
+                                            ['value' => 'ILD', 'label' => 'Integrated Laboratory Division (ILD)'],
+                                            ['value' => 'ILD-RSL', 'label' => 'ILD - Regional Soils Laboratory'],
+                                            ['value' => 'ILD-RCPC', 'label' => 'ILD - Regional Crop Protection Center (RCPC)'],
+                                            ['value' => 'RAED', 'label' => 'Regional Agricultural Engineering Division (RAED)'],
+                                            ['value' => 'APCO-OCCIDENTAL', 'label' => 'APCO - Occidental Mindoro (San Jose)'],
+                                            ['value' => 'APCO-ORIENTAL', 'label' => 'APCO - Oriental Mindoro (Calapan City)'],
+                                            ['value' => 'APCO-MARINDUQUE', 'label' => 'APCO - Marinduque (Boac)'],
+                                            ['value' => 'APCO-ROMBLON', 'label' => 'APCO - Romblon (Odiongan)'],
+                                            ['value' => 'APCO-PALAWAN', 'label' => 'APCO - Palawan (Puerto Princesa City)'],
+                                            ['value' => 'COA', 'label' => 'Commission on Audit (COA)'],
+                                        ];
+                                    @endphp
+                                    @foreach($adminOffices as $office)
+                                        <div
+                                            onclick="selectAdminOffice('{{ addslashes($office['label']) }}')"
+                                            class="admin-office-option flex cursor-pointer items-center rounded-lg px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition"
+                                            data-label="{{ strtolower($office['label'] . ' ' . $office['value']) }}"
+                                        >
+                                            <span>{{ $office['label'] }}</span>
+                                        </div>
+                                    @endforeach
+                                    <div id="admin-no-office-found" class="hidden px-3 py-4 text-center text-xs text-slate-400">
+                                        No office found matching search.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
@@ -1780,6 +1896,65 @@
                 document.getElementById('modal-decline-action-btn').className = 'flex-1 rounded-xl bg-red-600 hover:bg-red-700 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center';
             }
         }
+
+        // ── Admin Modal: Office / Division searchable dropdown ──────────────
+        function toggleAdminOfficeDropdown() {
+            const panel = document.getElementById('admin-office-dropdown-panel');
+            const chevron = document.getElementById('admin-office-dropdown-chevron');
+            const searchInput = document.getElementById('admin-office-search-input');
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+                searchInput.value = '';
+                filterAdminOfficeOptions();
+                searchInput.focus();
+            } else {
+                closeAdminOfficeDropdown();
+            }
+        }
+
+        function closeAdminOfficeDropdown() {
+            const panel = document.getElementById('admin-office-dropdown-panel');
+            const chevron = document.getElementById('admin-office-dropdown-chevron');
+            if (panel) panel.classList.add('hidden');
+            if (chevron) chevron.style.transform = '';
+        }
+
+        function selectAdminOffice(val, displayLabel = null) {
+            const hiddenInput = document.getElementById('admin-requester-office-input');
+            const labelSpan = document.getElementById('admin-office-dropdown-label');
+            if (hiddenInput) hiddenInput.value = val;
+            if (labelSpan) {
+                const display = val || (displayLabel || '— Select office / division —');
+                labelSpan.textContent = display;
+                labelSpan.className = labelSpan.className.replace(/text-slate-(400|800)/g, '');
+                labelSpan.classList.add(val ? 'text-slate-800' : 'text-slate-400');
+            }
+            closeAdminOfficeDropdown();
+        }
+
+        function filterAdminOfficeOptions() {
+            const query = (document.getElementById('admin-office-search-input')?.value || '').toLowerCase().trim();
+            const items = document.querySelectorAll('.admin-office-option');
+            let anyVisible = false;
+            items.forEach(item => {
+                const label = (item.dataset.label || '').toLowerCase();
+                const match = !query || label.includes(query);
+                item.classList.toggle('hidden', !match);
+                if (match) anyVisible = true;
+            });
+            const noFound = document.getElementById('admin-no-office-found');
+            if (noFound) noFound.classList.toggle('hidden', anyVisible);
+        }
+
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('admin-office-dropdown-container');
+            if (container && !container.contains(e.target)) {
+                closeAdminOfficeDropdown();
+            }
+        });
 
         function toggleTravelLocationMenu() {
             const menu = document.getElementById('travel-location-menu');
