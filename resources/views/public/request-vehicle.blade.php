@@ -250,10 +250,10 @@ $offices = [
                         </svg>
                     </button>
 
-                    {{-- Dropdown Panel (positioned via JS fixed coords) --}}
+                    {{-- Dropdown Panel --}}
                     <div
                         id="public-dest-dropdown-panel"
-                        class="hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
+                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
                     >
                         <div class="relative mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -268,7 +268,7 @@ $offices = [
                             >
                         </div>
 
-                        <div id="public-dest-options-list" class="max-h-48 overflow-y-auto space-y-0.5">
+                        <div id="public-dest-options-list" class="max-h-52 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
                             {{-- Loaded dynamically via loadPublicDestinations() --}}
                         </div>
                     </div>
@@ -536,18 +536,11 @@ $offices = [
 
         function togglePublicDestDropdown() {
             const panel = document.getElementById('public-dest-dropdown-panel');
-            const trigger = document.getElementById('public-dest-dropdown-trigger');
             const chevron = document.getElementById('public-dest-dropdown-chevron');
             const searchInput = document.getElementById('public-dest-search-input');
-            if (!panel || !trigger) return;
+            if (!panel) return;
             const isHidden = panel.classList.contains('hidden');
             if (isHidden) {
-                const rect = trigger.getBoundingClientRect();
-                panel.style.position = 'fixed';
-                panel.style.top = (rect.bottom + 4) + 'px';
-                panel.style.left = rect.left + 'px';
-                panel.style.width = rect.width + 'px';
-                panel.style.zIndex = '9999';
                 panel.classList.remove('hidden');
                 if (chevron) chevron.classList.add('rotate-180');
                 if (searchInput) {
