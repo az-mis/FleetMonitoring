@@ -1214,8 +1214,8 @@
                                     >
                                 </div>
 
-                                {{-- Options List --}}
-                                <div id="admin-dest-options-list" class="max-h-52 overflow-y-auto space-y-0.5 pr-0.5">
+                                {{-- Options List (Internal scrolling only; overscroll-contain prevents modal from scrolling) --}}
+                                <div id="admin-dest-options-list" class="max-h-44 overflow-y-auto overscroll-contain space-y-0.5 pr-0.5">
                                     {{-- Dynamically loaded via loadAdminDestinations() --}}
                                 </div>
                             </div>

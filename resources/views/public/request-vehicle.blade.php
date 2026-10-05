@@ -268,7 +268,7 @@ $offices = [
                             >
                         </div>
 
-                        <div id="public-dest-options-list" class="max-h-52 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
+                        <div id="public-dest-options-list" class="max-h-44 overflow-y-auto overscroll-contain space-y-0.5 pr-1 scrollbar-thin">
                             {{-- Loaded dynamically via loadPublicDestinations() --}}
                         </div>
                     </div>
