@@ -250,25 +250,28 @@ $offices = [
                         </svg>
                     </button>
 
-                    {{-- Dropdown Panel --}}
+                    {{-- Dropdown Panel (Fixed 220px max height box with internal scrolling only) --}}
                     <div
                         id="public-dest-dropdown-panel"
-                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
+                        style="max-height: 220px; overflow-y: auto; overscroll-behavior: contain;"
+                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md max-h-[220px] overflow-y-auto overscroll-contain scrollbar-thin"
                     >
-                        <div class="relative mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-                            </svg>
-                            <input
-                                type="text"
-                                id="public-dest-search-input"
-                                oninput="filterPublicDestOptions()"
-                                placeholder="Search destination..."
-                                class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none"
-                            >
+                        <div class="sticky top-0 z-10 bg-[#041d0e] pb-2 pt-0.5">
+                            <div class="relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                                </svg>
+                                <input
+                                    type="text"
+                                    id="public-dest-search-input"
+                                    oninput="filterPublicDestOptions()"
+                                    placeholder="Search destination..."
+                                    class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none"
+                                >
+                            </div>
                         </div>
 
-                        <div id="public-dest-options-list" class="max-h-44 overflow-y-auto overscroll-contain space-y-0.5 pr-1 scrollbar-thin">
+                        <div id="public-dest-options-list" class="space-y-0.5 pr-1">
                             {{-- Loaded dynamically via loadPublicDestinations() --}}
                         </div>
                     </div>

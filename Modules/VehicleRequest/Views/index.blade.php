@@ -1195,27 +1195,30 @@
                                 </svg>
                             </button>
 
-                            {{-- Dropdown Panel --}}
+                            {{-- Dropdown Panel (Fixed 220px max height box with internal scrolling only) --}}
                             <div
                                 id="admin-dest-dropdown-panel"
-                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                                style="max-height: 220px; overflow-y: auto; overscroll-behavior: contain;"
+                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl max-h-[220px] overflow-y-auto overscroll-contain"
                             >
                                 {{-- Search --}}
-                                <div class="relative mb-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-                                    </svg>
-                                    <input
-                                        type="text"
-                                        id="admin-dest-search-input"
-                                        oninput="filterAdminDestOptions()"
-                                        placeholder="Search destination..."
-                                        class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
-                                    >
+                                <div class="sticky top-0 z-10 bg-white pb-2 pt-0.5">
+                                    <div class="relative">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            id="admin-dest-search-input"
+                                            oninput="filterAdminDestOptions()"
+                                            placeholder="Search destination..."
+                                            class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
+                                        >
+                                    </div>
                                 </div>
 
-                                {{-- Options List (Internal scrolling only; overscroll-contain prevents modal from scrolling) --}}
-                                <div id="admin-dest-options-list" class="max-h-44 overflow-y-auto overscroll-contain space-y-0.5 pr-0.5">
+                                {{-- Options List --}}
+                                <div id="admin-dest-options-list" class="space-y-0.5 pr-0.5">
                                     {{-- Dynamically loaded via loadAdminDestinations() --}}
                                 </div>
                             </div>
