@@ -78,7 +78,7 @@ class VehicleRequestController
      * e.g. '26' => 867 means the first number issued in 2026 is 26-MM-868.
      */
     private const PALAWAN_SEQUENCE_START = [
-        '26' => 867,
+        // Starts from 0 (so first generated ticket will be 001 if DB has no previous records)
     ];
 
     /**
