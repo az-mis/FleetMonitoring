@@ -67,6 +67,8 @@ class VehicleRequestController
             'counts' => $counts,
             'selectedLocation' => $location,
             'currentStatus' => $status,
+            'allVehicles' => Vehicle::query()->with('assignedDriver')->orderBy('plate_number')->get(),
+            'allDrivers' => User::where('role', UserRole::DRIVER)->orderBy('name')->get(),
         ]);
     }
 
@@ -175,6 +177,142 @@ class VehicleRequestController
 
         $actionText = $data['status'] === 'approved' ? 'approved.' : 'declined.';
         return back()->with('success', "Request from {$vehicleRequest->requester_name} {$actionText}");
+    }
+
+    public function adminStore(Request $request): RedirectResponse
+    {
+        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
+
+        $isSuperAdmin = $request->user()?->role?->value === 'super_admin';
+        $adminLocation = $request->user()->location;
+
+        $data = $request->validate([
+            'requester_name'        => ['required', 'string', 'max:120'],
+            'requester_office'      => ['nullable', 'string', 'max:150'],
+            'requester_contact'     => ['required', 'string', 'regex:/^09\d{9}$/'],
+            'requester_is_passenger'=> ['nullable', 'boolean'],
+            'location'              => ['required', 'string', 'max:120'],
+            'vehicle_id'            => ['required', 'integer', 'exists:vehicles,id'],
+            'confirmed_driver_id'   => ['nullable', 'integer', 'exists:users,id'],
+            'destination'           => ['required', 'string', 'max:250'],
+            'travel_date'           => ['required', 'date'],
+            'travel_date_end'       => ['required', 'date', 'after_or_equal:travel_date'],
+            'purpose'               => ['required', 'string', 'max:500'],
+            'passengers'            => ['nullable', 'array', 'max:20'],
+            'passengers.*'          => ['string', 'max:120'],
+            'override_conflict'     => ['nullable', 'boolean'],
+        ], [
+            'requester_contact.regex' => 'Contact number must start with 09 and be exactly 11 digits (e.g. 09171234567).',
+        ]);
+
+        // Location guard for regular admins
+        if (!$isSuperAdmin && $data['location'] !== $adminLocation) {
+            return back()->withErrors(['location' => 'You can only create requests for your assigned location.'])->withInput();
+        }
+
+        // Vehicle conflict check (booking overlap with existing approved/pending requests)
+        $overrideConflict = $isSuperAdmin && !empty($data['override_conflict']);
+        if (!$overrideConflict) {
+            $conflictingRequest = VehicleRequest::where('vehicle_id', $data['vehicle_id'])
+                ->whereIn('status', ['pending', 'approved'])
+                ->whereDate('travel_date', '<=', $data['travel_date_end'])
+                ->where(function ($q) use ($data) {
+                    $q->whereDate('travel_date_end', '>=', $data['travel_date'])
+                      ->orWhere(function ($q2) use ($data) {
+                          $q2->whereNull('travel_date_end')
+                             ->whereDate('travel_date', '>=', $data['travel_date']);
+                      });
+                })->first();
+
+            if ($conflictingRequest) {
+                return back()
+                    ->withErrors([
+                        'vehicle_id' => "This vehicle already has a {$conflictingRequest->status} trip from "
+                            . $conflictingRequest->travel_date->format('M j')
+                            . ($conflictingRequest->travel_date_end ? ' – ' . $conflictingRequest->travel_date_end->format('M j, Y') : ', ' . $conflictingRequest->travel_date->format('Y'))
+                            . ". " . ($isSuperAdmin ? 'Check the override box to proceed anyway.' : 'Please choose a different vehicle or dates.'),
+                    ])
+                    ->withInput();
+            }
+        }
+
+        // Require a driver
+        $driverId = $data['confirmed_driver_id'] ?? null;
+        if (!$driverId) {
+            $vehicle = Vehicle::find($data['vehicle_id']);
+            $driverId = $vehicle?->assigned_driver_id;
+        }
+        if (!$driverId) {
+            return back()->withErrors(['confirmed_driver_id' => 'Please select a driver. This vehicle has no default driver assigned.'])->withInput();
+        }
+
+        // Generate unique reference code
+        do {
+            $code = Str::upper(Str::random(7));
+        } while (VehicleRequest::where('reference_code', $code)->exists());
+
+        // Generate trip ticket number
+        $locationAbbreviations = [
+            'Oriental Mindoro'            => 'OR-MIN',
+            'Occidental Mindoro'          => 'OC-MIN',
+            'Marinduque'                  => 'MAR',
+            'Palawan'                     => 'PAL',
+            'Romblon'                     => 'ROM',
+            'Quezon City Satellite Office' => 'QC',
+        ];
+
+        $locationKey = $data['location'];
+        $year  = now()->format('Y');
+        $month = now()->format('m');
+
+        if ($locationKey === 'Palawan') {
+            $yearSuffix = now()->format('y');
+            $sequence   = str_pad((string) $this->nextPalawanSequence($yearSuffix), 3, '0', STR_PAD_LEFT);
+            $ticketNumber = "{$yearSuffix}-{$month}-{$sequence}";
+        } else {
+            $abbr  = $locationAbbreviations[$locationKey] ?? strtoupper(Str::limit(Str::slug($locationKey, ''), 6, ''));
+            $count = VehicleRequest::where('status', 'approved')
+                ->where('location', $locationKey)
+                ->whereYear('approved_at', $year)
+                ->whereMonth('approved_at', $month)
+                ->count();
+            $sequence     = str_pad((string) ($count + 1), 4, '0', STR_PAD_LEFT);
+            $ticketNumber = "FMS-{$abbr}-{$year}-{$month}-{$sequence}";
+        }
+
+        // Normalize passenger names to Title Case
+        $passengers = array_filter(array_map(
+            fn (string $p) => \Modules\VehicleRequest\Support\PersonName::titleCase($p),
+            (array) ($data['passengers'] ?? [])
+        ));
+
+        $vehicleRequest = VehicleRequest::create([
+            'reference_code'         => $code,
+            'requester_name'         => \Modules\VehicleRequest\Support\PersonName::titleCase($data['requester_name']),
+            'location'               => $data['location'],
+            'requester_office'       => $data['requester_office'] ?? null,
+            'requester_contact'      => $data['requester_contact'],
+            'requester_is_passenger' => (bool) ($data['requester_is_passenger'] ?? false),
+            'vehicle_id'             => $data['vehicle_id'],
+            'confirmed_driver_id'    => $driverId,
+            'destination'            => $data['destination'],
+            'travel_date'            => $data['travel_date'],
+            'travel_date_end'        => $data['travel_date_end'],
+            'purpose'                => $data['purpose'],
+            'passengers'             => array_values($passengers) ?: null,
+            'status'                 => 'approved',
+            'trip_ticket_number'     => $ticketNumber,
+            'approved_by'            => $request->user()->id,
+            'approved_at'            => now(),
+        ]);
+
+        return redirect()
+            ->route('vehicle-requests.index', array_filter(['status' => 'approved', 'location' => request('location')]))
+            ->with('manual_request_created', [
+                'requester'   => $vehicleRequest->requester_name,
+                'ticket'      => $ticketNumber,
+                'ticket_url'  => route('trip-ticket', $vehicleRequest),
+            ]);
     }
 
     public function tripTicket(VehicleRequest $vehicleRequest): View

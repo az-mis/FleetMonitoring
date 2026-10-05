@@ -103,9 +103,47 @@
                         @endforeach
                     </div>
                 </div>
+
+                {{-- New Request Button --}}
+                <button
+                    type="button"
+                    onclick="openManualRequestModal()"
+                    class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm hover:bg-[#00432a] transition cursor-pointer"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    <span>New Request</span>
+                </button>
             </div>
         </div>
     </div>
+
+    {{-- Manual Request Created Flash Banner --}}
+    @if(session('manual_request_created'))
+        @php $createdTrip = session('manual_request_created'); @endphp
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-300 bg-emerald-50/90 p-4 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black text-emerald-950">Trip Request Created & Approved Successfully!</h4>
+                    <p class="text-xs text-emerald-800">
+                        Trip Ticket No. <strong class="font-extrabold font-mono text-emerald-900">{{ $createdTrip['ticket'] }}</strong> for <span class="font-bold">{{ $createdTrip['requester'] }}</span>.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ $createdTrip['ticket_url'] }}" target="_blank" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                    Print Trip Ticket
+                </a>
+            </div>
+        </div>
+    @endif
 
     {{-- Stats Cards Row --}}
     <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -907,7 +945,308 @@
         </div>
     </div>
 
+    {{-- Manual Request Entry Modal --}}
+    <div id="manual-request-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-xs overflow-y-auto">
+        <div class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-100 my-8 overflow-hidden">
+            {{-- Header --}}
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-gradient-to-r from-emerald-800 to-emerald-700 text-white">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="12" y1="18" x2="12" y2="12"/>
+                            <line x1="9" y1="15" x2="15" y2="15"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-extrabold text-white">New Manual Trip Request</h3>
+                        <p class="text-xs text-white/80">Enter trip details on behalf of staff (chat, text, or phone request).</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeManualRequestModal()" class="rounded-lg p-1.5 text-white/80 hover:bg-white/20 hover:text-white transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('vehicle-requests.admin-create') }}" id="manual-request-form" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                @csrf
+                <input type="hidden" name="_action" value="admin_manual_create">
+
+                @if($errors->any() && old('_action') === 'admin_manual_create')
+                    <div class="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 shadow-xs">
+                        <div class="font-bold mb-1">Please fix the following issues:</div>
+                        <ul class="list-disc list-inside space-y-0.5">
+                            @foreach($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                {{-- Section 1: Requester Details --}}
+                <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
+                        </svg>
+                        Requester Information
+                    </h4>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Requester Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="requester_name" value="{{ old('requester_name') }}" required placeholder="e.g. Juan Dela Cruz" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Office / Division / Section</label>
+                            <input type="text" name="requester_office" value="{{ old('requester_office') }}" placeholder="e.g. Planning Section, PMED" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
+                            <input type="text" name="requester_contact" value="{{ old('requester_contact') }}" required placeholder="09XXXXXXXXX (11 digits)" pattern="^09\d{9}$" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+
+                        <div class="flex items-center sm:pt-6">
+                            <label class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="requester_is_passenger" value="1" @checked(old('requester_is_passenger', true)) class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-semibold text-slate-700">Requester is also a passenger</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Section 2: Trip & Destination --}}
+                <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        Travel & Destination
+                    </h4>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Pick-up Location / Station <span class="text-red-500">*</span></label>
+                            @php
+                                $isSuperAdmin = auth()->user()?->role?->value === 'super_admin';
+                                $userLoc = auth()->user()?->location;
+                            @endphp
+                            <select name="location" id="manual-req-location" onchange="onManualLocationChange()" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                @if($isSuperAdmin)
+                                    <option value="">— Select Station / Location —</option>
+                                    @foreach($locationOptions as $loc)
+                                        <option value="{{ $loc }}" @selected(old('location', $selectedLocation) === $loc)>{{ $loc }}</option>
+                                    @endforeach
+                                @else
+                                    <option value="{{ $userLoc }}" selected>{{ $userLoc }}</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Destination <span class="text-red-500">*</span></label>
+                            <input type="text" name="destination" value="{{ old('destination') }}" required placeholder="e.g. Puerto Princesa City" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Travel Date (From) <span class="text-red-500">*</span></label>
+                            <input type="date" name="travel_date" id="manual-req-travel-date" value="{{ old('travel_date', now()->format('Y-m-d')) }}" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Travel Date (To) <span class="text-red-500">*</span></label>
+                            <input type="date" name="travel_date_end" id="manual-req-travel-date-end" value="{{ old('travel_date_end', now()->format('Y-m-d')) }}" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Purpose of Travel <span class="text-red-500">*</span></label>
+                            <textarea name="purpose" rows="2" required placeholder="State official purpose or mission of travel..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">{{ old('purpose') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Section 3: Vehicle & Driver Assignment --}}
+                <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+                        </svg>
+                        Vehicle & Driver Assignment
+                    </h4>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Vehicle <span class="text-red-500">*</span></label>
+                            <select name="vehicle_id" id="manual-req-vehicle" onchange="onManualVehicleChange()" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                <option value="">— Select Vehicle —</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Assigned Driver <span class="text-red-500">*</span></label>
+                            <select name="confirmed_driver_id" id="manual-req-driver" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                <option value="">— Select Driver —</option>
+                            </select>
+                        </div>
+
+                        @if($isSuperAdmin)
+                            <div class="sm:col-span-2 pt-1">
+                                <label class="inline-flex items-center gap-2 cursor-pointer bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+                                    <input type="checkbox" name="override_conflict" value="1" class="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                                    <span class="text-xs font-semibold text-amber-900">
+                                        Super Admin Override: Force approval even if there is a schedule conflict on this vehicle
+                                    </span>
+                                </label>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Section 4: Passengers --}}
+                <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            Other Authorized Passengers
+                        </h4>
+                        <button type="button" onclick="addManualPassengerRow()" class="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                            Add Passenger
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-2">List any staff traveling with the team.</p>
+
+                    <div id="manual-passengers-container" class="space-y-2">
+                        {{-- Row template inserted by JS --}}
+                    </div>
+                </div>
+
+                {{-- Form Actions --}}
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeManualRequestModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span>Create & Approve Trip Ticket</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        const allAvailableVehicles = @json($allVehicles ?? []);
+        const allAvailableDrivers = @json($allDrivers ?? []);
+        const oldVehicleId = '{{ old("vehicle_id") }}';
+        const oldDriverId = '{{ old("confirmed_driver_id") }}';
+
+        function openManualRequestModal() {
+            const modal = document.getElementById('manual-request-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                onManualLocationChange();
+            }
+        }
+
+        function closeManualRequestModal() {
+            const modal = document.getElementById('manual-request-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function onManualLocationChange() {
+            const locSelect = document.getElementById('manual-req-location');
+            const vehSelect = document.getElementById('manual-req-vehicle');
+            const drvSelect = document.getElementById('manual-req-driver');
+            if (!locSelect || !vehSelect || !drvSelect) return;
+
+            const selectedLoc = locSelect.value;
+
+            // Filter vehicles
+            const currentVehVal = vehSelect.value || oldVehicleId;
+            vehSelect.innerHTML = '<option value="">— Select Vehicle —</option>';
+            const filteredVehicles = allAvailableVehicles.filter(v => !selectedLoc || v.location === selectedLoc);
+            filteredVehicles.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.textContent = `${v.plate_number} — ${v.brand || ''} ${v.model || ''}`;
+                if (String(v.id) === String(currentVehVal)) {
+                    opt.selected = true;
+                }
+                vehSelect.appendChild(opt);
+            });
+
+            // Filter drivers
+            const currentDrvVal = drvSelect.value || oldDriverId;
+            drvSelect.innerHTML = '<option value="">— Select Driver —</option>';
+            const filteredDrivers = allAvailableDrivers.filter(d => !selectedLoc || d.location === selectedLoc || !d.location);
+            filteredDrivers.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.name;
+                if (String(d.id) === String(currentDrvVal)) {
+                    opt.selected = true;
+                }
+                drvSelect.appendChild(opt);
+            });
+
+            // If a vehicle is selected, sync its driver
+            if (vehSelect.value) {
+                onManualVehicleChange();
+            }
+        }
+
+        function onManualVehicleChange() {
+            const vehSelect = document.getElementById('manual-req-vehicle');
+            const drvSelect = document.getElementById('manual-req-driver');
+            if (!vehSelect || !drvSelect) return;
+
+            const selectedVehId = vehSelect.value;
+            const vehicle = allAvailableVehicles.find(v => String(v.id) === String(selectedVehId));
+            if (vehicle && vehicle.assigned_driver_id && !drvSelect.value) {
+                drvSelect.value = vehicle.assigned_driver_id;
+            }
+        }
+
+        function addManualPassengerRow(value = '') {
+            const container = document.getElementById('manual-passengers-container');
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2';
+            row.innerHTML = `
+                <input type="text" name="passengers[]" value="${value}" placeholder="Passenger Full Name" class="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                <button type="button" onclick="this.parentElement.remove()" class="rounded-lg p-1.5 text-red-500 hover:bg-red-50 transition cursor-pointer" title="Remove">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        @if($errors->any() && old('_action') === 'admin_manual_create')
+            document.addEventListener('DOMContentLoaded', () => {
+                openManualRequestModal();
+                @if(old('passengers'))
+                    @foreach(old('passengers') as $p)
+                        addManualPassengerRow(@json($p));
+                    @endforeach
+                @endif
+            });
+        @endif
+
         let currentModalCode = '';
 
         function openReviewModal(data) {

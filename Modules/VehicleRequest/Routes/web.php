@@ -18,4 +18,5 @@ Route::middleware(['web', 'auth', 'verified'])->get('/travel-history', [VehicleR
 Route::middleware(['web', 'auth', 'verified'])->group(function () {
     Route::get('/vehicle-requests', [VehicleRequestController::class, 'index'])->name('vehicle-requests.index');
     Route::patch('/vehicle-requests/{vehicleRequest}/status', [VehicleRequestController::class, 'updateStatus'])->name('vehicle-requests.status');
+    Route::post('/vehicle-requests/admin-create', [VehicleRequestController::class, 'adminStore'])->name('vehicle-requests.admin-create');
 });
