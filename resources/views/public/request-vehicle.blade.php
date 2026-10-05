@@ -219,11 +219,69 @@ $offices = [
                         </select>
                     </div>
                 </div>
-                <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>To (Destination) <span class="text-emerald-300">*</span></span></label>
-                    <div class="group relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <input name="destination" required value="{{ old('destination') }}" placeholder="e.g. Provincial Capitol, Calapan City" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+                    {{-- Searchable Destination Dropdown with Distance Badges --}}
+                <div class="relative" id="public-dest-dropdown-container">
+                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>To (Destination) <span class="text-emerald-300">*</span></span>
+                    </label>
+
+                    {{-- Hidden inputs --}}
+                    <input type="hidden" name="destination" id="public-dest-name-input" value="{{ old('destination') }}" required>
+                    <input type="hidden" name="distance_km" id="public-dest-distance-input" value="{{ old('distance_km') }}">
+
+                    {{-- Trigger Button --}}
+                    <button
+                        type="button"
+                        id="public-dest-dropdown-trigger"
+                        onclick="togglePublicDestDropdown()"
+                        class="group flex h-9 w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-left text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none transition cursor-pointer relative"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span id="public-dest-dropdown-label" class="truncate {{ old('destination') ? 'text-emerald-100 font-semibold' : 'text-emerald-100/40' }}">
+                            @if(old('destination'))
+                                {{ old('destination') }} {{ old('distance_km') ? '('.old('distance_km').' kms)' : '' }}
+                            @else
+                                — Select destination —
+                            @endif
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-emerald-300/70 transition-transform duration-200" id="public-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </button>
+
+                    {{-- Dropdown Panel --}}
+                    <div
+                        id="public-dest-dropdown-panel"
+                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
+                    >
+                        <div class="relative mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                            </svg>
+                            <input
+                                type="text"
+                                id="public-dest-search-input"
+                                oninput="filterPublicDestOptions()"
+                                placeholder="Search destination..."
+                                class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none"
+                            >
+                        </div>
+
+                        <div id="public-dest-options-list" class="max-h-56 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
+                            {{-- Loaded dynamically via fetchPublicDestinations() --}}
+                        </div>
+                    </div>
+
+                    {{-- Fallback Manual Input (Shown if "Other" is selected) --}}
+                    <div id="public-dest-manual-container" class="mt-2 hidden">
+                        <input
+                            type="text"
+                            id="public-dest-manual-input"
+                            placeholder="Type custom destination..."
+                            oninput="onPublicDestManualInput(this.value)"
+                            class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-3 text-[12px] text-emerald-100 placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"
+                        >
                     </div>
                 </div>
             </div>
@@ -404,7 +462,144 @@ $offices = [
             if (container && !container.contains(e.target)) {
                 closeOfficeDropdown();
             }
+            const destContainer = document.getElementById('public-dest-dropdown-container');
+            if (destContainer && !destContainer.contains(e.target)) {
+                closePublicDestDropdown();
+            }
         });
+
+        // ── Public QR Form: Destination searchable dropdown & distance support ──
+        let currentPublicDestinations = [];
+
+        function loadPublicDestinations() {
+            const locSelect = document.querySelector('select[name="location"]');
+            const location = locSelect?.value || 'Palawan';
+            fetch(`/api/destinations-by-location?location=${encodeURIComponent(location)}`)
+                .then(res => res.json())
+                .then(data => {
+                    currentPublicDestinations = data.destinations || [];
+                    renderPublicDestOptions(currentPublicDestinations);
+                })
+                .catch(err => {
+                    console.error('Failed to load public destinations:', err);
+                    renderPublicDestOptions([]);
+                });
+        }
+
+        function renderPublicDestOptions(destinations) {
+            const list = document.getElementById('public-dest-options-list');
+            if (!list) return;
+
+            let html = `
+                <div onclick="selectPublicDest('', null)" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100/60 hover:bg-emerald-800/40 hover:text-emerald-200 transition" data-label="— select destination —">
+                    <span>— Select destination —</span>
+                </div>
+            `;
+
+            destinations.forEach(d => {
+                const escapedName = (d.name || '').replace(/'/g, "\\'");
+                html += `
+                    <div onclick="selectPublicDest('${escapedName}', ${d.distance_km})" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100 hover:bg-emerald-800/50 hover:text-white transition" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
+                        <span class="font-medium">${d.name}</span>
+                        <span class="inline-flex items-center rounded-md bg-emerald-900/60 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-bold text-emerald-300 shrink-0">
+                            ${d.distance_km} kms
+                        </span>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div onclick="selectPublicDest('OTHER_MANUAL', null)" class="public-dest-option flex cursor-pointer items-center gap-1.5 border-t border-emerald-800/40 mt-1 pt-1.5 px-3 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-800/50 transition" data-label="other type manually">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Other (Type manually)</span>
+                </div>
+            `;
+
+            list.innerHTML = html;
+        }
+
+        function togglePublicDestDropdown() {
+            const panel = document.getElementById('public-dest-dropdown-panel');
+            const chevron = document.getElementById('public-dest-dropdown-chevron');
+            const searchInput = document.getElementById('public-dest-search-input');
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-180');
+                if (searchInput) {
+                    searchInput.value = '';
+                    filterPublicDestOptions();
+                    setTimeout(() => searchInput.focus(), 50);
+                }
+            } else {
+                closePublicDestDropdown();
+            }
+        }
+
+        function closePublicDestDropdown() {
+            const panel = document.getElementById('public-dest-dropdown-panel');
+            const chevron = document.getElementById('public-dest-dropdown-chevron');
+            if (panel) panel.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+
+        function selectPublicDest(name, distanceKm) {
+            const nameInput = document.getElementById('public-dest-name-input');
+            const distInput = document.getElementById('public-dest-distance-input');
+            const labelSpan = document.getElementById('public-dest-dropdown-label');
+            const manualContainer = document.getElementById('public-dest-manual-container');
+            const manualInput = document.getElementById('public-dest-manual-input');
+
+            if (name === 'OTHER_MANUAL') {
+                if (manualContainer) manualContainer.classList.remove('hidden');
+                if (manualInput) {
+                    manualInput.focus();
+                    if (nameInput) nameInput.value = manualInput.value;
+                }
+                if (distInput) distInput.value = '';
+                if (labelSpan) {
+                    labelSpan.textContent = manualInput?.value ? manualInput.value : '— Custom destination —';
+                    labelSpan.className = 'truncate text-emerald-100 font-semibold';
+                }
+            } else {
+                if (manualContainer) manualContainer.classList.add('hidden');
+                if (nameInput) nameInput.value = name;
+                if (distInput) distInput.value = distanceKm !== null && distanceKm !== undefined ? distanceKm : '';
+
+                if (labelSpan) {
+                    if (name) {
+                        const distSuffix = distanceKm !== null && distanceKm !== undefined ? ` (${distanceKm} kms)` : '';
+                        labelSpan.textContent = name + distSuffix;
+                        labelSpan.className = 'truncate text-emerald-100 font-semibold';
+                    } else {
+                        labelSpan.textContent = '— Select destination —';
+                        labelSpan.className = 'truncate text-emerald-100/40';
+                    }
+                }
+            }
+
+            closePublicDestDropdown();
+        }
+
+        function onPublicDestManualInput(val) {
+            const nameInput = document.getElementById('public-dest-name-input');
+            const labelSpan = document.getElementById('public-dest-dropdown-label');
+            if (nameInput) nameInput.value = val;
+            if (labelSpan) {
+                labelSpan.textContent = val ? val : '— Custom destination —';
+            }
+        }
+
+        function filterPublicDestOptions() {
+            const query = (document.getElementById('public-dest-search-input')?.value || '').toLowerCase().trim();
+            const items = document.querySelectorAll('.public-dest-option');
+            items.forEach(item => {
+                const label = (item.dataset.label || '').toLowerCase();
+                const match = !query || label.includes(query);
+                item.classList.toggle('hidden', !match);
+            });
+        }
 
         const locationSelect = document.querySelector('select[name="location"]');
         const stationUrl = "{{ route('request-vehicle.station-availability') }}";
@@ -683,10 +878,14 @@ $offices = [
                 });
         }
 
-        locationSelect.addEventListener('change', () => loadStation(false));
+        locationSelect.addEventListener('change', () => {
+            loadStation(false);
+            loadPublicDestinations();
+        });
         document.addEventListener('DOMContentLoaded', () => {
             rangeConfirmed = Boolean(travelDateInput.value && travelDateEndInput.value);
             loadStation(true);
+            loadPublicDestinations();
         });
 
         // Vehicle cards replace the old dropdown, so guard the submit here.

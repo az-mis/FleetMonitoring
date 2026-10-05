@@ -44,6 +44,7 @@ class StoreVehicleRequest extends FormRequest
             'requesterIsPassenger' => ['nullable', 'boolean'],
             'vehicleId' => ['required', 'integer', 'exists:vehicles,id'],
             'destination' => ['required', 'string', 'max:250'],
+            'distance_km' => ['nullable', 'integer', 'min:0'],
             'travelDate' => ['required', 'date'],
             'travelDateEnd' => ['required', 'date', 'after_or_equal:travelDate'],
             'purpose' => ['required', 'string', 'max:500'],

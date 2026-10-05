@@ -1157,7 +1157,7 @@
                                 $userLoc = $currentUser?->location;
                                 $activeLoc = $userLoc ?: ($selectedLocation ?: 'Quezon City Satellite Office');
                             @endphp
-                            <select name="location" id="manual-req-location" onchange="loadManualStationAvailability()" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <select name="location" id="manual-req-location" onchange="loadManualStationAvailability(); loadAdminDestinations();" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                 @if($isSuperAdmin)
                                     @foreach($locationOptions as $loc)
                                         <option value="{{ $loc }}" @selected(old('location', $activeLoc) === $loc)>{{ $loc }}</option>
@@ -1168,9 +1168,68 @@
                             </select>
                         </div>
 
-                        <div>
+                        {{-- Searchable Destination Dropdown with Distance Badges --}}
+                        <div class="relative" id="admin-dest-dropdown-container">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1">Destination <span class="text-red-500">*</span></label>
-                            <input type="text" name="destination" value="{{ old('destination') }}" required placeholder="e.g. Puerto Princesa City" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            
+                            {{-- Hidden inputs submitted with form --}}
+                            <input type="hidden" name="destination" id="admin-dest-name-input" value="{{ old('destination') }}" required>
+                            <input type="hidden" name="distance_km" id="admin-dest-distance-input" value="{{ old('distance_km') }}">
+
+                            {{-- Trigger Button --}}
+                            <button
+                                type="button"
+                                id="admin-dest-dropdown-trigger"
+                                onclick="toggleAdminDestDropdown()"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition cursor-pointer"
+                            >
+                                <span id="admin-dest-dropdown-label" class="truncate {{ old('destination') ? 'text-slate-800 font-semibold' : 'text-slate-400' }}">
+                                    @if(old('destination'))
+                                        {{ old('destination') }} {{ old('distance_km') ? '('.old('distance_km').' kms)' : '' }}
+                                    @else
+                                        — Select destination —
+                                    @endif
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200" id="admin-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </button>
+
+                            {{-- Dropdown Panel --}}
+                            <div
+                                id="admin-dest-dropdown-panel"
+                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                            >
+                                {{-- Search --}}
+                                <div class="relative mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                                    </svg>
+                                    <input
+                                        type="text"
+                                        id="admin-dest-search-input"
+                                        oninput="filterAdminDestOptions()"
+                                        placeholder="Search destination..."
+                                        class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
+                                    >
+                                </div>
+
+                                {{-- Options List --}}
+                                <div id="admin-dest-options-list" class="max-h-52 overflow-y-auto space-y-0.5 pr-0.5">
+                                    {{-- Dynamically loaded via fetchDestinationsByLocation() --}}
+                                </div>
+                            </div>
+
+                            {{-- Fallback Manual Input (Shown if "Other" is selected) --}}
+                            <div id="admin-dest-manual-container" class="mt-2 hidden">
+                                <input
+                                    type="text"
+                                    id="admin-dest-manual-input"
+                                    placeholder="Type custom destination..."
+                                    oninput="onAdminDestManualInput(this.value)"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none"
+                                >
+                            </div>
                         </div>
 
                         <div class="sm:col-span-2">
@@ -1596,6 +1655,7 @@
             }
 
             loadManualStationAvailability();
+            loadAdminDestinations();
         }
 
         function closeManualRequestModal() {
@@ -1954,7 +2014,140 @@
             if (container && !container.contains(e.target)) {
                 closeAdminOfficeDropdown();
             }
+            const destContainer = document.getElementById('admin-dest-dropdown-container');
+            if (destContainer && !destContainer.contains(e.target)) {
+                closeAdminDestDropdown();
+            }
         });
+
+        // ── Admin Modal: Destination searchable dropdown & distance support ──
+        let currentAdminDestinations = [];
+
+        function loadAdminDestinations() {
+            const location = document.getElementById('manual-req-location')?.value || 'Palawan';
+            fetch(`/api/destinations-by-location?location=${encodeURIComponent(location)}`)
+                .then(res => res.json())
+                .then(data => {
+                    currentAdminDestinations = data.destinations || [];
+                    renderAdminDestOptions(currentAdminDestinations);
+                })
+                .catch(err => {
+                    console.error('Failed to load destinations:', err);
+                    renderAdminDestOptions([]);
+                });
+        }
+
+        function renderAdminDestOptions(destinations) {
+            const list = document.getElementById('admin-dest-options-list');
+            if (!list) return;
+
+            let html = `
+                <div onclick="selectAdminDest('', null)" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-50 transition" data-label="— select destination —">
+                    <span>— Select destination —</span>
+                </div>
+            `;
+
+            destinations.forEach(d => {
+                html += `
+                    <div onclick="selectAdminDest('${escapeJsStr(d.name)}', ${d.distance_km})" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition" data-label="${escapeJsStr((d.name + ' ' + d.distance_km + 'km').toLowerCase())}">
+                        <span class="font-semibold">${escapeJsStr(d.name)}</span>
+                        <span class="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shrink-0">
+                            ${d.distance_km} kms
+                        </span>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div onclick="selectAdminDest('OTHER_MANUAL', null)" class="admin-dest-option flex cursor-pointer items-center gap-1.5 border-t border-slate-100 mt-1 pt-1.5 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition" data-label="other type manually">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Other (Type manually)</span>
+                </div>
+            `;
+
+            list.innerHTML = html;
+        }
+
+        function toggleAdminDestDropdown() {
+            const panel = document.getElementById('admin-dest-dropdown-panel');
+            const chevron = document.getElementById('admin-dest-dropdown-chevron');
+            const searchInput = document.getElementById('admin-dest-search-input');
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+                searchInput.value = '';
+                filterAdminDestOptions();
+                searchInput.focus();
+            } else {
+                closeAdminDestDropdown();
+            }
+        }
+
+        function closeAdminDestDropdown() {
+            const panel = document.getElementById('admin-dest-dropdown-panel');
+            const chevron = document.getElementById('admin-dest-dropdown-chevron');
+            if (panel) panel.classList.add('hidden');
+            if (chevron) chevron.style.transform = '';
+        }
+
+        function selectAdminDest(name, distanceKm) {
+            const nameInput = document.getElementById('admin-dest-name-input');
+            const distInput = document.getElementById('admin-dest-distance-input');
+            const labelSpan = document.getElementById('admin-dest-dropdown-label');
+            const manualContainer = document.getElementById('admin-dest-manual-container');
+            const manualInput = document.getElementById('admin-dest-manual-input');
+
+            if (name === 'OTHER_MANUAL') {
+                if (manualContainer) manualContainer.classList.remove('hidden');
+                if (manualInput) {
+                    manualInput.focus();
+                    if (nameInput) nameInput.value = manualInput.value;
+                }
+                if (distInput) distInput.value = '';
+                if (labelSpan) {
+                    labelSpan.textContent = manualInput?.value ? manualInput.value : '— Custom destination —';
+                    labelSpan.className = 'truncate text-slate-800 font-semibold';
+                }
+            } else {
+                if (manualContainer) manualContainer.classList.add('hidden');
+                if (nameInput) nameInput.value = name;
+                if (distInput) distInput.value = distanceKm !== null && distanceKm !== undefined ? distanceKm : '';
+
+                if (labelSpan) {
+                    if (name) {
+                        const distSuffix = distanceKm !== null && distanceKm !== undefined ? ` (${distanceKm} kms)` : '';
+                        labelSpan.textContent = name + distSuffix;
+                        labelSpan.className = 'truncate text-slate-800 font-semibold';
+                    } else {
+                        labelSpan.textContent = '— Select destination —';
+                        labelSpan.className = 'truncate text-slate-400';
+                    }
+                }
+            }
+
+            closeAdminDestDropdown();
+        }
+
+        function onAdminDestManualInput(val) {
+            const nameInput = document.getElementById('admin-dest-name-input');
+            const labelSpan = document.getElementById('admin-dest-dropdown-label');
+            if (nameInput) nameInput.value = val;
+            if (labelSpan) {
+                labelSpan.textContent = val ? val : '— Custom destination —';
+            }
+        }
+
+        function filterAdminDestOptions() {
+            const query = (document.getElementById('admin-dest-search-input')?.value || '').toLowerCase().trim();
+            const items = document.querySelectorAll('.admin-dest-option');
+            items.forEach(item => {
+                const label = (item.dataset.label || '').toLowerCase();
+                const match = !query || label.includes(query);
+                item.classList.toggle('hidden', !match);
+            });
+        }
 
         function toggleTravelLocationMenu() {
             const menu = document.getElementById('travel-location-menu');

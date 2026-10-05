@@ -336,6 +336,14 @@
                         <span class="sidebar-label">Reports</span>
                     </a>
 
+                    <a href="{{ route('destinations.index') }}" title="Destinations & Distance" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('destinations.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span class="sidebar-label">Destinations</span>
+                    </a>
+
                     @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
                         <a href="{{ route('content-settings') }}" title="Content Settings" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('content-settings*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>

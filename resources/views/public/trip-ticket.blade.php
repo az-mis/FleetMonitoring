@@ -87,7 +87,7 @@
                 <div class="row"><div class="n">2</div><div class="lbl">Government car to be used, Plate No.</div><div class="val">{{ $plateLabel }}</div></div>
                 <div class="row"><div class="n">3</div><div class="lbl">Name of authorized passenger</div><div class="val">{{ $passengersText }}</div></div>
                 <div class="row"><div class="n">4</div><div class="lbl">Duration or Date of travel</div><div class="val">{{ $duration }}</div></div>
-                <div class="row"><div class="n">5</div><div class="lbl">Place or places to be visited</div><div class="val">{{ $requestRecord->destination }}</div></div>
+                <div class="row"><div class="n">5</div><div class="lbl">Place or places to be visited</div><div class="val">{{ $requestRecord->destination }}@if($requestRecord->distance_km) (approx. {{ $requestRecord->distance_km }} km one-way / {{ $requestRecord->distance_km * 2 }} km round-trip)@endif</div></div>
                 <div class="row"><div class="n">6</div><div class="lbl">Purpose :</div><div class="val">{{ $requestRecord->purpose }}</div></div>
                 <div class="row"><div class="n">7</div><div class="lbl">Previous date of Travel Trip Ticket</div><div class="val">{{ $longDate($requestRecord->previous_trip_ticket_date) }}</div></div>
             </div>

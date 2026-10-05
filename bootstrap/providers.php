@@ -10,6 +10,7 @@ use Modules\ApprovingOfficer\Providers\ApprovingOfficerServiceProvider;
 use Modules\Settings\Providers\SettingsServiceProvider;
 use Modules\Maintenance\Providers\MaintenanceServiceProvider;
 use Modules\VehicleReport\Providers\VehicleReportServiceProvider;
+use Modules\Destination\Providers\DestinationServiceProvider;
 
 return [
     AppServiceProvider::class,
@@ -22,4 +23,5 @@ return [
     SettingsServiceProvider::class,
     MaintenanceServiceProvider::class,
     VehicleReportServiceProvider::class,
+    DestinationServiceProvider::class,
 ];

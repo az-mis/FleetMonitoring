@@ -13,7 +13,7 @@ class VehicleRequest extends Model
     protected $fillable = [
         'reference_code', 'requester_name', 'location', 'requester_office',
         'requester_contact', 'requester_is_passenger', 'vehicle_id',
-        'destination', 'travel_date', 'travel_date_end', 'purpose',
+        'destination', 'distance_km', 'travel_date', 'travel_date_end', 'purpose',
         'passengers', 'previous_trip_ticket_date', 'status', 'decline_reason',
         'trip_ticket_number', 'confirmed_driver_id', 'approved_by', 'approved_at',
     ];
@@ -23,6 +23,7 @@ class VehicleRequest extends Model
         return [
             'requester_is_passenger' => 'boolean',
             'passengers' => 'array',
+            'distance_km' => 'integer',
             'travel_date' => 'date',
             'travel_date_end' => 'date',
             'previous_trip_ticket_date' => 'date',
