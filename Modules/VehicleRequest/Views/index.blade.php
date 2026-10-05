@@ -946,12 +946,12 @@
     </div>
 
     {{-- Manual Request Entry Modal --}}
-    <div id="manual-request-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-xs overflow-y-auto">
-        <div class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-100 my-8 overflow-hidden">
-            {{-- Header --}}
-            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-gradient-to-r from-emerald-800 to-emerald-700 text-white">
-                <div class="flex items-center gap-2.5">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white">
+    <div id="manual-request-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+        <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 my-6 overflow-hidden">
+            {{-- Header (Solid Dark Forest Green with crisp white text) --}}
+            <div class="flex items-center justify-between border-b border-[#041d0e] px-6 py-4 bg-[#0a351b] text-white">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/25 text-emerald-300 ring-1 ring-emerald-400/30">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>
@@ -960,11 +960,11 @@
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-extrabold text-white">New Manual Trip Request</h3>
-                        <p class="text-xs text-white/80">Enter trip details on behalf of staff (chat, text, or phone request).</p>
+                        <h3 class="text-base font-extrabold text-white tracking-tight">New Manual Trip Request</h3>
+                        <p class="text-xs text-emerald-100/80">Create and immediately approve a trip ticket on behalf of staff (chat, text, or call).</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeManualRequestModal()" class="rounded-lg p-1.5 text-white/80 hover:bg-white/20 hover:text-white transition cursor-pointer">
+                <button type="button" onclick="closeManualRequestModal()" class="rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/>
                         <line x1="6" y1="6" x2="18" y2="18"/>
@@ -972,7 +972,7 @@
                 </button>
             </div>
 
-            <form method="POST" action="{{ route('vehicle-requests.admin-create') }}" id="manual-request-form" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form method="POST" action="{{ route('vehicle-requests.admin-create') }}" id="manual-request-form" class="p-6 space-y-4 max-h-[82vh] overflow-y-auto">
                 @csrf
                 <input type="hidden" name="_action" value="admin_manual_create">
 
@@ -1034,14 +1034,15 @@
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 mb-1">Pick-up Location / Station <span class="text-red-500">*</span></label>
                             @php
-                                $isSuperAdmin = auth()->user()?->role?->value === 'super_admin';
-                                $userLoc = auth()->user()?->location;
+                                $currentUser = auth()->user();
+                                $isSuperAdmin = $currentUser?->role?->value === 'super_admin';
+                                $userLoc = $currentUser?->location;
+                                $activeLoc = $userLoc ?: ($selectedLocation ?: 'Quezon City Satellite Office');
                             @endphp
-                            <select name="location" id="manual-req-location" onchange="onManualLocationChange()" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <select name="location" id="manual-req-location" onchange="loadManualStationAvailability()" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                 @if($isSuperAdmin)
-                                    <option value="">— Select Station / Location —</option>
                                     @foreach($locationOptions as $loc)
-                                        <option value="{{ $loc }}" @selected(old('location', $selectedLocation) === $loc)>{{ $loc }}</option>
+                                        <option value="{{ $loc }}" @selected(old('location', $activeLoc) === $loc)>{{ $loc }}</option>
                                     @endforeach
                                 @else
                                     <option value="{{ $userLoc }}" selected>{{ $userLoc }}</option>
@@ -1054,6 +1055,24 @@
                             <input type="text" name="destination" value="{{ old('destination') }}" required placeholder="e.g. Puerto Princesa City" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
 
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Purpose of Travel <span class="text-red-500">*</span></label>
+                            <textarea name="purpose" rows="2" required placeholder="State official purpose or mission of travel..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">{{ old('purpose') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Section 3: Interactive Calendar & Date Selection --}}
+                <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-2 flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/>
+                        </svg>
+                        Travel Dates & Schedule Availability
+                    </h4>
+                    <p class="text-[11px] text-slate-500 mb-3">Click on the calendar to select travel dates, then pick an available vehicle below.</p>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mb-3">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 mb-1">Travel Date (From) <span class="text-red-500">*</span></label>
                             <input type="date" name="travel_date" id="manual-req-travel-date" value="{{ old('travel_date', now()->format('Y-m-d')) }}" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
@@ -1063,36 +1082,61 @@
                             <label class="block text-[11px] font-bold text-slate-700 mb-1">Travel Date (To) <span class="text-red-500">*</span></label>
                             <input type="date" name="travel_date_end" id="manual-req-travel-date-end" value="{{ old('travel_date_end', now()->format('Y-m-d')) }}" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
+                    </div>
 
-                        <div class="sm:col-span-2">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Purpose of Travel <span class="text-red-500">*</span></label>
-                            <textarea name="purpose" rows="2" required placeholder="State official purpose or mission of travel..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">{{ old('purpose') }}</textarea>
+                    {{-- Mini-Calendar Widget matching QR Code Form --}}
+                    <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                        <div class="mb-2 flex items-center justify-between">
+                            <button type="button" id="manual-cal-prev" onclick="changeManualMonth(-1)" class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">‹</button>
+                            <span id="manual-cal-month-label" class="text-xs font-extrabold text-slate-800"></span>
+                            <button type="button" id="manual-cal-next" onclick="changeManualMonth(1)" class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">›</button>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center">
+                            @foreach(['S','M','T','W','T','F','S'] as $d)
+                                <div class="py-0.5 text-[10px] font-extrabold text-slate-400">{{ $d }}</div>
+                            @endforeach
+                        </div>
+                        <div id="manual-cal-grid" class="grid grid-cols-7 gap-1 text-center mt-1"></div>
+                        
+                        <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2 text-[10px] font-semibold text-slate-600">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm border border-slate-300 bg-white"></span> Available</span>
+                                <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm bg-emerald-600"></span> Approved Trip</span>
+                                <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm bg-amber-500"></span> Pending Request</span>
+                                <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm bg-red-600"></span> Maintenance</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">Click same date twice for 1-day trip</span>
                         </div>
                     </div>
                 </div>
 
-                {{-- Section 3: Vehicle & Driver Assignment --}}
+                {{-- Section 4: Available Vehicles Cards & Driver --}}
                 <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
-                    <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-2 flex items-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
                         </svg>
-                        Vehicle & Driver Assignment
+                        Vehicle & Driver Selection
                     </h4>
+                    
+                    <p id="manual-vehicle-hint" class="text-xs font-semibold text-slate-700 mb-2.5"></p>
+                    <input type="hidden" name="vehicle_id" id="manual-vehicle-id-input" value="{{ old('vehicle_id') }}" required>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Vehicle <span class="text-red-500">*</span></label>
-                            <select name="vehicle_id" id="manual-req-vehicle" onchange="onManualVehicleChange()" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                <option value="">— Select Vehicle —</option>
-                            </select>
-                        </div>
+                    {{-- Vehicle Cards Grid --}}
+                    <div id="manual-vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1"></div>
 
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Assigned Driver <span class="text-red-500">*</span></label>
+                    {{-- Driver Assignment Dropdown --}}
+                    <div class="mt-4 pt-3 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                                Designated Driver <span class="text-red-500">*</span>
+                            </label>
                             <select name="confirmed_driver_id" id="manual-req-driver" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                 <option value="">— Select Driver —</option>
                             </select>
+                            <p class="mt-1 text-[10.5px] text-slate-500">
+                                Automatically set to the chosen vehicle's default driver. You can change this if designating a substitute driver.
+                            </p>
                         </div>
 
                         @if($isSuperAdmin)
@@ -1108,7 +1152,7 @@
                     </div>
                 </div>
 
-                {{-- Section 4: Passengers --}}
+                {{-- Section 5: Other Passengers --}}
                 <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
                     <div class="flex items-center justify-between mb-2">
                         <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
@@ -1124,9 +1168,7 @@
                     </div>
                     <p class="text-[11px] text-slate-500 mb-2">List any staff traveling with the team.</p>
 
-                    <div id="manual-passengers-container" class="space-y-2">
-                        {{-- Row template inserted by JS --}}
-                    </div>
+                    <div id="manual-passengers-container" class="space-y-2"></div>
                 </div>
 
                 {{-- Form Actions --}}
@@ -1146,18 +1188,296 @@
     </div>
 
     <script>
-        const allAvailableVehicles = @json($allVehicles ?? []);
+        const manualStationUrl = "{{ route('request-vehicle.station-availability') }}";
         const allAvailableDrivers = @json($allDrivers ?? []);
-        const oldVehicleId = '{{ old("vehicle_id") }}';
-        const oldDriverId = '{{ old("confirmed_driver_id") }}';
+        let manualStationVehicles = [];
+        let manualRangeConfirmed = true;
+        let manualPickingEnd = false;
+        let manualViewYear = new Date().getFullYear();
+        let manualViewMonth = new Date().getMonth();
+
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const fmtDay = (k) => new Date(k + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const fmtRange = (a, b) => (a === b ? fmtDay(a) : `${fmtDay(a)} – ${fmtDay(b)}`);
+
+        function toKey(y, m, d) {
+            return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+
+        function eachDateKey(startStr, endStr, cb) {
+            const start = new Date(startStr + 'T00:00:00');
+            const end = endStr ? new Date(endStr + 'T00:00:00') : start;
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                cb(toKey(d.getFullYear(), d.getMonth(), d.getDate()));
+            }
+        }
+
+        const RANK = { pending: 1, approved: 2, maintenance: 3 };
+
+        function manualStationDayMap() {
+            const map = new Map();
+            manualStationVehicles.forEach((v) => {
+                const perVehicle = new Map();
+                (v.bookings || []).forEach((b) => eachDateKey(b.start, b.end, (key) => {
+                    if ((RANK[b.status] || 0) > (RANK[perVehicle.get(key)] || 0)) perVehicle.set(key, b.status);
+                }));
+                perVehicle.forEach((status, key) => {
+                    const cur = map.get(key) || { worst: null, busy: 0 };
+                    cur.busy += 1;
+                    if ((RANK[status] || 0) > (RANK[cur.worst] || 0)) cur.worst = status;
+                    map.set(key, cur);
+                });
+            });
+            return map;
+        }
+
+        function manualConflictFor(vehicle, start, end) {
+            const out = { maintenance: null, approved: null, pending: null };
+            (vehicle.bookings || []).forEach((b) => {
+                if (b.start <= end && start <= b.end && !out[b.status]) {
+                    out[b.status] = b;
+                }
+            });
+            return out;
+        }
+
+        function renderManualCalendar() {
+            const startInput = document.getElementById('manual-req-travel-date');
+            const endInput = document.getElementById('manual-req-travel-date-end');
+            const grid = document.getElementById('manual-cal-grid');
+            const label = document.getElementById('manual-cal-month-label');
+            if (!grid || !label || !startInput) return;
+
+            const map = manualStationDayMap();
+            const start = startInput.value;
+            const end = endInput && endInput.value && endInput.value >= start ? endInput.value : start;
+            const range = start ? { start, end } : null;
+
+            const firstOfMonth = new Date(manualViewYear, manualViewMonth, 1);
+            const daysInMonth = new Date(manualViewYear, manualViewMonth + 1, 0).getDate();
+            label.textContent = firstOfMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+            const colors = { maintenance: '#dc2626', approved: '#16a34a', pending: '#d97706' };
+
+            let html = '';
+            for (let i = 0; i < firstOfMonth.getDay(); i++) {
+                html += '<div class="h-7"></div>';
+            }
+            for (let day = 1; day <= daysInMonth; day++) {
+                const key = toKey(manualViewYear, manualViewMonth, day);
+                const info = map.get(key);
+                const inRange = range && key >= range.start && key <= range.end;
+                const bg = inRange ? '#008751' : (info ? colors[info.worst] : '#ffffff');
+                const color = inRange || info ? '#ffffff' : '#334155';
+                const ring = inRange ? 'ring-2 ring-emerald-500 font-extrabold shadow-xs' : 'border border-slate-200';
+                
+                html += `
+                    <button type="button" onclick="onManualCalDateClick('${key}')" class="h-7 w-full rounded-md text-[11px] font-bold flex items-center justify-center transition cursor-pointer hover:opacity-90 ${ring}" style="background-color:${bg};color:${color};">
+                        ${day}
+                    </button>
+                `;
+            }
+            grid.innerHTML = html;
+        }
+
+        function onManualCalDateClick(key) {
+            const startInput = document.getElementById('manual-req-travel-date');
+            const endInput = document.getElementById('manual-req-travel-date-end');
+            if (!startInput || !endInput) return;
+
+            if (manualPickingEnd && startInput.value && key >= startInput.value) {
+                manualRangeConfirmed = true;
+                endInput.value = key;
+                manualPickingEnd = false;
+            } else {
+                manualRangeConfirmed = false;
+                startInput.value = key;
+                endInput.value = key;
+                manualPickingEnd = true;
+            }
+
+            renderManualCalendar();
+            renderManualVehicleCards();
+        }
+
+        function changeManualMonth(delta) {
+            const next = new Date(manualViewYear, manualViewMonth + delta, 1);
+            manualViewYear = next.getFullYear();
+            manualViewMonth = next.getMonth();
+            renderManualCalendar();
+        }
+
+        const PLACEHOLDER_CAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>`;
+
+        function renderManualVehicleCards() {
+            const cardsBox = document.getElementById('manual-vehicle-cards');
+            const hintBox = document.getElementById('manual-vehicle-hint');
+            const vehicleIdInput = document.getElementById('manual-vehicle-id-input');
+            const startInput = document.getElementById('manual-req-travel-date');
+            const endInput = document.getElementById('manual-req-travel-date-end');
+            if (!cardsBox) return;
+
+            if (!manualStationVehicles.length) {
+                if (hintBox) hintBox.textContent = 'No vehicles registered at this station yet.';
+                cardsBox.innerHTML = '<p class="col-span-full py-4 text-center text-xs text-slate-400">No vehicles stationed at this location.</p>';
+                return;
+            }
+
+            const start = startInput ? startInput.value : '';
+            const end = (endInput && endInput.value && endInput.value >= start) ? endInput.value : start;
+
+            if (!start) {
+                if (hintBox) hintBox.textContent = 'Click a travel date above to view available vehicles.';
+                cardsBox.innerHTML = '<p class="col-span-full py-4 text-center text-xs text-slate-400">Click a travel date on the calendar above to see vehicle availability.</p>';
+                return;
+            }
+
+            if (hintBox) {
+                hintBox.textContent = `Available Vehicles for ${fmtRange(start, end)}:`;
+            }
+
+            const rows = manualStationVehicles.map(v => ({ v, c: manualConflictFor(v, start, end) }));
+            const severity = (c) => (c.maintenance ? 3 : c.approved ? 2 : c.pending ? 1 : 0);
+            const sorted = rows.slice().sort((a, b) => severity(a.c) - severity(b.c) || a.v.plate.localeCompare(b.v.plate));
+
+            cardsBox.innerHTML = sorted.map(({ v, c }) => {
+                const isSelected = String(v.id) === String(vehicleIdInput.value);
+                const hasConflict = Boolean(c.maintenance || c.approved || c.pending);
+                
+                let statusBadge = '';
+                if (c.maintenance) {
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">⛔ Maintenance: ${fmtRange(c.maintenance.start, c.maintenance.end)}</span>`;
+                } else if (c.approved) {
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">⚠ Approved Trip: ${fmtRange(c.approved.start, c.approved.end)}</span>`;
+                } else if (c.pending) {
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">⚠ Pending Request: ${fmtRange(c.pending.start, c.pending.end)}</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">✓ Available</span>`;
+                }
+
+                const borderClass = isSelected 
+                    ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-500' 
+                    : (hasConflict ? 'border-slate-200 bg-slate-50/60 hover:border-slate-300' : 'border-slate-200 bg-white hover:border-emerald-400');
+
+                const photoHtml = v.photo 
+                    ? `<img src="${esc(v.photo)}" alt="${esc(v.plate)}" class="h-14 w-auto max-w-[120px] object-contain rounded-lg">`
+                    : PLACEHOLDER_CAR_SVG;
+
+                const driverInitial = esc((v.driver || '?').trim().charAt(0).toUpperCase());
+                const avatarHtml = v.driver_photo 
+                    ? `<img src="${esc(v.driver_photo)}" alt="${esc(v.driver)}" class="h-5 w-5 rounded-full object-cover">`
+                    : `<span class="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-700">${driverInitial}</span>`;
+
+                return `
+                    <div onclick="selectManualVehicle(${v.id}, ${v.driver_id || 'null'})" class="relative flex flex-col justify-between rounded-xl border-2 p-3 transition cursor-pointer ${borderClass}">
+                        <div class="flex items-center justify-between gap-1 mb-2">
+                            <span class="text-xs font-black tracking-wide text-slate-900">${esc(v.plate)}</span>
+                            ${isSelected ? '<span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-extrabold text-white">✓ Selected</span>' : ''}
+                        </div>
+
+                        <div class="flex items-center gap-3 my-1">
+                            <div class="flex h-14 w-20 shrink-0 items-center justify-center bg-slate-50 rounded-lg p-1">
+                                ${photoHtml}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-slate-800 truncate" title="${esc(v.name)}">${esc(v.name)}</p>
+                                <div class="mt-1 flex items-center gap-1.5 text-[11px] text-slate-600">
+                                    ${avatarHtml}
+                                    <span class="truncate font-medium">${esc(v.driver || 'No assigned driver')}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+                            ${statusBadge}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectManualVehicle(vehicleId, driverId) {
+            const input = document.getElementById('manual-vehicle-id-input');
+            const driverSelect = document.getElementById('manual-req-driver');
+            if (input) input.value = vehicleId;
+            if (driverSelect && driverId) {
+                driverSelect.value = driverId;
+            }
+            renderManualVehicleCards();
+        }
+
+        function populateManualDriverDropdown(selectedLoc) {
+            const drvSelect = document.getElementById('manual-req-driver');
+            if (!drvSelect) return;
+            const currentVal = drvSelect.value || '{{ old("confirmed_driver_id") }}';
+            drvSelect.innerHTML = '<option value="">— Select Driver —</option>';
+            const filteredDrivers = allAvailableDrivers.filter(d => !selectedLoc || d.location === selectedLoc || !d.location);
+            filteredDrivers.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = `${d.name}${d.location ? ' (' + d.location + ')' : ''}`;
+                if (String(d.id) === String(currentVal)) {
+                    opt.selected = true;
+                }
+                drvSelect.appendChild(opt);
+            });
+        }
+
+        function loadManualStationAvailability() {
+            const locSelect = document.getElementById('manual-req-location');
+            const cardsBox = document.getElementById('manual-vehicle-cards');
+            if (!locSelect) return;
+
+            const loc = locSelect.value;
+            if (!loc) {
+                manualStationVehicles = [];
+                renderManualCalendar();
+                renderManualVehicleCards();
+                return;
+            }
+
+            if (cardsBox) {
+                cardsBox.innerHTML = '<p class="col-span-full py-6 text-center text-xs text-slate-400">Loading vehicles for ' + esc(loc) + '...</p>';
+            }
+
+            populateManualDriverDropdown(loc);
+
+            fetch(`${manualStationUrl}?location=${encodeURIComponent(loc)}`)
+                .then(res => res.json())
+                .then(data => {
+                    manualStationVehicles = data.vehicles || [];
+                    renderManualCalendar();
+                    renderManualVehicleCards();
+
+                    const oldVeh = '{{ old("vehicle_id") }}';
+                    if (oldVeh && manualStationVehicles.some(v => String(v.id) === String(oldVeh))) {
+                        const found = manualStationVehicles.find(v => String(v.id) === String(oldVeh));
+                        selectManualVehicle(found.id, found.driver_id);
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load station availability:', err);
+                    if (cardsBox) cardsBox.innerHTML = '<p class="col-span-full py-4 text-center text-xs text-red-500">Failed to load vehicle availability.</p>';
+                });
+        }
 
         function openManualRequestModal() {
             const modal = document.getElementById('manual-request-modal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                onManualLocationChange();
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const startInput = document.getElementById('manual-req-travel-date');
+            const endInput = document.getElementById('manual-req-travel-date-end');
+            if (startInput && !startInput.value) {
+                const todayStr = new Date().toISOString().split('T')[0];
+                startInput.value = todayStr;
+                if (endInput && !endInput.value) {
+                    endInput.value = todayStr;
+                }
             }
+
+            loadManualStationAvailability();
         }
 
         function closeManualRequestModal() {
@@ -1165,60 +1485,6 @@
             if (modal) {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
-            }
-        }
-
-        function onManualLocationChange() {
-            const locSelect = document.getElementById('manual-req-location');
-            const vehSelect = document.getElementById('manual-req-vehicle');
-            const drvSelect = document.getElementById('manual-req-driver');
-            if (!locSelect || !vehSelect || !drvSelect) return;
-
-            const selectedLoc = locSelect.value;
-
-            // Filter vehicles
-            const currentVehVal = vehSelect.value || oldVehicleId;
-            vehSelect.innerHTML = '<option value="">— Select Vehicle —</option>';
-            const filteredVehicles = allAvailableVehicles.filter(v => !selectedLoc || v.location === selectedLoc);
-            filteredVehicles.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.id;
-                opt.textContent = `${v.plate_number} — ${v.brand || ''} ${v.model || ''}`;
-                if (String(v.id) === String(currentVehVal)) {
-                    opt.selected = true;
-                }
-                vehSelect.appendChild(opt);
-            });
-
-            // Filter drivers
-            const currentDrvVal = drvSelect.value || oldDriverId;
-            drvSelect.innerHTML = '<option value="">— Select Driver —</option>';
-            const filteredDrivers = allAvailableDrivers.filter(d => !selectedLoc || d.location === selectedLoc || !d.location);
-            filteredDrivers.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.id;
-                opt.textContent = d.name;
-                if (String(d.id) === String(currentDrvVal)) {
-                    opt.selected = true;
-                }
-                drvSelect.appendChild(opt);
-            });
-
-            // If a vehicle is selected, sync its driver
-            if (vehSelect.value) {
-                onManualVehicleChange();
-            }
-        }
-
-        function onManualVehicleChange() {
-            const vehSelect = document.getElementById('manual-req-vehicle');
-            const drvSelect = document.getElementById('manual-req-driver');
-            if (!vehSelect || !drvSelect) return;
-
-            const selectedVehId = vehSelect.value;
-            const vehicle = allAvailableVehicles.find(v => String(v.id) === String(selectedVehId));
-            if (vehicle && vehicle.assigned_driver_id && !drvSelect.value) {
-                drvSelect.value = vehicle.assigned_driver_id;
             }
         }
 
@@ -1236,16 +1502,43 @@
             container.appendChild(row);
         }
 
-        @if($errors->any() && old('_action') === 'admin_manual_create')
-            document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            const startInput = document.getElementById('manual-req-travel-date');
+            const endInput = document.getElementById('manual-req-travel-date-end');
+
+            if (startInput) {
+                startInput.addEventListener('input', () => {
+                    manualRangeConfirmed = true;
+                    if (endInput && endInput.value && endInput.value < startInput.value) {
+                        endInput.value = startInput.value;
+                    }
+                    const [y, m] = startInput.value.split('-').map(Number);
+                    if (y && m) {
+                        manualViewYear = y;
+                        manualViewMonth = m - 1;
+                    }
+                    renderManualCalendar();
+                    renderManualVehicleCards();
+                });
+            }
+
+            if (endInput) {
+                endInput.addEventListener('input', () => {
+                    manualRangeConfirmed = true;
+                    renderManualCalendar();
+                    renderManualVehicleCards();
+                });
+            }
+
+            @if($errors->any() && old('_action') === 'admin_manual_create')
                 openManualRequestModal();
                 @if(old('passengers'))
                     @foreach(old('passengers') as $p)
                         addManualPassengerRow(@json($p));
                     @endforeach
                 @endif
-            });
-        @endif
+            @endif
+        });
 
         let currentModalCode = '';
 

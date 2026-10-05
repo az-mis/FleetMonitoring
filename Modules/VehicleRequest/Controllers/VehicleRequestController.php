@@ -455,6 +455,7 @@ class VehicleRequestController
                     'name' => trim(($v->brand ?? '').' '.($v->model ?? '')),
                     'photo' => $v->photo_url,
                     'driver' => $v->assignedDriver->name ?? null,
+                    'driver_id' => $v->assigned_driver_id,
                     'driver_photo' => $v->assignedDriver->avatar_url ?? null,
                     'bookings' => $bookings->values(),
                 ];
