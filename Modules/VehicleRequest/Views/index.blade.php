@@ -734,8 +734,8 @@
                             @method('PATCH')
                             <input type="hidden" name="status" id="modal-status-input" value="approved">
 
-                            {{-- Driver Availability Selection --}}
-                            <div>
+                            {{-- Driver Availability Selection (only when the vehicle has a default driver) --}}
+                            <div id="driver-availability-block">
                                 <p class="text-[11px] font-bold text-slate-800 mb-1.5">
                                     Is <span id="modal-driver-name" class="font-extrabold"></span> available for this trip?
                                 </p>
@@ -761,13 +761,14 @@
 
                             {{-- Dropdown for selecting alternative driver when needed --}}
                             <div id="modal-driver-select-container" class="hidden">
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Driver</label>
+                                <label id="modal-driver-select-label" class="block text-[11px] font-bold text-slate-700 mb-1">Select Driver</label>
                                 <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                     <option value="">Select Driver</option>
                                     @foreach($drivers as $driver)
                                         <option value="{{ $driver->id }}" data-location="{{ $driver->location }}">{{ $driver->name }} ({{ $driver->location ?: 'No location' }})</option>
                                     @endforeach
                                 </select>
+                                <p id="modal-driver-error" class="mt-1 hidden text-[11px] font-semibold text-red-600"></p>
                             </div>
 
                             {{-- Decline Reason Container --}}
@@ -1019,7 +1020,20 @@
             if (data.driver_id) { driverSelect.value = data.driver_id; } else { driverSelect.value = ''; }
 
             // Reset pending-form state
+            window.reviewDefaultDriverId = data.driver_id ? String(data.driver_id) : '';
             setDriverAvailability(true);
+            const noDefaultDriver = !window.reviewDefaultDriverId;
+            const driverLabel = document.getElementById('modal-driver-select-label');
+            document.getElementById('driver-availability-block').classList.toggle('hidden', noDefaultDriver);
+            if (noDefaultDriver) {
+                // No default driver: the reviewer MUST pick one, so skip the yes/no question.
+                document.getElementById('modal-driver-select-container').classList.remove('hidden');
+                driverLabel.innerHTML = 'Assign a driver for this trip <span class="text-red-500">*</span> <span class="font-normal text-slate-500">&mdash; this vehicle has no default driver</span>';
+            } else {
+                driverLabel.textContent = 'Select Driver';
+            }
+            document.getElementById('modal-driver-error').classList.add('hidden');
+            driverSelect.onchange = () => document.getElementById('modal-driver-error').classList.add('hidden');
             document.getElementById('modal-decline-reason-container').classList.add('hidden');
             document.getElementById('modal-status-input').value = 'approved';
             const declineBtn = document.getElementById('modal-decline-action-btn');
@@ -1042,6 +1056,21 @@
         }
 
         function openApprovalConfirm() {
+            // A driver must be chosen whenever the picker is showing: either the vehicle
+            // has no default driver, or the reviewer said the default driver is not available.
+            const pickerBox = document.getElementById('modal-driver-select-container');
+            const pickerSel = document.getElementById('modal-driver-select');
+            const pickerErr = document.getElementById('modal-driver-error');
+            if (!pickerBox.classList.contains('hidden') && !pickerSel.value) {
+                pickerErr.textContent = window.reviewDefaultDriverId
+                    ? 'Please select the substitute driver for this trip.'
+                    : 'Please select a driver before approving. This vehicle has no default driver.';
+                pickerErr.classList.remove('hidden');
+                pickerSel.focus();
+                return;
+            }
+            pickerErr.classList.add('hidden');
+
             document.getElementById('confirm-modal-requester').textContent = document.getElementById('modal-detail-requester').textContent;
             document.getElementById('confirm-modal-vehicle').textContent = document.getElementById('modal-detail-vehicle').textContent;
             document.getElementById('confirm-modal-destination').textContent = document.getElementById('modal-detail-destination').textContent;
@@ -1085,6 +1114,13 @@
             const yesBtn = document.getElementById('driver-avail-yes-btn');
             const noBtn = document.getElementById('driver-avail-no-btn');
             const selectContainer = document.getElementById('modal-driver-select-container');
+            const pickSel = document.getElementById('modal-driver-select');
+            const defId = window.reviewDefaultDriverId || '';
+            document.getElementById('modal-driver-error').classList.add('hidden');
+            // "Not available" means someone ELSE must drive: the default driver can't be re-picked.
+            Array.from(pickSel.options).forEach((o) => { o.disabled = !isAvailable && !!o.value && o.value === defId; });
+            if (isAvailable) { if (defId) pickSel.value = defId; }
+            else if (pickSel.value === defId) { pickSel.value = ''; }
 
             if (isAvailable) {
                 yesBtn.className = 'rounded-xl border border-emerald-500 bg-emerald-50 py-2.5 px-3 text-xs font-bold text-emerald-800 shadow-xs transition cursor-pointer';

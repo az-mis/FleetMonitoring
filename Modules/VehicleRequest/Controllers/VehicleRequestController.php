@@ -70,6 +70,36 @@ class VehicleRequestController
         ]);
     }
 
+    /**
+     * Last Palawan trip number already used before this system took over, keyed by
+     * 2-digit year. The next approval continues from this number + 1.
+     * e.g. '26' => 867 means the first number issued in 2026 is 26-MM-868.
+     */
+    private const PALAWAN_SEQUENCE_START = [
+        '26' => 867,
+    ];
+
+    /**
+     * Next Palawan trip sequence for the year: the highest sequence already stored
+     * (so manually edited numbers are respected), or the legacy starting point,
+     * whichever is higher, plus one.
+     */
+    private function nextPalawanSequence(string $yearSuffix): int
+    {
+        $highest = self::PALAWAN_SEQUENCE_START[$yearSuffix] ?? 0;
+
+        VehicleRequest::where('location', 'Palawan')
+            ->where('trip_ticket_number', 'like', $yearSuffix.'-%')
+            ->pluck('trip_ticket_number')
+            ->each(function (string $number) use (&$highest, $yearSuffix): void {
+                if (preg_match('/^'.$yearSuffix.'-\d{2}-(\d+)$/', $number, $m)) {
+                    $highest = max($highest, (int) $m[1]);
+                }
+            });
+
+        return $highest + 1;
+    }
+
     public function updateStatus(Request $request, VehicleRequest $vehicleRequest): RedirectResponse
     {
         abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
@@ -85,6 +115,12 @@ class VehicleRequestController
         ];
         if ($data['status'] === 'approved') {
             abort_unless(!$data['confirmed_driver_id'] || User::whereKey($data['confirmed_driver_id'])->where('role', UserRole::DRIVER)->exists(), 422);
+
+            // Never approve a trip nobody will drive: if the vehicle has no default driver,
+            // the reviewer has to pick one for this trip.
+            if (empty($data['confirmed_driver_id']) && ! $vehicleRequest->vehicle?->assigned_driver_id) {
+                return back()->with('error', 'Please select a driver for this trip. This vehicle has no default driver assigned.');
+            }
 
             if (!$vehicleRequest->trip_ticket_number) {
                 // Location abbreviation map
@@ -104,16 +140,13 @@ class VehicleRequestController
 
                 if ($locationKey === 'Palawan') {
                     // Palawan uses its own numbering scheme, per client request:
-                    // {2-digit year}-{2-digit month}-{3-digit sequence}, e.g. 26-09-001.
-                    // The sequence counts every approved Palawan request for the whole
-                    // calendar year (not just the current month) and resets to 001 every January.
-                    $count = VehicleRequest::where('status', 'approved')
-                        ->where('location', $locationKey)
-                        ->whereYear('approved_at', $year)
-                        ->count();
-
-                    $sequence = str_pad((string) ($count + 1), 3, '0', STR_PAD_LEFT);
+                    // {2-digit year}-{2-digit month}-{3-digit sequence}, e.g. 26-09-868.
+                    // The sequence runs for the whole calendar year (not per month) and
+                    // resets to 001 every January. It continues from the highest number
+                    // already issued this year, and never starts below the last number
+                    // Palawan used before this system (see PALAWAN_SEQUENCE_START).
                     $yearSuffix = now()->format('y');
+                    $sequence = str_pad((string) $this->nextPalawanSequence($yearSuffix), 3, '0', STR_PAD_LEFT);
 
                     $updates['trip_ticket_number'] = "{$yearSuffix}-{$month}-{$sequence}";
                 } else {
