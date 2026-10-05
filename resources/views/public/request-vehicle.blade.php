@@ -5,16 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Request a Vehicle</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        /* ── Phone-friendly form (screens under 640px) ─────────────────────────
+           - 16px input text stops iOS Safari from zooming the page on focus
+           - 44px controls are comfortable to tap with a thumb */
+        @media (max-width: 639px) {
+            body { overflow-x: hidden; }
+            form input:not([type="hidden"]):not([type="checkbox"]),
+            form select,
+            form textarea { font-size: 16px !important; }
+            form input:not([type="hidden"]):not([type="checkbox"]),
+            form select,
+            #office-dropdown-trigger { height: 44px !important; }
+            #office-dropdown-trigger { font-size: 14px !important; }
+            form textarea { min-height: 120px; }
+            /* iOS renders native date fields wider than their box unless told otherwise */
+            form input[type="date"] { min-width: 0; max-width: 100%; -webkit-appearance: none; appearance: none; }
+            form input[type="checkbox"] { width: 20px !important; height: 20px !important; }
+            .office-option-item { padding-top: 12px !important; padding-bottom: 12px !important; font-size: 14px !important; }
+            #office-options-list { max-height: 45vh !important; }
+            /* calendar */
+            #cal-prev, #cal-next { width: 40px !important; height: 40px !important; }
+            #cal-grid button { min-height: 38px; font-size: 13px !important; }
+            /* passengers */
+            #passenger-list input { padding-right: 46px !important; }
+            [data-remove-passenger] { width: 32px !important; height: 32px !important; right: 8px !important; }
+            #add-passenger { padding: 10px 0; }
+            /* vehicle cards: keep them a single readable column */
+            #vehicle-cards { grid-template-columns: 1fr !important; }
+            button, a, select { touch-action: manipulation; }
+        }
+    </style>
 </head>
 <body class="relative min-h-screen bg-[#082b16] text-white antialiased">
     {{-- Fixed Full-screen Background --}}
     <div class="fixed inset-0 -z-10 bg-cover bg-center bg-fixed" style="background-image:linear-gradient(rgba(5,38,18,.68),rgba(5,38,18,.78)),url('{{ asset('FleetMS-bg.jpg') }}');"></div>
 
-<main class="min-h-screen px-4 py-6 sm:px-8">
-    <div class="mx-auto max-w-2xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-5 shadow-2xl backdrop-blur-sm sm:p-6">
-        <nav class="mb-4 flex items-center justify-between border-b border-emerald-200/15 pb-3 text-xs text-emerald-100/75">
+<main class="min-h-screen px-3 py-4 sm:px-8 sm:py-6">
+    <div class="mx-auto max-w-2xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-4 shadow-2xl backdrop-blur-sm sm:p-6">
+        <nav class="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-emerald-200/15 pb-3 text-xs text-emerald-100/75">
             <a href="{{ route('check-status') }}" class="hover:text-white">⌕ Check Request Status</a>
-            <span class="rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 font-semibold uppercase tracking-wide text-emerald-300">▣ Public Request Form</span>
+            <span class="hidden rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 font-semibold uppercase tracking-wide text-emerald-300 sm:inline-block">▣ Public Request Form</span>
             <a href="{{ route('login') }}" class="hover:text-white">Staff Login →</a>
         </nav>
         <div class="mb-4 flex items-center gap-2.5">
