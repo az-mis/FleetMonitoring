@@ -57,7 +57,8 @@
             </form>
 
             <div class="flex flex-wrap items-center gap-2">
-                {{-- Location filter dropdown --}}
+                {{-- Location filter dropdown — Super Admin only --}}
+                @if(auth()->user()?->role?->value === 'super_admin')
                 <div class="relative" id="travel-location-dropdown">
                     <button
                         type="button"
@@ -103,6 +104,7 @@
                         @endforeach
                     </div>
                 </div>
+                @endif
 
                 {{-- New Request Button --}}
                 <button
@@ -947,11 +949,11 @@
 
     {{-- Manual Request Entry Modal --}}
     <div id="manual-request-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
-        <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 my-6 overflow-hidden">
-            {{-- Header (Solid Dark Forest Green with crisp white text) --}}
-            <div class="flex items-center justify-between border-b border-[#041d0e] px-6 py-4 bg-[#0a351b] text-white">
+        <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 my-6 overflow-hidden max-h-[90vh] flex flex-col">
+            {{-- Header (Clean, Crisp, High-Contrast) --}}
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-white shrink-0">
                 <div class="flex items-center gap-3">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/25 text-emerald-300 ring-1 ring-emerald-400/30">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>
@@ -960,11 +962,11 @@
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-extrabold text-white tracking-tight">New Manual Trip Request</h3>
-                        <p class="text-xs text-emerald-100/80">Create and immediately approve a trip ticket on behalf of staff (chat, text, or call).</p>
+                        <h3 class="text-base font-black text-slate-900 tracking-tight">New Manual Trip Request</h3>
+                        <p class="text-xs font-medium text-slate-500">Create and immediately approve a trip ticket on behalf of staff (chat, text, or call).</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeManualRequestModal()" class="rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition cursor-pointer">
+                <button type="button" onclick="closeManualRequestModal()" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer" aria-label="Close modal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/>
                         <line x1="6" y1="6" x2="18" y2="18"/>
@@ -972,7 +974,7 @@
                 </button>
             </div>
 
-            <form method="POST" action="{{ route('vehicle-requests.admin-create') }}" id="manual-request-form" class="p-6 space-y-4 max-h-[82vh] overflow-y-auto">
+            <form method="POST" action="{{ route('vehicle-requests.admin-create') }}" id="manual-request-form" class="p-6 space-y-4 overflow-y-auto flex-1">
                 @csrf
                 <input type="hidden" name="_action" value="admin_manual_create">
 
