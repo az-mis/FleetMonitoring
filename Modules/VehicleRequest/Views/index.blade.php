@@ -1016,7 +1016,7 @@
                                 type="button"
                                 id="admin-office-dropdown-trigger"
                                 onclick="toggleAdminOfficeDropdown()"
-                                class="flex h-[34px] w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 text-left text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition cursor-pointer"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition cursor-pointer"
                             >
                                 <span id="admin-office-dropdown-label" class="truncate {{ old('requester_office') ? 'text-slate-800' : 'text-slate-400' }}">
                                     {{ old('requester_office') ?: '— Select office / division —' }}
