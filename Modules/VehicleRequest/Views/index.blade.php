@@ -1550,21 +1550,23 @@
 
                 return `
                     <div onclick="selectManualVehicle(${v.id}, ${v.driver_id || 'null'})" class="relative flex flex-col justify-between rounded-xl border-2 p-3 transition cursor-pointer ${borderClass}">
-                        <div class="flex items-center justify-between gap-1 mb-2">
-                            <span class="text-xs font-black tracking-wide text-slate-900">${esc(v.plate)}</span>
-                            ${isSelected ? '<span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-extrabold text-white">✓ Selected</span>' : ''}
+                        {{-- Top Header: Designated Driver Name --}}
+                        <div class="flex items-center justify-between gap-1 mb-2 pb-1.5 border-b border-slate-100">
+                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                                ${avatarHtml}
+                                <span class="truncate text-xs font-bold text-slate-800" title="${esc(v.driver || 'No assigned driver')}">${esc(v.driver || 'No assigned driver')}</span>
+                            </div>
+                            ${isSelected ? '<span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-extrabold text-white shrink-0">✓ Selected</span>' : ''}
                         </div>
 
+                        {{-- Body: Vehicle Photo (left) + Brand/Model & Larger Plate Number (right) --}}
                         <div class="flex items-center gap-3 my-1">
                             <div class="flex h-14 w-20 shrink-0 items-center justify-center bg-slate-50 rounded-lg p-1">
                                 ${photoHtml}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-slate-800 truncate" title="${esc(v.name)}">${esc(v.name)}</p>
-                                <div class="mt-1 flex items-center gap-1.5 text-[11px] text-slate-600">
-                                    ${avatarHtml}
-                                    <span class="truncate font-medium">${esc(v.driver || 'No assigned driver')}</span>
-                                </div>
+                                <p class="text-sm font-black tracking-wide text-slate-900">${esc(v.plate)}</p>
+                                <p class="text-[11px] font-semibold text-slate-500 truncate mt-0.5" title="${esc(v.name)}">${esc(v.name)}</p>
                             </div>
                         </div>
 

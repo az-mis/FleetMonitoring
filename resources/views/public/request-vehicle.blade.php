@@ -763,30 +763,48 @@ $offices = [
                 const blocked = Boolean(c.maintenance);
                 let note = '';
                 if (c.maintenance) {
-                    note = { bg: 'rgba(185,28,28,.55)', head: '⛔ Under maintenance', sub: `${esc(c.maintenance.title || '')} · ${fmtRange(c.maintenance.start, c.maintenance.end)}` };
+                    note = { bg: 'rgba(185,28,28,.65)', head: '⛔ Maintenance: ' + fmtRange(c.maintenance.start, c.maintenance.end) };
                 } else if (c.approved) {
-                    note = { bg: 'rgba(185,28,28,.45)', head: '⚠ Already approved', sub: fmtRange(c.approved.start, c.approved.end) };
+                    note = { bg: 'rgba(185,28,28,.55)', head: '⚠ Approved Trip: ' + fmtRange(c.approved.start, c.approved.end) };
                 } else if (c.pending) {
-                    note = { bg: 'rgba(221,107,32,.5)', head: '⚠ Pending request', sub: fmtRange(c.pending.start, c.pending.end) };
+                    note = { bg: 'rgba(217,119,6,.6)', head: '⚠ Pending Request: ' + fmtRange(c.pending.start, c.pending.end) };
+                } else {
+                    note = { bg: 'rgba(16,185,129,.25)', head: '✓ Available', textClr: '#6ee7b7' };
                 }
-                const border = isSelected ? '#72ebb0' : (note ? 'rgba(252,165,165,.55)' : 'rgba(167,243,208,.3)');
+
+                const border = isSelected ? '#34d399' : (blocked ? 'rgba(239,68,68,.4)' : 'rgba(255,255,255,.15)');
                 const photo = v.photo
-                    ? `<img src="${esc(v.photo)}" alt="${esc(v.plate)}" style="width:auto;max-width:100%;height:84px;object-fit:cover;border-radius:8px;">`
+                    ? `<img src="${esc(v.photo)}" alt="${esc(v.plate)}" style="width:auto;max-width:100%;height:56px;object-fit:contain;border-radius:6px;">`
                     : PLACEHOLDER_SVG;
+
                 const initial = esc((v.driver || '?').trim().charAt(0).toUpperCase());
                 const avatar = v.driver_photo
-                    ? `<img src="${esc(v.driver_photo)}" alt="${esc(v.driver)}" style="width:32px;height:32px;border-radius:999px;object-fit:cover;border:2px solid #6ee7b7;flex-shrink:0;">`
-                    : `<span style="width:32px;height:32px;border-radius:999px;background:${v.driver ? '#059669' : 'rgba(255,255,255,.18)'};border:2px solid ${v.driver ? '#6ee7b7' : 'rgba(255,255,255,.3)'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;">${v.driver ? initial : '?'}</span>`;
-                const driverBadge = `<span title="Assigned driver" style="max-width:100%;display:flex;align-items:center;gap:6px;background:rgba(3,25,12,.85);border:1px solid rgba(110,231,183,.45);border-radius:999px;padding:3px 10px 3px 3px;">${avatar}<span style="min-width:0;line-height:1.15;text-align:left;"><span style="display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(167,243,208,.75);">Driver</span><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:700;">${esc(v.driver || 'Not assigned')}</span></span></span>`;
-                return `<button type="button" data-vehicle="${v.id}" ${blocked ? 'disabled' : ''} style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:8px;border-radius:14px;border:2px solid ${border};background:${isSelected ? 'rgba(16,185,129,.22)' : 'rgba(0,0,0,.25)'};color:#fff;text-align:center;font-family:inherit;cursor:${blocked ? 'not-allowed' : 'pointer'};opacity:${blocked ? .6 : 1};">
-                    <div style="width:100%;flex-shrink:0;display:flex;justify-content:${isSelected ? 'space-between' : 'flex-end'};align-items:center;gap:4px;">
-                        ${isSelected ? '<span style="font-size:10px;font-weight:800;background:#10b981;color:#052e16;border-radius:999px;padding:1px 7px;">✓ Selected</span>' : ''}
-                        ${driverBadge}
+                    ? `<img src="${esc(v.driver_photo)}" alt="${esc(v.driver)}" style="width:20px;height:20px;border-radius:999px;object-fit:cover;flex-shrink:0;">`
+                    : `<span style="width:20px;height:20px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;color:#fff;">${v.driver ? initial : '?'}</span>`;
+
+                return `<button type="button" data-vehicle="${v.id}" ${blocked ? 'disabled' : ''} style="position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:10px;border-radius:14px;border:2px solid ${border};background:${isSelected ? 'rgba(16,185,129,.28)' : 'rgba(4,29,14,.75)'};color:#fff;text-align:left;font-family:inherit;cursor:${blocked ? 'not-allowed' : 'pointer'};opacity:${blocked ? .65 : 1};transition:all .15s ease;">
+                    <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:8px;">
+                        <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
+                            ${avatar}
+                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:700;color:${v.driver ? '#ecfdf5' : 'rgba(255,255,255,.5)'};" title="${esc(v.driver || 'No assigned driver')}">${esc(v.driver || 'No assigned driver')}</span>
+                        </div>
+                        ${isSelected ? '<span style="font-size:10px;font-weight:800;background:#10b981;color:#052e16;border-radius:999px;padding:1px 7px;flex-shrink:0;">✓ Selected</span>' : ''}
                     </div>
-                    <div style="width:100%;height:92px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">${photo}</div>
-                    <div style="width:100%;margin-top:auto;">
-                        <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;min-width:0;white-space:nowrap;"><span style="font-size:14px;font-weight:800;letter-spacing:.04em;flex-shrink:0;">${esc(v.plate)}</span><span title="${esc(v.name)}" style="font-size:10px;color:rgba(209,250,229,.75);overflow:hidden;text-overflow:ellipsis;min-width:0;">${esc(v.name)}</span></div>
-                        ${note ? `<div style="margin-top:6px;border-radius:8px;padding:4px 6px;line-height:1.25;background:${note.bg};color:#fff;"><div style="font-size:10.5px;font-weight:800;">${note.head}</div><div style="font-size:9.5px;font-weight:600;opacity:.92;">${note.sub}</div></div>` : ''}
+
+                    <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                        <div style="width:72px;height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border-radius:8px;padding:2px;">
+                            ${photo}
+                        </div>
+                        <div style="min-width:0;flex:1;text-align:left;">
+                            <div style="font-size:14px;font-weight:900;letter-spacing:.03em;color:#ffffff;line-height:1.2;">${esc(v.plate)}</div>
+                            <div style="font-size:11px;font-weight:600;color:rgba(209,250,229,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;" title="${esc(v.name)}">${esc(v.name)}</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:8px;padding-top:4px;">
+                        <div style="display:inline-flex;align-items:center;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:800;background:${note.bg};color:${note.textClr || '#fff'};">
+                            ${note.head}
+                        </div>
                     </div>
                 </button>`;
             }).join('');
