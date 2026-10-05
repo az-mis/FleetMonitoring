@@ -54,35 +54,36 @@
                         <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-amber-50/80 p-2 border border-amber-200/80 shadow-xs">
                             <img id="logoPreview" src="{{ $customLogoUrl ?? asset('da-logo.png') }}" alt="Current logo" class="h-full w-full object-contain">
                         </div>
-                        <div class="space-y-2">
+                        <div class="min-w-0 space-y-3">
                             <div>
-                                <p class="text-xs font-extrabold text-slate-800">System Brand Identifier</p>
-                                <p class="text-[11px] text-slate-400">Recommended size: Square PNG or SVG (Max 4MB)</p>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="text-xs font-extrabold text-slate-800">System Brand Identifier</p>
+                                    {{-- Status tag (not a button): shows which logo is live --}}
+                                    @if($customLogoUrl)
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Custom logo
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 ring-1 ring-slate-200">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Default logo
+                                        </span>
+                                    @endif
+                                </div>
+                                <p class="mt-0.5 text-[11px] text-slate-400">Recommended size: Square PNG or SVG (Max 4MB)</p>
                             </div>
-                            <div class="flex flex-wrap items-center gap-2 pt-0.5">
-                                @if($customLogoUrl)
-                                    <span class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                        Custom Logo Active
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 rounded-lg bg-slate-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                        Default Logo Active
-                                    </span>
-                                @endif
 
-                                {{-- Replace Button --}}
-                                <label for="logoInput" class="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-emerald-700 px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-emerald-800 transition">
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                                {{-- Main action --}}
+                                <label for="logoInput" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-1.5 text-[11px] font-bold text-white shadow-xs transition hover:bg-emerald-800">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                    Replace Logo
+                                    {{ $customLogoUrl ? 'Replace Logo' : 'Upload Custom Logo' }}
                                 </label>
 
-                                {{-- Remove Button (only if custom logo) --}}
+                                {{-- Secondary action: quiet text link, only when a custom logo exists --}}
                                 @if($customLogoUrl)
-                                    <button type="button" id="openRemoveModalBtn" class="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-red-100 px-2.5 py-1 text-[11px] font-bold text-red-600 shadow-xs hover:bg-red-200 transition">
+                                    <button type="button" id="openRemoveModalBtn" class="inline-flex cursor-pointer items-center gap-1 text-[11px] font-bold text-red-600 transition hover:text-red-700 hover:underline">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-                                        Remove
+                                        Remove custom logo
                                     </button>
                                 @endif
                             </div>
