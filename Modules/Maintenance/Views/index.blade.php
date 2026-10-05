@@ -352,19 +352,53 @@
                 <b>Created from driver report:</b> <span id="source-report-banner-text"></span> You can edit every field below before saving.
             </div>
 
-            {{-- Vehicle --}}
-            <div>
+            {{-- Vehicle (custom picker so every option can show the vehicle's photo) --}}
+            <div class="relative" id="vehicle-picker">
                 <label class="mb-1 block text-xs font-bold text-gray-600">Vehicle <span class="text-red-500">*</span></label>
-                <select name="vehicle_id" id="field-vehicle-id" required
-                    onchange="onVehicleChange(this.value)"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+
+                {{-- The real field: keeps required-validation, setField() and form submit working --}}
+                <select name="vehicle_id" id="field-vehicle-id" required tabindex="-1" aria-hidden="true"
+                    class="pointer-events-none absolute bottom-0 left-0 h-px w-full opacity-0">
                     <option value="">Select vehicle</option>
                     @foreach($vehicles as $v)
-                        <option value="{{ $v->id }}" data-location="{{ $v->location }}">
-                            {{ $v->plate_number }} – {{ $v->brand }} {{ $v->model }}
-                        </option>
+                        <option value="{{ $v->id }}" data-location="{{ $v->location }}">{{ $v->plate_number }} – {{ $v->brand }} {{ $v->model }}</option>
                     @endforeach
                 </select>
+
+                <button type="button" id="vehicle-picker-trigger" onclick="toggleVehiclePicker()"
+                    class="flex w-full items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                    <span id="vehicle-picker-thumb" class="hidden h-9 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-white"></span>
+                    <span id="vehicle-picker-label" class="min-w-0 flex-1 truncate text-gray-400">Select vehicle</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+
+                <div id="vehicle-picker-panel" class="absolute left-0 right-0 z-50 mt-1 hidden rounded-xl border border-gray-200 bg-white p-2 shadow-xl">
+                    <input type="text" id="vehicle-picker-search" oninput="filterVehiclePicker()" placeholder="Search plate or model..."
+                        class="mb-2 w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                    <div class="max-h-64 space-y-0.5 overflow-y-auto">
+                        @foreach($vehicles as $v)
+                            <button type="button" onclick="pickVehicle('{{ $v->id }}')"
+                                class="vehicle-picker-option flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition hover:bg-emerald-50"
+                                data-id="{{ $v->id }}"
+                                data-plate="{{ $v->plate_number }}"
+                                data-model="{{ trim($v->brand.' '.$v->model) }}"
+                                data-search="{{ strtolower($v->plate_number.' '.$v->brand.' '.$v->model.' '.$v->location) }}">
+                                <span class="vp-thumb flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-white">
+                                    @if($v->photo_url)
+                                        <img src="{{ $v->photo_url }}" alt="" class="h-full w-full object-contain">
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+                                    @endif
+                                </span>
+                                <span class="min-w-0">
+                                    <span class="block text-sm font-bold text-gray-900">{{ $v->plate_number }}</span>
+                                    <span class="block truncate text-xs text-gray-500">{{ trim($v->brand.' '.$v->model) }}@if($v->location) &middot; {{ $v->location }}@endif</span>
+                                </span>
+                            </button>
+                        @endforeach
+                        <p id="vehicle-picker-empty" class="hidden px-3 py-4 text-center text-xs text-gray-400">No vehicles found.</p>
+                    </div>
+                </div>
             </div>
 
             {{-- Existing active maintenance warning --}}
@@ -679,7 +713,67 @@ function openMaintenanceModalFromReport(report) {
 function setField(name, value) {
     const el = document.getElementById(`field-${name.replace(/_/g,'-')}`);
     if (el) el.value = value ?? '';
+    if (name === 'vehicle_id') syncVehiclePicker();
 }
+
+// ── Vehicle picker (dropdown with photos) ──────────────────────────────────
+function toggleVehiclePicker(force) {
+    const panel = document.getElementById('vehicle-picker-panel');
+    const open  = typeof force === 'boolean' ? force : panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !open);
+    if (open) {
+        const search = document.getElementById('vehicle-picker-search');
+        search.value = '';
+        filterVehiclePicker();
+        setTimeout(() => search.focus(), 0);
+    }
+}
+
+function filterVehiclePicker() {
+    const q = document.getElementById('vehicle-picker-search').value.trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll('.vehicle-picker-option').forEach(opt => {
+        const match = !q || opt.dataset.search.includes(q);
+        opt.classList.toggle('hidden', !match);
+        if (match) shown++;
+    });
+    document.getElementById('vehicle-picker-empty').classList.toggle('hidden', shown > 0);
+}
+
+function pickVehicle(id) {
+    document.getElementById('field-vehicle-id').value = id;
+    syncVehiclePicker();
+    toggleVehiclePicker(false);
+    onVehicleChange(id);
+}
+
+// Make the visible button reflect whatever the hidden <select> currently holds.
+function syncVehiclePicker() {
+    const sel   = document.getElementById('field-vehicle-id');
+    const thumb = document.getElementById('vehicle-picker-thumb');
+    const label = document.getElementById('vehicle-picker-label');
+    if (!sel || !thumb || !label) return;
+    const opt = sel.value ? document.querySelector(`.vehicle-picker-option[data-id="${sel.value}"]`) : null;
+    if (!opt) {
+        thumb.classList.add('hidden');
+        thumb.classList.remove('flex');
+        label.className = 'min-w-0 flex-1 truncate text-gray-400';
+        label.textContent = 'Select vehicle';
+        return;
+    }
+    thumb.innerHTML = opt.querySelector('.vp-thumb').innerHTML;
+    thumb.classList.remove('hidden');
+    thumb.classList.add('flex');
+    label.className = 'min-w-0 flex-1 truncate';
+    label.innerHTML = `<span class="font-bold text-gray-900">${escHtml(opt.dataset.plate)}</span> <span class="text-gray-500">${escHtml(opt.dataset.model)}</span>`;
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#vehicle-picker')) toggleVehiclePicker(false);
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') toggleVehiclePicker(false);
+});
 
 // ── Vehicle change: show active maintenance warning ───────────────────────
 function onVehicleChange(vehicleId, excludeId = null) {
