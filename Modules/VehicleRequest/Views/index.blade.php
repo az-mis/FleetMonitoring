@@ -2048,9 +2048,10 @@
             `;
 
             destinations.forEach(d => {
+                const escapedName = (d.name || '').replace(/'/g, "\\'");
                 html += `
-                    <div onclick="selectAdminDest('${escapeJsStr(d.name)}', ${d.distance_km})" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition" data-label="${escapeJsStr((d.name + ' ' + d.distance_km + 'km').toLowerCase())}">
-                        <span class="font-semibold">${escapeJsStr(d.name)}</span>
+                    <div onclick="selectAdminDest('${escapedName}', ${d.distance_km})" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
+                        <span class="font-semibold">${d.name}</span>
                         <span class="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shrink-0">
                             ${d.distance_km} kms
                         </span>
