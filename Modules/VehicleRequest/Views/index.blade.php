@@ -1368,8 +1368,8 @@
 
     {{-- ===== Confirmation Modal for Create & Approve Trip Ticket ===== --}}
     <div id="manual-confirm-modal"
-         class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-         style="display:none!important; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px);">
+         class="fixed inset-0 flex items-center justify-center p-4"
+         style="display:none!important; z-index:999999; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
         <div class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
 
             {{-- Header --}}
@@ -1412,6 +1412,14 @@
                         <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Vehicle</span>
                         <span id="mcs-vehicle" class="text-slate-800 font-bold break-words min-w-0">—</span>
                     </div>
+                    <div class="flex items-start gap-2 px-3 py-2.5">
+                        <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Driver</span>
+                        <span id="mcs-driver" class="text-slate-800 font-bold break-words min-w-0">—</span>
+                    </div>
+                    <div id="mcs-passengers-row" class="flex items-start gap-2 px-3 py-2.5">
+                        <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Passengers</span>
+                        <span id="mcs-passengers" class="text-slate-800 font-bold break-words min-w-0">—</span>
+                    </div>
                 </div>
             </div>
 
@@ -1419,14 +1427,14 @@
             <div class="flex items-center justify-end gap-2 px-5 py-3.5 bg-slate-50 border-t border-slate-100">
                 <button type="button" onclick="closeManualConfirmModal()"
                     class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
-                    Go Back & Review
+                    Go Back &amp; Review
                 </button>
                 <button type="button" onclick="confirmAndSubmitManual()"
                     class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    Yes, Create & Approve
+                    Yes, Create &amp; Approve
                 </button>
             </div>
         </div>
@@ -2318,45 +2326,55 @@
         }
 
         // ===== Confirmation Modal Functions =====
+
+        // Title-case helper
+        const toTitleCase = (str) => str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+
         function showManualConfirmModal() {
             const form = document.getElementById('manual-request-form');
             if (!form) return;
 
-            // Validate form first
+            // Validate form first (browser native validation)
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
 
-            // Gather requester name
+            // --- Requester name (Title Case) ---
             const requesterInput = form.querySelector('[name="requester_name"]');
-            const requesterName = requesterInput ? requesterInput.value.trim() : '';
+            const requesterName = requesterInput ? toTitleCase(requesterInput.value.trim()) : '\u2014';
 
-            // Gather office label from the dropdown trigger label span
+            // --- Office ---
             const officeLabel = document.getElementById('admin-office-dropdown-label');
-            const officeName = officeLabel ? officeLabel.textContent.trim() : '—';
+            const officeName = officeLabel ? officeLabel.textContent.trim() : '';
+            const officeDisplay = (officeName && !officeName.startsWith('\u2014 Select') && !officeName.startsWith('— Select'))
+                ? officeName : '\u2014';
 
-            // Gather destinations from the hidden input
+            // --- Destinations ---
             const destInput = document.getElementById('admin-dest-name-input');
             const destValue = destInput ? destInput.value.trim() : '';
-            const destDisplay = destValue ? destValue.split(',').map(d => d.trim()).join(', ') : '—';
+            const destDisplay = destValue
+                ? destValue.split(',').map(d => d.trim()).filter(Boolean).join(', ')
+                : '\u2014';
 
-            // Gather travel dates
+            // --- Travel Dates ---
             const startInput = document.getElementById('manual-req-travel-date');
-            const endInput = document.getElementById('manual-req-travel-date-end');
-            const startDate = startInput ? startInput.value : '';
-            const endDate = endInput ? endInput.value : '';
-            let datesDisplay = '—';
+            const endInput   = document.getElementById('manual-req-travel-date-end');
+            const startDate  = startInput ? startInput.value : '';
+            const endDate    = endInput   ? endInput.value   : '';
+            let datesDisplay = '\u2014';
             if (startDate && endDate) {
-                datesDisplay = startDate === endDate ? fmtDay(startDate) : `${fmtDay(startDate)} \u2013 ${fmtDay(endDate)}`;
+                datesDisplay = startDate === endDate
+                    ? fmtDay(startDate)
+                    : `${fmtDay(startDate)} \u2013 ${fmtDay(endDate)}`;
             } else if (startDate) {
                 datesDisplay = fmtDay(startDate);
             }
 
-            // Gather vehicle info from currently selected vehicle card
-            const vehicleIdInput = document.getElementById('manual-vehicle-id-input');
+            // --- Vehicle ---
+            const vehicleIdInput  = document.getElementById('manual-vehicle-id-input');
             const selectedVehicleId = vehicleIdInput ? vehicleIdInput.value : '';
-            let vehicleDisplay = '—';
+            let vehicleDisplay = '\u2014';
             if (selectedVehicleId && manualStationVehicles.length) {
                 const v = manualStationVehicles.find(x => String(x.id) === String(selectedVehicleId));
                 if (v) {
@@ -2365,41 +2383,82 @@
                 }
             }
 
-            // Populate summary fields
-            document.getElementById('mcs-requester').textContent = requesterName || '\u2014';
-            document.getElementById('mcs-office').textContent = (officeName && !officeName.startsWith('\u2014 Select')) ? officeName : '\u2014';
-            document.getElementById('mcs-destinations').textContent = destDisplay;
-            document.getElementById('mcs-dates').textContent = datesDisplay;
-            document.getElementById('mcs-vehicle').textContent = vehicleDisplay;
+            // --- Driver (from the select dropdown) ---
+            const driverSelect = document.getElementById('manual-req-driver');
+            let driverDisplay = '\u2014';
+            if (driverSelect && driverSelect.selectedIndex > 0) {
+                // Strip "(Location)" suffix for display if present
+                driverDisplay = toTitleCase(driverSelect.options[driverSelect.selectedIndex].text.replace(/\s*\(.*\)$/, '').trim());
+            }
 
-            // Move modal to <body> so it escapes any parent stacking context
-            // (backdrop-filter / overflow on parent modals creates new stacking contexts
-            //  that prevent z-index from working correctly)
-            const modal = document.getElementById('manual-confirm-modal');
-            if (modal) {
-                if (modal.parentElement !== document.body) {
-                    document.body.appendChild(modal);
-                    // Re-attach backdrop-click listener after reparenting
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === modal) closeManualConfirmModal();
+            // --- Passengers (from the passenger input rows) ---
+            const passengerInputs = document.querySelectorAll('#manual-passengers-container input[type="text"]');
+            const passengers = [];
+            passengerInputs.forEach(inp => {
+                const val = inp.value.trim();
+                if (val) passengers.push(toTitleCase(val));
+            });
+            const passengersRow = document.getElementById('mcs-passengers-row');
+            if (passengers.length > 0) {
+                document.getElementById('mcs-passengers').textContent = passengers.join(', ');
+                if (passengersRow) passengersRow.style.display = 'flex';
+            } else {
+                if (passengersRow) passengersRow.style.display = 'none';
+            }
+
+            // --- Populate all summary fields ---
+            document.getElementById('mcs-requester').textContent    = requesterName || '\u2014';
+            document.getElementById('mcs-office').textContent       = officeDisplay;
+            document.getElementById('mcs-destinations').textContent = destDisplay;
+            document.getElementById('mcs-dates').textContent        = datesDisplay;
+            document.getElementById('mcs-vehicle').textContent      = vehicleDisplay;
+            document.getElementById('mcs-driver').textContent       = driverDisplay;
+
+            // --- Fix z-index stacking context ---
+            // The main modal uses backdrop-blur-xs which creates a CSS stacking context
+            // that traps children regardless of z-index. Fix: temporarily remove the
+            // backdrop-filter from the main modal while the confirm modal is showing,
+            // AND move the confirm modal to <body> to fully escape any container.
+            const mainModal = document.getElementById('manual-request-modal');
+            if (mainModal) {
+                mainModal.classList.remove('backdrop-blur-xs');
+                mainModal._blurRemoved = true;
+            }
+
+            const confirmModal = document.getElementById('manual-confirm-modal');
+            if (confirmModal) {
+                // Ensure it's a direct child of <body> to escape all stacking contexts
+                if (confirmModal.parentElement !== document.body) {
+                    document.body.appendChild(confirmModal);
+                    confirmModal.addEventListener('click', function(e) {
+                        if (e.target === confirmModal) closeManualConfirmModal();
                     });
                 }
-                modal.style.setProperty('display', 'flex', 'important');
+                confirmModal.style.setProperty('display', 'flex', 'important');
             }
         }
 
         function closeManualConfirmModal() {
-            const modal = document.getElementById('manual-confirm-modal');
-            if (modal) modal.style.setProperty('display', 'none', 'important');
+            const confirmModal = document.getElementById('manual-confirm-modal');
+            if (confirmModal) confirmModal.style.setProperty('display', 'none', 'important');
+
+            // Restore backdrop-blur-xs on the main modal
+            const mainModal = document.getElementById('manual-request-modal');
+            if (mainModal && mainModal._blurRemoved) {
+                mainModal.classList.add('backdrop-blur-xs');
+                mainModal._blurRemoved = false;
+            }
         }
 
         function confirmAndSubmitManual() {
-            closeManualConfirmModal();
+            // Don't restore blur — we're navigating away
+            const confirmModal = document.getElementById('manual-confirm-modal');
+            if (confirmModal) confirmModal.style.setProperty('display', 'none', 'important');
             const form = document.getElementById('manual-request-form');
             if (form) form.submit();
         }
 
-        // Initial backdrop-click listener (before first reparent)
+        // Initial backdrop-click listener (before first reparent to body)
         document.getElementById('manual-confirm-modal')?.addEventListener('click', function(e) {
             if (e.target === this) closeManualConfirmModal();
         });
