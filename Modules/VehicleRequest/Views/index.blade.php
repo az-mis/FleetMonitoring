@@ -429,11 +429,42 @@
                                 </td>
 
                                 {{-- Destination --}}
-                                <td class="px-3 py-3 max-w-[220px]">
-                                    <span class="inline-flex items-start gap-1 font-semibold text-slate-800 text-xs" title="{{ $item->destination }}">
-                                        <span class="text-rose-500 shrink-0 mt-px">📍</span>
-                                        <span class="line-clamp-2 leading-snug">{{ $item->destination }}</span>
-                                    </span>
+                                <td class="whitespace-nowrap px-3 py-3">
+                                    @php
+                                        $destList = array_values(array_filter(array_map('trim', explode(',', $item->destination ?? ''))));
+                                        $destCount = count($destList);
+                                        $destFirst = $destList[0] ?? '—';
+                                        $destRest  = array_slice($destList, 1);
+                                    @endphp
+                                    <div class="text-xs">
+                                        <span class="inline-flex items-start gap-1 font-semibold text-slate-800">
+                                            <span class="text-rose-500 shrink-0 mt-px">📍</span>
+                                            <span>{{ $destFirst }}</span>
+                                        </span>
+                                        @if(count($destRest) > 0)
+                                            <div id="dest-collapsed-{{ $item->id }}">
+                                                <button
+                                                    type="button"
+                                                    onclick="document.getElementById('dest-collapsed-{{ $item->id }}').classList.add('hidden'); document.getElementById('dest-expanded-{{ $item->id }}').classList.remove('hidden');"
+                                                    class="font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer underline text-[11px] block mt-0.5"
+                                                >
+                                                    +{{ count($destRest) }} more
+                                                </button>
+                                            </div>
+                                            <div id="dest-expanded-{{ $item->id }}" class="hidden mt-0.5 space-y-0.5">
+                                                @foreach($destRest as $d)
+                                                    <p class="text-[11px] font-medium text-slate-700">&bull; {{ $d }}</p>
+                                                @endforeach
+                                                <button
+                                                    type="button"
+                                                    onclick="document.getElementById('dest-expanded-{{ $item->id }}').classList.add('hidden'); document.getElementById('dest-collapsed-{{ $item->id }}').classList.remove('hidden');"
+                                                    class="font-bold text-slate-500 hover:text-slate-700 cursor-pointer underline text-[10px] block pt-0.5"
+                                                >
+                                                    Show less
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </td>
 
                                 {{-- Purpose --}}
