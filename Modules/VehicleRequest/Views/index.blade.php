@@ -1176,32 +1176,33 @@
                             <input type="hidden" name="destination" id="admin-dest-name-input" value="{{ old('destination') }}" required>
                             <input type="hidden" name="distance_km" id="admin-dest-distance-input" value="{{ old('distance_km') }}">
 
-                            {{-- Trigger Button --}}
-                            <button
-                                type="button"
+                            {{-- Trigger Button / Pill Display Box --}}
+                            <div
                                 id="admin-dest-dropdown-trigger"
                                 onclick="toggleAdminDestDropdown()"
-                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition cursor-pointer"
+                                class="flex min-h-[38px] w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-left text-xs text-slate-800 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition cursor-pointer"
                             >
-                                <span id="admin-dest-dropdown-label" class="truncate {{ old('destination') ? 'text-slate-800 font-semibold' : 'text-slate-400' }}">
-                                    @if(old('destination'))
-                                        {{ old('destination') }} {{ old('distance_km') ? '('.old('distance_km').' kms)' : '' }}
-                                    @else
-                                        — Select destination —
-                                    @endif
-                                </span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200" id="admin-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m6 9 6 6 6-6"/>
-                                </svg>
-                            </button>
+                                <div id="admin-dest-pills-container" class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 py-0.5">
+                                    <span id="admin-dest-placeholder" class="text-slate-400">
+                                        — Select destination(s) or type custom place —
+                                    </span>
+                                </div>
 
-                            {{-- Dropdown Panel (Fixed 220px max height box with internal scrolling only) --}}
+                                <div class="flex items-center gap-2 shrink-0 ml-2">
+                                    <span id="admin-dest-total-km" class="hidden rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800"></span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200" id="admin-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m6 9 6 6 6-6"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {{-- Dropdown Panel --}}
                             <div
                                 id="admin-dest-dropdown-panel"
-                                style="max-height: 220px; overflow-y: auto; overscroll-behavior: contain;"
-                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl max-h-[220px] overflow-y-auto overscroll-contain"
+                                style="max-height: 230px; overflow-y: auto; overscroll-behavior: contain;"
+                                class="absolute left-0 right-0 top-full z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl max-h-[230px] overflow-y-auto overscroll-contain"
                             >
-                                {{-- Search --}}
+                                {{-- Search & Direct Add Input --}}
                                 <div class="sticky top-0 z-10 bg-white pb-2 pt-0.5">
                                     <div class="relative">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1211,27 +1212,23 @@
                                             type="text"
                                             id="admin-dest-search-input"
                                             oninput="filterAdminDestOptions()"
-                                            placeholder="Search destination..."
+                                            onkeydown="onAdminDestSearchKeyDown(event)"
+                                            placeholder="Type place name or search registered locations..."
                                             class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
                                         >
                                     </div>
+                                    <p class="text-[10px] text-slate-400 mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
+                                </div>
+
+                                {{-- Custom Add Option (Shown when typing) --}}
+                                <div id="admin-dest-custom-add-item" class="hidden mb-1">
+                                    {{-- Dynamically inserted --}}
                                 </div>
 
                                 {{-- Options List --}}
                                 <div id="admin-dest-options-list" class="space-y-0.5 pr-0.5">
                                     {{-- Dynamically loaded via loadAdminDestinations() --}}
                                 </div>
-                            </div>
-
-                            {{-- Fallback Manual Input (Shown if "Other" is selected) --}}
-                            <div id="admin-dest-manual-container" class="mt-2 hidden">
-                                <input
-                                    type="text"
-                                    id="admin-dest-manual-input"
-                                    placeholder="Type custom destination..."
-                                    oninput="onAdminDestManualInput(this.value)"
-                                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none"
-                                >
                             </div>
                         </div>
 
@@ -1663,6 +1660,8 @@
                 }
             }
 
+            selectedAdminDestinations = [];
+            updateAdminDestFormState();
             loadManualStationAvailability();
             loadAdminDestinations();
         }
@@ -2029,8 +2028,9 @@
             }
         });
 
-        // ── Admin Modal: Destination searchable dropdown & distance support ──
+        // ── Admin Modal: Destination multi-select & tag pills ──────────────
         let currentAdminDestinations = [];
+        let selectedAdminDestinations = []; // [{ name: '', distance_km: 0 }]
 
         function loadAdminDestinations() {
             const location = document.getElementById('manual-req-location')?.value || 'Palawan';
@@ -2050,17 +2050,19 @@
             const list = document.getElementById('admin-dest-options-list');
             if (!list) return;
 
-            let html = `
-                <div onclick="selectAdminDest('', null)" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-50 transition" data-label="— select destination —">
-                    <span>— Select destination —</span>
-                </div>
-            `;
-
+            let html = '';
             destinations.forEach(d => {
                 const escapedName = (d.name || '').replace(/'/g, "\\'");
+                const isPicked = selectedAdminDestinations.some(item => item.name.toLowerCase() === d.name.toLowerCase());
+                
                 html += `
-                    <div onclick="selectAdminDest('${escapedName}', ${d.distance_km})" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
-                        <span class="font-semibold">${d.name}</span>
+                    <div onclick="toggleAdminSelectedDest('${escapedName}', ${d.distance_km})" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-emerald-100 text-emerald-900 font-bold border border-emerald-300' : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800'}" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isPicked ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-300 bg-white'}">
+                                ${isPicked ? '✓' : ''}
+                            </span>
+                            <span>${d.name}</span>
+                        </div>
                         <span class="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shrink-0">
                             ${d.distance_km} kms
                         </span>
@@ -2068,14 +2070,96 @@
                 `;
             });
 
-            html += `
-                <div onclick="selectAdminDest('OTHER_MANUAL', null)" class="admin-dest-option flex cursor-pointer items-center gap-1.5 border-t border-slate-100 mt-1 pt-1.5 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition" data-label="other type manually">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>Other (Type manually)</span>
-                </div>
-            `;
-
             list.innerHTML = html;
+            filterAdminDestOptions();
+        }
+
+        function toggleAdminSelectedDest(name, distanceKm) {
+            const idx = selectedAdminDestinations.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+            if (idx >= 0) {
+                selectedAdminDestinations.splice(idx, 1);
+            } else {
+                selectedAdminDestinations.push({ name: name, distance_km: distanceKm || 0 });
+            }
+            updateAdminDestFormState();
+        }
+
+        function addAdminCustomDest(customText) {
+            if (!customText) return;
+            // Support comma-separated strings typed in search bar
+            const parts = customText.split(',').map(p => p.trim()).filter(Boolean);
+            parts.forEach(part => {
+                const existingRegistered = currentAdminDestinations.find(d => d.name.toLowerCase() === part.toLowerCase());
+                if (existingRegistered) {
+                    if (!selectedAdminDestinations.some(item => item.name.toLowerCase() === existingRegistered.name.toLowerCase())) {
+                        selectedAdminDestinations.push({ name: existingRegistered.name, distance_km: existingRegistered.distance_km });
+                    }
+                } else {
+                    if (!selectedAdminDestinations.some(item => item.name.toLowerCase() === part.toLowerCase())) {
+                        selectedAdminDestinations.push({ name: part, distance_km: 0 });
+                    }
+                }
+            });
+
+            const searchInput = document.getElementById('admin-dest-search-input');
+            if (searchInput) searchInput.value = '';
+            updateAdminDestFormState();
+        }
+
+        function removeAdminSelectedDest(index, event) {
+            if (event) event.stopPropagation();
+            if (index >= 0 && index < selectedAdminDestinations.length) {
+                selectedAdminDestinations.splice(index, 1);
+                updateAdminDestFormState();
+            }
+        }
+
+        function updateAdminDestFormState() {
+            const nameInput = document.getElementById('admin-dest-name-input');
+            const distInput = document.getElementById('admin-dest-distance-input');
+            const container = document.getElementById('admin-dest-pills-container');
+            const totalKmSpan = document.getElementById('admin-dest-total-km');
+            const placeholder = document.getElementById('admin-dest-placeholder');
+
+            // 1. Update hidden form inputs
+            const destinationString = selectedAdminDestinations.map(d => d.name).join(', ');
+            const totalDistance = selectedAdminDestinations.reduce((sum, d) => sum + (parseInt(d.distance_km) || 0), 0);
+
+            if (nameInput) nameInput.value = destinationString;
+            if (distInput) distInput.value = totalDistance > 0 ? totalDistance : '';
+
+            // 2. Render Pills
+            if (container) {
+                if (selectedAdminDestinations.length === 0) {
+                    container.innerHTML = `<span id="admin-dest-placeholder" class="text-slate-400">— Select destination(s) or type custom place —</span>`;
+                } else {
+                    let pillsHtml = '';
+                    selectedAdminDestinations.forEach((item, index) => {
+                        const distLabel = item.distance_km > 0 ? ` (${item.distance_km} km)` : '';
+                        const escapedName = (item.name || '').replace(/'/g, "\\'");
+                        pillsHtml += `
+                            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-1 text-xs font-bold text-emerald-900 shadow-2xs">
+                                <span>${item.name}${distLabel}</span>
+                                <button type="button" onclick="removeAdminSelectedDest(${index}, event)" class="hover:text-red-700 text-emerald-700 font-extrabold ml-1 cursor-pointer">✕</button>
+                            </span>
+                        `;
+                    });
+                    container.innerHTML = pillsHtml;
+                }
+            }
+
+            // 3. Update Total Distance Badge
+            if (totalKmSpan) {
+                if (totalDistance > 0) {
+                    totalKmSpan.textContent = `Total: ${totalDistance} kms`;
+                    totalKmSpan.classList.remove('hidden');
+                } else {
+                    totalKmSpan.classList.add('hidden');
+                }
+            }
+
+            // Re-render registered options list so checkboxes update
+            renderAdminDestOptions(currentAdminDestinations);
         }
 
         function toggleAdminDestDropdown() {
@@ -2104,61 +2188,44 @@
             if (chevron) chevron.style.transform = '';
         }
 
-        function selectAdminDest(name, distanceKm) {
-            const nameInput = document.getElementById('admin-dest-name-input');
-            const distInput = document.getElementById('admin-dest-distance-input');
-            const labelSpan = document.getElementById('admin-dest-dropdown-label');
-            const manualContainer = document.getElementById('admin-dest-manual-container');
-            const manualInput = document.getElementById('admin-dest-manual-input');
-
-            if (name === 'OTHER_MANUAL') {
-                if (manualContainer) manualContainer.classList.remove('hidden');
-                if (manualInput) {
-                    manualInput.focus();
-                    if (nameInput) nameInput.value = manualInput.value;
-                }
-                if (distInput) distInput.value = '';
-                if (labelSpan) {
-                    labelSpan.textContent = manualInput?.value ? manualInput.value : '— Custom destination —';
-                    labelSpan.className = 'truncate text-slate-800 font-semibold';
-                }
-            } else {
-                if (manualContainer) manualContainer.classList.add('hidden');
-                if (nameInput) nameInput.value = name;
-                if (distInput) distInput.value = distanceKm !== null && distanceKm !== undefined ? distanceKm : '';
-
-                if (labelSpan) {
-                    if (name) {
-                        const distSuffix = distanceKm !== null && distanceKm !== undefined ? ` (${distanceKm} kms)` : '';
-                        labelSpan.textContent = name + distSuffix;
-                        labelSpan.className = 'truncate text-slate-800 font-semibold';
-                    } else {
-                        labelSpan.textContent = '— Select destination —';
-                        labelSpan.className = 'truncate text-slate-400';
-                    }
-                }
-            }
-
-            closeAdminDestDropdown();
-        }
-
-        function onAdminDestManualInput(val) {
-            const nameInput = document.getElementById('admin-dest-name-input');
-            const labelSpan = document.getElementById('admin-dest-dropdown-label');
-            if (nameInput) nameInput.value = val;
-            if (labelSpan) {
-                labelSpan.textContent = val ? val : '— Custom destination —';
-            }
-        }
-
         function filterAdminDestOptions() {
-            const query = (document.getElementById('admin-dest-search-input')?.value || '').toLowerCase().trim();
+            const searchInput = document.getElementById('admin-dest-search-input');
+            const query = (searchInput?.value || '').trim();
+            const queryLower = query.toLowerCase();
+
+            const customAddItem = document.getElementById('admin-dest-custom-add-item');
+            if (customAddItem) {
+                if (query.length > 0) {
+                    const escapedQuery = query.replace(/'/g, "\\'");
+                    customAddItem.innerHTML = `
+                        <div onclick="addAdminCustomDest('${escapedQuery}')" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition">
+                            <span class="truncate">➕ Add custom: "${query}"</span>
+                            <span class="text-[10px] text-emerald-600 font-semibold shrink-0">Press Enter</span>
+                        </div>
+                    `;
+                    customAddItem.classList.remove('hidden');
+                } else {
+                    customAddItem.classList.add('hidden');
+                }
+            }
+
             const items = document.querySelectorAll('.admin-dest-option');
             items.forEach(item => {
                 const label = (item.dataset.label || '').toLowerCase();
-                const match = !query || label.includes(query);
+                const match = !queryLower || label.includes(queryLower);
                 item.classList.toggle('hidden', !match);
             });
+        }
+
+        function onAdminDestSearchKeyDown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const searchInput = document.getElementById('admin-dest-search-input');
+                const val = (searchInput?.value || '').trim();
+                if (val) {
+                    addAdminCustomDest(val);
+                }
+            }
         }
 
         function toggleTravelLocationMenu() {

@@ -227,35 +227,37 @@ $offices = [
                     </label>
 
                     {{-- Hidden inputs --}}
+                    {{-- Hidden inputs submitted with form --}}
                     <input type="hidden" name="destination" id="public-dest-name-input" value="{{ old('destination') }}" required>
                     <input type="hidden" name="distance_km" id="public-dest-distance-input" value="{{ old('distance_km') }}">
 
-                    {{-- Trigger Button --}}
-                    <button
-                        type="button"
+                    {{-- Trigger Button / Pill Display Box --}}
+                    <div
                         id="public-dest-dropdown-trigger"
                         onclick="togglePublicDestDropdown()"
-                        class="group flex h-9 w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-left text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none transition cursor-pointer relative"
+                        class="group flex min-h-[40px] w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-3 pr-3 text-left text-[12px] text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none transition cursor-pointer relative"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span id="public-dest-dropdown-label" class="truncate {{ old('destination') ? 'text-emerald-100 font-semibold' : 'text-emerald-100/40' }}">
-                            @if(old('destination'))
-                                {{ old('destination') }} {{ old('distance_km') ? '('.old('distance_km').' kms)' : '' }}
-                            @else
-                                — Select destination —
-                            @endif
-                        </span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-emerald-300/70 transition-transform duration-200" id="public-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m6 9 6 6 6-6"/>
-                        </svg>
-                    </button>
+                        <div id="public-dest-pills-container" class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 py-1">
+                            <span id="public-dest-placeholder" class="text-emerald-100/40">
+                                — Select destination(s) or type custom place —
+                            </span>
+                        </div>
 
-                    {{-- Dropdown Panel (Fixed 220px max height box with internal scrolling only) --}}
+                        <div class="flex items-center gap-2 shrink-0 ml-2">
+                            <span id="public-dest-total-km" class="hidden rounded-md bg-emerald-900/80 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-extrabold text-emerald-300"></span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-300/70 transition-transform duration-200" id="public-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    {{-- Dropdown Panel --}}
                     <div
                         id="public-dest-dropdown-panel"
-                        style="max-height: 220px; overflow-y: auto; overscroll-behavior: contain;"
-                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md max-h-[220px] overflow-y-auto overscroll-contain scrollbar-thin"
+                        style="max-height: 230px; overflow-y: auto; overscroll-behavior: contain;"
+                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md max-h-[230px] overflow-y-auto overscroll-contain scrollbar-thin"
                     >
+                        {{-- Search & Direct Add Input --}}
                         <div class="sticky top-0 z-10 bg-[#041d0e] pb-2 pt-0.5">
                             <div class="relative">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -265,26 +267,23 @@ $offices = [
                                     type="text"
                                     id="public-dest-search-input"
                                     oninput="filterPublicDestOptions()"
-                                    placeholder="Search destination..."
+                                    onkeydown="onPublicDestSearchKeyDown(event)"
+                                    placeholder="Type place name or search registered locations..."
                                     class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none"
                                 >
                             </div>
+                            <p class="text-[10px] text-emerald-100/50 mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
                         </div>
 
+                        {{-- Custom Add Option (Shown when typing) --}}
+                        <div id="public-dest-custom-add-item" class="hidden mb-1">
+                            {{-- Dynamically inserted --}}
+                        </div>
+
+                        {{-- Options List --}}
                         <div id="public-dest-options-list" class="space-y-0.5 pr-1">
                             {{-- Loaded dynamically via loadPublicDestinations() --}}
                         </div>
-                    </div>
-
-                    {{-- Fallback Manual Input (Shown if "Other" is selected) --}}
-                    <div id="public-dest-manual-container" class="mt-2 hidden">
-                        <input
-                            type="text"
-                            id="public-dest-manual-input"
-                            placeholder="Type custom destination..."
-                            oninput="onPublicDestManualInput(this.value)"
-                            class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 px-3 text-[12px] text-emerald-100 placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"
-                        >
                     </div>
                 </div>
             </div>
@@ -505,21 +504,25 @@ $offices = [
                 });
         }
 
+        let selectedPublicDestinations = []; // [{ name: '', distance_km: 0 }]
+
         function renderPublicDestOptions(destinations) {
             const list = document.getElementById('public-dest-options-list');
             if (!list) return;
 
-            let html = `
-                <div onclick="selectPublicDest('', null)" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100/60 hover:bg-emerald-800/40 hover:text-emerald-200 transition" data-label="— select destination —">
-                    <span>— Select destination —</span>
-                </div>
-            `;
-
+            let html = '';
             destinations.forEach(d => {
                 const escapedName = (d.name || '').replace(/'/g, "\\'");
+                const isPicked = selectedPublicDestinations.some(item => item.name.toLowerCase() === d.name.toLowerCase());
+
                 html += `
-                    <div onclick="selectPublicDest('${escapedName}', ${d.distance_km})" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100 hover:bg-emerald-800/50 hover:text-white transition" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
-                        <span class="font-medium">${d.name}</span>
+                    <div onclick="togglePublicSelectedDest('${escapedName}', ${d.distance_km})" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-emerald-800/80 text-white font-bold border border-emerald-400' : 'text-emerald-100 hover:bg-emerald-800/50 hover:text-white'}" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isPicked ? 'border-emerald-300 bg-emerald-500 text-emerald-950 font-black' : 'border-emerald-500/40 bg-emerald-950/60'}">
+                                ${isPicked ? '✓' : ''}
+                            </span>
+                            <span>${d.name}</span>
+                        </div>
                         <span class="inline-flex items-center rounded-md bg-emerald-900/60 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-bold text-emerald-300 shrink-0">
                             ${d.distance_km} kms
                         </span>
@@ -527,14 +530,89 @@ $offices = [
                 `;
             });
 
-            html += `
-                <div onclick="selectPublicDest('OTHER_MANUAL', null)" class="public-dest-option flex cursor-pointer items-center gap-1.5 border-t border-emerald-800/40 mt-1 pt-1.5 px-3 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-800/50 transition" data-label="other type manually">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>Other (Type manually)</span>
-                </div>
-            `;
-
             list.innerHTML = html;
+            filterPublicDestOptions();
+        }
+
+        function togglePublicSelectedDest(name, distanceKm) {
+            const idx = selectedPublicDestinations.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+            if (idx >= 0) {
+                selectedPublicDestinations.splice(idx, 1);
+            } else {
+                selectedPublicDestinations.push({ name: name, distance_km: distanceKm || 0 });
+            }
+            updatePublicDestFormState();
+        }
+
+        function addPublicCustomDest(customText) {
+            if (!customText) return;
+            const parts = customText.split(',').map(p => p.trim()).filter(Boolean);
+            parts.forEach(part => {
+                const existingRegistered = currentPublicDestinations.find(d => d.name.toLowerCase() === part.toLowerCase());
+                if (existingRegistered) {
+                    if (!selectedPublicDestinations.some(item => item.name.toLowerCase() === existingRegistered.name.toLowerCase())) {
+                        selectedPublicDestinations.push({ name: existingRegistered.name, distance_km: existingRegistered.distance_km });
+                    }
+                } else {
+                    if (!selectedPublicDestinations.some(item => item.name.toLowerCase() === part.toLowerCase())) {
+                        selectedPublicDestinations.push({ name: part, distance_km: 0 });
+                    }
+                }
+            });
+
+            const searchInput = document.getElementById('public-dest-search-input');
+            if (searchInput) searchInput.value = '';
+            updatePublicDestFormState();
+        }
+
+        function removePublicSelectedDest(index, event) {
+            if (event) event.stopPropagation();
+            if (index >= 0 && index < selectedPublicDestinations.length) {
+                selectedPublicDestinations.splice(index, 1);
+                updatePublicDestFormState();
+            }
+        }
+
+        function updatePublicDestFormState() {
+            const nameInput = document.getElementById('public-dest-name-input');
+            const distInput = document.getElementById('public-dest-distance-input');
+            const container = document.getElementById('public-dest-pills-container');
+            const totalKmSpan = document.getElementById('public-dest-total-km');
+
+            const destinationString = selectedPublicDestinations.map(d => d.name).join(', ');
+            const totalDistance = selectedPublicDestinations.reduce((sum, d) => sum + (parseInt(d.distance_km) || 0), 0);
+
+            if (nameInput) nameInput.value = destinationString;
+            if (distInput) distInput.value = totalDistance > 0 ? totalDistance : '';
+
+            if (container) {
+                if (selectedPublicDestinations.length === 0) {
+                    container.innerHTML = `<span id="public-dest-placeholder" class="text-emerald-100/40">— Select destination(s) or type custom place —</span>`;
+                } else {
+                    let pillsHtml = '';
+                    selectedPublicDestinations.forEach((item, index) => {
+                        const distLabel = item.distance_km > 0 ? ` (${item.distance_km} km)` : '';
+                        pillsHtml += `
+                            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-800/90 border border-emerald-400/60 px-2 py-0.5 text-xs font-bold text-white shadow-2xs">
+                                <span>${item.name}${distLabel}</span>
+                                <button type="button" onclick="removePublicSelectedDest(${index}, event)" class="hover:text-red-300 text-emerald-300 font-extrabold ml-1 cursor-pointer">✕</button>
+                            </span>
+                        `;
+                    });
+                    container.innerHTML = pillsHtml;
+                }
+            }
+
+            if (totalKmSpan) {
+                if (totalDistance > 0) {
+                    totalKmSpan.textContent = `Total: ${totalDistance} kms`;
+                    totalKmSpan.classList.remove('hidden');
+                } else {
+                    totalKmSpan.classList.add('hidden');
+                }
+            }
+
+            renderPublicDestOptions(currentPublicDestinations);
         }
 
         function togglePublicDestDropdown() {
@@ -563,61 +641,44 @@ $offices = [
             if (chevron) chevron.classList.remove('rotate-180');
         }
 
-        function selectPublicDest(name, distanceKm) {
-            const nameInput = document.getElementById('public-dest-name-input');
-            const distInput = document.getElementById('public-dest-distance-input');
-            const labelSpan = document.getElementById('public-dest-dropdown-label');
-            const manualContainer = document.getElementById('public-dest-manual-container');
-            const manualInput = document.getElementById('public-dest-manual-input');
-
-            if (name === 'OTHER_MANUAL') {
-                if (manualContainer) manualContainer.classList.remove('hidden');
-                if (manualInput) {
-                    manualInput.focus();
-                    if (nameInput) nameInput.value = manualInput.value;
-                }
-                if (distInput) distInput.value = '';
-                if (labelSpan) {
-                    labelSpan.textContent = manualInput?.value ? manualInput.value : '— Custom destination —';
-                    labelSpan.className = 'truncate text-emerald-100 font-semibold';
-                }
-            } else {
-                if (manualContainer) manualContainer.classList.add('hidden');
-                if (nameInput) nameInput.value = name;
-                if (distInput) distInput.value = distanceKm !== null && distanceKm !== undefined ? distanceKm : '';
-
-                if (labelSpan) {
-                    if (name) {
-                        const distSuffix = distanceKm !== null && distanceKm !== undefined ? ` (${distanceKm} kms)` : '';
-                        labelSpan.textContent = name + distSuffix;
-                        labelSpan.className = 'truncate text-emerald-100 font-semibold';
-                    } else {
-                        labelSpan.textContent = '— Select destination —';
-                        labelSpan.className = 'truncate text-emerald-100/40';
-                    }
-                }
-            }
-
-            closePublicDestDropdown();
-        }
-
-        function onPublicDestManualInput(val) {
-            const nameInput = document.getElementById('public-dest-name-input');
-            const labelSpan = document.getElementById('public-dest-dropdown-label');
-            if (nameInput) nameInput.value = val;
-            if (labelSpan) {
-                labelSpan.textContent = val ? val : '— Custom destination —';
-            }
-        }
-
         function filterPublicDestOptions() {
-            const query = (document.getElementById('public-dest-search-input')?.value || '').toLowerCase().trim();
+            const searchInput = document.getElementById('public-dest-search-input');
+            const query = (searchInput?.value || '').trim();
+            const queryLower = query.toLowerCase();
+
+            const customAddItem = document.getElementById('public-dest-custom-add-item');
+            if (customAddItem) {
+                if (query.length > 0) {
+                    const escapedQuery = query.replace(/'/g, "\\'");
+                    customAddItem.innerHTML = `
+                        <div onclick="addPublicCustomDest('${escapedQuery}')" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-900/80 border border-emerald-400/60 p-2 text-xs font-bold text-emerald-200 hover:bg-emerald-800 transition">
+                            <span class="truncate">➕ Add custom: "${query}"</span>
+                            <span class="text-[10px] text-emerald-300 font-semibold shrink-0">Press Enter</span>
+                        </div>
+                    `;
+                    customAddItem.classList.remove('hidden');
+                } else {
+                    customAddItem.classList.add('hidden');
+                }
+            }
+
             const items = document.querySelectorAll('.public-dest-option');
             items.forEach(item => {
                 const label = (item.dataset.label || '').toLowerCase();
-                const match = !query || label.includes(query);
+                const match = !queryLower || label.includes(queryLower);
                 item.classList.toggle('hidden', !match);
             });
+        }
+
+        function onPublicDestSearchKeyDown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const searchInput = document.getElementById('public-dest-search-input');
+                const val = (searchInput?.value || '').trim();
+                if (val) {
+                    addPublicCustomDest(val);
+                }
+            }
         }
 
         const locationSelect = document.querySelector('select[name="location"]');
