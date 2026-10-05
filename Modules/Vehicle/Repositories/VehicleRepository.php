@@ -40,8 +40,8 @@ class VehicleRepository implements VehicleRepositoryInterface
         return Vehicle::create([
             'plate_number' => $data['plate_number'],
             'photo' => $this->storePhoto($data['photo'] ?? null),
-            'chassis_number' => $data['chassis_number'],
-            'engine_number' => $data['engine_number'],
+            'chassis_number' => $data['chassis_number'] ?? null,
+            'engine_number' => $data['engine_number'] ?? null,
             'brand' => $data['brand'],
             'model' => $data['model'],
             'year' => $data['year'],
@@ -59,8 +59,8 @@ class VehicleRepository implements VehicleRepositoryInterface
     {
         $vehicle->fill([
             'plate_number' => $data['plate_number'],
-            'chassis_number' => $data['chassis_number'],
-            'engine_number' => $data['engine_number'],
+            'chassis_number' => $data['chassis_number'] ?? null,
+            'engine_number' => $data['engine_number'] ?? null,
             'brand' => $data['brand'],
             'model' => $data['model'],
             'year' => $data['year'],

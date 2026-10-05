@@ -29,8 +29,8 @@ class StoreVehicleRequest extends FormRequest
         return [
             'plate_number' => ['required', 'string', 'max:20', 'regex:/^[A-Za-z0-9\- ]+$/', 'unique:vehicles,plate_number'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'chassis_number' => ['required', 'string', 'max:50'],
-            'engine_number' => ['required', 'string', 'max:50'],
+            'chassis_number' => ['nullable', 'string', 'max:50'],
+            'engine_number' => ['nullable', 'string', 'max:50'],
             'brand' => ['required', 'string', 'max:100'],
             'model' => ['required', 'string', 'max:100'],
             'year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],

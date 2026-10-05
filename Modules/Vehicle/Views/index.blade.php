@@ -277,15 +277,15 @@
                                     @enderror
                                 </div>
                                 <div>
-                                    <label for="rv-chassis_number" class="{{ $rvLabel }}">Chassis / VIN Number <span class="text-red-500">*</span></label>
-                                    <input type="text" name="chassis_number" id="rv-chassis_number" value="{{ $rvOld('chassis_number') }}" maxlength="50" placeholder="e.g. 1HGBH41JXMN109186" class="{{ $rvInput }} {{ $rvBorder('chassis_number') }}" required>
+                                    <label for="rv-chassis_number" class="{{ $rvLabel }}">Chassis / VIN Number <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                    <input type="text" name="chassis_number" id="rv-chassis_number" value="{{ $rvOld('chassis_number') }}" maxlength="50" placeholder="e.g. 1HGBH41JXMN109186" class="{{ $rvInput }} {{ $rvBorder('chassis_number') }}">
                                     @error('chassis_number')
                                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label for="rv-engine_number" class="{{ $rvLabel }}">Engine Number <span class="text-red-500">*</span></label>
-                                    <input type="text" name="engine_number" id="rv-engine_number" value="{{ $rvOld('engine_number') }}" maxlength="50" placeholder="e.g. 2AR1234567" class="{{ $rvInput }} {{ $rvBorder('engine_number') }}" required>
+                                    <label for="rv-engine_number" class="{{ $rvLabel }}">Engine Number <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                    <input type="text" name="engine_number" id="rv-engine_number" value="{{ $rvOld('engine_number') }}" maxlength="50" placeholder="e.g. 2AR1234567" class="{{ $rvInput }} {{ $rvBorder('engine_number') }}">
                                     @error('engine_number')
                                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                     @enderror
@@ -684,8 +684,8 @@
                             </div>
 
                             <div>
-                                <label for="ev-chassis_number" class="{{ $rvLabel }}">Chassis / VIN Number <span class="text-red-500">*</span></label>
-                                <input type="text" name="chassis_number" id="ev-chassis_number" value="{{ $evOld('chassis_number') }}" maxlength="50" placeholder="e.g. 1HGBH41JXMN109186" class="{{ $rvInput }} {{ $evBorder('chassis_number') }}" required>
+                                <label for="ev-chassis_number" class="{{ $rvLabel }}">Chassis / VIN Number <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                <input type="text" name="chassis_number" id="ev-chassis_number" value="{{ $evOld('chassis_number') }}" maxlength="50" placeholder="e.g. 1HGBH41JXMN109186" class="{{ $rvInput }} {{ $evBorder('chassis_number') }}">
                                 @if ($evIsOld)
                                     @error('chassis_number')
                                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -694,8 +694,8 @@
                             </div>
 
                             <div>
-                                <label for="ev-engine_number" class="{{ $rvLabel }}">Engine Number <span class="text-red-500">*</span></label>
-                                <input type="text" name="engine_number" id="ev-engine_number" value="{{ $evOld('engine_number') }}" maxlength="50" placeholder="e.g. 2AR1234567" class="{{ $rvInput }} {{ $evBorder('engine_number') }}" required>
+                                <label for="ev-engine_number" class="{{ $rvLabel }}">Engine Number <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                <input type="text" name="engine_number" id="ev-engine_number" value="{{ $evOld('engine_number') }}" maxlength="50" placeholder="e.g. 2AR1234567" class="{{ $rvInput }} {{ $evBorder('engine_number') }}">
                                 @if ($evIsOld)
                                     @error('engine_number')
                                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
