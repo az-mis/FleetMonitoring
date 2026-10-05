@@ -30,7 +30,7 @@
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #e9ebee; font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; color: #1a1a1a; }
-        .toolbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #fff; border-bottom: 1px solid #d9dde1; position: sticky; top: 0; z-index: 10; }
+        .toolbar { display: flex; align-items: center; justify-content: flex-end; padding: 12px 20px; background: #fff; border-bottom: 1px solid #d9dde1; position: sticky; top: 0; z-index: 10; }
         .toolbar a { font-size: 13px; color: #5b6570; text-decoration: none; }
         .toolbar button { padding: 9px 16px; border-radius: 8px; border: none; background: #008751; color: #fff; font-weight: 700; font-size: 13.5px; cursor: pointer; }
         .sheet { max-width: 210mm; min-height: 297mm; margin: 24px auto; background: #fff; font-size: 12px; line-height: 1.22; box-shadow: 0 4px 24px rgba(0,0,0,.12); overflow: hidden; }
@@ -64,7 +64,6 @@
 </head>
 <body>
     <div class="toolbar no-print">
-        <a href="{{ route('check-status', ['code' => $requestRecord->reference_code]) }}">&larr; Back to status</a>
         <button type="button" onclick="window.print()">Print / Save as PDF</button>
     </div>
 
