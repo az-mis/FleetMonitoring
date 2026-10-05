@@ -133,15 +133,21 @@
                                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 {{ $officers->count() > 1 ? '' : 'xl:grid-cols-3' }}">
                                     @foreach($officer->signatories as $sig)
                                         <label class="sig-card flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition {{ $sig->show_on_ticket ? 'border-emerald-300 bg-emerald-50/60' : 'border-slate-200 bg-white hover:border-emerald-200' }}">
-                                            <input type="checkbox" name="ticket[]" value="{{ $sig->id }}" {{ $sig->show_on_ticket ? 'checked' : '' }}
+                                            <input type="checkbox" value="{{ $sig->id }}" data-order="{{ $sig->show_on_ticket ? ($sig->ticket_order ?? 99) : '' }}" {{ $sig->show_on_ticket ? 'checked' : '' }}
                                                    class="ticket-check mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
                                             <span class="min-w-0">
-                                                <span class="block truncate text-xs font-bold text-slate-800">{{ $sig->name }}</span>
+                                                <span data-sig-name class="block truncate text-xs font-bold text-slate-800">{{ $sig->name }}</span>
                                                 <span class="block text-[11px] text-slate-500">{{ $sig->title ?: '—' }}</span>
                                                 <span class="on-ticket-badge mt-1 {{ $sig->show_on_ticket ? 'inline-block' : 'hidden' }} rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white">On Ticket</span>
                                             </span>
                                         </label>
                                     @endforeach
+                                </div>
+
+                                {{-- Printed order: 1st = top of the ticket. Swap flips the two. --}}
+                                <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+                                    <p class="ticket-preview hidden text-[11px] font-medium text-slate-500"></p>
+                                    <button type="button" class="ticket-swap hidden rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-50 cursor-pointer">&#8645; Swap order</button>
                                 </div>
 
                                 <div class="mt-3 flex items-center justify-end gap-3">
@@ -249,32 +255,73 @@
             const boxes = [...form.querySelectorAll('.ticket-check')];
             const save = form.querySelector('.ticket-save');
             const msg = form.querySelector('.ticket-msg');
-            const initial = boxes.map(b => b.checked).join();
+            const swapBtn = form.querySelector('.ticket-swap');
+            const preview = form.querySelector('.ticket-preview');
+            const ordinal = n => ['1st', '2nd', '3rd'][n - 1] || `${n}th`;
+            const nameOf = id => boxes.find(b => b.value === id).closest('.sig-card').querySelector('[data-sig-name]').textContent.trim();
+
+            // Printed order on the ticket: first id = 1st (top). Seeded from the saved order.
+            let order = boxes.filter(b => b.checked)
+                .sort((a, b) => (parseInt(a.dataset.order, 10) || 99) - (parseInt(b.dataset.order, 10) || 99))
+                .map(b => b.value);
+            const initial = order.join();
+
+            function refresh() {
+                boxes.forEach(b => {
+                    const idx = order.indexOf(b.value);
+                    const on = idx !== -1;
+                    b.checked = on;
+                    const card = b.closest('.sig-card');
+                    card.classList.toggle('border-emerald-300', on);
+                    card.classList.toggle('bg-emerald-50/60', on);
+                    card.classList.toggle('border-slate-200', !on);
+                    card.classList.toggle('bg-white', !on);
+                    const badge = card.querySelector('.on-ticket-badge');
+                    badge.classList.toggle('hidden', !on);
+                    badge.classList.toggle('inline-block', on);
+                    badge.textContent = on ? `On Ticket \u00b7 ${ordinal(idx + 1)}` : 'On Ticket';
+                });
+                swapBtn.classList.toggle('hidden', order.length < 2);
+                preview.classList.toggle('hidden', order.length < 1);
+                preview.textContent = order.length
+                    ? 'Prints top to bottom: ' + order.map((id, i) => `${ordinal(i + 1)} ${nameOf(id)}`).join(' \u2192 ')
+                    : '';
+                save.disabled = order.length < 1 || order.join() === initial;
+            }
 
             boxes.forEach(box => box.addEventListener('change', () => {
-                const count = boxes.filter(b => b.checked).length;
-                if (count > max) {
-                    box.checked = false;
-                    msg.textContent = `Only ${max} signatories can appear on the Trip Ticket. Untick one first.`;
-                    msg.classList.remove('hidden');
-                    return;
+                if (box.checked) {
+                    if (order.length >= max) {
+                        box.checked = false;
+                        msg.textContent = `Only ${max} signatories can appear on the Trip Ticket. Untick one first.`;
+                        msg.classList.remove('hidden');
+                        return;
+                    }
+                    order.push(box.value);   // ticked second = printed second
+                } else {
+                    order = order.filter(id => id !== box.value);
                 }
                 msg.classList.add('hidden');
-                boxes.forEach(b => {
-                    const card = b.closest('.sig-card');
-                    card.classList.toggle('border-emerald-300', b.checked);
-                    card.classList.toggle('bg-emerald-50/60', b.checked);
-                    card.classList.toggle('border-slate-200', !b.checked);
-                    card.classList.toggle('bg-white', !b.checked);
-                    card.querySelector('.on-ticket-badge').classList.toggle('hidden', !b.checked);
-                    card.querySelector('.on-ticket-badge').classList.toggle('inline-block', b.checked);
-                });
-                save.disabled = count < 1 || boxes.map(b => b.checked).join() === initial;
-                if (count < 1) {
+                refresh();
+                if (order.length < 1) {
                     msg.textContent = 'Select at least 1 signatory for the Trip Ticket.';
                     msg.classList.remove('hidden');
                 }
             }));
+
+            swapBtn.addEventListener('click', () => { order = order.slice().reverse(); refresh(); });
+
+            // Send the ids in printed order (checkbox order on the page is not the chosen order).
+            form.addEventListener('submit', () => {
+                form.querySelectorAll('input[name="ticket[]"]').forEach(i => i.remove());
+                order.forEach(id => {
+                    const h = document.createElement('input');
+                    h.type = 'hidden'; h.name = 'ticket[]'; h.value = id;
+                    form.appendChild(h);
+                });
+            });
+
+            refresh();
         });
 
         const MAX_SIGS = {{ \Modules\ApprovingOfficer\Models\ApprovingOfficer::MAX_SIGNATORIES }};

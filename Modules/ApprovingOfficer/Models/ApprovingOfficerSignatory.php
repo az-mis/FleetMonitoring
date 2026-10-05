@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ApprovingOfficerSignatory extends Model
 {
-    protected $fillable = ['approving_officer_id', 'name', 'title', 'show_on_ticket', 'sort_order'];
+    protected $fillable = ['approving_officer_id', 'name', 'title', 'show_on_ticket', 'ticket_order', 'sort_order'];
 
-    protected $casts = ['show_on_ticket' => 'boolean'];
+    protected $casts = ['show_on_ticket' => 'boolean', 'ticket_order' => 'integer'];
 
     public function officer(): BelongsTo
     {

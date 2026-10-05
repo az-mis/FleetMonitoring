@@ -27,11 +27,12 @@ class ApprovingOfficer extends Model
         return $this->hasMany(ApprovingOfficerSignatory::class)->orderBy('sort_order')->orderBy('id');
     }
 
-    /** Signatories chosen to appear on the approved Trip Ticket (max 2, in order). */
+    /** Signatories chosen to appear on the approved Trip Ticket (max 2), 1st (top) first. */
     public function ticketSignatories(): Collection
     {
         return $this->signatories
             ->where('show_on_ticket', true)
+            ->sortBy(fn ($s) => [$s->ticket_order ?? 99, $s->sort_order, $s->id])
             ->take(self::MAX_ON_TICKET)
             ->values();
     }
@@ -43,13 +44,32 @@ class ApprovingOfficer extends Model
     public function syncSignatories(array $rows, ?int $updatedBy = null): void
     {
         DB::transaction(function () use ($rows, $updatedBy): void {
+            // The edit form does not send ids, so remember each person's printed position by
+            // name + title and give it back after the rows are re-created.
+            $keyOf = fn (?string $name, ?string $title): string => mb_strtolower(trim((string) $name).'|'.trim((string) $title));
+            $previousOrder = $this->signatories()->get()
+                ->mapWithKeys(fn ($s) => [$keyOf($s->name, $s->title) => $s->ticket_order])
+                ->all();
+
+            $rows = array_values($rows);
+            $ranked = collect($rows)
+                ->map(fn ($row, $i) => ['i' => $i, 'on' => (bool) ($row['show_on_ticket'] ?? false), 'prev' => $previousOrder[$keyOf($row['name'], $row['title'] ?? null)] ?? 99])
+                ->where('on', true)
+                ->sortBy(fn ($r) => [$r['prev'], $r['i']])
+                ->values();
+            $orderByIndex = [];
+            foreach ($ranked as $pos => $r) {
+                $orderByIndex[$r['i']] = $pos + 1;
+            }
+
             $this->signatories()->delete();
 
-            foreach (array_values($rows) as $i => $row) {
+            foreach ($rows as $i => $row) {
                 $this->signatories()->create([
                     'name' => $row['name'],
                     'title' => $row['title'] ?? null,
                     'show_on_ticket' => (bool) ($row['show_on_ticket'] ?? false),
+                    'ticket_order' => $orderByIndex[$i] ?? null,
                     'sort_order' => $i,
                 ]);
             }
@@ -58,12 +78,14 @@ class ApprovingOfficer extends Model
         });
     }
 
-    /** Set which signatories (by id) appear on the Trip Ticket. */
+    /** Set which signatories (by id) appear on the Trip Ticket. $ids is in printed order: first = 1st (top). */
     public function setTicketSelection(array $ids, ?int $updatedBy = null): void
     {
         DB::transaction(function () use ($ids, $updatedBy): void {
-            $this->signatories()->update(['show_on_ticket' => false]);
-            $this->signatories()->whereIn('id', $ids)->update(['show_on_ticket' => true]);
+            $this->signatories()->update(['show_on_ticket' => false, 'ticket_order' => null]);
+            foreach (array_values($ids) as $i => $id) {
+                $this->signatories()->whereKey($id)->update(['show_on_ticket' => true, 'ticket_order' => $i + 1]);
+            }
             $this->refreshLegacyColumns($updatedBy);
         });
     }

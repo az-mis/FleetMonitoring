@@ -80,7 +80,8 @@ class ApprovingOfficerController
         $this->authorizeLocation($request, $approvingOfficer->location);
 
         $ids = collect($request->input('ticket', []))->map(fn ($id) => (int) $id)->unique()->values();
-        $validIds = $approvingOfficer->signatories()->whereIn('id', $ids)->pluck('id');
+        // intersect() keeps the order the user chose (1st, 2nd); a plain whereIn()->pluck() would not.
+        $validIds = $ids->intersect($approvingOfficer->signatories()->pluck('id'))->values();
 
         if ($validIds->count() < 1 || $validIds->count() > ApprovingOfficer::MAX_ON_TICKET) {
             throw ValidationException::withMessages([
