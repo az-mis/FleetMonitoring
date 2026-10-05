@@ -1355,7 +1355,7 @@
                     <button type="button" onclick="closeManualRequestModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer">
+                    <button type="button" onclick="showManualConfirmModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"/>
                         </svg>
@@ -1363,6 +1363,72 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    {{-- ===== Confirmation Modal for Create & Approve Trip Ticket ===== --}}
+    <div id="manual-confirm-modal"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+         style="display:none!important; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px);">
+        <div class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+
+            {{-- Header --}}
+            <div class="flex items-center gap-3 bg-amber-50 border-b border-amber-100 px-5 py-4">
+                <span class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 text-amber-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </span>
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Confirm Trip Ticket Creation</h3>
+                    <p class="text-[11px] text-amber-700 font-medium mt-0.5">This action will immediately create and approve an official trip ticket.</p>
+                </div>
+            </div>
+
+            {{-- Summary Body --}}
+            <div class="px-5 py-4 space-y-3">
+                <p class="text-[11px] text-slate-500">Please review the details below before proceeding. <strong class="text-slate-700">This action cannot be undone.</strong></p>
+
+                <div class="rounded-xl border border-slate-200 bg-slate-50 divide-y divide-slate-100 text-xs overflow-hidden">
+                    <div class="flex items-start gap-2 px-3 py-2.5">
+                        <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Requester</span>
+                        <span id="mcs-requester" class="text-slate-800 font-bold break-words min-w-0">—</span>
+                    </div>
+                    <div class="flex items-start gap-2 px-3 py-2.5">
+                        <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Office</span>
+                        <span id="mcs-office" class="text-slate-800 font-bold break-words min-w-0">—</span>
+                    </div>
+                    <div class="flex items-start gap-2 px-3 py-2.5">
+                        <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Destination(s)</span>
+                        <span id="mcs-destinations" class="text-slate-800 font-bold break-words min-w-0">—</span>
+                    </div>
+                    <div class="flex items-start gap-2 px-3 py-2.5">
+                        <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Travel Dates</span>
+                        <span id="mcs-dates" class="text-slate-800 font-bold break-words min-w-0">—</span>
+                    </div>
+                    <div class="flex items-start gap-2 px-3 py-2.5">
+                        <span class="w-24 flex-shrink-0 font-semibold text-slate-500">Vehicle</span>
+                        <span id="mcs-vehicle" class="text-slate-800 font-bold break-words min-w-0">—</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer Actions --}}
+            <div class="flex items-center justify-end gap-2 px-5 py-3.5 bg-slate-50 border-t border-slate-100">
+                <button type="button" onclick="closeManualConfirmModal()"
+                    class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                    Go Back & Review
+                </button>
+                <button type="button" onclick="confirmAndSubmitManual()"
+                    class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Yes, Create & Approve
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2250,5 +2316,83 @@
             url.searchParams.set('page', '1');
             window.location.href = url.toString();
         }
+
+        // ===== Confirmation Modal Functions =====
+        function showManualConfirmModal() {
+            const form = document.getElementById('manual-request-form');
+            if (!form) return;
+
+            // Validate form first
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Gather requester name
+            const requesterInput = form.querySelector('[name="requester_name"]');
+            const requesterName = requesterInput ? requesterInput.value.trim() : '';
+
+            // Gather office label from the dropdown trigger label span
+            const officeLabel = document.getElementById('admin-office-dropdown-label');
+            const officeName = officeLabel ? officeLabel.textContent.trim() : '—';
+
+            // Gather destinations from the hidden input
+            const destInput = document.getElementById('admin-dest-name-input');
+            const destValue = destInput ? destInput.value.trim() : '';
+            const destDisplay = destValue ? destValue.split(',').map(d => d.trim()).join(', ') : '—';
+
+            // Gather travel dates
+            const startInput = document.getElementById('manual-req-travel-date');
+            const endInput = document.getElementById('manual-req-travel-date-end');
+            const startDate = startInput ? startInput.value : '';
+            const endDate = endInput ? endInput.value : '';
+            let datesDisplay = '—';
+            if (startDate && endDate) {
+                datesDisplay = startDate === endDate ? fmtDay(startDate) : `${fmtDay(startDate)} \u2013 ${fmtDay(endDate)}`;
+            } else if (startDate) {
+                datesDisplay = fmtDay(startDate);
+            }
+
+            // Gather vehicle info from currently selected vehicle card
+            const vehicleIdInput = document.getElementById('manual-vehicle-id-input');
+            const selectedVehicleId = vehicleIdInput ? vehicleIdInput.value : '';
+            let vehicleDisplay = '—';
+            if (selectedVehicleId && manualStationVehicles.length) {
+                const v = manualStationVehicles.find(x => String(x.id) === String(selectedVehicleId));
+                if (v) {
+                    vehicleDisplay = `${v.plate} \u2014 ${(v.brand ?? '')} ${(v.model ?? '')}`.replace(/\s+/g, ' ').trim();
+                }
+            }
+
+            // Populate summary fields
+            document.getElementById('mcs-requester').textContent = requesterName || '\u2014';
+            document.getElementById('mcs-office').textContent = (officeName && !officeName.startsWith('\u2014 Select')) ? officeName : '\u2014';
+            document.getElementById('mcs-destinations').textContent = destDisplay;
+            document.getElementById('mcs-dates').textContent = datesDisplay;
+            document.getElementById('mcs-vehicle').textContent = vehicleDisplay;
+
+            // Show the confirm modal
+            const modal = document.getElementById('manual-confirm-modal');
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+            }
+        }
+
+        function closeManualConfirmModal() {
+            const modal = document.getElementById('manual-confirm-modal');
+            if (modal) modal.style.setProperty('display', 'none', 'important');
+        }
+
+        function confirmAndSubmitManual() {
+            closeManualConfirmModal();
+            const form = document.getElementById('manual-request-form');
+            if (form) form.submit();
+        }
+
+        // Close confirm modal on backdrop click
+        document.getElementById('manual-confirm-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeManualConfirmModal();
+        });
+
     </script>
 @endsection
