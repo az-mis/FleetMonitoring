@@ -2360,7 +2360,8 @@
             if (selectedVehicleId && manualStationVehicles.length) {
                 const v = manualStationVehicles.find(x => String(x.id) === String(selectedVehicleId));
                 if (v) {
-                    vehicleDisplay = `${v.plate} \u2014 ${(v.brand ?? '')} ${(v.model ?? '')}`.replace(/\s+/g, ' ').trim();
+                    const brandModel = `${v.brand ?? ''} ${v.model ?? ''}`.trim();
+                    vehicleDisplay = brandModel ? `${v.plate} \u2014 ${brandModel}` : v.plate;
                 }
             }
 
@@ -2371,9 +2372,18 @@
             document.getElementById('mcs-dates').textContent = datesDisplay;
             document.getElementById('mcs-vehicle').textContent = vehicleDisplay;
 
-            // Show the confirm modal
+            // Move modal to <body> so it escapes any parent stacking context
+            // (backdrop-filter / overflow on parent modals creates new stacking contexts
+            //  that prevent z-index from working correctly)
             const modal = document.getElementById('manual-confirm-modal');
             if (modal) {
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                    // Re-attach backdrop-click listener after reparenting
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) closeManualConfirmModal();
+                    });
+                }
                 modal.style.setProperty('display', 'flex', 'important');
             }
         }
@@ -2389,7 +2399,7 @@
             if (form) form.submit();
         }
 
-        // Close confirm modal on backdrop click
+        // Initial backdrop-click listener (before first reparent)
         document.getElementById('manual-confirm-modal')?.addEventListener('click', function(e) {
             if (e.target === this) closeManualConfirmModal();
         });
