@@ -200,14 +200,14 @@
 
                 {{-- 2. Clickable KPI cards --}}
                 <div class="grid grid-cols-2 gap-3 md:grid-cols-4" :class="kpis.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'">
-                    <template x-for="kpi in kpis" :key="kpi.key">
-                        <a :href="kpi.url" class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md hover:border-gray-300">
+                    <template x-for="(kpi, i) in kpis" :key="kpi.key">
+                        <a :href="kpi.url" :class="(kpis.length % 2 === 1 && i === kpis.length - 1) ? 'col-span-2 md:col-span-1' : ''" class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md hover:border-gray-300">
                             <div class="flex items-center gap-3">
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
                                       :class="`bg-${kpi.color}-100 text-${kpi.color}-700`"
                                       x-html="kpiIcon(kpi.icon)"></span>
                                 <div class="min-w-0">
-                                    <p class="truncate text-[10px] font-semibold uppercase tracking-wide text-gray-500" x-text="kpi.label"></p>
+                                    <p class="text-[10px] font-semibold uppercase leading-tight tracking-wide text-gray-500 sm:truncate" x-text="kpi.label"></p>
                                     <p class="flex items-baseline gap-1.5">
                                         <span class="text-xl font-bold text-gray-900" x-text="kpi.value"></span>
                                         <span class="text-[10px] text-gray-400" x-text="kpi.sub" x-show="kpi.sub"></span>
@@ -230,8 +230,8 @@
                 </div>
 
                 {{-- 3. Fleet status today --}}
-                <div class="grid gap-5 xl:grid-cols-2">
-                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="mb-3 flex items-center justify-between">
                             <h3 class="font-bold text-gray-900">Fleet Status Today</h3>
                             <span class="rounded-md bg-gray-50 px-2 py-1 text-[10px] font-bold text-gray-600" x-text="fleetStatus.total + ' vehicles'"></span>
@@ -254,7 +254,7 @@
                         </div>
                     </section>
 
-                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="mb-3 flex items-center justify-between">
                             <h3 class="font-bold text-gray-900">Today's Trips</h3>
                             <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'approved']) }}" class="text-xs font-semibold text-emerald-700 hover:underline">View all →</a>
@@ -276,20 +276,20 @@
                 </div>
 
                 {{-- 5. Chart previews (full versions on the Reports page) --}}
-                <div class="grid gap-5 xl:grid-cols-2">
-                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="mb-3 flex items-center justify-between">
                             <h3 class="font-bold text-gray-900">Requests per Month</h3>
                             <a href="{{ route('reports.index', $locationParam) }}" class="text-xs font-semibold text-emerald-700 hover:underline">Full report →</a>
                         </div>
-                        <canvas id="chart-requests-month" height="160"></canvas>
+                        <div class="relative w-full"><canvas id="chart-requests-month" height="160"></canvas></div>
                     </section>
-                    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="mb-3 flex items-center justify-between">
                             <h3 class="font-bold text-gray-900">Top Destinations</h3>
                             <a href="{{ route('reports.index', $locationParam) }}" class="text-xs font-semibold text-emerald-700 hover:underline">Full report →</a>
                         </div>
-                        <canvas id="chart-destinations" height="160"></canvas>
+                        <div class="relative w-full"><canvas id="chart-destinations" height="160"></canvas></div>
                     </section>
                 </div>
 
