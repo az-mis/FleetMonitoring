@@ -1447,12 +1447,17 @@
                 const key = toKey(manualViewYear, manualViewMonth, day);
                 const info = map.get(key);
                 const inRange = range && key >= range.start && key <= range.end;
-                const bg = inRange ? '#008751' : (info ? colors[info.worst] : '#ffffff');
-                const color = inRange || info ? '#ffffff' : '#334155';
-                const ring = inRange ? 'ring-2 ring-emerald-500 font-extrabold shadow-xs' : 'border border-slate-200';
+
+                const bg = info ? colors[info.worst] : (inRange ? '#d1fae5' : '#ffffff');
+                const color = info ? '#ffffff' : (inRange ? '#065f46' : '#334155');
+                const borderClass = inRange 
+                    ? 'border-2 border-emerald-600 font-extrabold shadow-sm' 
+                    : (info ? 'border border-transparent font-bold' : 'border border-slate-200');
                 
+                const title = info ? `${info.busy} request(s) · ${info.worst.toUpperCase()}` : 'No requests yet';
+
                 html += `
-                    <button type="button" onclick="onManualCalDateClick('${key}')" class="h-7 w-full rounded-md text-[11px] font-bold flex items-center justify-center transition cursor-pointer hover:opacity-90 ${ring}" style="background-color:${bg};color:${color};">
+                    <button type="button" onclick="onManualCalDateClick('${key}')" title="${title}" class="h-7 w-full rounded-md text-[11px] flex items-center justify-center transition cursor-pointer hover:opacity-90 ${borderClass}" style="background-color:${bg};color:${color};">
                         ${day}
                     </button>
                 `;
