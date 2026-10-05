@@ -699,7 +699,7 @@ $offices = [
                 const inRange = range && key >= range.start && key <= range.end;
                 const bg = info ? colors[info.worst] : 'transparent';
                 const color = info || inRange ? '#ffffff' : 'rgba(255,255,255,0.8)';
-                const ring = inRange ? 'box-shadow:inset 0 0 0 1.5px #72ebb0;' : '';
+                const ring = inRange ? 'outline:2.5px solid #72ebb0;outline-offset:-2.5px;' : '';
                 const title = info
                     ? `${info.busy} of ${stationVehicles.length} vehicle(s) booked · ${labels[info.worst]}`
                     : 'No requests yet';

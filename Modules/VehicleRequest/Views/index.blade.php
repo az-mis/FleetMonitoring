@@ -1450,14 +1450,13 @@
 
                 const bg = info ? colors[info.worst] : (inRange ? '#d1fae5' : '#ffffff');
                 const color = info ? '#ffffff' : (inRange ? '#065f46' : '#334155');
-                const borderClass = inRange 
-                    ? 'border-2 border-emerald-600 font-extrabold shadow-sm' 
-                    : (info ? 'border border-transparent font-bold' : 'border border-slate-200');
+                const outlineStyle = inRange ? 'outline: 2.5px solid #047857; outline-offset: -2.5px; font-weight: 900;' : '';
+                const borderClass = info ? 'border-0 font-bold' : 'border border-slate-200 font-medium';
                 
                 const title = info ? `${info.busy} request(s) · ${info.worst.toUpperCase()}` : 'No requests yet';
 
                 html += `
-                    <button type="button" onclick="onManualCalDateClick('${key}')" title="${title}" class="h-7 w-full rounded-md text-[11px] flex items-center justify-center transition cursor-pointer hover:opacity-90 ${borderClass}" style="background-color:${bg};color:${color};">
+                    <button type="button" onclick="onManualCalDateClick('${key}')" title="${title}" class="h-7 w-full rounded-md text-[11px] flex items-center justify-center transition cursor-pointer hover:opacity-90 ${borderClass}" style="background-color:${bg};color:${color};${outlineStyle}">
                         ${day}
                     </button>
                 `;
