@@ -431,7 +431,10 @@
                                 {{-- Destination --}}
                                 <td class="whitespace-nowrap px-3 py-3">
                                     @php
-                                        $destList = array_values(array_filter(array_map('trim', explode(',', $item->destination ?? ''))));
+                                        $rawDest = $item->destination ?? '';
+                                        $destList = str_contains($rawDest, ';;')
+                                            ? array_values(array_filter(array_map('trim', explode(';;', $rawDest))))
+                                            : array_values(array_filter(array_map('trim', explode(',', $rawDest))));
                                         $destCount = count($destList);
                                         $destFirst = $destList[0] ?? '—';
                                         $destRest  = array_slice($destList, 1);
@@ -2298,7 +2301,7 @@
             const placeholder = document.getElementById('admin-dest-placeholder');
 
             // 1. Update hidden form inputs
-            const destinationString = selectedAdminDestinations.map(d => d.name).join(', ');
+            const destinationString = selectedAdminDestinations.map(d => d.name).join(';;');
             const totalDistance = selectedAdminDestinations.reduce((sum, d) => sum + (parseInt(d.distance_km) || 0), 0);
 
             if (nameInput) nameInput.value = destinationString;
@@ -2453,9 +2456,10 @@
             // --- Destinations ---
             const destInput = document.getElementById('admin-dest-name-input');
             const destValue = destInput ? destInput.value.trim() : '';
-            const destDisplay = destValue
-                ? destValue.split(',').map(d => d.trim()).filter(Boolean).join(', ')
-                : '\u2014';
+            const destParts = destValue.includes(';;')
+                ? destValue.split(';;').map(d => d.trim()).filter(Boolean)
+                : destValue.split(',').map(d => d.trim()).filter(Boolean);
+            const destDisplay = destParts.length > 0 ? destParts.join(', ') : '\u2014';
 
             // --- Travel Dates ---
             const startInput = document.getElementById('manual-req-travel-date');

@@ -87,7 +87,13 @@
                 <div class="row"><div class="n">2</div><div class="lbl">Government car to be used, Plate No.</div><div class="val">{{ $plateLabel }}</div></div>
                 <div class="row"><div class="n">3</div><div class="lbl">Name of authorized passenger</div><div class="val">{{ $passengersText }}</div></div>
                 <div class="row"><div class="n">4</div><div class="lbl">Duration or Date of travel</div><div class="val">{{ $duration }}</div></div>
-                <div class="row"><div class="n">5</div><div class="lbl">Place or places to be visited</div><div class="val">{{ $requestRecord->destination }}</div></div>
+                @php
+                    $rawDest = $requestRecord->destination ?? '';
+                    $destFormatted = str_contains($rawDest, ';;')
+                        ? implode(', ', array_filter(array_map('trim', explode(';;', $rawDest))))
+                        : $rawDest;
+                @endphp
+                <div class="row"><div class="n">5</div><div class="lbl">Place or places to be visited</div><div class="val">{{ $destFormatted }}</div></div>
                 <div class="row"><div class="n">6</div><div class="lbl">Purpose :</div><div class="val">{{ $requestRecord->purpose }}</div></div>
                 <div class="row"><div class="n">7</div><div class="lbl">Previous date of Travel Trip Ticket</div><div class="val">{{ $longDate($requestRecord->previous_trip_ticket_date) }}</div></div>
             </div>

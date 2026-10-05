@@ -578,7 +578,7 @@ $offices = [
             const container = document.getElementById('public-dest-pills-container');
             const totalKmSpan = document.getElementById('public-dest-total-km');
 
-            const destinationString = selectedPublicDestinations.map(d => d.name).join(', ');
+            const destinationString = selectedPublicDestinations.map(d => d.name).join(';;');
             const totalDistance = selectedPublicDestinations.reduce((sum, d) => sum + (parseInt(d.distance_km) || 0), 0);
 
             if (nameInput) nameInput.value = destinationString;
