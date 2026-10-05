@@ -287,34 +287,41 @@ class VehicleRequestController
             (array) ($data['passengers'] ?? [])
         ));
 
-        $vehicleRequest = VehicleRequest::create([
-            'reference_code'         => $code,
-            'requester_name'         => \Modules\VehicleRequest\Support\PersonName::titleCase($data['requester_name']),
-            'location'               => $data['location'],
-            'requester_office'       => $data['requester_office'] ?? null,
-            'requester_contact'      => $data['requester_contact'],
-            'requester_is_passenger' => (bool) ($data['requester_is_passenger'] ?? false),
-            'vehicle_id'             => $data['vehicle_id'],
-            'confirmed_driver_id'    => $driverId,
-            'destination'            => $data['destination'],
-            'distance_km'            => $data['distance_km'] ?? null,
-            'travel_date'            => $data['travel_date'],
-            'travel_date_end'        => $data['travel_date_end'],
-            'purpose'                => $data['purpose'],
-            'passengers'             => array_values($passengers) ?: null,
-            'status'                 => 'approved',
-            'trip_ticket_number'     => $ticketNumber,
-            'approved_by'            => $request->user()->id,
-            'approved_at'            => now(),
-        ]);
-
-        return redirect()
-            ->route('vehicle-requests.index', array_filter(['status' => 'approved', 'location' => request('location')]))
-            ->with('manual_request_created', [
-                'requester'   => $vehicleRequest->requester_name,
-                'ticket'      => $ticketNumber,
-                'ticket_url'  => route('trip-ticket', $vehicleRequest),
+        try {
+            $vehicleRequest = VehicleRequest::create([
+                'reference_code'         => $code,
+                'requester_name'         => \Modules\VehicleRequest\Support\PersonName::titleCase($data['requester_name']),
+                'location'               => $data['location'],
+                'requester_office'       => $data['requester_office'] ?? null,
+                'requester_contact'      => $data['requester_contact'],
+                'requester_is_passenger' => (bool) ($data['requester_is_passenger'] ?? false),
+                'vehicle_id'             => $data['vehicle_id'],
+                'confirmed_driver_id'    => $driverId,
+                'destination'            => $data['destination'],
+                'distance_km'            => $data['distance_km'] ?? null,
+                'travel_date'            => $data['travel_date'],
+                'travel_date_end'        => $data['travel_date_end'],
+                'purpose'                => $data['purpose'],
+                'passengers'             => array_values($passengers) ?: null,
+                'status'                 => 'approved',
+                'trip_ticket_number'     => $ticketNumber,
+                'approved_by'            => $request->user()->id,
+                'approved_at'            => now(),
             ]);
+
+            return redirect()
+                ->route('vehicle-requests.index', array_filter(['status' => 'approved', 'location' => request('location')]))
+                ->with('manual_request_created', [
+                    'requester'   => $vehicleRequest->requester_name,
+                    'ticket'      => $ticketNumber,
+                    'ticket_url'  => route('trip-ticket', $vehicleRequest),
+                ]);
+
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('vehicle-requests.index', array_filter(['location' => request('location')]))
+                ->with('manual_request_error', 'An unexpected error occurred while creating the trip ticket. Please try again. (' . $e->getMessage() . ')');
+        }
     }
 
     public function tripTicket(VehicleRequest $vehicleRequest): View

@@ -147,6 +147,21 @@
         </div>
     @endif
 
+    {{-- Manual Request Failed Flash Banner --}}
+    @if(session('manual_request_error'))
+        <div class="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-red-300 bg-red-50/90 p-4 shadow-sm">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-xs">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-xs font-black text-red-950">Trip Ticket Creation Failed</h4>
+                <p class="text-xs text-red-800">{{ session('manual_request_error') }}</p>
+            </div>
+        </div>
+    @endif
+
     {{-- Stats Cards Row --}}
     <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {{-- Total Requests --}}
@@ -414,9 +429,10 @@
                                 </td>
 
                                 {{-- Destination --}}
-                                <td class="whitespace-nowrap px-3 py-3">
-                                    <span class="inline-flex items-center gap-1 font-semibold text-slate-800 text-xs">
-                                        <span class="text-rose-500">📍</span> {{ $item->destination }}
+                                <td class="px-3 py-3 max-w-[220px]">
+                                    <span class="inline-flex items-start gap-1 font-semibold text-slate-800 text-xs" title="{{ $item->destination }}">
+                                        <span class="text-rose-500 shrink-0 mt-px">📍</span>
+                                        <span class="line-clamp-2 leading-snug">{{ $item->destination }}</span>
                                     </span>
                                 </td>
 
@@ -1748,6 +1764,59 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }
+
+            // ── Reset all form fields ──────────────────────────────────────
+            const form = document.getElementById('manual-request-form');
+            if (form) form.reset();
+
+            // Clear requester name
+            const nameInput = form?.querySelector('[name="requester_name"]');
+            if (nameInput) nameInput.value = '';
+
+            // Reset office dropdown label
+            const officeLabel = document.getElementById('admin-office-dropdown-label');
+            if (officeLabel) {
+                officeLabel.textContent = '— Select Office / Division / Section —';
+                officeLabel.classList.add('text-slate-400');
+                officeLabel.classList.remove('text-slate-800');
+            }
+            const officeInput = form?.querySelector('[name="requester_office"]');
+            if (officeInput) officeInput.value = '';
+            const officePanel = document.getElementById('admin-office-dropdown-panel');
+            if (officePanel) officePanel.classList.add('hidden');
+            const officeSearch = document.getElementById('admin-office-search-input');
+            if (officeSearch) officeSearch.value = '';
+
+            // Reset destinations
+            selectedAdminDestinations = [];
+            updateAdminDestFormState();
+
+            // Reset travel dates to today
+            const todayStr = new Date().toISOString().split('T')[0];
+            const startInput = document.getElementById('manual-req-travel-date');
+            const endInput   = document.getElementById('manual-req-travel-date-end');
+            if (startInput) startInput.value = todayStr;
+            if (endInput)   endInput.value   = todayStr;
+            manualRangeConfirmed = true;
+            manualPickingEnd = false;
+            manualViewYear  = new Date().getFullYear();
+            manualViewMonth = new Date().getMonth();
+            renderManualCalendar();
+
+            // Reset vehicle selection
+            const vehicleIdInput = document.getElementById('manual-vehicle-id-input');
+            if (vehicleIdInput) vehicleIdInput.value = '';
+
+            // Reset purpose
+            const purposeInput = form?.querySelector('[name="purpose"]');
+            if (purposeInput) purposeInput.value = '';
+
+            // Clear passengers list
+            const passengersContainer = document.getElementById('manual-passengers-container');
+            if (passengersContainer) passengersContainer.innerHTML = '';
+
+            // Re-render vehicle cards to deselect
+            renderManualVehicleCards();
         }
 
         function addManualPassengerRow(value = '') {
