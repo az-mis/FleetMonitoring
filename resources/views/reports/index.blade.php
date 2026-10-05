@@ -196,7 +196,11 @@
 
         <section class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <h3 class="mb-3 text-sm font-bold text-gray-900">Maintenance Cost per Month</h3>
-            <div class="relative h-64"><canvas id="chart-maintenance-cost"></canvas></div>
+            <div id="maintenance-cost-wrap" class="relative h-64"><canvas id="chart-maintenance-cost"></canvas></div>
+            <div id="maintenance-cost-empty" class="hidden h-64 flex-col items-center justify-center gap-1 text-center">
+                <p class="text-sm font-semibold text-gray-600">No maintenance costs recorded</p>
+                <p class="text-xs text-gray-400">Costs will appear here once maintenance records have an amount for this period.</p>
+            </div>
         </section>
     </div>
 
@@ -289,19 +293,25 @@
 
         make('chart-destinations', {
             type: 'bar',
-            data: { labels: @json($topDestinations['labels']), datasets: [{ label: 'Requests', data: @json($topDestinations['data']), backgroundColor: '#3b82f6', borderRadius: 6 }] },
+            data: { labels: @json($topDestinations['labels']), datasets: [{ label: 'Requests', data: @json($topDestinations['data']), backgroundColor: '#3b82f6', borderRadius: 6, maxBarThickness: 36 }] },
             options: { ...base, indexAxis: 'y', scales: { x: { beginAtZero: true, grid, ticks: { precision: 0 } }, y: { grid: { display: false } } } },
         });
 
         make('chart-trips-vehicle', {
             type: 'bar',
-            data: { labels: @json($tripsPerVehicle['labels']), datasets: [{ label: 'Trips', data: @json($tripsPerVehicle['data']), backgroundColor: '#8b5cf6', borderRadius: 6 }] },
+            data: { labels: @json($tripsPerVehicle['labels']), datasets: [{ label: 'Trips', data: @json($tripsPerVehicle['data']), backgroundColor: '#8b5cf6', borderRadius: 6, maxBarThickness: 56 }] },
             options: base,
         });
 
-        make('chart-maintenance-cost', {
+        const maintenanceCosts = @json($maintenanceCostPerMonth['data']);
+        if (!maintenanceCosts.some((n) => Number(n) > 0)) {
+            document.getElementById('maintenance-cost-wrap').classList.add('hidden');
+            const emptyBox = document.getElementById('maintenance-cost-empty');
+            emptyBox.classList.remove('hidden');
+            emptyBox.classList.add('flex');
+        } else make('chart-maintenance-cost', {
             type: 'bar',
-            data: { labels: @json($maintenanceCostPerMonth['labels']), datasets: [{ label: 'Cost', data: @json($maintenanceCostPerMonth['data']), backgroundColor: '#f59e0b', borderRadius: 6 }] },
+            data: { labels: @json($maintenanceCostPerMonth['labels']), datasets: [{ label: 'Cost', data: @json($maintenanceCostPerMonth['data']), backgroundColor: '#f59e0b', borderRadius: 6, maxBarThickness: 56 }] },
             options: { ...base, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '₱' + Number(c.parsed.y).toLocaleString(undefined, { minimumFractionDigits: 2 }) } } } },
         });
     });
