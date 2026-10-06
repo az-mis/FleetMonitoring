@@ -43,10 +43,10 @@ class DestinationController extends Controller
         $isSuperAdmin = $user?->role?->value === 'super_admin';
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'distance_km' => 'required|integer|min:0',
-            'notes' => 'nullable|string|max:1000',
+            'name'        => 'required|string|max:255',
+            'location'    => 'required|string|max:255',
+            'distance_km' => 'nullable|integer|min:0',
+            'notes'       => 'nullable|string|max:1000',
         ]);
 
         if (!$isSuperAdmin) {
@@ -79,10 +79,10 @@ class DestinationController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'distance_km' => 'required|integer|min:0',
-            'notes' => 'nullable|string|max:1000',
+            'name'        => 'required|string|max:255',
+            'location'    => 'required|string|max:255',
+            'distance_km' => 'nullable|integer|min:0',
+            'notes'       => 'nullable|string|max:1000',
         ]);
 
         if (!$isSuperAdmin) {

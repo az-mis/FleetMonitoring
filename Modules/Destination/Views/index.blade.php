@@ -281,8 +281,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">One-Way Distance (KMs) <span class="text-red-500">*</span></label>
-                    <input type="number" name="distance_km" min="0" required placeholder="e.g. 69" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">One-Way Distance (KMs) <span class="text-slate-400 font-normal">(optional)</span></label>
+                    <input type="number" name="distance_km" min="0" placeholder="e.g. 69" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                     <p class="text-[11px] text-slate-400 mt-1">Round-trip will automatically be calculated as 2x of this value.</p>
                 </div>
 
@@ -345,8 +345,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">One-Way Distance (KMs) <span class="text-red-500">*</span></label>
-                    <input type="number" name="distance_km" id="edit-dest-distance" min="0" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">One-Way Distance (KMs) <span class="text-slate-400 font-normal">(optional)</span></label>
+                    <input type="number" name="distance_km" id="edit-dest-distance" min="0" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
