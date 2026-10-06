@@ -244,7 +244,7 @@
                         <span>Rows per page:</span>
                         <select id="destination-per-page-select" onchange="changeDestinationPerPage(this.value)" class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
                             @foreach ([10, 15, 20, 25, 50, 75, 100] as $size)
-                                <option value="{{ $size }}" @selected((int) request('per_page', $perPage ?? 15) === $size)>{{ $size }}</option>
+                                <option value="{{ $size }}" @selected((int) request('per_page', $perPage ?? 10) === $size)>{{ $size }}</option>
                             @endforeach
                         </select>
                     </div>

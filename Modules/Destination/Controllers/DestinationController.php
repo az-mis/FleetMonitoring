@@ -32,7 +32,7 @@ class DestinationController extends Controller
             });
         }
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = (int) $request->input('per_page', 10);
 
         $destinations = $query->orderBy('name', 'asc')->paginate($perPage)->withQueryString();
 
