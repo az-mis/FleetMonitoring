@@ -180,14 +180,24 @@
                 @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
                     @php
                         $pendingTravelCount = 0;
+                        $dueMaintenanceItems = collect();
                         try {
                             $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
                             $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
                                 ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
                                 ->count();
+
+                            $dueMaintenanceItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
+                                ->where('status', 'scheduled')
+                                ->whereDate('scheduled_date', '<=', now()->toDateString())
+                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                                ->latest('scheduled_date')
+                                ->get();
                         } catch (\Throwable $e) {
                             $pendingTravelCount = 0;
+                            $dueMaintenanceItems = collect();
                         }
+                        $totalNotifCount = $pendingTravelCount + $dueMaintenanceItems->count();
                     @endphp
 
                     <a
@@ -432,7 +442,7 @@
                                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                             </svg>
                             {{-- Notification badge dot (if unread notifications exist) --}}
-                            @if (($pendingTravelCount ?? 0) > 0)
+                            @if (($totalNotifCount ?? 0) > 0)
                                 <span class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
                                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
@@ -455,14 +465,14 @@
                         >
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                                 <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Notifications</h4>
-                                @if (($pendingTravelCount ?? 0) > 0)
+                                @if (($totalNotifCount ?? 0) > 0)
                                     <span class="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600 border border-red-100">
-                                        {{ $pendingTravelCount }} Pending
+                                        {{ $totalNotifCount }} New
                                     </span>
                                 @endif
                             </div>
 
-                            <div class="space-y-2 max-h-72 overflow-y-auto">
+                            <div class="space-y-2 max-h-80 overflow-y-auto">
                                 @if (($pendingTravelCount ?? 0) > 0)
                                     <a href="{{ route('vehicle-requests.index') }}" class="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition border border-transparent hover:border-slate-100">
                                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
@@ -476,7 +486,29 @@
                                             <p class="text-[11px] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
                                         </div>
                                     </a>
-                                @else
+                                @endif
+
+                                @if (isset($dueMaintenanceItems) && $dueMaintenanceItems->count() > 0)
+                                    @foreach ($dueMaintenanceItems as $mItem)
+                                        <a href="{{ route('maintenance.index') }}" class="flex items-start gap-3 rounded-xl p-2.5 hover:bg-blue-50/50 transition border border-transparent hover:border-blue-100">
+                                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center justify-between gap-1">
+                                                    <p class="text-xs font-bold text-slate-800 truncate">Maintenance Due Today</p>
+                                                    <span class="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Set Ongoing</span>
+                                                </div>
+                                                <p class="text-[11px] font-semibold text-slate-700 mt-0.5">{{ $mItem->vehicle_label ?: $mItem->plate_number }} — {{ $mItem->title }}</p>
+                                                <p class="text-[10px] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                @endif
+
+                                @if (($totalNotifCount ?? 0) === 0)
                                     <div class="py-6 text-center text-slate-400">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-7 w-7 text-slate-300 mb-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
