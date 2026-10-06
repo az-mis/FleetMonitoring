@@ -77,18 +77,18 @@
         @keyframes toastSlideDown {
             0% {
                 opacity: 0;
-                transform: translate(-50%, -40px) scale(0.9);
+                transform: translateY(-40px) scale(0.9);
             }
             60% {
                 opacity: 1;
-                transform: translate(-50%, 8px) scale(1.03);
+                transform: translateY(8px) scale(1.03);
             }
             85% {
-                transform: translate(-50%, -2px) scale(0.99);
+                transform: translateY(-2px) scale(0.99);
             }
             100% {
                 opacity: 1;
-                transform: translate(-50%, 0) scale(1);
+                transform: translateY(0) scale(1);
             }
         }
         .toast-animate-in {
@@ -446,21 +446,14 @@
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">SUCCESS</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('success') }}</p>
                         </div>
-                        <button type="button" onclick="document.getElementById('flash-success').remove()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <button type="button" onclick="dismissGlobalToast('flash-success')" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
                     <script>
-                        setTimeout(() => {
-                            const el = document.getElementById('flash-success');
-                            if (el) {
-                                el.style.opacity = '0';
-                                el.style.transform = 'translate(-50%, -20px)';
-                                setTimeout(() => el.remove(), 300);
-                            }
-                        }, 5000);
+                        setTimeout(() => dismissGlobalToast('flash-success'), 5000);
                     </script>
                 @endif
 
@@ -475,21 +468,14 @@
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-red-800">ERROR</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('error') }}</p>
                         </div>
-                        <button type="button" onclick="document.getElementById('flash-error').remove()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <button type="button" onclick="dismissGlobalToast('flash-error')" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
                     <script>
-                        setTimeout(() => {
-                            const el = document.getElementById('flash-error');
-                            if (el) {
-                                el.style.opacity = '0';
-                                el.style.transform = 'translate(-50%, -20px)';
-                                setTimeout(() => el.remove(), 300);
-                            }
-                        }, 5000);
+                        setTimeout(() => dismissGlobalToast('flash-error'), 5000);
                     </script>
                 @endif
 
@@ -679,6 +665,12 @@
                     closeSidebar();
                 }
             }
+        function dismissGlobalToast(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-20px)';
+            setTimeout(() => el.remove(), 300);
         }
     </script>
 
