@@ -446,14 +446,20 @@
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">SUCCESS</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('success') }}</p>
                         </div>
-                        <button type="button" onclick="dismissGlobalToast('flash-success')" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <button type="button" onclick="(function(){ var el=document.getElementById('flash-success'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
                     <script>
-                        setTimeout(() => dismissGlobalToast('flash-success'), 5000);
+                        setTimeout(function() {
+                            var el = document.getElementById('flash-success');
+                            if (!el) return;
+                            el.style.opacity = '0';
+                            el.style.transform = 'translateY(-20px)';
+                            setTimeout(function() { el.remove(); }, 300);
+                        }, 5000);
                     </script>
                 @endif
 
@@ -468,14 +474,20 @@
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-red-800">ERROR</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('error') }}</p>
                         </div>
-                        <button type="button" onclick="dismissGlobalToast('flash-error')" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <button type="button" onclick="(function(){ var el=document.getElementById('flash-error'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
                     <script>
-                        setTimeout(() => dismissGlobalToast('flash-error'), 5000);
+                        setTimeout(function() {
+                            var el = document.getElementById('flash-error');
+                            if (!el) return;
+                            el.style.opacity = '0';
+                            el.style.transform = 'translateY(-20px)';
+                            setTimeout(function() { el.remove(); }, 300);
+                        }, 5000);
                     </script>
                 @endif
 
