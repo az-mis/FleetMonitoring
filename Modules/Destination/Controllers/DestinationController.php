@@ -32,9 +32,11 @@ class DestinationController extends Controller
             });
         }
 
-        $destinations = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 15);
 
-        return view('destination::index', compact('destinations', 'selectedLocation', 'isSuperAdmin'));
+        $destinations = $query->orderBy('name', 'asc')->paginate($perPage)->withQueryString();
+
+        return view('destination::index', compact('destinations', 'selectedLocation', 'isSuperAdmin', 'perPage'));
     }
 
     public function store(Request $request)

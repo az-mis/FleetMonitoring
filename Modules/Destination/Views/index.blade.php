@@ -233,11 +233,30 @@
             </table>
         </div>
 
-        @if($destinations->hasPages())
-            <div class="border-t border-slate-200 px-4 py-3">
-                {{ $destinations->links() }}
+        <div class="border-t border-slate-200 px-4 py-3">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium">
+                    <div>
+                        Showing <span class="font-bold text-slate-700">{{ $destinations->firstItem() ?? 0 }}</span> to <span class="font-bold text-slate-700">{{ $destinations->lastItem() ?? 0 }}</span> of <span class="font-bold text-slate-700">{{ $destinations->total() }}</span> results
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span>Rows per page:</span>
+                        <select id="destination-per-page-select" onchange="changeDestinationPerPage(this.value)" class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                            @foreach ([10, 15, 20, 25, 50, 75, 100] as $size)
+                                <option value="{{ $size }}" @selected((int) request('per_page', $perPage ?? 15) === $size)>{{ $size }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                @if($destinations->hasPages())
+                    <div>
+                        {{ $destinations->links() }}
+                    </div>
+                @endif
             </div>
-        @endif
+        </div>
     </div>
 
     {{-- Add Destination Modal --}}
@@ -404,6 +423,13 @@
         function closeEditDestinationModal() {
             document.getElementById('edit-destination-modal').classList.add('hidden');
             document.getElementById('edit-destination-modal').classList.remove('flex');
+        }
+
+        function changeDestinationPerPage(perPage) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', perPage);
+            url.searchParams.set('page', 1);
+            window.location.href = url.toString();
         }
     </script>
 @endsection
