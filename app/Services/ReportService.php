@@ -78,6 +78,7 @@ class ReportService
 
         arsort($townCounts);
         $topTowns = array_slice($townCounts, 0, $limit, true);
+        ksort($topTowns);
 
         return ['labels' => array_keys($topTowns), 'data' => array_values($topTowns)];
     }
