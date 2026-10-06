@@ -418,20 +418,93 @@
                     </button>
                 </div>
 
-                @if ($hasPhoto)
-                    <img
-                        src="{{ $user->avatar_url }}"
-                        alt="{{ $user->name }}"
-                        class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/40 sm:ring-emerald-100"
-                    >
-                @else
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/40 sm:bg-gray-100 sm:ring-emerald-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white sm:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/>
-                            <path d="M4 21a8 8 0 0 1 16 0 1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
-                        </svg>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    {{-- Notification Bell Dropdown --}}
+                    <div class="relative" x-data="{ open: false }">
+                        <button
+                            type="button"
+                            @click="open = !open"
+                            class="relative rounded-full p-2 text-white hover:bg-white/10 sm:text-slate-500 sm:hover:bg-slate-100 sm:hover:text-slate-700 transition cursor-pointer"
+                            title="Notifications"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                            </svg>
+                            {{-- Notification badge dot (if unread notifications exist) --}}
+                            @if (($pendingTravelCount ?? 0) > 0)
+                                <span class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                                </span>
+                            @endif
+                        </button>
+
+                        {{-- Dropdown Menu --}}
+                        <div
+                            x-show="open"
+                            @click.outside="open = false"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white p-4 shadow-2xl border border-slate-100 z-50 hidden"
+                            :class="{ 'hidden': !open }"
+                        >
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Notifications</h4>
+                                @if (($pendingTravelCount ?? 0) > 0)
+                                    <span class="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600 border border-red-100">
+                                        {{ $pendingTravelCount }} Pending
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="space-y-2 max-h-72 overflow-y-auto">
+                                @if (($pendingTravelCount ?? 0) > 0)
+                                    <a href="{{ route('vehicle-requests.index') }}" class="flex items-start gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition border border-transparent hover:border-slate-100">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M12 9v4M12 17h.01"/>
+                                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-xs font-bold text-slate-800">Pending Travel Requests</p>
+                                            <p class="text-[11px] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
+                                        </div>
+                                    </a>
+                                @else
+                                    <div class="py-6 text-center text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-7 w-7 text-slate-300 mb-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                                        </svg>
+                                        <p class="text-xs font-semibold text-slate-600">No new notifications</p>
+                                        <p class="text-[11px] text-slate-400">You're all caught up!</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
-                @endif
+
+                    @if ($hasPhoto)
+                        <img
+                            src="{{ $user->avatar_url }}"
+                            alt="{{ $user->name }}"
+                            class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/40 sm:ring-emerald-100"
+                        >
+                    @else
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/40 sm:bg-gray-100 sm:ring-emerald-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white sm:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/>
+                                <path d="M4 21a8 8 0 0 1 16 0 1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
+                            </svg>
+                        </div>
+                    @endif
+                </div>
             </header>
 
             <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
