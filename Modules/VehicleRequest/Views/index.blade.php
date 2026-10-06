@@ -121,46 +121,57 @@
         </div>
     </div>
 
-    {{-- Manual Request Created Flash Banner --}}
-    @if(session('manual_request_created'))
-        @php $createdTrip = session('manual_request_created'); @endphp
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-300 bg-emerald-50/90 p-4 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+    {{-- Floating Flash Banners Container (Floats below header, above stats cards) --}}
+    <div id="flash-banners-container" class="relative z-30 space-y-3">
+        {{-- Manual Request Created Flash Banner --}}
+        @if(session('manual_request_created'))
+            @php $createdTrip = session('manual_request_created'); @endphp
+            <div id="flash-banner-success" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-300 bg-emerald-50/95 p-4 shadow-xl backdrop-blur-md transition-all duration-300 transform">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black text-emerald-950">Trip Request Created & Approved Successfully!</h4>
+                        <p class="text-xs text-emerald-800">
+                            Trip Ticket No. <strong class="font-extrabold font-mono text-emerald-900">{{ $createdTrip['ticket'] }}</strong> for <span class="font-bold">{{ $createdTrip['requester'] }}</span>.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h4 class="text-xs font-black text-emerald-950">Trip Request Created & Approved Successfully!</h4>
-                    <p class="text-xs text-emerald-800">
-                        Trip Ticket No. <strong class="font-extrabold font-mono text-emerald-900">{{ $createdTrip['ticket'] }}</strong> for <span class="font-bold">{{ $createdTrip['requester'] }}</span>.
-                    </p>
+                <div class="flex items-center gap-3">
+                    <a href="{{ $createdTrip['ticket_url'] }}" target="_blank" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                        Print Trip Ticket
+                    </a>
+                    <button type="button" onclick="dismissFlashBanner('flash-banner-success')" class="rounded-lg p-1.5 text-emerald-700 hover:bg-emerald-200/60 hover:text-emerald-900 transition cursor-pointer" title="Close banner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ $createdTrip['ticket_url'] }}" target="_blank" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                    Print Trip Ticket
-                </a>
-            </div>
-        </div>
-    @endif
+        @endif
 
-    {{-- Manual Request Failed Flash Banner --}}
-    @if(session('manual_request_error'))
-        <div class="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-red-300 bg-red-50/90 p-4 shadow-sm">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-xs">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-                </svg>
+        {{-- Manual Request Failed Flash Banner --}}
+        @if(session('manual_request_error'))
+            <div id="flash-banner-error" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-300 bg-red-50/95 p-4 shadow-xl backdrop-blur-md transition-all duration-300 transform">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black text-red-950">Trip Ticket Creation Failed</h4>
+                        <p class="text-xs text-red-800">{{ session('manual_request_error') }}</p>
+                    </div>
+                </div>
+                <button type="button" onclick="dismissFlashBanner('flash-banner-error')" class="rounded-lg p-1.5 text-red-700 hover:bg-red-200/60 hover:text-red-900 transition cursor-pointer" title="Close banner">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
-            <div>
-                <h4 class="text-xs font-black text-red-950">Trip Ticket Creation Failed</h4>
-                <p class="text-xs text-red-800">{{ session('manual_request_error') }}</p>
-            </div>
-        </div>
-    @endif
+        @endif
+    </div>
 
     {{-- Stats Cards Row --}}
     <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -2565,6 +2576,27 @@
         // Initial backdrop-click listener (before first reparent to body)
         document.getElementById('manual-confirm-modal')?.addEventListener('click', function(e) {
             if (e.target === this) closeManualConfirmModal();
+        });
+
+        // ===== Flash Banner Dismiss & Auto-Close =====
+        function dismissFlashBanner(elementId) {
+            const banner = document.getElementById(elementId);
+            if (!banner) return;
+            banner.classList.add('opacity-0', '-translate-y-2');
+            setTimeout(() => {
+                banner.remove();
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const successBanner = document.getElementById('flash-banner-success');
+            if (successBanner) {
+                setTimeout(() => dismissFlashBanner('flash-banner-success'), 5000);
+            }
+            const errorBanner = document.getElementById('flash-banner-error');
+            if (errorBanner) {
+                setTimeout(() => dismissFlashBanner('flash-banner-error'), 5000);
+            }
         });
 
     </script>
