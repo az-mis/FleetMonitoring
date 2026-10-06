@@ -968,7 +968,8 @@ $offices = [
         locationSelect.addEventListener('change', () => {
             loadStation(false);
             // Reset destination selection when station changes
-            selectPublicDest('', null);
+            selectedPublicDestinations = [];
+            updatePublicDestFormState();
             loadPublicDestinations();
         });
         document.addEventListener('DOMContentLoaded', () => {
