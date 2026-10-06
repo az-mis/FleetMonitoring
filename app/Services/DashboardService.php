@@ -218,6 +218,60 @@ class DashboardService
     }
 
     /**
+     * Calendar events for Approved, Pending, and Maintenance items.
+     */
+    public function calendarEvents(?string $location): array
+    {
+        $events = [];
+
+        // 1. Vehicle Requests (Approved & Pending)
+        $requests = VehicleRequest::query()
+            ->with('vehicle')
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereIn('status', ['approved', 'pending'])
+            ->get();
+
+        foreach ($requests as $req) {
+            $startDate = $req->travel_date ? $req->travel_date->format('Y-m-d') : null;
+            $endDate = $req->travel_date_end ? $req->travel_date_end->format('Y-m-d') : $startDate;
+            if (!$startDate) continue;
+
+            $events[] = [
+                'type' => $req->status, // 'approved' or 'pending'
+                'title' => ($req->vehicle?->plate_number ?? 'Request').' - '.$req->requester_name,
+                'sub' => $req->destination,
+                'start' => $startDate,
+                'end' => $endDate,
+                'url' => route('vehicle-requests.index', array_filter(['location' => $location, 'status' => $req->status])),
+            ];
+        }
+
+        // 2. Vehicle Maintenance (Active/Scheduled/Ongoing)
+        $maintenances = VehicleMaintenance::query()
+            ->with('vehicle')
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->get();
+
+        foreach ($maintenances as $m) {
+            $startDate = $m->scheduled_date ? $m->scheduled_date->format('Y-m-d') : null;
+            $endDate = $m->scheduled_date_end ? $m->scheduled_date_end->format('Y-m-d') : $startDate;
+            if (!$startDate) continue;
+
+            $events[] = [
+                'type' => 'maintenance',
+                'title' => ($m->vehicle?->plate_number ?? 'Vehicle').' - Maintenance',
+                'sub' => $m->service_type ?? 'Maintenance',
+                'start' => $startDate,
+                'end' => $endDate,
+                'url' => route('maintenance.index', array_filter(['location' => $location, 'status' => 'active'])),
+            ];
+        }
+
+        return $events;
+    }
+
+    /**
      * Today's trips departing/out today.
      */
     public function todaysTrips(?string $location): Collection

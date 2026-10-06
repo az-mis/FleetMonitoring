@@ -223,13 +223,98 @@
                     </template>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'pending']) }}" class="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100">▣ Review Requests</a>
-                    <a href="{{ route('vehicles.index', $locationParam) }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">▣ Manage Vehicles</a>
-                    <a href="{{ route('vehicle-assigning.index', $locationParam) }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">♙ Driver Assignments</a>
-                </div>
+                {{-- 3. Admin Fleet Calendar Widget --}}
+                <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm" x-data="adminDashboardCalendar({{ Illuminate\Support\Js::from($calendarEvents ?? []) }})">
+                    <div class="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <h3 class="font-black text-slate-900 text-sm">Fleet Activity Calendar</h3>
+                                <p class="text-[11px] text-slate-500 font-medium">Overview of Approved Trips, Pending Requests, &amp; Scheduled Maintenance</p>
+                            </div>
+                        </div>
 
-                {{-- 3. Fleet status today --}}
+                        {{-- Month Navigation & Legend --}}
+                        <div class="flex items-center gap-4">
+                            {{-- Status Badges Legend --}}
+                            <div class="hidden sm:flex items-center gap-3 text-xs font-bold">
+                                <span class="flex items-center gap-1.5 text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-600"></span> Approved
+                                </span>
+                                <span class="flex items-center gap-1.5 text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                    <span class="h-2 w-2 rounded-full bg-amber-500"></span> Pending
+                                </span>
+                                <span class="flex items-center gap-1.5 text-red-800 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                                    <span class="h-2 w-2 rounded-full bg-red-500"></span> Maintenance
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                                <button type="button" @click="prevMonth()" class="rounded p-1 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                                </button>
+                                <span class="px-2 text-xs font-black text-slate-800 min-w-[100px] text-center" x-text="monthYearTitle"></span>
+                                <button type="button" @click="nextMonth()" class="rounded p-1 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Calendar Grid --}}
+                    <div class="w-full overflow-x-auto">
+                        <div class="min-w-[600px]">
+                            <div class="grid grid-cols-7 text-center text-[11px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
+                                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 pt-1">
+                                <template x-for="day in calendarDays" :key="day.dateStr">
+                                    <div class="min-h-[85px] rounded-lg border p-1.5 transition flex flex-col justify-between"
+                                         :class="{
+                                             'bg-slate-50/50 border-slate-100 text-slate-300': !day.inMonth,
+                                             'bg-white border-slate-200': day.inMonth &amp;&amp; !day.isToday,
+                                             'bg-emerald-50/40 border-emerald-400 ring-1 ring-emerald-400': day.isToday
+                                         }">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-extrabold"
+                                                  :class="{
+                                                      'text-slate-400': !day.inMonth,
+                                                      'text-slate-800': day.inMonth &amp;&amp; !day.isToday,
+                                                      'text-emerald-900 bg-emerald-600 text-white rounded-full h-5 w-5 flex items-center justify-center': day.isToday
+                                                  }"
+                                                  x-text="day.dayNum"></span>
+                                            <span x-show="day.events.length > 0" class="text-[9px] font-extrabold px-1 rounded bg-slate-100 text-slate-600" x-text="day.events.length"></span>
+                                        </div>
+
+                                        <div class="mt-1 space-y-1 overflow-y-auto max-h-[55px] scrollbar-thin">
+                                            <template x-for="ev in day.events" :key="ev.title + ev.start">
+                                                <a :href="ev.url"
+                                                   class="block text-[10px] font-bold px-1.5 py-0.5 rounded truncate transition border"
+                                                   :class="{
+                                                       'bg-emerald-100 border-emerald-300 text-emerald-900 hover:bg-emerald-200': ev.type === 'approved',
+                                                       'bg-amber-100 border-amber-300 text-amber-900 hover:bg-amber-200': ev.type === 'pending',
+                                                       'bg-red-100 border-red-300 text-red-900 hover:bg-red-200': ev.type === 'maintenance'
+                                                   }"
+                                                   :title="ev.title + ' (' + ev.sub + ')'">
+                                                    <span x-text="ev.title"></span>
+                                                </a>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {{-- 4. Fleet status today --}}
                 <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
                     <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="mb-3 flex items-center justify-between">
@@ -348,6 +433,101 @@
                         options: { ...opts, indexAxis: 'y' },
                     });
                 });
+
+                function adminDashboardCalendar(rawEvents) {
+                    return {
+                        viewYear: new Date().getFullYear(),
+                        viewMonth: new Date().getMonth(),
+                        events: rawEvents || [],
+
+                        get monthYearTitle() {
+                            return new Date(this.viewYear, this.viewMonth, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+                        },
+
+                        get calendarDays() {
+                            const days = [];
+                            const firstDay = new Date(this.viewYear, this.viewMonth, 1);
+                            const lastDay = new Date(this.viewYear, this.viewMonth + 1, 0);
+                            const startDayOfWeek = firstDay.getDay();
+                            const totalDays = lastDay.getDate();
+                            const todayStr = new Date().toISOString().split('T')[0];
+
+                            // Prev month padding
+                            const prevMonthLastDay = new Date(this.viewYear, this.viewMonth, 0).getDate();
+                            for (let i = startDayOfWeek - 1; i >= 0; i--) {
+                                const d = prevMonthLastDay - i;
+                                const dateObj = new Date(this.viewYear, this.viewMonth - 1, d);
+                                const dateStr = dateObj.toISOString().split('T')[0];
+                                days.push({
+                                    dayNum: d,
+                                    inMonth: false,
+                                    isToday: dateStr === todayStr,
+                                    dateStr: dateStr,
+                                    events: this.getEventsForDate(dateStr)
+                                });
+                            }
+
+                            // Current month days
+                            for (let d = 1; d <= totalDays; d++) {
+                                const dateObj = new Date(this.viewYear, this.viewMonth, d);
+                                // Local date ISO string format YYYY-MM-DD
+                                const monthPadded = String(this.viewMonth + 1).padStart(2, '0');
+                                const dayPadded = String(d).padStart(2, '0');
+                                const dateStr = `${this.viewYear}-${monthPadded}-${dayPadded}`;
+                                days.push({
+                                    dayNum: d,
+                                    inMonth: true,
+                                    isToday: dateStr === todayStr,
+                                    dateStr: dateStr,
+                                    events: this.getEventsForDate(dateStr)
+                                });
+                            }
+
+                            // Next month padding
+                            const totalCells = days.length;
+                            const nextPadding = (7 - (totalCells % 7)) % 7;
+                            for (let d = 1; d <= nextPadding; d++) {
+                                const dateObj = new Date(this.viewYear, this.viewMonth + 1, d);
+                                const dateStr = dateObj.toISOString().split('T')[0];
+                                days.push({
+                                    dayNum: d,
+                                    inMonth: false,
+                                    isToday: dateStr === todayStr,
+                                    dateStr: dateStr,
+                                    events: this.getEventsForDate(dateStr)
+                                });
+                            }
+
+                            return days;
+                        },
+
+                        getEventsForDate(dateStr) {
+                            return this.events.filter(e => {
+                                if (!e.start) return false;
+                                const end = e.end || e.start;
+                                return dateStr >= e.start && dateStr <= end;
+                            });
+                        },
+
+                        nextMonth() {
+                            if (this.viewMonth === 11) {
+                                this.viewMonth = 0;
+                                this.viewYear++;
+                            } else {
+                                this.viewMonth++;
+                            }
+                        },
+
+                        prevMonth() {
+                            if (this.viewMonth === 0) {
+                                this.viewMonth = 11;
+                                this.viewYear--;
+                            } else {
+                                this.viewMonth--;
+                            }
+                        }
+                    };
+                }
 
                 function fleetDashboard({ initialAlerts, initialKpis, initialFleetStatus, refreshUrl }) {
                     return {

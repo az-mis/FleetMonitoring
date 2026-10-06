@@ -49,6 +49,7 @@ class DashboardController extends Controller
                 'kpis' => $this->dashboardService->kpis($dashboardLocation, $isSuperAdmin),
                 'fleetStatus' => $this->dashboardService->fleetStatus($dashboardLocation),
                 'todaysTrips' => $this->dashboardService->todaysTrips($dashboardLocation),
+                'calendarEvents' => $this->dashboardService->calendarEvents($dashboardLocation),
                 'requestsPerMonth' => $this->reportService->requestsPerMonth($dashboardLocation),
                 'topDestinations' => $this->reportService->topDestinations($dashboardLocation),
                 'maintenanceCostPerMonth' => $this->reportService->maintenanceCostPerMonth($dashboardLocation),

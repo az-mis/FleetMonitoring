@@ -55,16 +55,31 @@ class ReportService
 
     public function topDestinations(?string $location, $start = null, $end = null, int $limit = 6): array
     {
-        $rows = VehicleRequest::query()
+        $requests = VehicleRequest::query()
             ->when($location, fn ($q) => $q->where('location', $location))
             ->when($start && $end, fn ($q) => $q->whereBetween('travel_date', [$start, $end]))
-            ->selectRaw('destination, count(*) as total')
-            ->groupBy('destination')
-            ->orderByDesc('total')
-            ->limit($limit)
-            ->pluck('total', 'destination');
+            ->pluck('destination');
 
-        return ['labels' => $rows->keys()->all(), 'data' => $rows->values()->all()];
+        $townCounts = [];
+
+        foreach ($requests as $destStr) {
+            if (!$destStr) continue;
+
+            $parts = str_contains($destStr, ';;')
+                ? explode(';;', $destStr)
+                : explode(',', $destStr);
+
+            foreach ($parts as $part) {
+                $town = trim($part);
+                if ($town === '') continue;
+                $townCounts[$town] = ($townCounts[$town] ?? 0) + 1;
+            }
+        }
+
+        arsort($townCounts);
+        $topTowns = array_slice($townCounts, 0, $limit, true);
+
+        return ['labels' => array_keys($topTowns), 'data' => array_values($topTowns)];
     }
 
     public function tripsPerVehicle(?string $location, $start = null, $end = null, int $limit = 8): array
