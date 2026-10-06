@@ -436,7 +436,7 @@
 
             <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
                 @if (session('success'))
-                    <div id="flash-success" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white p-3.5 shadow-xl shadow-gray-900/10 min-w-[280px] max-w-md transition-all duration-300">
+                    <div id="flash-success" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 md:left-[calc(50%+8rem)] z-[9999] flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white p-3.5 shadow-2xl shadow-gray-900/15 w-[90vw] max-w-md transition-all duration-300">
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 6 9 17l-5-5"/>
@@ -444,9 +444,9 @@
                         </div>
                         <div class="flex-1 min-w-0 pt-0.5">
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">SUCCESS</p>
-                            <p class="text-xs font-semibold text-gray-800 truncate">{{ session('success') }}</p>
+                            <p class="text-xs font-semibold text-gray-800 break-words">{{ session('success') }}</p>
                         </div>
-                        <button type="button" onclick="document.getElementById('flash-success').remove()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
+                        <button type="button" onclick="document.getElementById('flash-success').remove()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
@@ -465,7 +465,7 @@
                 @endif
 
                 @if (session('error'))
-                    <div id="flash-error" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-start gap-3 rounded-2xl border border-red-100 bg-white p-3.5 shadow-xl shadow-gray-900/10 min-w-[280px] max-w-md transition-all duration-300">
+                    <div id="flash-error" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 md:left-[calc(50%+8rem)] z-[9999] flex items-start gap-3 rounded-2xl border border-red-100 bg-white p-3.5 shadow-2xl shadow-gray-900/15 w-[90vw] max-w-md transition-all duration-300">
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -473,9 +473,9 @@
                         </div>
                         <div class="flex-1 min-w-0 pt-0.5">
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-red-800">ERROR</p>
-                            <p class="text-xs font-semibold text-gray-800 truncate">{{ session('error') }}</p>
+                            <p class="text-xs font-semibold text-gray-800 break-words">{{ session('error') }}</p>
                         </div>
-                        <button type="button" onclick="document.getElementById('flash-error').remove()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
+                        <button type="button" onclick="document.getElementById('flash-error').remove()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
