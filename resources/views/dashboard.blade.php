@@ -430,7 +430,14 @@
                             labels: @json($topDestinations['labels']),
                             datasets: [{ data: @json($topDestinations['data']), backgroundColor: '#3b82f6' }],
                         },
-                        options: { ...opts, indexAxis: 'y' },
+                        options: {
+                            responsive: true,
+                            indexAxis: 'y',
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                            }
+                        },
                     });
                 });
 
