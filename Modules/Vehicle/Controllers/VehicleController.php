@@ -154,17 +154,19 @@ class VehicleController extends Controller
         $this->authorizeSuperAdmin();
 
         $validated = $request->validate([
-            'odometer_km'     => 'required|integer|min:0',
-            'change_oil_done' => 'nullable|boolean',
-            'notes'           => 'nullable|string|max:1000',
-            'items'           => 'required|array',
+            'odometer_km'      => 'required|integer|min:0',
+            'change_oil_done'  => 'nullable|string',
+            'notes'            => 'nullable|string|max:1000',
+            'items'            => 'required|array',
             'items.*.category' => 'required|string',
             'items.*.name'     => 'required|string',
             'items.*.status'   => 'required|in:pass,attention,fail',
             'items.*.remarks'  => 'nullable|string|max:255',
         ]);
 
-        $changeOilDone = !empty($validated['change_oil_done']);
+        // FormData sends checkbox as "on" string; also handle true/1 for API calls
+        $changeOilDone = !empty($validated['change_oil_done']) &&
+            in_array($validated['change_oil_done'], ['on', 'true', '1', 1, true], true);
         $newOdometer = (int) $validated['odometer_km'];
 
         // Compute overall status (if any item failed -> failed, if attention -> needs_attention, else passed)

@@ -298,6 +298,19 @@
             const modal = document.getElementById('new-inspection-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+
+            // Reset the entire form
+            const form = document.getElementById('new-inspection-form');
+            if (form) form.reset();
+
+            // Clear state
+            selectedVehicleStoreUrl = '';
+
+            // Reset the vehicle select and odometer field
+            const vehicleSelect = document.getElementById('insp-vehicle-select');
+            if (vehicleSelect) vehicleSelect.value = '';
+            const odoInput = document.getElementById('new-insp-odometer');
+            if (odoInput) odoInput.value = '';
         }
 
         function onVehicleSelected(select) {
@@ -330,7 +343,23 @@
                 },
                 body: new FormData(form)
             })
-            .then(res => res.json())
+            .then(async res => {
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    // Server returned non-JSON (e.g. HTML error page)
+                    console.error('Non-JSON server response:', text.substring(0, 500));
+                    throw new Error(`Server error (${res.status}): The server returned an unexpected response. Check the console for details.`);
+                }
+                if (!res.ok) {
+                    // Laravel validation errors come as 422 with {errors: {...}, message: "..."}
+                    const errMsg = data.message || Object.values(data.errors || {}).flat().join('\n') || `Server error ${res.status}`;
+                    throw new Error(errMsg);
+                }
+                return data;
+            })
             .then(data => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save Inspection Report';
@@ -344,8 +373,8 @@
             .catch(err => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save Inspection Report';
-                console.error(err);
-                alert('An error occurred.');
+                console.error('Inspection submit error:', err);
+                alert(err.message || 'An error occurred. Please try again.');
             });
         }
 
