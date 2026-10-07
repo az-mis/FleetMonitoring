@@ -368,7 +368,7 @@
                                     </div>
                                     <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
                                 </div>
-                                <p class="text-[11px] text-slate-400 mt-1">Notification threshold (default 5,000 km)</p>
+                                <p class="text-[11px] text-slate-400 mt-1">Threshold (default 5,000 km)</p>
                             </div>
 
                             {{-- Vehicle Type --}}
@@ -376,7 +376,7 @@
                                 <label for="rv-vehicle_type" class="{{ $rvLabel }}">Vehicle Type <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <select name="vehicle_type" id="rv-vehicle_type" class="{{ $rvSelect }} {{ $rvBorder('vehicle_type') }}" required>
-                                        <option value="">Select vehicle type</option>
+                                        <option value="">Select type</option>
                                         @if ($rvTypeValue !== '' && ! in_array($rvTypeValue, $rvTypes, true))
                                             <option value="{{ $rvTypeValue }}" selected>{{ $rvTypeValue }}</option>
                                         @endif
@@ -392,7 +392,7 @@
                             </div>
 
                             {{-- Fuel Type --}}
-                            <div class="sm:col-span-5">
+                            <div class="sm:col-span-4">
                                 <label for="rv-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
@@ -773,42 +773,41 @@
                             </div>
                         </div>
 
-                        {{-- Current Odometer & Change Oil Interval --}}
-                        <div class="sm:col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label for="ev-odometer" class="{{ $rvLabel }}">Current Odometer <span class="text-red-500">*</span></label>
-                                <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('odometer') }}">
-                                    <div class="relative min-w-0 flex-1">
-                                        <input type="number" name="odometer" id="ev-odometer" value="{{ $evOld('odometer') }}" min="0" placeholder="e.g. 25000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}" required>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
-                                    </div>
-                                    <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
+                        {{-- Current Odometer --}}
+                        <div class="sm:col-span-3">
+                            <label for="ev-odometer" class="{{ $rvLabel }}">Current Odometer <span class="text-red-500">*</span></label>
+                            <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('odometer') }}">
+                                <div class="relative min-w-0 flex-1">
+                                    <input type="number" name="odometer" id="ev-odometer" value="{{ $evOld('odometer') }}" min="0" placeholder="e.g. 25000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}" required>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
                                 </div>
-                                @if ($evIsOld)
-                                    @error('odometer')
-                                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                                    @enderror
-                                @endif
+                                <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-600">km</span>
                             </div>
+                            @if ($evIsOld)
+                                @error('odometer')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
+                        </div>
 
-                            <div>
-                                <label for="ev-change_oil_interval_km" class="{{ $rvLabel }}">Change Oil Interval</label>
-                                <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('change_oil_interval_km') }}">
-                                    <div class="relative min-w-0 flex-1">
-                                        <input type="number" name="change_oil_interval_km" id="ev-change_oil_interval_km" value="{{ $evOld('change_oil_interval_km', '5000') }}" min="500" placeholder="e.g. 5000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}">
-                                    </div>
-                                    <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
+                        {{-- Change Oil Interval --}}
+                        <div class="sm:col-span-3">
+                            <label for="ev-change_oil_interval_km" class="{{ $rvLabel }}">Change Oil Interval</label>
+                            <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('change_oil_interval_km') }}">
+                                <div class="relative min-w-0 flex-1">
+                                    <input type="number" name="change_oil_interval_km" id="ev-change_oil_interval_km" value="{{ $evOld('change_oil_interval_km', '5000') }}" min="500" placeholder="e.g. 5000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}">
                                 </div>
-                                <p class="text-[11px] text-slate-400 mt-1">Notification threshold (e.g. 5,000 km)</p>
+                                <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-600">km</span>
                             </div>
+                            <p class="text-[10px] text-slate-400 mt-1">Threshold (5,000 km)</p>
                         </div>
 
                         {{-- Vehicle Type --}}
-                        <div class="sm:col-span-4">
+                        <div class="sm:col-span-3">
                             <label for="ev-vehicle_type" class="{{ $rvLabel }}">Vehicle Type <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <select name="vehicle_type" id="ev-vehicle_type" class="{{ $rvSelect }} {{ $evBorder('vehicle_type') }}" required>
-                                    <option value="">Select vehicle type</option>
+                                    <option value="">Select type</option>
                                     @if ($evTypeValue !== '' && ! in_array($evTypeValue, $rvTypes, true))
                                         <option value="{{ $evTypeValue }}" selected>{{ $evTypeValue }}</option>
                                     @endif
@@ -826,7 +825,7 @@
                         </div>
 
                         {{-- Fuel Type --}}
-                        <div class="sm:col-span-4">
+                        <div class="sm:col-span-3">
                             <label for="ev-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <select name="fuel_type" id="ev-fuel_type" class="{{ $rvSelect }} {{ $evBorder('fuel_type') }}" required>
