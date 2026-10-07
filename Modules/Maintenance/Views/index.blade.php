@@ -799,16 +799,15 @@ function onVehicleChange(vehicleId, excludeId = null) {
 
     if (active.length === 0) {
         wrap.classList.add('hidden');
-        return;
+    } else {
+        list.innerHTML = active.map(r => {
+            const start = r.scheduled_date ? formatDate(r.scheduled_date) : '—';
+            const end   = r.scheduled_date_end && r.scheduled_date_end !== r.scheduled_date ? ` – ${formatDate(r.scheduled_date_end)}` : '';
+            return `<div class="rounded-md bg-white border border-amber-100 px-2 py-1"><b>${escHtml(r.title)}</b> · ${start}${end} · ${capitalize(r.status)}</div>`;
+        }).join('');
+        wrap.classList.remove('hidden');
     }
 
-    list.innerHTML = active.map(r => {
-        const start = r.scheduled_date ? formatDate(r.scheduled_date) : '—';
-        const end   = r.scheduled_date_end && r.scheduled_date_end !== r.scheduled_date ? ` – ${formatDate(r.scheduled_date_end)}` : '';
-        return `<div class="rounded-md bg-white border border-amber-100 px-2 py-1"><b>${escHtml(r.title)}</b> · ${start}${end} · ${capitalize(r.status)}</div>`;
-    }).join('');
-
-    wrap.classList.remove('hidden');
     updateCalendar();
 }
 
@@ -824,25 +823,56 @@ function updateCalendar() {
                     || document.getElementById('field-scheduled-date-end')?.value;
     const wrap       = document.getElementById('schedule-calendar-wrap');
 
-    if (!vehicleId || !startDate) { wrap.classList.add('hidden'); return; }
-    wrap.classList.remove('hidden');
+    if (!vehicleId) { wrap?.classList.add('hidden'); return; }
+    wrap?.classList.remove('hidden');
 
-    const [sy, sm] = startDate.split('-').map(Number);
-    if (!calYear) { calYear = sy; calMonth = sm - 1; }
+    if (startDate) {
+        const [sy, sm] = startDate.split('-').map(Number);
+        if (sy && sm) { calYear = sy; calMonth = sm - 1; }
+    }
+    if (!calYear) {
+        const today = new Date();
+        calYear = today.getFullYear();
+        calMonth = today.getMonth();
+    }
 
     renderCalendar(vehicleId, startDate, endDate || startDate);
 }
 
-function renderCalendar(vehicleId, startDate, endDate) {
-    if (!calYear && !calMonth && calMonth !== 0) return;
+function onCalendarDayClick(dateStr) {
+    const startInput = document.getElementById('field-scheduled-date');
+    const endInput   = document.getElementById('field-scheduled-date-end') || document.getElementById('field-scheduled-date_end');
+    
+    const sVal = startInput ? startInput.value : '';
+    const eVal = endInput ? endInput.value : '';
 
-    const label  = document.getElementById('calendar-month-label');
-    const grid   = document.getElementById('calendar-grid');
+    if (!sVal || (sVal && eVal && sVal !== eVal)) {
+        // First click or reset: set Start Date to clicked date, clear or set End Date
+        if (startInput) startInput.value = dateStr;
+        if (endInput) endInput.value = dateStr;
+    } else if (sVal && (sVal === eVal || !eVal)) {
+        // Second click: select range
+        if (dateStr < sVal) {
+            if (endInput) endInput.value = sVal;
+            if (startInput) startInput.value = dateStr;
+        } else {
+            if (endInput) endInput.value = dateStr;
+        }
+    }
+
+    updateCalendar();
+}
+
+function renderCalendar(vehicleId, startDate, endDate) {
+    if (!calYear && calYear !== 0) return;
+
+    const label   = document.getElementById('calendar-month-label');
+    const grid    = document.getElementById('calendar-grid');
     const overlap = document.getElementById('calendar-overlap-warning');
 
     const firstOfMonth  = new Date(calYear, calMonth, 1);
     const daysInMonth   = new Date(calYear, calMonth + 1, 0).getDate();
-    label.textContent   = firstOfMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    if (label) label.textContent = firstOfMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
     // Build existing maintenance days for this vehicle
     const existingDays = new Map();
@@ -867,7 +897,7 @@ function renderCalendar(vehicleId, startDate, endDate) {
     }
 
     const hasOverlap = [...selectedDays].some(k => existingDays.has(k));
-    overlap.classList.toggle('hidden', !hasOverlap);
+    if (overlap) overlap.classList.toggle('hidden', !hasOverlap);
 
     const dayHeaders = ['S','M','T','W','T','F','S'].map(d => `<div class="py-0.5 text-[9px] font-bold text-gray-400">${d}</div>`).join('');
     const blanks = Array(firstOfMonth.getDay()).fill('<div></div>').join('');
@@ -876,15 +906,19 @@ function renderCalendar(vehicleId, startDate, endDate) {
         const k   = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const ex  = existingDays.get(k);
         const sel = selectedDays.has(k);
-        const title = ex ? `Existing: ${ex.join(', ')}` : '';
-        let cls = 'flex items-center justify-center rounded text-[11px] h-6 ';
-        if (ex)       cls += 'bg-amber-400 text-white font-bold ';
-        else if (sel) cls += 'bg-white font-bold text-slate-700 ring-2 ring-teal-500 ';
-        else          cls += 'bg-white text-slate-500 ring-1 ring-gray-100 ';
-        return `<div class="${cls}" title="${escHtml(title)}">${day}</div>`;
+        const title = ex ? `Existing: ${ex.join(', ')}` : 'Click to select date';
+        let cls = 'flex items-center justify-center rounded text-[11px] h-6 cursor-pointer transition transform hover:scale-105 select-none ';
+        if (ex) {
+            cls += 'bg-amber-400 text-white font-bold hover:bg-amber-500 ';
+        } else if (sel) {
+            cls += 'bg-teal-50 font-extrabold text-teal-800 ring-2 ring-teal-500 shadow-sm ';
+        } else {
+            cls += 'bg-white text-slate-600 ring-1 ring-gray-200 hover:bg-teal-50 hover:text-teal-700 hover:ring-2 hover:ring-teal-400 ';
+        }
+        return `<div class="${cls}" title="${escHtml(title)}" onclick="onCalendarDayClick('${k}')">${day}</div>`;
     }).join('');
 
-    grid.innerHTML = dayHeaders + blanks + cells;
+    if (grid) grid.innerHTML = dayHeaders + blanks + cells;
 }
 
 function calendarPrev() {
