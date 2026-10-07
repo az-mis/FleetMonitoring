@@ -219,6 +219,7 @@
                     @php
                         $pendingTravelCount = 0;
                         $dueMaintenanceItems = collect();
+                        $ongoingDueItems = collect();
                         $oilDueVehicles = collect();
                         $allNotifIds = [];
                         try {
@@ -230,6 +231,7 @@
                                 $allNotifIds[] = 'pending_travel';
                             }
 
+                            // Scheduled maintenance starting today or past due
                             $dueMaintenanceItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
                                 ->where('status', 'scheduled')
                                 ->whereDate('scheduled_date', '<=', now()->toDateString())
@@ -238,6 +240,17 @@
                                 ->get();
                             foreach ($dueMaintenanceItems as $mItem) {
                                 $allNotifIds[] = 'maint_' . $mItem->id;
+                            }
+
+                            // Ongoing maintenance reaching end date -> prompt to set Completed
+                            $ongoingDueItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
+                                ->where('status', 'ongoing')
+                                ->whereDate('scheduled_date_end', '<=', now()->toDateString())
+                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                                ->latest('scheduled_date_end')
+                                ->get();
+                            foreach ($ongoingDueItems as $ongItem) {
+                                $allNotifIds[] = 'maint_ong_' . $ongItem->id;
                             }
 
                             $oilDueVehicles = \Modules\Vehicle\Models\Vehicle::query()
@@ -256,6 +269,7 @@
                         } catch (\Throwable $e) {
                             $pendingTravelCount = 0;
                             $dueMaintenanceItems = collect();
+                            $ongoingDueItems = collect();
                             $oilDueVehicles = collect();
                             $allNotifIds = [];
                         }
@@ -595,7 +609,7 @@
                                         @php $mId = 'maint_' . $mItem->id; @endphp
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              :class="isRead('{{ $mId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-blue-50/20 border-blue-100/50 text-slate-800'">
-                                            <a href="{{ route('maintenance.index') }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                            <a href="{{ route('maintenance.index', ['highlight_id' => $mItem->id]) }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -632,6 +646,56 @@
                                                             @click.stop.prevent="toggleRead('{{ $mId }}')"
                                                             class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
                                                         <span x-show="isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                                @if (isset($ongoingDueItems) && $ongoingDueItems->count() > 0)
+                                    @foreach ($ongoingDueItems as $ongItem)
+                                        @php $ongId = 'maint_ong_' . $ongItem->id; @endphp
+                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
+                                             :class="isRead('{{ $ongId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-emerald-50/20 border-emerald-100/50 text-slate-800'">
+                                            <a href="{{ route('maintenance.index', ['highlight_id' => $ongItem->id]) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex items-center justify-between gap-1">
+                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $ongId }}') ? 'text-slate-500' : 'text-slate-800'">Maintenance Due for Completion</p>
+                                                        <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Set Completed</span>
+                                                    </div>
+                                                    <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $ongId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $ongItem->vehicle_label ?: $ongItem->plate_number }} — {{ $ongItem->title }}</p>
+                                                    <p class="text-[10px] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
+                                                </div>
+                                                <span x-show="!isRead('{{ $ongId }}')" class="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
+                                            </a>
+
+                                            {{-- 3 dots menu on the right side --}}
+                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $ongId }}') activeOpt = null">
+                                                <button type="button" 
+                                                        @click.stop.prevent="activeOpt = (activeOpt === '{{ $ongId }}' ? null : '{{ $ongId }}')"
+                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
+                                                        title="Options">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                                                    </svg>
+                                                </button>
+
+                                                <div x-show="activeOpt === '{{ $ongId }}'"
+                                                     x-cloak
+                                                     x-transition
+                                                     class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
+                                                     style="display: none;">
+                                                    <button type="button"
+                                                            @click.stop.prevent="toggleRead('{{ $ongId }}')"
+                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
+                                                        <span x-show="isRead('{{ $ongId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $ongId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
                                                     </button>
                                                 </div>
                                             </div>

@@ -62,6 +62,10 @@ class MaintenanceService
 
     public function create(array $data, Vehicle $vehicle): VehicleMaintenance
     {
+        if (($data['status'] ?? '') === 'completed' && empty($data['completed_date'])) {
+            $data['completed_date'] = now()->toDateString();
+        }
+
         return VehicleMaintenance::create([
             ...$data,
             'plate_number'  => $vehicle->plate_number,
@@ -74,6 +78,10 @@ class MaintenanceService
 
     public function update(VehicleMaintenance $record, array $data, Vehicle $vehicle): VehicleMaintenance
     {
+        if (($data['status'] ?? '') === 'completed' && empty($data['completed_date'])) {
+            $data['completed_date'] = now()->toDateString();
+        }
+
         $record->update([
             ...$data,
             'plate_number'  => $vehicle->plate_number,

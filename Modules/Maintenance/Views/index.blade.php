@@ -780,6 +780,14 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') toggleVehiclePicker(false);
 });
+document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'field-status' && e.target.value === 'completed') {
+        const completedInput = document.getElementById('field-completed-date');
+        if (completedInput && !completedInput.value) {
+            completedInput.value = new Date().toISOString().split('T')[0];
+        }
+    }
+});
 
 // ── Vehicle change: show active maintenance warning ───────────────────────
 function onVehicleChange(vehicleId, excludeId = null) {
