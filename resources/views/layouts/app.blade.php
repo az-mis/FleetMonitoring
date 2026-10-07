@@ -308,7 +308,7 @@
                             </svg>
                         </button>
                         <div id="vehicles-submenu" class="sidebar-label-block {{ $vehiclesOpen ? '' : 'hidden' }} space-y-1 pb-2 pl-8 pr-2">
-                            <a href="{{ route('vehicles.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs font-medium {{ (request()->routeIs('vehicles.*') || request()->is('vehicles*')) ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
+                            <a href="{{ route('vehicles.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs font-medium {{ (request()->routeIs('vehicles.index') || request()->is('vehicles')) ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
                                 <span class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/></svg>
                                     Vehicles List
@@ -319,6 +319,10 @@
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
                                 @endif
+                            </a>
+                            <a href="{{ route('vehicles.inspections.page') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('vehicles.inspections.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Vehicle Inspections
                             </a>
                             <a href="{{ route('vehicle-assigning.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs font-medium {{ (request()->routeIs('vehicle-assigning.*') || request()->is('vehicle-assigning*')) ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
                                 <span class="flex items-center gap-2">

@@ -11,6 +11,7 @@ Route::middleware(['web', 'auth', 'verified'])
     ->name('vehicles.')
     ->group(function () {
         Route::get('/', [VehicleController::class, 'index'])->name('index');
+        Route::get('/inspections', [VehicleController::class, 'inspectionsPage'])->name('inspections.page');
         Route::post('/', [VehicleController::class, 'store'])->name('store');
         Route::post('/types', [VehicleController::class, 'storeType'])->name('types.store');
         Route::post('/{vehicle}/inspections', [VehicleController::class, 'storeInspection'])->name('inspections.store');

@@ -1,0 +1,406 @@
+@extends('layouts.app')
+
+@section('title', 'Vehicle Inspections')
+@section('page-title', 'Vehicle Inspections')
+
+@section('content')
+    @php
+        $locationOptions = ['Oriental Mindoro', 'Occidental Mindoro', 'Marinduque', 'Palawan', 'Romblon', 'Quezon City Satellite Office'];
+        $selectedLocation = $selectedLocation ?? request('location');
+        $locationButtonLabel = $selectedLocation ?: 'All Locations';
+    @endphp
+
+    {{-- Page header --}}
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Vehicle Inspections</h1>
+            <p class="text-sm text-slate-500">Conduct & manage vehicle inspection checklists and change oil logs</p>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <form method="GET" action="{{ route('vehicles.inspections.page') }}" class="flex w-full min-w-0 items-center gap-2 sm:w-72 xl:w-96">
+                <div class="relative w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-600/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by plate number, model, notes..." class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+            </form>
+
+            <button type="button" onclick="openNewInspectionModal()" class="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-800 transition cursor-pointer shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span>+ Conduct Inspection</span>
+            </button>
+        </div>
+    </div>
+
+    {{-- Inspection Logs Table --}}
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
+                <thead class="bg-slate-50 font-bold uppercase tracking-wider text-slate-400">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Inspection Date</th>
+                        <th class="px-4 py-3 font-semibold">Vehicle</th>
+                        <th class="px-4 py-3 font-semibold">Inspector</th>
+                        <th class="px-4 py-3 font-semibold">Odometer</th>
+                        <th class="px-4 py-3 font-semibold">Change Oil Status</th>
+                        <th class="px-4 py-3 font-semibold">Overall Result</th>
+                        <th class="px-4 py-3 text-right font-semibold">Details</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    @forelse ($inspections as $insp)
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="whitespace-nowrap px-4 py-3 font-bold text-slate-900">
+                                {{ $insp->inspected_at?->format('M j, Y g:i A') }}
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <div>
+                                    <span class="font-black text-slate-900 block">{{ $insp->vehicle?->plate_number }}</span>
+                                    <span class="text-[11px] text-slate-500 block">{{ $insp->vehicle?->brand }} {{ $insp->vehicle?->model }}</span>
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3 text-slate-600 font-medium">
+                                {{ $insp->inspector?->name ?: 'Admin' }}
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3 font-bold text-slate-800">
+                                {{ number_format($insp->odometer_km) }} km
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @if ($insp->change_oil_done)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-extrabold text-blue-700">
+                                        🛢️ Change Oil Performed
+                                    </span>
+                                @else
+                                    <span class="text-slate-400">—</span>
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @if ($insp->overall_status === 'failed')
+                                    <span class="rounded-full bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 text-[10px] font-extrabold">✕ Failed</span>
+                                @elseif ($insp->overall_status === 'needs_attention')
+                                    <span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 text-[10px] font-extrabold">⚠️ Needs Attention</span>
+                                @else
+                                    <span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-extrabold">✓ Passed</span>
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3 text-right">
+                                <button type="button" onclick="viewInspectionDetail({{ json_encode($insp->load('items')) }})" class="rounded-lg border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                                    View Breakdown
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                    </svg>
+                                    <p class="text-xs font-semibold">No inspection records found</p>
+                                    <p class="text-[11px] text-slate-400">Click "+ Conduct Inspection" to log your first checklist inspection.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination bar --}}
+        <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between">
+            <div class="text-xs text-slate-500 font-medium">
+                Showing <span class="font-bold text-slate-700">{{ $inspections->firstItem() ?? 0 }}</span> to <span class="font-bold text-slate-700">{{ $inspections->lastItem() ?? 0 }}</span> of <span class="font-bold text-slate-700">{{ $inspections->total() }}</span> results
+            </div>
+            @if($inspections->hasPages())
+                <div>{{ $inspections->links() }}</div>
+            @endif
+        </div>
+    </div>
+
+    {{-- CONDUCT NEW INSPECTION MODAL --}}
+    <div id="new-inspection-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+        <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900">Conduct Vehicle Inspection</h3>
+                        <p class="text-xs text-slate-500">Select a vehicle and fill out the inspection checklist</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeNewInspectionModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <form id="new-inspection-form" onsubmit="submitNewInspection(event)" class="flex flex-col min-h-0 flex-1">
+                @csrf
+                <div class="overflow-y-auto py-4 space-y-5 flex-1 pr-1 scrollbar-thin">
+                    {{-- Select Vehicle & Odometer --}}
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Select Vehicle <span class="text-red-500">*</span></label>
+                                <select id="insp-vehicle-select" onchange="onVehicleSelected(this)" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
+                                    <option value="">— Choose Vehicle —</option>
+                                    @foreach ($allVehicles as $v)
+                                        <option value="{{ $v->id }}" data-store-url="{{ route('vehicles.inspections.store', $v) }}" data-odometer="{{ $v->odometer }}">{{ $v->plate_number }} — {{ $v->brand }} {{ $v->model }} ({{ number_format($v->odometer) }} km)</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Current Odometer Reading (KM) <span class="text-red-500">*</span></label>
+                                <input type="number" name="odometer_km" id="new-insp-odometer" min="0" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
+                            </div>
+
+                            <div class="flex items-center pt-2">
+                                <label class="flex items-center gap-2.5 cursor-pointer bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 w-full hover:border-emerald-300 transition">
+                                    <input type="checkbox" name="change_oil_done" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-800 block">🛢️ Mark Change Oil as Done</span>
+                                        <span class="text-[10px] text-slate-400 block">Resets change oil counter to odometer</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Checklist Items Grouped by Category --}}
+                    @php
+                        $checklistCategories = [
+                            'Oils & Fluids' => [
+                                'Engine Oil Level & Condition',
+                                'Brake Fluid Level',
+                                'Transmission Fluid Level',
+                                'Radiator Coolant Level',
+                                'Windshield Washer Fluid',
+                            ],
+                            'Brakes & Steering' => [
+                                'Service Brake Operation',
+                                'Parking / Hand Brake',
+                                'Power Steering Fluid / Steering Play',
+                            ],
+                            'Tires & Wheels' => [
+                                'Front & Rear Tire Pressure',
+                                'Tire Tread Condition',
+                                'Spare Tire Condition & Air',
+                                'Jack & Lug Wrench Tools',
+                            ],
+                            'Electrical & Lights' => [
+                                'Headlights (Low & High Beam)',
+                                'Turn Signal Lights & Hazard Warning',
+                                'Brake Lights & Reverse Lights',
+                                'Horn Operation',
+                                'Battery Terminals & Charge Status',
+                            ],
+                            'Body & Cabin' => [
+                                'Windshield Wipers & Washers',
+                                'Side & Rearview Mirrors',
+                                'Seatbelts Functionality',
+                                'Air Conditioning Performance',
+                                'Cleanliness & Body Condition',
+                            ],
+                        ];
+                        $itemIndex = 0;
+                    @endphp
+
+                    @foreach ($checklistCategories as $catName => $catItems)
+                        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-100 mb-3">{{ $catName }}</h4>
+                            <div class="space-y-3">
+                                @foreach ($catItems as $itemName)
+                                    @php $idx = $itemIndex++; @endphp
+                                    <input type="hidden" name="items[{{ $idx }}][category]" value="{{ $catName }}">
+                                    <input type="hidden" name="items[{{ $idx }}][name]" value="{{ $itemName }}">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                                        <span class="font-semibold text-slate-800">{{ $itemName }}</span>
+
+                                        <div class="flex items-center gap-3 shrink-0">
+                                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-slate-600">
+                                                    <input type="radio" name="items[{{ $idx }}][status]" value="pass" checked class="hidden">
+                                                    <span>✓ Pass</span>
+                                                </label>
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white text-slate-600">
+                                                    <input type="radio" name="items[{{ $idx }}][status]" value="attention" class="hidden">
+                                                    <span>⚠️ Attention</span>
+                                                </label>
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white text-slate-600">
+                                                    <input type="radio" name="items[{{ $idx }}][status]" value="fail" class="hidden">
+                                                    <span>✕ Fail</span>
+                                                </label>
+                                            </div>
+
+                                            <input type="text" name="items[{{ $idx }}][remarks]" placeholder="Remarks (opt)" class="w-36 rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-700 focus:border-blue-500 focus:outline-none">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">General Notes / Remarks</label>
+                        <textarea name="notes" rows="2" placeholder="Optional inspector notes..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
+                    <button type="button" onclick="closeNewInspectionModal()" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" id="new-insp-submit-btn" class="rounded-xl bg-blue-700 px-5 py-2 text-xs font-bold text-white hover:bg-blue-800 transition cursor-pointer">
+                        Save Inspection Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- VIEW INSPECTION DETAIL BREAKDOWN MODAL --}}
+    <div id="view-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+        <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+                <div>
+                    <h3 class="text-base font-black text-slate-900" id="detail-modal-title">Inspection Report Detail</h3>
+                    <p class="text-xs text-slate-500" id="detail-modal-subtitle">—</p>
+                </div>
+                <button type="button" onclick="closeViewDetailModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div id="detail-modal-body" class="overflow-y-auto py-4 space-y-3 flex-1 pr-1 scrollbar-thin">
+                {{-- Dynamic detail --}}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedVehicleStoreUrl = '';
+
+        function openNewInspectionModal() {
+            const modal = document.getElementById('new-inspection-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeNewInspectionModal() {
+            const modal = document.getElementById('new-inspection-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function onVehicleSelected(select) {
+            const opt = select.options[select.selectedIndex];
+            if (opt && opt.value) {
+                selectedVehicleStoreUrl = opt.dataset.storeUrl;
+                document.getElementById('new-insp-odometer').value = opt.dataset.odometer || 0;
+            } else {
+                selectedVehicleStoreUrl = '';
+            }
+        }
+
+        function submitNewInspection(e) {
+            e.preventDefault();
+            if (!selectedVehicleStoreUrl) {
+                alert('Please select a vehicle first.');
+                return;
+            }
+
+            const form = document.getElementById('new-inspection-form');
+            const submitBtn = document.getElementById('new-insp-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            fetch(selectedVehicleStoreUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: new FormData(form)
+            })
+            .then(res => res.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Inspection Report';
+                if (data.success) {
+                    closeNewInspectionModal();
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Error saving inspection.');
+                }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Inspection Report';
+                console.error(err);
+                alert('An error occurred.');
+            });
+        }
+
+        function viewInspectionDetail(insp) {
+            const modal = document.getElementById('view-detail-modal');
+            const title = document.getElementById('detail-modal-title');
+            const subtitle = document.getElementById('detail-modal-subtitle');
+            const body = document.getElementById('detail-modal-body');
+
+            title.textContent = `Inspection: ${insp.vehicle?.plate_number || 'Vehicle'}`;
+            const dateStr = new Date(insp.inspected_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            subtitle.textContent = `Inspected on ${dateStr} by ${insp.inspector?.name || 'Admin'}`;
+
+            let itemsHtml = '';
+            (insp.items || []).forEach(it => {
+                const icon = it.status === 'pass' ? '✓' : (it.status === 'attention' ? '⚠️' : '✕');
+                const color = it.status === 'pass' ? 'text-emerald-600' : (it.status === 'attention' ? 'text-amber-600 font-bold' : 'text-red-600 font-bold');
+                itemsHtml += `
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs">
+                        <span class="font-semibold text-slate-800">${it.item_name} <span class="text-[10px] text-slate-400">(${it.category})</span></span>
+                        <span class="${color}">${icon} ${it.status.toUpperCase()} ${it.remarks ? '— ' + it.remarks : ''}</span>
+                    </div>
+                `;
+            });
+
+            body.innerHTML = `
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-bold text-slate-800">Odometer at Inspection:</span>
+                            <span class="font-extrabold text-slate-900">${Number(insp.odometer_km).toLocaleString()} km</span>
+                        </div>
+                        <div>
+                            ${insp.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold">🛢️ Oil Changed</span>' : ''}
+                        </div>
+                    </div>
+                    ${insp.notes ? `<div class="text-slate-600 italic pt-1 border-t border-slate-200/60">"${insp.notes}"</div>` : ''}
+                </div>
+
+                <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-100">Checklist Items Breakdown</h4>
+                    <div class="space-y-1">
+                        ${itemsHtml}
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeViewDetailModal() {
+            const modal = document.getElementById('view-detail-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
+@endsection

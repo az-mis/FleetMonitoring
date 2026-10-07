@@ -49,6 +49,7 @@ class UpdateVehicleRequest extends FormRequest
             'year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'color' => ['required', 'string', 'max:50'],
             'odometer' => ['required', 'integer', 'min:0'],
+            'change_oil_interval_km' => ['nullable', 'integer', 'min:500'],
             // Any registered type, or the value the vehicle already has (older records
             // may hold values like "Sedan" that were never registered as a type).
             'vehicle_type' => ['nullable', 'string', 'max:50', Rule::in(array_filter([

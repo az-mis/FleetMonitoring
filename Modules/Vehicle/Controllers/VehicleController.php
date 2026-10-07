@@ -53,6 +53,51 @@ class VehicleController extends Controller
     }
 
     /**
+     * Dedicated Vehicle Inspections Management Page
+     * @throws AuthorizationException
+     */
+    public function inspectionsPage(): View
+    {
+        $this->authorizeSuperAdmin();
+
+        $user = auth()->user();
+        $isSuperAdmin = $user?->role === UserRole::SUPER_ADMIN;
+        $location = $isSuperAdmin ? request('location') : $user?->location;
+
+        $query = \Modules\Vehicle\Models\VehicleInspection::query()
+            ->with(['vehicle', 'inspector:id,name'])
+            ->latest('inspected_at');
+
+        if ($location) {
+            $query->whereHas('vehicle', fn ($q) => $q->where('location', $location));
+        }
+
+        if ($search = request('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('vehicle', function ($vq) use ($search) {
+                    $vq->where('plate_number', 'like', "%{$search}%")
+                       ->orWhere('brand', 'like', "%{$search}%")
+                       ->orWhere('model', 'like', "%{$search}%");
+                })->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        $inspections = $query->paginate((int) request('per_page', 10))->withQueryString();
+
+        $allVehicles = Vehicle::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->orderBy('plate_number')
+            ->get();
+
+        return view('vehicle::inspections', [
+            'inspections' => $inspections,
+            'allVehicles' => $allVehicles,
+            'isSuperAdmin' => $isSuperAdmin,
+            'selectedLocation' => $location,
+        ]);
+    }
+
+    /**
      * @throws AuthorizationException
      */
     public function store(StoreVehicleRequest $request): RedirectResponse

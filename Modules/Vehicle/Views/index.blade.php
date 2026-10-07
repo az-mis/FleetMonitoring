@@ -359,6 +359,18 @@
                                 @enderror
                             </div>
 
+                            {{-- Change Oil Interval --}}
+                            <div class="sm:col-span-4">
+                                <label for="rv-change_oil_interval_km" class="{{ $rvLabel }}">Change Oil Interval</label>
+                                <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $rvBorder('change_oil_interval_km') }}">
+                                    <div class="relative min-w-0 flex-1">
+                                        <input type="number" name="change_oil_interval_km" id="rv-change_oil_interval_km" value="{{ $rvOld('change_oil_interval_km', '5000') }}" min="500" placeholder="e.g. 5000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}">
+                                    </div>
+                                    <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-1">Notification threshold (default 5,000 km)</p>
+                            </div>
+
                             {{-- Vehicle Type --}}
                             <div class="sm:col-span-4">
                                 <label for="rv-vehicle_type" class="{{ $rvLabel }}">Vehicle Type <span class="text-red-500">*</span></label>
@@ -761,21 +773,34 @@
                             </div>
                         </div>
 
-                        {{-- Current Odometer --}}
-                        <div class="sm:col-span-4">
-                            <label for="ev-odometer" class="{{ $rvLabel }}">Current Odometer <span class="text-red-500">*</span></label>
-                            <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('odometer') }}">
-                                <div class="relative min-w-0 flex-1">
-                                    <input type="number" name="odometer" id="ev-odometer" value="{{ $evOld('odometer') }}" min="0" placeholder="e.g. 25000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}" required>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                        {{-- Current Odometer & Change Oil Interval --}}
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="ev-odometer" class="{{ $rvLabel }}">Current Odometer <span class="text-red-500">*</span></label>
+                                <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('odometer') }}">
+                                    <div class="relative min-w-0 flex-1">
+                                        <input type="number" name="odometer" id="ev-odometer" value="{{ $evOld('odometer') }}" min="0" placeholder="e.g. 25000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}" required>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                                    </div>
+                                    <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
                                 </div>
-                                <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
+                                @if ($evIsOld)
+                                    @error('odometer')
+                                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                @endif
                             </div>
-                            @if ($evIsOld)
-                                @error('odometer')
-                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                                @enderror
-                            @endif
+
+                            <div>
+                                <label for="ev-change_oil_interval_km" class="{{ $rvLabel }}">Change Oil Interval</label>
+                                <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('change_oil_interval_km') }}">
+                                    <div class="relative min-w-0 flex-1">
+                                        <input type="number" name="change_oil_interval_km" id="ev-change_oil_interval_km" value="{{ $evOld('change_oil_interval_km', '5000') }}" min="500" placeholder="e.g. 5000" class="h-full w-full border-0 bg-transparent px-3 pr-9 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0 {{ $rvNoSpin }}">
+                                    </div>
+                                    <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-1">Notification threshold (e.g. 5,000 km)</p>
+                            </div>
                         </div>
 
                         {{-- Vehicle Type --}}
@@ -1312,6 +1337,7 @@
                 document.getElementById('ev-year').value = btn.dataset.year;
                 document.getElementById('ev-color').value = btn.dataset.color;
                 document.getElementById('ev-odometer').value = btn.dataset.odometer;
+                document.getElementById('ev-change_oil_interval_km').value = btn.dataset.change_oil_interval_km || 5000;
                 setEditSelectValue('ev-vehicle_type', btn.dataset.vehicle_type || '');
                 setEditSelectValue('ev-fuel_type', btn.dataset.fuel_type || '');
 
