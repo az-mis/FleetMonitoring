@@ -147,14 +147,54 @@
                     {{-- Select Vehicle & Odometer --}}
                     <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
                         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                            <div>
+                            <div class="relative" id="insp-vehicle-picker">
                                 <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Vehicle <span class="text-red-500">*</span></label>
-                                <select id="insp-vehicle-select" onchange="onVehicleSelected(this)" required class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
+                                <select id="insp-vehicle-select" onchange="onVehicleSelected(this)" required tabindex="-1" aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 h-px w-full opacity-0">
                                     <option value="">— Choose Vehicle —</option>
                                     @foreach ($allVehicles as $v)
                                         <option value="{{ $v->id }}" data-store-url="{{ route('vehicles.inspections.store', $v) }}" data-odometer="{{ $v->odometer }}">{{ $v->plate_number }} — {{ $v->brand }} {{ $v->model }} ({{ number_format($v->odometer) }} km)</option>
                                     @endforeach
                                 </select>
+
+                                <button type="button" id="insp-vp-trigger" onclick="toggleInspVehiclePicker()" class="flex w-full items-center gap-3 rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <span id="insp-vp-thumb" class="hidden h-9 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-white"></span>
+                                    <span id="insp-vp-label" class="min-w-0 flex-1 truncate text-slate-400">— Choose Vehicle —</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+
+                                <div id="insp-vp-panel" class="absolute left-0 right-0 z-50 mt-1 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                                    <input type="text" id="insp-vp-search" oninput="filterInspVehiclePicker()" placeholder="Search plate or model..." class="mb-2 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <div class="max-h-60 space-y-0.5 overflow-y-auto">
+                                        <button type="button" onclick="pickInspVehicle('')" class="insp-vp-opt flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-xs font-semibold text-slate-500 hover:bg-blue-50">
+                                            — Choose Vehicle —
+                                        </button>
+                                        @foreach($allVehicles as $v)
+                                            <button type="button" onclick="pickInspVehicle('{{ $v->id }}')"
+                                                class="insp-vp-opt flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition hover:bg-blue-50"
+                                                data-id="{{ $v->id }}"
+                                                data-plate="{{ $v->plate_number }}"
+                                                data-model="{{ trim($v->brand.' '.$v->model) }}"
+                                                data-odometer="{{ $v->odometer }}"
+                                                data-location="{{ $v->location }}"
+                                                data-photo="{{ $v->photo_url ?? '' }}"
+                                                data-store-url="{{ route('vehicles.inspections.store', $v) }}"
+                                                data-search="{{ strtolower($v->plate_number.' '.$v->brand.' '.$v->model.' '.$v->location) }}">
+                                                <span class="flex h-9 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-white">
+                                                    @if(!empty($v->photo_url))
+                                                        <img src="{{ $v->photo_url }}" alt="" class="h-full w-full object-contain">
+                                                    @else
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+                                                    @endif
+                                                </span>
+                                                <span class="min-w-0">
+                                                    <span class="block text-xs font-bold text-slate-900">{{ $v->plate_number }}</span>
+                                                    <span class="block truncate text-[11px] text-slate-500">{{ trim($v->brand.' '.$v->model) }} @if($v->location) &middot; {{ $v->location }} @endif</span>
+                                                </span>
+                                            </button>
+                                        @endforeach
+                                        <p id="insp-vp-empty" class="hidden px-3 py-3 text-center text-xs text-slate-400">No vehicles found.</p>
+                                    </div>
+                                </div>
                             </div>
 
                             <div>
@@ -288,7 +328,78 @@
     <script>
         let selectedVehicleStoreUrl = '';
 
+        function toggleInspVehiclePicker() {
+            const panel = document.getElementById('insp-vp-panel');
+            const isHidden = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !isHidden);
+            if (isHidden) {
+                document.getElementById('insp-vp-search').value = '';
+                filterInspVehiclePicker();
+                setTimeout(() => document.getElementById('insp-vp-search').focus(), 50);
+            }
+        }
+
+        function filterInspVehiclePicker() {
+            const q = (document.getElementById('insp-vp-search').value || '').toLowerCase().trim();
+            let count = 0;
+            document.querySelectorAll('.insp-vp-opt').forEach(btn => {
+                const text = btn.getAttribute('data-search') || '';
+                if (!q || text.includes(q) || !btn.getAttribute('data-id')) {
+                    btn.classList.remove('hidden');
+                    count++;
+                } else {
+                    btn.classList.add('hidden');
+                }
+            });
+            document.getElementById('insp-vp-empty').classList.toggle('hidden', count > 0);
+        }
+
+        function pickInspVehicle(id) {
+            document.getElementById('insp-vehicle-select').value = id;
+            document.getElementById('insp-vp-panel').classList.add('hidden');
+
+            const thumb = document.getElementById('insp-vp-thumb');
+            const label = document.getElementById('insp-vp-label');
+
+            if (!id) {
+                selectedVehicleStoreUrl = '';
+                thumb.classList.add('hidden');
+                label.className = 'min-w-0 flex-1 truncate text-slate-400';
+                label.innerText = '— Choose Vehicle —';
+                document.getElementById('new-insp-odometer').value = '';
+                return;
+            }
+
+            const btn = document.querySelector(`.insp-vp-opt[data-id="${id}"]`);
+            if (btn) {
+                selectedVehicleStoreUrl = btn.dataset.storeUrl || '';
+                document.getElementById('new-insp-odometer').value = btn.dataset.odometer || 0;
+
+                const photo = btn.dataset.photo;
+                const plate = btn.dataset.plate;
+                const model = btn.dataset.model;
+
+                if (photo) {
+                    thumb.innerHTML = `<img src="${photo}" class="h-full w-full object-contain">`;
+                    thumb.classList.remove('hidden');
+                } else {
+                    thumb.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>`;
+                    thumb.classList.remove('hidden');
+                }
+                label.className = 'min-w-0 flex-1 text-slate-900';
+                label.innerHTML = `<span class="font-bold">${plate}</span> <span class="text-xs text-slate-500">(${model})</span>`;
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('insp-vehicle-picker');
+            if (wrap && !wrap.contains(e.target)) {
+                document.getElementById('insp-vp-panel')?.classList.add('hidden');
+            }
+        });
+
         function openNewInspectionModal() {
+            pickInspVehicle('');
             const modal = document.getElementById('new-inspection-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -305,22 +416,7 @@
 
             // Clear state
             selectedVehicleStoreUrl = '';
-
-            // Reset the vehicle select and odometer field
-            const vehicleSelect = document.getElementById('insp-vehicle-select');
-            if (vehicleSelect) vehicleSelect.value = '';
-            const odoInput = document.getElementById('new-insp-odometer');
-            if (odoInput) odoInput.value = '';
-        }
-
-        function onVehicleSelected(select) {
-            const opt = select.options[select.selectedIndex];
-            if (opt && opt.value) {
-                selectedVehicleStoreUrl = opt.dataset.storeUrl;
-                document.getElementById('new-insp-odometer').value = opt.dataset.odometer || 0;
-            } else {
-                selectedVehicleStoreUrl = '';
-            }
+            pickInspVehicle('');
         }
 
         function submitNewInspection(e) {
