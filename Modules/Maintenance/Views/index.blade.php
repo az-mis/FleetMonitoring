@@ -192,7 +192,7 @@
                         $driverName = $driver?->name ?? $record->vehicle?->assigned_driver_name ?? null;
                         $driverInitial = strtoupper(substr($driverName ?? 'D', 0, 1));
                     @endphp
-                    <tr class="hover:bg-gray-50 transition">
+                    <tr id="maintenance-row-{{ $record->id }}" class="hover:bg-gray-50 transition border-l-4 border-transparent">
                         {{-- Vehicle --}}
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2.5">
@@ -994,12 +994,35 @@ function escHtml(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Auto-open schedule modal from Notification Bell redirect ────────────────
+// ── Auto-open schedule modal or highlight record from Notification Bell redirect ──
 document.addEventListener('DOMContentLoaded', function () {
     const params = new URLSearchParams(window.location.search);
+    const highlightId = params.get('highlight_id');
     const vehicleId = params.get('schedule_vehicle_id');
     const type = params.get('type');
-    if (vehicleId) {
+
+    if (highlightId) {
+        const row = document.getElementById(`maintenance-row-${highlightId}`);
+        if (row) {
+            setTimeout(() => {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('bg-emerald-50/80', 'ring-2', 'ring-emerald-500', 'border-l-emerald-600', 'shadow-md');
+                
+                let pulseCount = 0;
+                const interval = setInterval(() => {
+                    row.classList.toggle('bg-emerald-100');
+                    pulseCount++;
+                    if (pulseCount >= 6) {
+                        clearInterval(interval);
+                        row.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-100', 'shadow-md');
+                        setTimeout(() => {
+                            row.classList.remove('bg-emerald-50/80', 'border-l-emerald-600');
+                        }, 1200);
+                    }
+                }, 350);
+            }, 150);
+        }
+    } else if (vehicleId) {
         openMaintenanceModal();
         pickVehicle(vehicleId);
         if (type) setField('type', type);

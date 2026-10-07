@@ -246,6 +246,12 @@
                                 ->filter(fn ($v) => in_array($v->change_oil_status['status'], ['overdue', 'due_soon']));
                             foreach ($oilDueVehicles as $oVehicle) {
                                 $allNotifIds[] = 'oil_' . $oVehicle->id;
+                                $activeMaint = \Modules\Maintenance\Models\VehicleMaintenance::query()
+                                    ->where('vehicle_id', $oVehicle->id)
+                                    ->whereIn('status', ['scheduled', 'ongoing'])
+                                    ->latest('scheduled_date')
+                                    ->first();
+                                $oVehicle->created_maintenance_id = $activeMaint?->id;
                             }
                         } catch (\Throwable $e) {
                             $pendingTravelCount = 0;
@@ -641,22 +647,43 @@
                                         @endphp
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              :class="isRead('{{ $oId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
-                                            <a href="{{ route('maintenance.index', ['schedule_vehicle_id' => $oVehicle->id, 'type' => 'Oil Change']) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
-                                                    <span class="text-xs">🛢️</span>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center justify-between gap-1">
-                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                        <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">
-                                                            {{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}
-                                                        </span>
+                                            @if (!empty($oVehicle->created_maintenance_id))
+                                                <a href="{{ route('maintenance.index', ['highlight_id' => $oVehicle->created_maintenance_id]) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polyline points="20 6 9 17 4 12"/>
+                                                        </svg>
                                                     </div>
-                                                    <p class="text-[11px] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
-                                                    <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
-                                                </div>
-                                                <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
-                                            </a>
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="flex items-center justify-between gap-1">
+                                                            <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
+                                                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
+                                                                Scheduled
+                                                            </span>
+                                                        </div>
+                                                        <p class="text-[11px] font-semibold text-emerald-700 mt-0.5">Maintenance Created — View in table</p>
+                                                        <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
+                                                    </div>
+                                                    <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('maintenance.index', ['schedule_vehicle_id' => $oVehicle->id, 'type' => 'Oil Change']) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                                                        <span class="text-xs">🛢️</span>
+                                                    </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="flex items-center justify-between gap-1">
+                                                            <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
+                                                            <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">
+                                                                {{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}
+                                                            </span>
+                                                        </div>
+                                                        <p class="text-[11px] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
+                                                        <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
+                                                    </div>
+                                                    <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
+                                                </a>
+                                            @endif
 
                                             {{-- 3 dots menu on the right side --}}
                                             <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $oId }}') activeOpt = null">
