@@ -774,7 +774,7 @@
                         </div>
 
                         {{-- Current Odometer & Change Oil Interval --}}
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="sm:col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label for="ev-odometer" class="{{ $rvLabel }}">Current Odometer <span class="text-red-500">*</span></label>
                                 <div class="flex h-11 overflow-hidden rounded-lg border bg-white transition focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 {{ $evBorder('odometer') }}">
