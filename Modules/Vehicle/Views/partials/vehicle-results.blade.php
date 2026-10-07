@@ -78,7 +78,27 @@
 
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->year }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->color }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ number_format($vehicle->odometer) }} km</td>
+                            <td class="whitespace-nowrap px-4 py-3 font-medium">
+                                <div>
+                                    <span class="text-slate-800 font-bold">{{ number_format($vehicle->odometer) }} km</span>
+                                    @php $oil = $vehicle->change_oil_status; @endphp
+                                    @if ($oil['status'] === 'overdue')
+                                        <div class="mt-0.5 inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[10px] font-extrabold text-red-600" title="{{ $oil['label'] }}">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                                            <span>Oil Overdue</span>
+                                        </div>
+                                    @elseif ($oil['status'] === 'due_soon')
+                                        <div class="mt-0.5 inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-extrabold text-amber-700" title="{{ $oil['label'] }}">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                            <span>Oil Due Soon</span>
+                                        </div>
+                                    @else
+                                        <div class="mt-0.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700" title="{{ $oil['label'] }}">
+                                            <span>Oil OK</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->vehicle_type ?: '—' }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->fuel_type ?: '—' }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->location ?: '—' }}</td>

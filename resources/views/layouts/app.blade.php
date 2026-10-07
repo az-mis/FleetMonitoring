@@ -181,6 +181,7 @@
                     @php
                         $pendingTravelCount = 0;
                         $dueMaintenanceItems = collect();
+                        $oilDueVehicles = collect();
                         try {
                             $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
                             $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
@@ -193,11 +194,17 @@
                                 ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
                                 ->latest('scheduled_date')
                                 ->get();
+
+                            $oilDueVehicles = \Modules\Vehicle\Models\Vehicle::query()
+                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                                ->get()
+                                ->filter(fn ($v) => in_array($v->change_oil_status['status'], ['overdue', 'due_soon']));
                         } catch (\Throwable $e) {
                             $pendingTravelCount = 0;
                             $dueMaintenanceItems = collect();
+                            $oilDueVehicles = collect();
                         }
-                        $totalNotifCount = $pendingTravelCount + $dueMaintenanceItems->count();
+                        $totalNotifCount = $pendingTravelCount + $dueMaintenanceItems->count() + $oilDueVehicles->count();
                     @endphp
 
                     <a
@@ -503,6 +510,25 @@
                                                 </div>
                                                 <p class="text-[11px] font-semibold text-slate-700 mt-0.5">{{ $mItem->vehicle_label ?: $mItem->plate_number }} — {{ $mItem->title }}</p>
                                                 <p class="text-[10px] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                @if (isset($oilDueVehicles) && $oilDueVehicles->count() > 0)
+                                    @foreach ($oilDueVehicles as $oVehicle)
+                                        @php $oState = $oVehicle->change_oil_status; @endphp
+                                        <a href="{{ route('vehicles.index') }}" class="flex items-start gap-3 rounded-xl p-2.5 hover:bg-amber-50/50 transition border border-transparent hover:border-amber-100">
+                                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                                                <span class="text-sm">🛢️</span>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center justify-between gap-1">
+                                                    <p class="text-xs font-bold text-slate-800 truncate">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
+                                                    <span class="text-[10px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border">
+                                                        {{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}
+                                                    </span>
+                                                </div>
+                                                <p class="text-[11px] text-slate-600 mt-0.5">{{ $oState['label'] }}</p>
+                                                <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
                                             </div>
                                         </a>
                                     @endforeach

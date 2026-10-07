@@ -13,6 +13,8 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::get('/', [VehicleController::class, 'index'])->name('index');
         Route::post('/', [VehicleController::class, 'store'])->name('store');
         Route::post('/types', [VehicleController::class, 'storeType'])->name('types.store');
+        Route::post('/{vehicle}/inspections', [VehicleController::class, 'storeInspection'])->name('inspections.store');
+        Route::get('/{vehicle}/inspections', [VehicleController::class, 'indexInspections'])->name('inspections.index');
         Route::put('/{vehicle}', [VehicleController::class, 'update'])->name('update');
         Route::delete('/{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
     });

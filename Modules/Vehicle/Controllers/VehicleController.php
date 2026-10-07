@@ -102,6 +102,108 @@ class VehicleController extends Controller
     }
 
     /**
+     * Store new vehicle inspection checklist record
+     */
+    public function storeInspection(\Illuminate\Http\Request $request, Vehicle $vehicle): RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $validated = $request->validate([
+            'odometer_km'     => 'required|integer|min:0',
+            'change_oil_done' => 'nullable|boolean',
+            'notes'           => 'nullable|string|max:1000',
+            'items'           => 'required|array',
+            'items.*.category' => 'required|string',
+            'items.*.name'     => 'required|string',
+            'items.*.status'   => 'required|in:pass,attention,fail',
+            'items.*.remarks'  => 'nullable|string|max:255',
+        ]);
+
+        $changeOilDone = !empty($validated['change_oil_done']);
+        $newOdometer = (int) $validated['odometer_km'];
+
+        // Compute overall status (if any item failed -> failed, if attention -> needs_attention, else passed)
+        $hasFail = false;
+        $hasAttention = false;
+        foreach ($validated['items'] as $item) {
+            if ($item['status'] === 'fail') $hasFail = true;
+            if ($item['status'] === 'attention') $hasAttention = true;
+        }
+        $overallStatus = $hasFail ? 'failed' : ($hasAttention ? 'needs_attention' : 'passed');
+
+        // Create Inspection Header
+        $inspection = \Modules\Vehicle\Models\VehicleInspection::create([
+            'vehicle_id'      => $vehicle->id,
+            'inspector_id'    => auth()->id(),
+            'odometer_km'     => $newOdometer,
+            'overall_status'  => $overallStatus,
+            'change_oil_done' => $changeOilDone,
+            'notes'           => $validated['notes'] ?? null,
+            'inspected_at'    => now(),
+        ]);
+
+        // Save Detail Items
+        foreach ($validated['items'] as $itemData) {
+            \Modules\Vehicle\Models\VehicleInspectionItem::create([
+                'inspection_id' => $inspection->id,
+                'category'      => $itemData['category'],
+                'item_name'     => $itemData['name'],
+                'status'        => $itemData['status'],
+                'remarks'       => $itemData['remarks'] ?? null,
+            ]);
+        }
+
+        // Update Vehicle Odometer and Change Oil Odometer if done
+        $vehicleUpdates = [];
+        if ($newOdometer > $vehicle->odometer) {
+            $vehicleUpdates['odometer'] = $newOdometer;
+        }
+
+        if ($changeOilDone) {
+            $vehicleUpdates['last_change_oil_odometer'] = $newOdometer;
+        }
+
+        if (!empty($vehicleUpdates)) {
+            $vehicle->update($vehicleUpdates);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vehicle inspection recorded successfully.',
+                'inspection' => $inspection->load('items', 'inspector'),
+            ]);
+        }
+
+        return redirect()->route('vehicles.index')->with('success', "Inspection recorded for {$vehicle->plate_number}.");
+    }
+
+    /**
+     * Get inspection history JSON for a vehicle
+     */
+    public function indexInspections(Vehicle $vehicle): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $inspections = $vehicle->inspections()
+            ->with(['items', 'inspector:id,name'])
+            ->take(20)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'vehicle' => [
+                'id' => $vehicle->id,
+                'plate_number' => $vehicle->plate_number,
+                'label' => $vehicle->brand . ' ' . $vehicle->model,
+                'odometer' => $vehicle->odometer,
+                'change_oil_status' => $vehicle->change_oil_status,
+            ],
+            'inspections' => $inspections,
+        ]);
+    }
+
+    /**
      * @throws AuthorizationException
      */
     private function authorizeSuperAdmin(): void

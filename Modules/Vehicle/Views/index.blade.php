@@ -1676,6 +1676,168 @@
 
         document.addEventListener('DOMContentLoaded', syncRegisterBrand);
     </script>
+    {{-- VEHICLE INSPECTION CHECKLIST MODAL --}}
+    <div id="vehicle-inspection-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+        <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900" id="insp-modal-title">Vehicle Inspection Checklist</h3>
+                        <p class="text-xs text-slate-500" id="insp-modal-subtitle">Plate: —</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeInspectionModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <form id="vehicle-inspection-form" onsubmit="submitInspectionForm(event)" class="flex flex-col min-h-0 flex-1">
+                @csrf
+                <div class="overflow-y-auto py-4 space-y-5 flex-1 pr-1 scrollbar-thin">
+                    {{-- Odometer & Change Oil Section --}}
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Current Odometer Reading (KM) <span class="text-red-500">*</span></label>
+                                <input type="number" name="odometer_km" id="insp-odometer" min="0" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <p class="text-[11px] text-slate-400 mt-1" id="insp-odometer-hint">Last recorded: — km</p>
+                            </div>
+
+                            <div class="flex items-center pt-2">
+                                <label class="flex items-center gap-2.5 cursor-pointer bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 w-full hover:border-emerald-300 transition">
+                                    <input type="checkbox" name="change_oil_done" id="insp-change-oil" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-800 block">🛢️ Mark Change Oil as Done</span>
+                                        <span class="text-[10px] text-slate-400 block">Resets 5,000 km change oil counter to current odometer</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Checklist Items Grouped by Category --}}
+                    @php
+                        $checklistCategories = [
+                            'Oils & Fluids' => [
+                                'Engine Oil Level & Condition',
+                                'Brake Fluid Level',
+                                'Transmission Fluid Level',
+                                'Radiator Coolant Level',
+                                'Windshield Washer Fluid',
+                            ],
+                            'Brakes & Steering' => [
+                                'Service Brake Operation',
+                                'Parking / Hand Brake',
+                                'Power Steering Fluid / Steering Play',
+                            ],
+                            'Tires & Wheels' => [
+                                'Front & Rear Tire Pressure',
+                                'Tire Tread Condition',
+                                'Spare Tire Condition & Air',
+                                'Jack & Lug Wrench Tools',
+                            ],
+                            'Electrical & Lights' => [
+                                'Headlights (Low & High Beam)',
+                                'Turn Signal Lights & Hazard Warning',
+                                'Brake Lights & Reverse Lights',
+                                'Horn Operation',
+                                'Battery Terminals & Charge Status',
+                            ],
+                            'Body & Cabin' => [
+                                'Windshield Wipers & Washers',
+                                'Side & Rearview Mirrors',
+                                'Seatbelts Functionality',
+                                'Air Conditioning Performance',
+                                'Cleanliness & Body Condition',
+                            ],
+                        ];
+                        $itemIndex = 0;
+                    @endphp
+
+                    @foreach ($checklistCategories as $catName => $catItems)
+                        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-100 mb-3">{{ $catName }}</h4>
+                            <div class="space-y-3">
+                                @foreach ($catItems as $itemName)
+                                    @php $idx = $itemIndex++; @endphp
+                                    <input type="hidden" name="items[{{ $idx }}][category]" value="{{ $catName }}">
+                                    <input type="hidden" name="items[{{ $idx }}][name]" value="{{ $itemName }}">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                                        <span class="font-semibold text-slate-800">{{ $itemName }}</span>
+
+                                        <div class="flex items-center gap-3 shrink-0">
+                                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-slate-600">
+                                                    <input type="radio" name="items[{{ $idx }}][status]" value="pass" checked class="hidden">
+                                                    <span>✓ Pass</span>
+                                                </label>
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white text-slate-600">
+                                                    <input type="radio" name="items[{{ $idx }}][status]" value="attention" class="hidden">
+                                                    <span>⚠️ Attention</span>
+                                                </label>
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white text-slate-600">
+                                                    <input type="radio" name="items[{{ $idx }}][status]" value="fail" class="hidden">
+                                                    <span>✕ Fail</span>
+                                                </label>
+                                            </div>
+
+                                            <input type="text" name="items[{{ $idx }}][remarks]" placeholder="Remarks (opt)" class="w-36 rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-700 focus:border-blue-500 focus:outline-none">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">General Notes / Remarks</label>
+                        <textarea name="notes" rows="2" placeholder="Optional inspector notes..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
+                    <button type="button" onclick="closeInspectionModal()" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" id="insp-submit-btn" class="rounded-xl bg-blue-700 px-5 py-2 text-xs font-bold text-white hover:bg-blue-800 transition cursor-pointer">
+                        Save Inspection Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- INSPECTION HISTORY MODAL --}}
+    <div id="vehicle-inspection-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+        <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900" id="hist-modal-title">Inspection Logs</h3>
+                        <p class="text-xs text-slate-500" id="hist-modal-subtitle">Plate: —</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeInspectionHistoryModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div id="hist-modal-content" class="overflow-y-auto py-4 space-y-3 flex-1 pr-1 scrollbar-thin">
+                <div class="text-center py-8 text-slate-400 text-xs">Loading inspection logs...</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function openAddVehicleTypeModal() {
             const modal = document.getElementById('add-vehicle-type-modal');
@@ -1690,6 +1852,161 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.body.classList.remove('overflow-hidden');
+        }
+
+        let currentInspectionStoreUrl = '';
+
+        function openInspectionModal(btn) {
+            currentInspectionStoreUrl = btn.dataset.storeUrl;
+            const plate = btn.dataset.plate_number;
+            const name = btn.dataset.vehicleName;
+            const odometer = btn.dataset.odometer || 0;
+
+            document.getElementById('insp-modal-title').textContent = `Inspect Vehicle: ${plate}`;
+            document.getElementById('insp-modal-subtitle').textContent = `${name}`;
+            document.getElementById('insp-odometer').value = odometer;
+            document.getElementById('insp-odometer-hint').textContent = `Last recorded: ${Number(odometer).toLocaleString()} km`;
+            document.getElementById('insp-change-oil').checked = false;
+
+            const modal = document.getElementById('vehicle-inspection-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeInspectionModal() {
+            const modal = document.getElementById('vehicle-inspection-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function submitInspectionForm(e) {
+            e.preventDefault();
+            if (!currentInspectionStoreUrl) return;
+
+            const form = document.getElementById('vehicle-inspection-form');
+            const submitBtn = document.getElementById('insp-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving Report...';
+
+            const formData = new FormData(form);
+
+            fetch(currentInspectionStoreUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Inspection Report';
+                if (data.success) {
+                    closeInspectionModal();
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Error saving inspection.');
+                }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Inspection Report';
+                console.error(err);
+                alert('An error occurred while saving the inspection.');
+            });
+        }
+
+        function openInspectionHistoryModal(btn) {
+            const historyUrl = btn.dataset.historyUrl;
+            const plate = btn.dataset.plate_number;
+
+            document.getElementById('hist-modal-title').textContent = `Inspection Logs (${plate})`;
+            document.getElementById('hist-modal-content').innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Loading inspection logs...</div>';
+
+            const modal = document.getElementById('vehicle-inspection-history-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            fetch(historyUrl, { headers: { 'Accept': 'application/json' } })
+            .then(res => res.json())
+            .then(data => {
+                const list = data.inspections || [];
+                const container = document.getElementById('hist-modal-content');
+
+                if (list.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-10 text-slate-400">
+                            <p class="text-xs font-semibold">No inspection records found</p>
+                            <p class="text-[11px] text-slate-400">Click "Inspect" on the vehicle row to conduct the first inspection.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                list.forEach(item => {
+                    const statusBadge = item.overall_status === 'failed'
+                        ? '<span class="rounded-full bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 text-[10px] font-bold">Failed</span>'
+                        : (item.overall_status === 'needs_attention'
+                            ? '<span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[10px] font-bold">Needs Attention</span>'
+                            : '<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold">Passed</span>');
+
+                    const dateStr = new Date(item.inspected_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const inspectorName = item.inspector?.name || 'Admin';
+
+                    let itemsHtml = '';
+                    (item.items || []).forEach(it => {
+                        const icon = it.status === 'pass' ? '✓' : (it.status === 'attention' ? '⚠️' : '✕');
+                        const color = it.status === 'pass' ? 'text-emerald-600' : (it.status === 'attention' ? 'text-amber-600' : 'text-red-600 font-bold');
+                        itemsHtml += `
+                            <div class="flex items-center justify-between py-1 border-b border-slate-50 text-[11px]">
+                                <span class="text-slate-700">${it.item_name} <span class="text-[10px] text-slate-400">(${it.category})</span></span>
+                                <span class="${color}">${icon} ${it.status.toUpperCase()} ${it.remarks ? '— ' + it.remarks : ''}</span>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                        <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-2 text-xs">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <div>
+                                    <span class="font-bold text-slate-900">${dateStr}</span>
+                                    <span class="text-[11px] text-slate-400 ml-2">by ${inspectorName}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${item.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[10px] font-bold">🛢️ Oil Changed</span>' : ''}
+                                    ${statusBadge}
+                                </div>
+                            </div>
+                            <div class="text-[11px] text-slate-600">
+                                <strong>Odometer:</strong> ${Number(item.odometer_km).toLocaleString()} km
+                                ${item.notes ? `<div class="mt-1 text-slate-500 italic">"${item.notes}"</div>` : ''}
+                            </div>
+                            <div class="pt-2">
+                                <details class="cursor-pointer">
+                                    <summary class="text-[11px] font-bold text-blue-600 hover:underline">View Checklist Breakdown (${(item.items || []).length} items)</summary>
+                                    <div class="mt-2 space-y-0.5 max-h-48 overflow-y-auto pr-1">
+                                        ${itemsHtml}
+                                    </div>
+                                </details>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('hist-modal-content').innerHTML = '<div class="text-center py-8 text-red-500 text-xs">Failed to load inspection history.</div>';
+            });
+        }
+
+        function closeInspectionHistoryModal() {
+            const modal = document.getElementById('vehicle-inspection-history-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
     </script>
 @endsection
