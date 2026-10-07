@@ -294,21 +294,8 @@
 
                             {{-- Brand --}}
                             <div class="sm:col-span-4">
-                                <label for="rv-brand-select" class="{{ $rvLabel }}">Brand <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <select id="rv-brand-select" onchange="syncRegisterBrand()" class="{{ $rvSelect }} {{ $rvBorder('brand') }}" required>
-                                        <option value="">Select brand</option>
-                                        @foreach ($rvBrands as $brandOption)
-                                            <option value="{{ $brandOption }}" @selected($rvBrandValue === $brandOption)>{{ $brandOption }}</option>
-                                        @endforeach
-                                        <option value="__other" @selected($rvBrandIsOther)>Other…</option>
-                                    </select>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                                </div>
-                                <div id="rv-brand-other-wrap" class="mt-2 {{ $rvBrandIsOther ? '' : 'hidden' }}">
-                                    <input type="text" id="rv-brand-other" value="{{ $rvBrandIsOther ? $rvBrandValue : '' }}" maxlength="100" placeholder="Enter brand" oninput="syncRegisterBrand()" class="{{ $rvInput }} border-slate-200">
-                                </div>
-                                <input type="hidden" name="brand" id="rv-brand" value="{{ $rvBrandValue }}">
+                                <label for="rv-brand" class="{{ $rvLabel }}">Brand <span class="text-red-500">*</span></label>
+                                <input type="text" name="brand" id="rv-brand" value="{{ $rvOld('brand') }}" maxlength="100" placeholder="e.g. Toyota, Honda" class="{{ $rvInput }} {{ $rvBorder('brand') }}" required>
                                 @error('brand')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
@@ -394,19 +381,7 @@
                             {{-- Fuel Type --}}
                             <div class="sm:col-span-4">
                                 <label for="rv-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
-                                    <select name="fuel_type" id="rv-fuel_type" class="{{ $rvSelect }} {{ $rvBorder('fuel_type') }} pl-10" required>
-                                        <option value="">Select fuel type</option>
-                                        @if ($rvFuelValue !== '' && ! in_array($rvFuelValue, $rvFuels, true))
-                                            <option value="{{ $rvFuelValue }}" selected>{{ $rvFuelValue }}</option>
-                                        @endif
-                                        @foreach ($rvFuels as $fuelOption)
-                                            <option value="{{ $fuelOption }}" @selected($rvFuelValue === $fuelOption)>{{ $fuelOption }}</option>
-                                        @endforeach
-                                    </select>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                                </div>
+                                <input type="text" name="fuel_type" id="rv-fuel_type" value="{{ $rvOld('fuel_type') }}" maxlength="50" placeholder="e.g. Gasoline, Diesel" class="{{ $rvInput }} {{ $rvBorder('fuel_type') }}" required>
                                 @error('fuel_type')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
@@ -715,23 +690,10 @@
                                 @endif
                             </div>
 
-                            {{-- Brand (dropdown with an "Other…" fallback, same as Register) --}}
+                            {{-- Brand --}}
                             <div>
-                                <label for="ev-brand-select" class="{{ $rvLabel }}">Brand <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <select id="ev-brand-select" onchange="syncEditBrand()" class="{{ $rvSelect }} {{ $evBorder('brand') }}" required>
-                                        <option value="">Select brand</option>
-                                        @foreach ($rvBrands as $brandOption)
-                                            <option value="{{ $brandOption }}" @selected($evBrandValue === $brandOption)>{{ $brandOption }}</option>
-                                        @endforeach
-                                        <option value="__other" @selected($evBrandIsOther)>Other…</option>
-                                    </select>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                                </div>
-                                <div id="ev-brand-other-wrap" class="mt-2 {{ $evBrandIsOther ? '' : 'hidden' }}">
-                                    <input type="text" id="ev-brand-other" value="{{ $evBrandIsOther ? $evBrandValue : '' }}" maxlength="100" placeholder="Enter brand" oninput="syncEditBrand()" class="{{ $rvInput }} border-slate-200">
-                                </div>
-                                <input type="hidden" name="brand" id="ev-brand" value="{{ $evBrandValue }}">
+                                <label for="ev-brand" class="{{ $rvLabel }}">Brand <span class="text-red-500">*</span></label>
+                                <input type="text" name="brand" id="ev-brand" value="{{ $evOld('brand') }}" maxlength="100" placeholder="e.g. Toyota, Fiat" class="{{ $rvInput }} {{ $evBorder('brand') }}" required>
                                 @if ($evIsOld)
                                     @error('brand')
                                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -827,18 +789,7 @@
                         {{-- Fuel Type --}}
                         <div class="sm:col-span-3">
                             <label for="ev-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <select name="fuel_type" id="ev-fuel_type" class="{{ $rvSelect }} {{ $evBorder('fuel_type') }}" required>
-                                    <option value="">Select fuel type</option>
-                                    @if ($evFuelValue !== '' && ! in_array($evFuelValue, $rvFuels, true))
-                                        <option value="{{ $evFuelValue }}" selected>{{ $evFuelValue }}</option>
-                                    @endif
-                                    @foreach ($rvFuels as $fuelOption)
-                                        <option value="{{ $fuelOption }}" @selected($evFuelValue === $fuelOption)>{{ $fuelOption }}</option>
-                                    @endforeach
-                                </select>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                            </div>
+                            <input type="text" name="fuel_type" id="ev-fuel_type" value="{{ $evOld('fuel_type') }}" maxlength="50" placeholder="e.g. Gasoline, Diesel" class="{{ $rvInput }} {{ $evBorder('fuel_type') }}" required>
                             @if ($evIsOld)
                                 @error('fuel_type')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -1331,14 +1282,14 @@
                 document.getElementById('ev-plate_number').value = btn.dataset.plate_number;
                 document.getElementById('ev-chassis_number').value = btn.dataset.chassis_number;
                 document.getElementById('ev-engine_number').value = btn.dataset.engine_number;
-                setEditBrandValue(btn.dataset.brand || '');
+                document.getElementById('ev-brand').value = btn.dataset.brand || '';
                 document.getElementById('ev-model').value = btn.dataset.model;
                 document.getElementById('ev-year').value = btn.dataset.year;
                 document.getElementById('ev-color').value = btn.dataset.color;
                 document.getElementById('ev-odometer').value = btn.dataset.odometer;
                 document.getElementById('ev-change_oil_interval_km').value = btn.dataset.change_oil_interval_km || 5000;
                 setEditSelectValue('ev-vehicle_type', btn.dataset.vehicle_type || '');
-                setEditSelectValue('ev-fuel_type', btn.dataset.fuel_type || '');
+                document.getElementById('ev-fuel_type').value = btn.dataset.fuel_type || '';
 
                 const locVal = btn.dataset.location || '';
                 document.getElementById('ev-location').value = locVal;
@@ -1660,8 +1611,6 @@
             event.preventDefault();
             const form = document.getElementById('register-vehicle-form');
 
-            syncRegisterBrand();
-
             if (!form.reportValidity()) {
                 return false;
             }
@@ -1695,7 +1644,6 @@
         }
 
         function confirmRegisterVehicle() {
-            syncRegisterBrand();
             document.getElementById('register-vehicle-form').submit();
         }
 
