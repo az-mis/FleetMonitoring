@@ -750,7 +750,7 @@
                                              data-notif-time="{{ $notifTs }}"
                                              :class="isRead('{{ $oId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-l-4 border-l-red-500 border-amber-200/80 shadow-2xs text-slate-800'">
                                             @if (!empty($oVehicle->created_maintenance_id))
-                                                <a href="{{ route('maintenance.index', ['highlight_id' => $oVehicle->created_maintenance_id, 'auto_edit' => 1]) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                                <a href="{{ route('maintenance.index', ['highlight_id' => $oVehicle->created_maintenance_id]) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                     <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                     </div>

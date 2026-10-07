@@ -1047,11 +1047,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 150);
         }
 
-        // Auto-open Edit Modal if auto_edit=1 flag is passed from notification link
+        // Auto-open Edit Modal ONLY if auto_edit=1 flag is passed AND record is due TODAY
         if (autoEdit === '1' || autoEdit === 'true') {
-            setTimeout(() => {
-                openMaintenanceModal(highlightId, true);
-            }, 400);
+            const rec = maintenanceRecords.find(r => r.id == highlightId);
+            const todayStr = localKey(new Date());
+            const isDueToday = rec && (rec.scheduled_date === todayStr || rec.scheduled_date_end === todayStr);
+            if (isDueToday) {
+                setTimeout(() => {
+                    openMaintenanceModal(highlightId, true);
+                }, 400);
+            }
         }
     } else if (vehicleId) {
         openMaintenanceModal();
