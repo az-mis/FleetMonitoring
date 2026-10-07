@@ -382,6 +382,7 @@
                                 data-id="{{ $v->id }}"
                                 data-plate="{{ $v->plate_number }}"
                                 data-model="{{ trim($v->brand.' '.$v->model) }}"
+                                data-odometer="{{ $v->odometer }}"
                                 data-search="{{ strtolower($v->plate_number.' '.$v->brand.' '.$v->model.' '.$v->location) }}">
                                 <span class="vp-thumb flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-white">
                                     @if($v->photo_url)
@@ -782,6 +783,15 @@ function onVehicleChange(vehicleId, excludeId = null) {
     const wrap   = document.getElementById('active-maintenance-warning');
     const list   = document.getElementById('active-maintenance-list');
 
+    // Auto fill odometer from selected vehicle if empty or creating new
+    const opt = document.querySelector(`.vehicle-picker-option[data-id="${vehicleId}"]`);
+    if (opt && opt.dataset.odometer) {
+        const odoInput = document.getElementById('field-odometer');
+        if (odoInput && (!currentEditId || !odoInput.value)) {
+            odoInput.value = opt.dataset.odometer;
+        }
+    }
+
     if (active.length === 0) {
         wrap.classList.add('hidden');
         return;
@@ -944,6 +954,21 @@ function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 function escHtml(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ── Auto-open schedule modal from Notification Bell redirect ────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    const params = new URLSearchParams(window.location.search);
+    const vehicleId = params.get('schedule_vehicle_id');
+    const type = params.get('type');
+    if (vehicleId) {
+        openMaintenanceModal();
+        pickVehicle(vehicleId);
+        if (type) setField('type', type);
+        setField('title', type ? `${type} Service` : 'Routine Maintenance');
+        const today = new Date().toISOString().split('T')[0];
+        setField('scheduled_date', today);
+    }
+});
 
 // ── Auto-dismiss flash ────────────────────────────────────────────────────
 const flash = document.getElementById('flash-success');

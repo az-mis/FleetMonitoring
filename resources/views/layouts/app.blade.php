@@ -473,6 +473,7 @@
                         {{-- Dropdown Menu --}}
                         <div
                             x-show="open"
+                            x-cloak
                             @click.outside="open = false; activeOpt = null"
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 scale-95"
@@ -480,8 +481,8 @@
                             x-transition:leave="transition ease-in duration-150"
                             x-transition:leave-start="opacity-100 scale-100"
                             x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white p-4 shadow-2xl border border-slate-100 z-50 hidden"
-                            :class="{ 'hidden': !open }"
+                            class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white p-4 shadow-2xl border border-slate-100 z-50"
+                            style="display: none;"
                         >
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                                 <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Notifications</h4>
@@ -503,13 +504,27 @@
 
                             <div class="space-y-2 max-h-80 overflow-y-auto">
                                 @if (($pendingTravelCount ?? 0) > 0)
-                                    <div class="relative group flex items-start rounded-xl p-2 transition border"
+                                    <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                          :class="isRead('pending_travel') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
-                                        {{-- 3 dots menu on the left side --}}
-                                        <div class="relative shrink-0 mr-1 mt-0.5" @click.outside="if (activeOpt === 'pending_travel') activeOpt = null">
+                                        <a href="{{ route('vehicle-requests.index') }}" @click="markRead('pending_travel')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                            <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M12 9v4M12 17h.01"/>
+                                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-bold" :class="isRead('pending_travel') ? 'text-slate-500' : 'text-slate-800'">Pending Travel Requests</p>
+                                                <p class="text-[11px] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
+                                            </div>
+                                            <span x-show="!isRead('pending_travel')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
+                                        </a>
+
+                                        {{-- 3 dots menu on the right side --}}
+                                        <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === 'pending_travel') activeOpt = null">
                                             <button type="button" 
-                                                    @click.stop="activeOpt = (activeOpt === 'pending_travel' ? null : 'pending_travel')"
-                                                    class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition"
+                                                    @click.stop.prevent="activeOpt = (activeOpt === 'pending_travel' ? null : 'pending_travel')"
+                                                    class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
                                                     title="Options">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
                                                     <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
@@ -517,11 +532,13 @@
                                             </button>
 
                                             <div x-show="activeOpt === 'pending_travel'"
+                                                 x-cloak
                                                  x-transition
-                                                 class="absolute left-0 mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left">
+                                                 class="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left"
+                                                 style="display: none;">
                                                 <button type="button"
-                                                        @click.stop="toggleRead('pending_travel')"
-                                                        class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2">
+                                                        @click.stop.prevent="toggleRead('pending_travel')"
+                                                        class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
                                                     <template x-if="isRead('pending_travel')">
                                                         <span class="flex items-center gap-1.5">
                                                             <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -537,61 +554,14 @@
                                                 </button>
                                             </div>
                                         </div>
-
-                                        <a href="{{ route('vehicle-requests.index') }}" @click="markRead('pending_travel')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                            <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M12 9v4M12 17h.01"/>
-                                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                                </svg>
-                                            </div>
-                                            <div class="min-w-0 flex-1">
-                                                <p class="text-xs font-bold" :class="isRead('pending_travel') ? 'text-slate-500' : 'text-slate-800'">Pending Travel Requests</p>
-                                                <p class="text-[11px] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
-                                            </div>
-                                            <span x-show="!isRead('pending_travel')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
-                                        </a>
                                     </div>
                                 @endif
 
                                 @if (isset($dueMaintenanceItems) && $dueMaintenanceItems->count() > 0)
                                     @foreach ($dueMaintenanceItems as $mItem)
                                         @php $mId = 'maint_' . $mItem->id; @endphp
-                                        <div class="relative group flex items-start rounded-xl p-2 transition border"
+                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              :class="isRead('{{ $mId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-blue-50/20 border-blue-100/50 text-slate-800'">
-                                            {{-- 3 dots menu on the left side --}}
-                                            <div class="relative shrink-0 mr-1 mt-0.5" @click.outside="if (activeOpt === '{{ $mId }}') activeOpt = null">
-                                                <button type="button" 
-                                                        @click.stop="activeOpt = (activeOpt === '{{ $mId }}' ? null : '{{ $mId }}')"
-                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition"
-                                                        title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-                                                    </svg>
-                                                </button>
-
-                                                <div x-show="activeOpt === '{{ $mId }}'"
-                                                     x-transition
-                                                     class="absolute left-0 mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left">
-                                                    <button type="button"
-                                                            @click.stop="toggleRead('{{ $mId }}')"
-                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2">
-                                                        <template x-if="isRead('{{ $mId }}')">
-                                                            <span class="flex items-center gap-1.5">
-                                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                                Mark Unread
-                                                            </span>
-                                                        </template>
-                                                        <template x-if="!isRead('{{ $mId }}')">
-                                                            <span class="flex items-center gap-1.5">
-                                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                                Mark Read
-                                                            </span>
-                                                        </template>
-                                                    </button>
-                                                </div>
-                                            </div>
-
                                             <a href="{{ route('maintenance.index') }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -608,6 +578,41 @@
                                                 </div>
                                                 <span x-show="!isRead('{{ $mId }}')" class="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                                             </a>
+
+                                            {{-- 3 dots menu on the right side --}}
+                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $mId }}') activeOpt = null">
+                                                <button type="button" 
+                                                        @click.stop.prevent="activeOpt = (activeOpt === '{{ $mId }}' ? null : '{{ $mId }}')"
+                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
+                                                        title="Options">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                                                    </svg>
+                                                </button>
+
+                                                <div x-show="activeOpt === '{{ $mId }}'"
+                                                     x-cloak
+                                                     x-transition
+                                                     class="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left"
+                                                     style="display: none;">
+                                                    <button type="button"
+                                                            @click.stop.prevent="toggleRead('{{ $mId }}')"
+                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
+                                                        <template x-if="isRead('{{ $mId }}')">
+                                                            <span class="flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                                Mark Unread
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!isRead('{{ $mId }}')">
+                                                            <span class="flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                                Mark Read
+                                                            </span>
+                                                        </template>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 @endif
@@ -618,13 +623,30 @@
                                             $oState = $oVehicle->change_oil_status; 
                                             $oId = 'oil_' . $oVehicle->id;
                                         @endphp
-                                        <div class="relative group flex items-start rounded-xl p-2 transition border"
+                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              :class="isRead('{{ $oId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
-                                            {{-- 3 dots menu on the left side --}}
-                                            <div class="relative shrink-0 mr-1 mt-0.5" @click.outside="if (activeOpt === '{{ $oId }}') activeOpt = null">
+                                            <a href="{{ route('maintenance.index', ['schedule_vehicle_id' => $oVehicle->id, 'type' => 'Oil Change']) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                                                    <span class="text-xs">🛢️</span>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex items-center justify-between gap-1">
+                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
+                                                        <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">
+                                                            {{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-[11px] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
+                                                    <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
+                                                </div>
+                                                <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
+                                            </a>
+
+                                            {{-- 3 dots menu on the right side --}}
+                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $oId }}') activeOpt = null">
                                                 <button type="button" 
-                                                        @click.stop="activeOpt = (activeOpt === '{{ $oId }}' ? null : '{{ $oId }}')"
-                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition"
+                                                        @click.stop.prevent="activeOpt = (activeOpt === '{{ $oId }}' ? null : '{{ $oId }}')"
+                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
                                                         title="Options">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
                                                         <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
@@ -632,11 +654,13 @@
                                                 </button>
 
                                                 <div x-show="activeOpt === '{{ $oId }}'"
+                                                     x-cloak
                                                      x-transition
-                                                     class="absolute left-0 mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left">
+                                                     class="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left"
+                                                     style="display: none;">
                                                     <button type="button"
-                                                            @click.stop="toggleRead('{{ $oId }}')"
-                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2">
+                                                            @click.stop.prevent="toggleRead('{{ $oId }}')"
+                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
                                                         <template x-if="isRead('{{ $oId }}')">
                                                             <span class="flex items-center gap-1.5">
                                                                 <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -652,12 +676,9 @@
                                                     </button>
                                                 </div>
                                             </div>
-
-                                            <a href="{{ route('maintenance.index', ['schedule_vehicle_id' => $oVehicle->id, 'type' => 'Oil Change']) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
-                                                    <span class="text-xs">🛢️</span>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
+                                        </div>
+                                    @endforeach
+                                @endif
                                                     <div class="flex items-center justify-between gap-1">
                                                         <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
                                                         <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">
