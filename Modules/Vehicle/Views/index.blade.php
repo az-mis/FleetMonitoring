@@ -847,8 +847,8 @@
                         </div>
 
                         {{-- Assigned Location (Super Admin editable, others read-only) --}}
-                        <div class="sm:col-span-12">
-                            <label for="ev-location" class="{{ $rvLabel }}">Assigned Location / Office / Province @if($isSuperAdmin)<span class="text-red-500">*</span>@endif</label>
+                        <div class="sm:col-span-6">
+                            <label for="ev-location" class="{{ $rvLabel }}">Assigned Location / Province @if($isSuperAdmin)<span class="text-red-500">*</span>@endif</label>
                             <div class="relative">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                                 <select
