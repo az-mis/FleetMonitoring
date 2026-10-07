@@ -513,6 +513,8 @@
                                             </div>
                                         </a>
                                     @endforeach
+                                @endif
+
                                 @if (isset($oilDueVehicles) && $oilDueVehicles->count() > 0)
                                     @foreach ($oilDueVehicles as $oVehicle)
                                         @php $oState = $oVehicle->change_oil_status; @endphp
