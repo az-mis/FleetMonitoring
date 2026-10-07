@@ -31,7 +31,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
-                <span>+ Conduct Inspection</span>
+                <span>Conduct Inspection</span>
             </button>
         </div>
     </div>
@@ -123,17 +123,17 @@
 
     {{-- CONDUCT NEW INSPECTION MODAL --}}
     <div id="new-inspection-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
-                <div class="flex items-center gap-3">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="w-full max-w-4xl rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                         </svg>
                     </span>
                     <div>
                         <h3 class="text-base font-black text-slate-900">Conduct Vehicle Inspection</h3>
-                        <p class="text-xs text-slate-500">Select a vehicle and fill out the inspection checklist</p>
+                        <p class="text-[11px] text-slate-500">Select a vehicle and fill out the inspection checklist</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeNewInspectionModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
@@ -143,13 +143,13 @@
 
             <form id="new-inspection-form" onsubmit="submitNewInspection(event)" class="flex flex-col min-h-0 flex-1">
                 @csrf
-                <div class="overflow-y-auto py-4 space-y-5 flex-1 pr-1 scrollbar-thin">
+                <div class="overflow-y-auto py-3 space-y-3 flex-1 pr-1 scrollbar-thin">
                     {{-- Select Vehicle & Odometer --}}
-                    <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Select Vehicle <span class="text-red-500">*</span></label>
-                                <select id="insp-vehicle-select" onchange="onVehicleSelected(this)" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Vehicle <span class="text-red-500">*</span></label>
+                                <select id="insp-vehicle-select" onchange="onVehicleSelected(this)" required class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
                                     <option value="">— Choose Vehicle —</option>
                                     @foreach ($allVehicles as $v)
                                         <option value="{{ $v->id }}" data-store-url="{{ route('vehicles.inspections.store', $v) }}" data-odometer="{{ $v->odometer }}">{{ $v->plate_number }} — {{ $v->brand }} {{ $v->model }} ({{ number_format($v->odometer) }} km)</option>
@@ -158,16 +158,16 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Current Odometer Reading (KM) <span class="text-red-500">*</span></label>
-                                <input type="number" name="odometer_km" id="new-insp-odometer" min="0" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Current Odometer Reading (KM) <span class="text-red-500">*</span></label>
+                                <input type="number" name="odometer_km" id="new-insp-odometer" min="0" required class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
                             </div>
 
-                            <div class="flex items-center pt-2">
-                                <label class="flex items-center gap-2.5 cursor-pointer bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 w-full hover:border-emerald-300 transition">
-                                    <input type="checkbox" name="change_oil_done" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            <div class="flex items-end">
+                                <label class="flex items-center gap-2 cursor-pointer bg-white border border-slate-200 rounded-lg px-3 py-1.5 w-full hover:border-emerald-300 transition">
+                                    <input type="checkbox" name="change_oil_done" class="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
                                     <div>
-                                        <span class="text-xs font-bold text-slate-800 block">🛢️ Mark Change Oil as Done</span>
-                                        <span class="text-[10px] text-slate-400 block">Resets change oil counter to odometer</span>
+                                        <span class="text-xs font-bold text-slate-800 block">🛢️ Mark Change Oil Done</span>
+                                        <span class="text-[10px] text-slate-400 block leading-tight">Resets change oil counter to current odometer</span>
                                     </div>
                                 </label>
                             </div>
@@ -214,33 +214,33 @@
                     @endphp
 
                     @foreach ($checklistCategories as $catName => $catItems)
-                        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-100 mb-3">{{ $catName }}</h4>
-                            <div class="space-y-3">
+                        <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
+                            <h4 class="text-[11px] font-black uppercase tracking-wider text-slate-700 pb-1.5 border-b border-slate-100 mb-2">{{ $catName }}</h4>
+                            <div class="space-y-1.5">
                                 @foreach ($catItems as $itemName)
                                     @php $idx = $itemIndex++; @endphp
                                     <input type="hidden" name="items[{{ $idx }}][category]" value="{{ $catName }}">
                                     <input type="hidden" name="items[{{ $idx }}][name]" value="{{ $itemName }}">
-                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                                        <span class="font-semibold text-slate-800">{{ $itemName }}</span>
+                                    <div class="flex items-center justify-between gap-3 text-xs py-0.5">
+                                        <span class="font-medium text-slate-800 shrink min-w-0 truncate" title="{{ $itemName }}">{{ $itemName }}</span>
 
-                                        <div class="flex items-center gap-3 shrink-0">
-                                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-slate-600">
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <div class="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="pass" checked class="hidden">
                                                     <span>✓ Pass</span>
                                                 </label>
-                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white text-slate-600">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="attention" class="hidden">
                                                     <span>⚠️ Attention</span>
                                                 </label>
-                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white text-slate-600">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="fail" class="hidden">
                                                     <span>✕ Fail</span>
                                                 </label>
                                             </div>
 
-                                            <input type="text" name="items[{{ $idx }}][remarks]" placeholder="Remarks (opt)" class="w-36 rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-700 focus:border-blue-500 focus:outline-none">
+                                            <input type="text" name="items[{{ $idx }}][remarks]" placeholder="Remarks (opt)" class="w-32 rounded-md border border-slate-200 px-2 py-0.5 text-[11px] text-slate-700 focus:border-blue-500 focus:outline-none">
                                         </div>
                                     </div>
                                 @endforeach
