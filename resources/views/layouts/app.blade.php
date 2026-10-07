@@ -40,6 +40,21 @@
                 get unreadCount() {
                     var self = this;
                     return this.allNotifIds.filter(function(id) { return !self.readNotifs.includes(id); }).length;
+                },
+                init() {
+                    var self = this;
+                    this.$nextTick(function() {
+                        var container = document.getElementById('notif-list-container');
+                        if (!container) return;
+                        var cards = Array.from(container.children);
+                        cards.sort(function(a, b) {
+                            var aRead = self.isRead(a.dataset.notifId);
+                            var bRead = self.isRead(b.dataset.notifId);
+                            if (aRead !== bRead) return aRead ? 1 : -1;
+                            return (parseInt(b.dataset.notifTime) || 0) - (parseInt(a.dataset.notifTime) || 0);
+                        });
+                        cards.forEach(function(c) { container.appendChild(c); });
+                    });
                 }
             };
         };
@@ -274,6 +289,26 @@
                             $allNotifIds = [];
                         }
                         $totalNotifCount = count($allNotifIds);
+
+                        // Build a unified sorted array for rendering (newest first)
+                        $allNotifications = [];
+                        if (($pendingTravelCount ?? 0) > 0) {
+                            $allNotifications[] = ['type' => 'pending_travel', 'time' => now(), 'ago' => 'now'];
+                        }
+                        foreach ($dueMaintenanceItems as $mItem) {
+                            $t = $mItem->scheduled_date ? \Carbon\Carbon::parse($mItem->scheduled_date) : now();
+                            $allNotifications[] = ['type' => 'maint', 'item' => $mItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
+                        }
+                        foreach ($ongoingDueItems as $ongItem) {
+                            $t = $ongItem->scheduled_date_end ? \Carbon\Carbon::parse($ongItem->scheduled_date_end) : ($ongItem->scheduled_date ? \Carbon\Carbon::parse($ongItem->scheduled_date) : now());
+                            $allNotifications[] = ['type' => 'maint_ong', 'item' => $ongItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
+                        }
+                        foreach ($oilDueVehicles as $oVehicle) {
+                            $t = $oVehicle->updated_at ?? now();
+                            $allNotifications[] = ['type' => 'oil', 'item' => $oVehicle, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
+                        }
+                        // Sort newest first by timestamp (unread-first is handled client-side)
+                        usort($allNotifications, fn($a, $b) => $b['time']->timestamp - $a['time']->timestamp);
                     @endphp
 
                     <a
@@ -560,54 +595,52 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-2 max-h-80 overflow-y-auto">
-                                @if (($pendingTravelCount ?? 0) > 0)
-                                    <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
-                                         :class="isRead('pending_travel') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
-                                        <a href="{{ route('vehicle-requests.index') }}" @click="markRead('pending_travel')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                            <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M12 9v4M12 17h.01"/>
-                                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                                </svg>
-                                            </div>
-                                            <div class="min-w-0 flex-1">
-                                                <p class="text-xs font-bold" :class="isRead('pending_travel') ? 'text-slate-500' : 'text-slate-800'">Pending Travel Requests</p>
-                                                <p class="text-[11px] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
-                                            </div>
-                                            <span x-show="!isRead('pending_travel')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
-                                        </a>
+                            <div id="notif-list-container" class="space-y-2 max-h-80 overflow-y-auto">
+                                @foreach ($allNotifications as $notif)
+                                    @php
+                                        $notifType = $notif['type'];
+                                        $notifAgo  = $notif['ago'];
+                                        $notifTs   = $notif['time']->timestamp;
+                                    @endphp
 
-                                        {{-- 3 dots menu on the right side --}}
-                                        <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === 'pending_travel') activeOpt = null">
-                                            <button type="button" 
-                                                    @click.stop.prevent="activeOpt = (activeOpt === 'pending_travel' ? null : 'pending_travel')"
-                                                    class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-                                                    title="Options">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-                                                </svg>
-                                            </button>
-
-                                            <div x-show="activeOpt === 'pending_travel'"
-                                                 x-cloak
-                                                 x-transition
-                                                 class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
-                                                 style="display: none;">
-                                                <button type="button"
-                                                        @click.stop.prevent="toggleRead('pending_travel')"
-                                                        class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                    <span x-show="isRead('pending_travel')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('pending_travel')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
+                                    {{-- ── pending_travel card ─────────────────────────────────────── --}}
+                                    @if ($notifType === 'pending_travel')
+                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
+                                             data-notif-id="pending_travel"
+                                             data-notif-time="{{ $notifTs }}"
+                                             :class="isRead('pending_travel') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
+                                            <a href="{{ route('vehicle-requests.index') }}" @click="markRead('pending_travel')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M12 9v4M12 17h.01"/>
+                                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-xs font-bold" :class="isRead('pending_travel') ? 'text-slate-500' : 'text-slate-800'">Pending Travel Requests</p>
+                                                    <p class="text-[11px] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
+                                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
+                                                </div>
+                                                <span x-show="!isRead('pending_travel')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
+                                            </a>
+                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === 'pending_travel') activeOpt = null">
+                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === 'pending_travel' ? null : 'pending_travel')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
                                                 </button>
+                                                <div x-show="activeOpt === 'pending_travel'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
+                                                    <button type="button" @click.stop.prevent="toggleRead('pending_travel')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
+                                                        <span x-show="isRead('pending_travel')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('pending_travel')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @endif
 
-                                @if (isset($dueMaintenanceItems) && $dueMaintenanceItems->count() > 0)
-                                    @foreach ($dueMaintenanceItems as $mItem)
-                                        @php $mId = 'maint_' . $mItem->id; @endphp
+                                    {{-- ── maint (scheduled due) card ──────────────────────────────── --}}
+                                    @elseif ($notifType === 'maint')
+                                        @php $mItem = $notif['item']; $mId = 'maint_' . $mItem->id; @endphp
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
+                                             data-notif-id="{{ $mId }}"
+                                             data-notif-time="{{ $notifTs }}"
                                              :class="isRead('{{ $mId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-blue-50/20 border-blue-100/50 text-slate-800'">
                                             <a href="{{ route('maintenance.index', ['highlight_id' => $mItem->id]) }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
@@ -622,41 +655,28 @@
                                                     </div>
                                                     <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $mId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $mItem->vehicle_label ?: $mItem->plate_number }} — {{ $mItem->title }}</p>
                                                     <p class="text-[10px] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
+                                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                 </div>
                                                 <span x-show="!isRead('{{ $mId }}')" class="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                                             </a>
-
-                                            {{-- 3 dots menu on the right side --}}
                                             <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $mId }}') activeOpt = null">
-                                                <button type="button" 
-                                                        @click.stop.prevent="activeOpt = (activeOpt === '{{ $mId }}' ? null : '{{ $mId }}')"
-                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-                                                        title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-                                                    </svg>
+                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $mId }}' ? null : '{{ $mId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
                                                 </button>
-
-                                                <div x-show="activeOpt === '{{ $mId }}'"
-                                                     x-cloak
-                                                     x-transition
-                                                     class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
-                                                     style="display: none;">
-                                                    <button type="button"
-                                                            @click.stop.prevent="toggleRead('{{ $mId }}')"
-                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
+                                                <div x-show="activeOpt === '{{ $mId }}'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
+                                                    <button type="button" @click.stop.prevent="toggleRead('{{ $mId }}')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
                                                         <span x-show="isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    @endforeach
-                                @endif
 
-                                @if (isset($ongoingDueItems) && $ongoingDueItems->count() > 0)
-                                    @foreach ($ongoingDueItems as $ongItem)
-                                        @php $ongId = 'maint_ong_' . $ongItem->id; @endphp
+                                    {{-- ── maint_ong (ongoing due) card ────────────────────────────── --}}
+                                    @elseif ($notifType === 'maint_ong')
+                                        @php $ongItem = $notif['item']; $ongId = 'maint_ong_' . $ongItem->id; @endphp
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
+                                             data-notif-id="{{ $ongId }}"
+                                             data-notif-time="{{ $notifTs }}"
                                              :class="isRead('{{ $ongId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-emerald-50/20 border-emerald-100/50 text-slate-800'">
                                             <a href="{{ route('maintenance.index', ['highlight_id' => $ongItem->id]) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -672,61 +692,46 @@
                                                     </div>
                                                     <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $ongId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $ongItem->vehicle_label ?: $ongItem->plate_number }} — {{ $ongItem->title }}</p>
                                                     <p class="text-[10px] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
+                                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                 </div>
                                                 <span x-show="!isRead('{{ $ongId }}')" class="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
                                             </a>
-
-                                            {{-- 3 dots menu on the right side --}}
                                             <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $ongId }}') activeOpt = null">
-                                                <button type="button" 
-                                                        @click.stop.prevent="activeOpt = (activeOpt === '{{ $ongId }}' ? null : '{{ $ongId }}')"
-                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-                                                        title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-                                                    </svg>
+                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $ongId }}' ? null : '{{ $ongId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
                                                 </button>
-
-                                                <div x-show="activeOpt === '{{ $ongId }}'"
-                                                     x-cloak
-                                                     x-transition
-                                                     class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
-                                                     style="display: none;">
-                                                    <button type="button"
-                                                            @click.stop.prevent="toggleRead('{{ $ongId }}')"
-                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
+                                                <div x-show="activeOpt === '{{ $ongId }}'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
+                                                    <button type="button" @click.stop.prevent="toggleRead('{{ $ongId }}')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
                                                         <span x-show="isRead('{{ $ongId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $ongId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    @endforeach
-                                @endif
 
-                                @if (isset($oilDueVehicles) && $oilDueVehicles->count() > 0)
-                                    @foreach ($oilDueVehicles as $oVehicle)
+                                    {{-- ── oil card ────────────────────────────────────────────────── --}}
+                                    @elseif ($notifType === 'oil')
                                         @php 
+                                            $oVehicle = $notif['item'];
                                             $oState = $oVehicle->change_oil_status; 
                                             $oId = 'oil_' . $oVehicle->id;
                                         @endphp
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
+                                             data-notif-id="{{ $oId }}"
+                                             data-notif-time="{{ $notifTs }}"
                                              :class="isRead('{{ $oId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
                                             @if (!empty($oVehicle->created_maintenance_id))
                                                 <a href="{{ route('maintenance.index', ['highlight_id' => $oVehicle->created_maintenance_id]) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                     <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                            <polyline points="20 6 9 17 4 12"/>
-                                                        </svg>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                     </div>
                                                     <div class="min-w-0 flex-1">
                                                         <div class="flex items-center justify-between gap-1">
                                                             <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
-                                                                Scheduled
-                                                            </span>
+                                                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Scheduled</span>
                                                         </div>
                                                         <p class="text-[11px] font-semibold text-emerald-700 mt-0.5">Maintenance Created — View in table</p>
                                                         <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
+                                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                     </div>
                                                     <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
                                                 </a>
@@ -738,43 +743,28 @@
                                                     <div class="min-w-0 flex-1">
                                                         <div class="flex items-center justify-between gap-1">
                                                             <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                            <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">
-                                                                {{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}
-                                                            </span>
+                                                            <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">{{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}</span>
                                                         </div>
                                                         <p class="text-[11px] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
                                                         <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
+                                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                     </div>
                                                     <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
                                                 </a>
                                             @endif
-
-                                            {{-- 3 dots menu on the right side --}}
                                             <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $oId }}') activeOpt = null">
-                                                <button type="button" 
-                                                        @click.stop.prevent="activeOpt = (activeOpt === '{{ $oId }}' ? null : '{{ $oId }}')"
-                                                        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-                                                        title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-                                                    </svg>
+                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $oId }}' ? null : '{{ $oId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
                                                 </button>
-
-                                                <div x-show="activeOpt === '{{ $oId }}'"
-                                                     x-cloak
-                                                     x-transition
-                                                     class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
-                                                     style="display: none;">
-                                                    <button type="button"
-                                                            @click.stop.prevent="toggleRead('{{ $oId }}')"
-                                                            class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
+                                                <div x-show="activeOpt === '{{ $oId }}'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
+                                                    <button type="button" @click.stop.prevent="toggleRead('{{ $oId }}')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
                                                         <span x-show="isRead('{{ $oId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $oId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    @endforeach
-                                @endif
+                                    @endif
+                                @endforeach
 
                                 @if (($totalNotifCount ?? 0) === 0)
                                     <div class="py-6 text-center text-slate-400">
