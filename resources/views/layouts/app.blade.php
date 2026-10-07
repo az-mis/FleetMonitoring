@@ -263,23 +263,21 @@
                                 $allNotifIds[] = 'pending_travel';
                             }
 
-                            // Scheduled maintenance starting today or past due
+                            // All scheduled maintenance items (due today, overdue, or upcoming)
                             $dueMaintenanceItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
                                 ->where('status', 'scheduled')
-                                ->whereDate('scheduled_date', '<=', now()->toDateString())
                                 ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->latest('scheduled_date')
+                                ->latest('created_at')
                                 ->get();
                             foreach ($dueMaintenanceItems as $mItem) {
                                 $allNotifIds[] = 'maint_' . $mItem->id;
                             }
 
-                            // Ongoing maintenance reaching end date -> prompt to set Completed
+                            // All ongoing maintenance items (in progress or due for completion)
                             $ongoingDueItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
                                 ->where('status', 'ongoing')
-                                ->whereDate('scheduled_date_end', '<=', now()->toDateString())
                                 ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->latest('scheduled_date_end')
+                                ->latest('updated_at')
                                 ->get();
                             foreach ($ongoingDueItems as $ongItem) {
                                 $allNotifIds[] = 'maint_ong_' . $ongItem->id;
@@ -667,12 +665,16 @@
 
                                     {{-- ── maint (scheduled due) card ──────────────────────────────── --}}
                                     @elseif ($notifType === 'maint')
-                                        @php $mItem = $notif['item']; $mId = 'maint_' . $mItem->id; @endphp
+                                        @php
+                                            $mItem = $notif['item'];
+                                            $mId = 'maint_' . $mItem->id;
+                                            $mIsToday = $mItem->scheduled_date && \Carbon\Carbon::parse($mItem->scheduled_date)->isToday();
+                                        @endphp
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              data-notif-id="{{ $mId }}"
                                              data-notif-time="{{ $notifTs }}"
                                              :class="isRead('{{ $mId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-blue-50/20 border-l-4 border-l-red-500 border-blue-200/80 shadow-2xs text-slate-800'">
-                                            <a href="{{ route('maintenance.index', ['highlight_id' => $mItem->id, 'auto_edit' => 1]) }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                            <a href="{{ route('maintenance.index', array_filter(['highlight_id' => $mItem->id, 'auto_edit' => $mIsToday ? 1 : null])) }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -680,8 +682,8 @@
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center justify-between gap-1">
-                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $mId }}') ? 'text-slate-500' : 'text-slate-800'">Maintenance Due Today</p>
-                                                        <span class="text-[9px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">Set Ongoing</span>
+                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $mId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $mIsToday ? 'Maintenance Due Today' : 'Maintenance Scheduled' }}</p>
+                                                        <span class="text-[9px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">{{ $mIsToday ? 'Set Ongoing' : 'Scheduled' }}</span>
                                                     </div>
                                                     <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $mId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $mItem->vehicle_label ?: $mItem->plate_number }} — {{ $mItem->title }}</p>
                                                     <p class="text-[10px] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
@@ -703,12 +705,16 @@
 
                                     {{-- ── maint_ong (ongoing due) card ────────────────────────────── --}}
                                     @elseif ($notifType === 'maint_ong')
-                                        @php $ongItem = $notif['item']; $ongId = 'maint_ong_' . $ongItem->id; @endphp
+                                        @php
+                                            $ongItem = $notif['item'];
+                                            $ongId = 'maint_ong_' . $ongItem->id;
+                                            $ongIsToday = $ongItem->scheduled_date_end && \Carbon\Carbon::parse($ongItem->scheduled_date_end)->isToday();
+                                        @endphp
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              data-notif-id="{{ $ongId }}"
                                              data-notif-time="{{ $notifTs }}"
                                              :class="isRead('{{ $ongId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-emerald-50/20 border-l-4 border-l-red-500 border-emerald-200/80 shadow-2xs text-slate-800'">
-                                            <a href="{{ route('maintenance.index', ['highlight_id' => $ongItem->id, 'auto_edit' => 1]) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                            <a href="{{ route('maintenance.index', array_filter(['highlight_id' => $ongItem->id, 'auto_edit' => $ongIsToday ? 1 : null])) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -717,8 +723,8 @@
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center justify-between gap-1">
-                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $ongId }}') ? 'text-slate-500' : 'text-slate-800'">Maintenance Due for Completion</p>
-                                                        <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Set Completed</span>
+                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $ongId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $ongIsToday ? 'Maintenance Due for Completion' : 'Maintenance Ongoing' }}</p>
+                                                        <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">{{ $ongIsToday ? 'Set Completed' : 'Ongoing' }}</span>
                                                     </div>
                                                     <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $ongId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $ongItem->vehicle_label ?: $ongItem->plate_number }} — {{ $ongItem->title }}</p>
                                                     <p class="text-[10px] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
