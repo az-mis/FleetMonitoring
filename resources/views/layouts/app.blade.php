@@ -171,7 +171,7 @@
         $user = auth()->user();
         $isSuperAdmin = $user?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN;
         $hasPhoto = filled($user?->avatar_url ?? null);
-        $vehiclesOpen = request()->routeIs('vehicles.*') || request()->routeIs('vehicle-assigning.*') || request()->routeIs('maintenance.*') || request()->routeIs('vehicle-reports.*') || request()->is('vehicles*') || request()->is('vehicle-assigning*') || request()->is('maintenance*') || request()->is('vehicle-reports*');
+        $vehiclesOpen = request()->routeIs('vehicles.*') || request()->routeIs('vehicle-assigning.*') || request()->routeIs('maintenance.*') || request()->routeIs('vehicle-reports.*') || request()->routeIs('fleet-cards.*') || request()->is('vehicles*') || request()->is('vehicle-assigning*') || request()->is('maintenance*') || request()->is('vehicle-reports*') || request()->is('fleet-cards*');
         $moduleFlags = ['vehicles' => true, 'vehicleAssigning' => true, 'vehicleRequests' => true, 'drivers' => true];
         try {
             $storedFlags = \Modules\Settings\Models\FleetSetting::where('setting_key', 'admin_modules')->value('setting_value');
@@ -465,6 +465,10 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                 Vehicle Reports
                             </a>
+                            <a href="{{ route('fleet-cards.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('fleet-cards.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                                Fleet Cards
+                            </a>
                         </div>
                     </div>
 
@@ -484,6 +488,14 @@
                             <circle cx="12" cy="10" r="3"/>
                         </svg>
                         <span class="sidebar-label">Destinations</span>
+                    </a>
+
+                    <a href="{{ route('fleet-cards.index') }}" title="Fleet Cards & Fuel" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('fleet-cards.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="20" height="14" x="2" y="5" rx="2"/>
+                            <line x1="2" x2="22" y1="10" y2="10"/>
+                        </svg>
+                        <span class="sidebar-label">Fleet Cards</span>
                     </a>
 
                     @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))

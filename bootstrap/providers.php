@@ -24,4 +24,5 @@ return [
     MaintenanceServiceProvider::class,
     VehicleReportServiceProvider::class,
     DestinationServiceProvider::class,
+    Modules\FleetCard\Providers\FleetCardServiceProvider::class,
 ];
