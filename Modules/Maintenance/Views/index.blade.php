@@ -352,6 +352,14 @@
                 <b>Created from driver report:</b> <span id="source-report-banner-text"></span> You can edit every field below before saving.
             </div>
 
+            {{-- Notification Auto-Edit Prompt Banner --}}
+            <div id="status-prompt-banner" class="hidden rounded-xl border border-blue-200 bg-blue-50/90 p-3 text-xs text-blue-900 shadow-2xs space-y-1">
+                <div class="flex items-center gap-1.5 font-extrabold text-blue-900">
+                    <span>💡 Maintenance Action Required:</span>
+                </div>
+                <p class="text-[11.5px] text-blue-800">This maintenance is scheduled for today. Update the <b>Status</b> below to <span class="font-bold text-blue-950 underline">Ongoing</span> if servicing has started, or <span class="font-bold text-emerald-950 underline">Completed</span> if finished.</p>
+            </div>
+
             {{-- Vehicle (custom picker so every option can show the vehicle's photo) --}}
             <div class="relative" id="vehicle-picker">
                 <label class="mb-1 block text-xs font-bold text-gray-600">Vehicle <span class="text-red-500">*</span></label>
@@ -613,7 +621,7 @@ const allActiveRecords = maintenanceRecords.filter(r => r.status === 'scheduled'
 // ── Modal open/close ───────────────────────────────────────────────────────
 let currentEditId = null;
 
-function openMaintenanceModal(id = null) {
+function openMaintenanceModal(id = null, showPrompt = false) {
     currentEditId = id;
     const modal   = document.getElementById('maintenance-modal');
     const form    = document.getElementById('maintenance-form');
@@ -623,8 +631,13 @@ function openMaintenanceModal(id = null) {
 
     resetForm();
 
+    const promptBanner = document.getElementById('status-prompt-banner');
+    if (promptBanner) {
+        promptBanner.classList.toggle('hidden', !showPrompt);
+    }
+
     if (id) {
-        const rec = maintenanceRecords.find(r => r.id === id);
+        const rec = maintenanceRecords.find(r => r.id == id);
         if (!rec) return;
         title.textContent  = 'Edit Maintenance';
         btn.textContent    = 'Save Changes';
@@ -636,7 +649,7 @@ function openMaintenanceModal(id = null) {
         setField('priority',           rec.priority);
         setField('title',              rec.title);
         setField('description',        rec.description ?? '');
-        setField('status',             rec.status);
+        setField('status',             (showPrompt && rec.status === 'scheduled') ? 'ongoing' : rec.status);
         setField('scheduled_date',     rec.scheduled_date ?? '');
         setField('scheduled_date_end', rec.scheduled_date_end ?? '');
         setField('completed_date',     rec.completed_date ?? '');
@@ -661,6 +674,8 @@ function openMaintenanceModal(id = null) {
 function closeMaintenanceModal() {
     document.getElementById('maintenance-modal').classList.add('hidden');
     document.getElementById('maintenance-modal').classList.remove('flex');
+    const promptBanner = document.getElementById('status-prompt-banner');
+    if (promptBanner) promptBanner.classList.add('hidden');
     currentEditId = null;
     if (window.location.search.includes('reportId')) {
         const url = new URL(window.location.href);
@@ -1006,6 +1021,7 @@ function escHtml(s) {
 document.addEventListener('DOMContentLoaded', function () {
     const params = new URLSearchParams(window.location.search);
     const highlightId = params.get('highlight_id');
+    const autoEdit = params.get('auto_edit');
     const vehicleId = params.get('schedule_vehicle_id');
     const type = params.get('type');
 
@@ -1029,6 +1045,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }, 350);
             }, 150);
+        }
+
+        // Auto-open Edit Modal if auto_edit=1 flag is passed from notification link
+        if (autoEdit === '1' || autoEdit === 'true') {
+            setTimeout(() => {
+                openMaintenanceModal(highlightId, true);
+            }, 400);
         }
     } else if (vehicleId) {
         openMaintenanceModal();

@@ -671,8 +671,8 @@
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              data-notif-id="{{ $mId }}"
                                              data-notif-time="{{ $notifTs }}"
-                                             :class="isRead('{{ $mId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-blue-50/20 border-blue-100/50 text-slate-800'">
-                                            <a href="{{ route('maintenance.index', ['highlight_id' => $mItem->id]) }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                             :class="isRead('{{ $mId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-blue-50/20 border-l-4 border-l-red-500 border-blue-200/80 shadow-2xs text-slate-800'">
+                                            <a href="{{ route('maintenance.index', ['highlight_id' => $mItem->id, 'auto_edit' => 1]) }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -687,7 +687,7 @@
                                                     <p class="text-[10px] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
                                                     <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                 </div>
-                                                <span x-show="!isRead('{{ $mId }}')" class="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1"></span>
+                                                <span x-show="!isRead('{{ $mId }}')" class="h-2 w-2 rounded-full bg-red-500 shrink-0 mt-1"></span>
                                             </a>
                                             <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $mId }}') activeOpt = null">
                                                 <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $mId }}' ? null : '{{ $mId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
@@ -707,8 +707,8 @@
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              data-notif-id="{{ $ongId }}"
                                              data-notif-time="{{ $notifTs }}"
-                                             :class="isRead('{{ $ongId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-emerald-50/20 border-emerald-100/50 text-slate-800'">
-                                            <a href="{{ route('maintenance.index', ['highlight_id' => $ongItem->id]) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                             :class="isRead('{{ $ongId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-emerald-50/20 border-l-4 border-l-red-500 border-emerald-200/80 shadow-2xs text-slate-800'">
+                                            <a href="{{ route('maintenance.index', ['highlight_id' => $ongItem->id, 'auto_edit' => 1]) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -724,7 +724,7 @@
                                                     <p class="text-[10px] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
                                                     <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                 </div>
-                                                <span x-show="!isRead('{{ $ongId }}')" class="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
+                                                <span x-show="!isRead('{{ $ongId }}')" class="h-2 w-2 rounded-full bg-red-500 shrink-0 mt-1"></span>
                                             </a>
                                             <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $ongId }}') activeOpt = null">
                                                 <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $ongId }}' ? null : '{{ $ongId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
@@ -748,9 +748,9 @@
                                         <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
                                              data-notif-id="{{ $oId }}"
                                              data-notif-time="{{ $notifTs }}"
-                                             :class="isRead('{{ $oId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
+                                             :class="isRead('{{ $oId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-l-4 border-l-red-500 border-amber-200/80 shadow-2xs text-slate-800'">
                                             @if (!empty($oVehicle->created_maintenance_id))
-                                                <a href="{{ route('maintenance.index', ['highlight_id' => $oVehicle->created_maintenance_id]) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                                <a href="{{ route('maintenance.index', ['highlight_id' => $oVehicle->created_maintenance_id, 'auto_edit' => 1]) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                     <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                     </div>
