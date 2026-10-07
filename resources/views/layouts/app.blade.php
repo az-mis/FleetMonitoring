@@ -679,20 +679,6 @@
                                         </div>
                                     @endforeach
                                 @endif
-                                                    <div class="flex items-center justify-between gap-1">
-                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                        <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">
-                                                            {{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}
-                                                        </span>
-                                                    </div>
-                                                    <p class="text-[11px] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
-                                                    <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
-                                                </div>
-                                                <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
-                                            </a>
-                                        </div>
-                                    @endforeach
-                                @endif
 
                                 @if (($totalNotifCount ?? 0) === 0)
                                     <div class="py-6 text-center text-slate-400">
