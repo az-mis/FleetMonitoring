@@ -263,21 +263,23 @@
                                 $allNotifIds[] = 'pending_travel';
                             }
 
-                            // All scheduled maintenance items (due today, overdue, or upcoming)
+                            // Scheduled maintenance starting today or past due -> prompt to set Ongoing
                             $dueMaintenanceItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
                                 ->where('status', 'scheduled')
+                                ->whereDate('scheduled_date', '<=', now()->toDateString())
                                 ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->latest('created_at')
+                                ->latest('scheduled_date')
                                 ->get();
                             foreach ($dueMaintenanceItems as $mItem) {
                                 $allNotifIds[] = 'maint_' . $mItem->id;
                             }
 
-                            // All ongoing maintenance items (in progress or due for completion)
+                            // Ongoing maintenance reaching end date (today or past due) -> prompt to set Completed
                             $ongoingDueItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
                                 ->where('status', 'ongoing')
+                                ->whereDate('scheduled_date_end', '<=', now()->toDateString())
                                 ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->latest('updated_at')
+                                ->latest('scheduled_date_end')
                                 ->get();
                             foreach ($ongoingDueItems as $ongItem) {
                                 $allNotifIds[] = 'maint_ong_' . $ongItem->id;
