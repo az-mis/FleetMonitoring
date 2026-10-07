@@ -147,6 +147,23 @@
         .toast-animate-in {
             animation: toastSlideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
+
+        /* Thin, subtle scrollbar for notification list */
+        #notif-list-container {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #e2e8f0 transparent;
+        }
+        #notif-list-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        #notif-list-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #notif-list-container::-webkit-scrollbar-thumb {
+            background-color: #e2e8f0;
+            border-radius: 99px;
+        }
     </style>
 </head>
 <body class="antialiased bg-gray-50 text-gray-900">
@@ -574,7 +591,8 @@
                             x-transition:leave="transition ease-in duration-150"
                             x-transition:leave-start="opacity-100 scale-100"
                             x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white p-4 shadow-2xl border border-slate-100 z-50"
+                            class="fixed left-2 right-2 top-16 z-50 rounded-2xl bg-white p-4 shadow-2xl border border-slate-100
+                                   sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96"
                             style="display: none;"
                         >
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
@@ -595,7 +613,7 @@
                                 </div>
                             </div>
 
-                            <div id="notif-list-container" class="space-y-2 max-h-80 overflow-y-auto">
+                            <div id="notif-list-container" class="space-y-2 max-h-[60vh] sm:max-h-80 overflow-y-auto pr-0.5">
                                 @foreach ($allNotifications as $notif)
                                     @php
                                         $notifType = $notif['type'];
