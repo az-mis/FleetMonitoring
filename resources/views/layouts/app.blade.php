@@ -5,7 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Dashboard') &middot; {{ config('app.name', 'Fleet Monitoring') }}</title>
+    <script>
+        window.notificationBellData = function(allNotifIds) {
+            return {
+                open: false,
+                activeOpt: null,
+                readNotifs: JSON.parse(localStorage.getItem('fleet_read_notifs') || '[]'),
+                allNotifIds: allNotifIds || [],
+                isRead(id) {
+                    return this.readNotifs.includes(id);
+                },
+                markRead(id) {
+                    if (!this.readNotifs.includes(id)) {
+                        this.readNotifs.push(id);
+                        localStorage.setItem('fleet_read_notifs', JSON.stringify(this.readNotifs));
+                    }
+                },
+                markUnread(id) {
+                    this.readNotifs = this.readNotifs.filter(function(i) { return i !== id; });
+                    localStorage.setItem('fleet_read_notifs', JSON.stringify(this.readNotifs));
+                },
+                toggleRead(id) {
+                    if (this.isRead(id)) {
+                        this.markUnread(id);
+                    } else {
+                        this.markRead(id);
+                    }
+                    this.activeOpt = null;
+                },
+                markAllAsRead() {
+                    this.readNotifs = Array.from(new Set([...this.readNotifs, ...this.allNotifIds]));
+                    localStorage.setItem('fleet_read_notifs', JSON.stringify(this.readNotifs));
+                },
+                get unreadCount() {
+                    var self = this;
+                    return this.allNotifIds.filter(function(id) { return !self.readNotifs.includes(id); }).length;
+                }
+            };
+        };
+    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -452,7 +490,7 @@
 
                 <div class="flex items-center gap-2 sm:gap-3">
                     {{-- Notification Bell Dropdown --}}
-                    <div class="relative" x-data="notificationBellComp(@json($allNotifIds ?? []))">
+                    <div class="relative" x-data="notificationBellData({{ json_encode($allNotifIds ?? []) }})">
                         <button
                             type="button"
                             @click="open = !open"
@@ -539,18 +577,7 @@
                                                 <button type="button"
                                                         @click.stop.prevent="toggleRead('pending_travel')"
                                                         class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                    <template x-if="isRead('pending_travel')">
-                                                        <span class="flex items-center gap-1.5">
-                                                            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                            Mark Unread
-                                                        </span>
-                                                    </template>
-                                                    <template x-if="!isRead('pending_travel')">
-                                                        <span class="flex items-center gap-1.5">
-                                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                            Mark Read
-                                                        </span>
-                                                    </template>
+                                                    <span x-show="isRead('pending_travel')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('pending_travel')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -598,18 +625,7 @@
                                                     <button type="button"
                                                             @click.stop.prevent="toggleRead('{{ $mId }}')"
                                                             class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                        <template x-if="isRead('{{ $mId }}')">
-                                                            <span class="flex items-center gap-1.5">
-                                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                                Mark Unread
-                                                            </span>
-                                                        </template>
-                                                        <template x-if="!isRead('{{ $mId }}')">
-                                                            <span class="flex items-center gap-1.5">
-                                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                                Mark Read
-                                                            </span>
-                                                        </template>
+                                                        <span x-show="isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -661,18 +677,7 @@
                                                     <button type="button"
                                                             @click.stop.prevent="toggleRead('{{ $oId }}')"
                                                             class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                        <template x-if="isRead('{{ $oId }}')">
-                                                            <span class="flex items-center gap-1.5">
-                                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                                Mark Unread
-                                                            </span>
-                                                        </template>
-                                                        <template x-if="!isRead('{{ $oId }}')">
-                                                            <span class="flex items-center gap-1.5">
-                                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                                Mark Read
-                                                            </span>
-                                                        </template>
+                                                        <span x-show="isRead('{{ $oId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $oId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
                                                     </button>
                                                 </div>
                                             </div>
