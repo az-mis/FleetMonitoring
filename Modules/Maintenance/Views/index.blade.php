@@ -506,9 +506,14 @@
             {{-- Odometer & Cost --}}
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="mb-1 block text-xs font-bold text-gray-600">Odometer</label>
-                    <input type="number" name="odometer" id="field-odometer" min="0" placeholder="km"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                    <label class="mb-1 block text-xs font-bold text-gray-600">Odometer (km)</label>
+                    <div class="relative flex items-center rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-emerald-400">
+                        <input type="number" name="odometer" id="field-odometer" min="0" placeholder="e.g. 25000"
+                            class="w-full rounded-l-lg border-0 bg-transparent px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0">
+                        <div class="flex h-9 shrink-0 items-center justify-center border-l border-gray-200 bg-slate-50/80 px-3 text-xs font-semibold text-slate-500 rounded-r-lg">
+                            km
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-bold text-gray-600">Cost (₱)</label>

@@ -572,7 +572,7 @@
                                             <div x-show="activeOpt === 'pending_travel'"
                                                  x-cloak
                                                  x-transition
-                                                 class="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left"
+                                                 class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
                                                  style="display: none;">
                                                 <button type="button"
                                                         @click.stop.prevent="toggleRead('pending_travel')"
@@ -620,7 +620,7 @@
                                                 <div x-show="activeOpt === '{{ $mId }}'"
                                                      x-cloak
                                                      x-transition
-                                                     class="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left"
+                                                     class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
                                                      style="display: none;">
                                                     <button type="button"
                                                             @click.stop.prevent="toggleRead('{{ $mId }}')"
@@ -672,7 +672,7 @@
                                                 <div x-show="activeOpt === '{{ $oId }}'"
                                                      x-cloak
                                                      x-transition
-                                                     class="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white p-1 shadow-xl border border-slate-200 z-50 text-left"
+                                                     class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap"
                                                      style="display: none;">
                                                     <button type="button"
                                                             @click.stop.prevent="toggleRead('{{ $oId }}')"
