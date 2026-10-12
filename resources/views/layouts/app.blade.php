@@ -197,6 +197,94 @@
         }
 
         $isModuleLocked = !$isSuperAdmin && $currentModuleKey && !($moduleFlags[$currentModuleKey] ?? true);
+
+        // Notifications initialization for topbar bell (available for all user roles)
+        $pendingTravelCount = 0;
+        $dueMaintenanceItems = collect();
+        $ongoingDueItems = collect();
+        $oilDueVehicles = collect();
+        $allNotifIds = [];
+        $allNotifications = [];
+
+        if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true)) {
+            try {
+                $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
+                $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
+                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                    ->count();
+                if ($pendingTravelCount > 0) {
+                    $allNotifIds[] = 'pending_travel';
+                }
+
+                // Scheduled maintenance starting today or past due -> prompt to set Ongoing
+                $dueMaintenanceItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
+                    ->where('status', 'scheduled')
+                    ->whereDate('scheduled_date', '<=', now()->toDateString())
+                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                    ->latest('scheduled_date')
+                    ->get();
+                foreach ($dueMaintenanceItems as $mItem) {
+                    $allNotifIds[] = 'maint_' . $mItem->id;
+                }
+
+                // Ongoing maintenance reaching past end date -> prompt to set Completed starting the day after end date
+                $ongoingDueItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
+                    ->where('status', 'ongoing')
+                    ->where(function ($q) {
+                        $q->where(function ($sq) {
+                            $sq->whereNotNull('scheduled_date_end')
+                               ->whereDate('scheduled_date_end', '<', now()->toDateString());
+                        })->orWhere(function ($sq) {
+                            $sq->whereNull('scheduled_date_end')
+                               ->whereDate('scheduled_date', '<', now()->toDateString());
+                        });
+                    })
+                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                    ->latest('scheduled_date_end')
+                    ->get();
+                foreach ($ongoingDueItems as $ongItem) {
+                    $allNotifIds[] = 'maint_ong_' . $ongItem->id;
+                }
+
+                $oilDueVehicles = \Modules\Vehicle\Models\Vehicle::query()
+                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                    ->get()
+                    ->filter(fn ($v) => in_array($v->change_oil_status['status'], ['overdue', 'due_soon']));
+                foreach ($oilDueVehicles as $oVehicle) {
+                    $allNotifIds[] = 'oil_' . $oVehicle->id;
+                    $activeMaint = \Modules\Maintenance\Models\VehicleMaintenance::query()
+                        ->where('vehicle_id', $oVehicle->id)
+                        ->whereIn('status', ['scheduled', 'ongoing'])
+                        ->latest('scheduled_date')
+                        ->first();
+                    $oVehicle->created_maintenance_id = $activeMaint?->id;
+                }
+            } catch (\Throwable $e) {
+                $pendingTravelCount = 0;
+                $dueMaintenanceItems = collect();
+                $ongoingDueItems = collect();
+                $oilDueVehicles = collect();
+                $allNotifIds = [];
+            }
+
+            if (($pendingTravelCount ?? 0) > 0) {
+                $allNotifications[] = ['type' => 'pending_travel', 'time' => now(), 'ago' => 'now'];
+            }
+            foreach ($dueMaintenanceItems as $mItem) {
+                $t = $mItem->scheduled_date ? \Carbon\Carbon::parse($mItem->scheduled_date) : now();
+                $allNotifications[] = ['type' => 'maint', 'item' => $mItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
+            }
+            foreach ($ongoingDueItems as $ongItem) {
+                $t = $ongItem->scheduled_date_end ? \Carbon\Carbon::parse($ongItem->scheduled_date_end) : ($ongItem->scheduled_date ? \Carbon\Carbon::parse($ongItem->scheduled_date) : now());
+                $allNotifications[] = ['type' => 'maint_ong', 'item' => $ongItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
+            }
+            foreach ($oilDueVehicles as $oVehicle) {
+                $t = $oVehicle->updated_at ?? now();
+                $allNotifications[] = ['type' => 'oil', 'item' => $oVehicle, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
+            }
+            usort($allNotifications, fn($a, $b) => $b['time']->timestamp - $a['time']->timestamp);
+        }
+        $totalNotifCount = count($allNotifIds);
     @endphp
 
     <div class="flex h-screen overflow-hidden">
@@ -248,94 +336,6 @@
                 </a>
 
                 @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
-                    @php
-                        $pendingTravelCount = 0;
-                        $dueMaintenanceItems = collect();
-                        $ongoingDueItems = collect();
-                        $oilDueVehicles = collect();
-                        $allNotifIds = [];
-                        try {
-                            $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
-                            $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
-                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->count();
-                            if ($pendingTravelCount > 0) {
-                                $allNotifIds[] = 'pending_travel';
-                            }
-
-                            // Scheduled maintenance starting today or past due -> prompt to set Ongoing
-                            $dueMaintenanceItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
-                                ->where('status', 'scheduled')
-                                ->whereDate('scheduled_date', '<=', now()->toDateString())
-                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->latest('scheduled_date')
-                                ->get();
-                            foreach ($dueMaintenanceItems as $mItem) {
-                                $allNotifIds[] = 'maint_' . $mItem->id;
-                            }
-
-                            // Ongoing maintenance reaching past end date -> prompt to set Completed starting the day after end date
-                            $ongoingDueItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
-                                ->where('status', 'ongoing')
-                                ->where(function ($q) {
-                                    $q->where(function ($sq) {
-                                        $sq->whereNotNull('scheduled_date_end')
-                                           ->whereDate('scheduled_date_end', '<', now()->toDateString());
-                                    })->orWhere(function ($sq) {
-                                        $sq->whereNull('scheduled_date_end')
-                                           ->whereDate('scheduled_date', '<', now()->toDateString());
-                                    });
-                                })
-                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->latest('scheduled_date_end')
-                                ->get();
-                            foreach ($ongoingDueItems as $ongItem) {
-                                $allNotifIds[] = 'maint_ong_' . $ongItem->id;
-                            }
-
-                            $oilDueVehicles = \Modules\Vehicle\Models\Vehicle::query()
-                                ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                                ->get()
-                                ->filter(fn ($v) => in_array($v->change_oil_status['status'], ['overdue', 'due_soon']));
-                            foreach ($oilDueVehicles as $oVehicle) {
-                                $allNotifIds[] = 'oil_' . $oVehicle->id;
-                                $activeMaint = \Modules\Maintenance\Models\VehicleMaintenance::query()
-                                    ->where('vehicle_id', $oVehicle->id)
-                                    ->whereIn('status', ['scheduled', 'ongoing'])
-                                    ->latest('scheduled_date')
-                                    ->first();
-                                $oVehicle->created_maintenance_id = $activeMaint?->id;
-                            }
-                        } catch (\Throwable $e) {
-                            $pendingTravelCount = 0;
-                            $dueMaintenanceItems = collect();
-                            $ongoingDueItems = collect();
-                            $oilDueVehicles = collect();
-                            $allNotifIds = [];
-                        }
-                        $totalNotifCount = count($allNotifIds);
-
-                        // Build a unified sorted array for rendering (newest first)
-                        $allNotifications = [];
-                        if (($pendingTravelCount ?? 0) > 0) {
-                            $allNotifications[] = ['type' => 'pending_travel', 'time' => now(), 'ago' => 'now'];
-                        }
-                        foreach ($dueMaintenanceItems as $mItem) {
-                            $t = $mItem->scheduled_date ? \Carbon\Carbon::parse($mItem->scheduled_date) : now();
-                            $allNotifications[] = ['type' => 'maint', 'item' => $mItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
-                        }
-                        foreach ($ongoingDueItems as $ongItem) {
-                            $t = $ongItem->scheduled_date_end ? \Carbon\Carbon::parse($ongItem->scheduled_date_end) : ($ongItem->scheduled_date ? \Carbon\Carbon::parse($ongItem->scheduled_date) : now());
-                            $allNotifications[] = ['type' => 'maint_ong', 'item' => $ongItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
-                        }
-                        foreach ($oilDueVehicles as $oVehicle) {
-                            $t = $oVehicle->updated_at ?? now();
-                            $allNotifications[] = ['type' => 'oil', 'item' => $oVehicle, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
-                        }
-                        // Sort newest first by timestamp (unread-first is handled client-side)
-                        usort($allNotifications, fn($a, $b) => $b['time']->timestamp - $a['time']->timestamp);
-                    @endphp
-
                     <a
                         href="{{ route('vehicle-requests.index') }}"
                         title="Travel Requests"
