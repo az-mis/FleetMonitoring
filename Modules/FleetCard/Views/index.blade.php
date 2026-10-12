@@ -1,5 +1,18 @@
 @extends('layouts.app')
 
+@php
+    $isSuperAdmin = auth()->user()?->role?->value === 'super_admin';
+    $locations = [
+        'Oriental Mindoro',
+        'Occidental Mindoro',
+        'Marinduque',
+        'Palawan',
+        'Romblon',
+        'Quezon City Satellite Office',
+    ];
+    $userLocation = auth()->user()?->location ?? 'Palawan';
+@endphp
+
 @section('content')
 <div class="space-y-6">
     {{-- Header & Actions --}}
@@ -256,7 +269,16 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Location</label>
-                    <input type="text" name="location" value="Palawan" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
+                    @if($isSuperAdmin)
+                        <select name="location" id="add-card-location" onchange="onAddLocationChange(this.value)" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
+                            <option value="">-- Select Location --</option>
+                            @foreach($locations as $loc)
+                                <option value="{{ $loc }}">{{ $loc }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <input type="text" name="location" value="{{ $userLocation }}" readonly class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500 cursor-not-allowed focus:outline-none">
+                    @endif
                 </div>
             </div>
 
@@ -459,7 +481,16 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Location</label>
-                    <input type="text" id="edit-location" name="location" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
+                    @if($isSuperAdmin)
+                        <select name="location" id="edit-card-location" onchange="onEditLocationChange(this.value)" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
+                            <option value="">-- Select Location --</option>
+                            @foreach($locations as $loc)
+                                <option value="{{ $loc }}">{{ $loc }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <input type="text" id="edit-location" name="location" value="{{ $userLocation }}" readonly class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500 cursor-not-allowed focus:outline-none">
+                    @endif
                 </div>
             </div>
 
@@ -585,10 +616,16 @@ function toggleAddVehiclePicker() {
 
 function filterAddVehiclePicker() {
     const q = (document.getElementById('add-vp-search').value || '').toLowerCase().trim();
+    const locSelect = document.getElementById('add-card-location');
+    const selectedLoc = locSelect ? locSelect.value.toLowerCase().trim() : '';
     let count = 0;
     document.querySelectorAll('.add-vp-opt').forEach(btn => {
         const text = btn.getAttribute('data-search') || '';
-        if (!q || text.includes(q) || !btn.getAttribute('data-id')) {
+        const btnLoc = (btn.getAttribute('data-location') || '').toLowerCase().trim();
+        const isUnassigned = !btn.getAttribute('data-id');
+        const matchesSearch = !q || text.includes(q) || isUnassigned;
+        const matchesLocation = !selectedLoc || isUnassigned || btnLoc === selectedLoc;
+        if (matchesSearch && matchesLocation) {
             btn.classList.remove('hidden');
             count++;
         } else {
@@ -596,6 +633,13 @@ function filterAddVehiclePicker() {
         }
     });
     document.getElementById('add-vp-empty').classList.toggle('hidden', count > 0);
+}
+
+function onAddLocationChange(loc) {
+    // Reset vehicle selection
+    pickAddVehicle('');
+    // Re-filter vehicle list
+    filterAddVehiclePicker();
 }
 
 function pickAddVehicle(id) {
@@ -640,10 +684,16 @@ function toggleEditVehiclePicker() {
 
 function filterEditVehiclePicker() {
     const q = (document.getElementById('edit-vp-search').value || '').toLowerCase().trim();
+    const locSelect = document.getElementById('edit-card-location');
+    const selectedLoc = locSelect ? locSelect.value.toLowerCase().trim() : '';
     let count = 0;
     document.querySelectorAll('.edit-vp-opt').forEach(btn => {
         const text = btn.getAttribute('data-search') || '';
-        if (!q || text.includes(q) || !btn.getAttribute('data-id')) {
+        const btnLoc = (btn.getAttribute('data-location') || '').toLowerCase().trim();
+        const isUnassigned = !btn.getAttribute('data-id');
+        const matchesSearch = !q || text.includes(q) || isUnassigned;
+        const matchesLocation = !selectedLoc || isUnassigned || btnLoc === selectedLoc;
+        if (matchesSearch && matchesLocation) {
             btn.classList.remove('hidden');
             count++;
         } else {
@@ -651,6 +701,13 @@ function filterEditVehiclePicker() {
         }
     });
     document.getElementById('edit-vp-empty').classList.toggle('hidden', count > 0);
+}
+
+function onEditLocationChange(loc) {
+    // Reset vehicle selection
+    pickEditVehicle('');
+    // Re-filter vehicle list
+    filterEditVehiclePicker();
 }
 
 function pickEditVehicle(id) {
@@ -695,6 +752,12 @@ document.addEventListener('click', function(e) {
 
 function openAddCardModal() {
     pickAddVehicle('');
+    // Reset location dropdown for Super Admin
+    const addLocSelect = document.getElementById('add-card-location');
+    if (addLocSelect) {
+        addLocSelect.value = '';
+        filterAddVehiclePicker();
+    }
     document.getElementById('add-card-modal').classList.remove('hidden');
     document.getElementById('add-card-modal').classList.add('flex');
 }
@@ -707,16 +770,26 @@ function openEditCardModal(card) {
     document.getElementById('edit-card-form').action = '/fleet-cards/' + card.id;
     document.getElementById('edit-card-name').value = card.card_name;
     document.getElementById('edit-card-number').value = card.card_number;
-    document.getElementById('edit-location').value = card.location;
     document.getElementById('edit-initial-budget').value = card.initial_budget;
     document.getElementById('edit-rate-peso').value = card.rate_peso;
     document.getElementById('edit-rate-km').value = card.rate_km;
+
+    // Set location — dropdown for Super Admin, plain input for province admin
+    const editLocSelect = document.getElementById('edit-card-location');
+    const editLocInput = document.getElementById('edit-location');
+    if (editLocSelect) {
+        editLocSelect.value = card.location || '';
+        filterEditVehiclePicker();
+    } else if (editLocInput) {
+        editLocInput.value = card.location || '';
+    }
 
     pickEditVehicle(card.vehicle_id || '');
 
     document.getElementById('edit-card-modal').classList.remove('hidden');
     document.getElementById('edit-card-modal').classList.add('flex');
 }
+
 function closeEditCardModal() {
     document.getElementById('edit-card-modal').classList.add('hidden');
     document.getElementById('edit-card-modal').classList.remove('flex');
