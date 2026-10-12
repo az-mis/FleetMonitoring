@@ -24,14 +24,13 @@
 
             <div class="-mt-9 px-5 pb-4 sm:px-6">
                 <div class="flex flex-col items-center text-center">
-                    <div class="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-emerald-700 text-3xl font-extrabold text-white shadow-lg ring-1 ring-emerald-100">
-                        @if($user->avatar_url)
-                            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="h-full w-full object-cover">
-                        @else
+                    <div id="avatar-container" class="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-emerald-700 text-3xl font-extrabold text-white shadow-lg ring-1 ring-emerald-100">
+                        <img id="avatar-preview-img" src="{{ $user->avatar_url ?? '' }}" alt="{{ $user->name }}" class="{{ $user->avatar_url ? '' : 'hidden' }} h-full w-full object-cover">
+                        <span id="avatar-fallback" class="{{ $user->avatar_url ? 'hidden' : '' }} flex h-full w-full items-center justify-center">
                             {{ $initial }}
-                        @endif
+                        </span>
                     </div>
-                    <input id="profile-avatar" type="file" name="avatar" accept="image/*" class="hidden">
+                    <input id="profile-avatar" type="file" name="avatar" accept="image/*" class="hidden" onchange="previewProfileAvatar(this)">
                     <input id="remove-avatar" type="checkbox" name="remove_avatar" value="1" class="hidden">
                     <p class="mt-1.5 text-xs text-gray-500">Photo (max 5MB)</p>
 
@@ -49,18 +48,16 @@
                                 <path d="M3 12a9 9 0 0 1 15.56-6.26L21 8"/>
                                 <path d="M16 8h5V3"/>
                             </svg>
-                            Replace
+                            <span id="avatar-btn-text">{{ $user->avatar_url ? 'Replace' : 'Upload' }}</span>
                         </label>
-                        @if($user->avatar_url)
-                            <button type="button" onclick="document.getElementById('remove-avatar').checked = true; this.classList.add('bg-red-600','text-white'); this.classList.remove('bg-red-50','text-red-700');" class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M3 6h18"/>
-                                    <path d="M8 6V4h8v2"/>
-                                    <path d="m19 6-1 14H6L5 6"/>
-                                </svg>
-                                Remove
-                            </button>
-                        @endif
+                        <button type="button" id="avatar-remove-btn" onclick="removeProfileAvatar()" class="{{ $user->avatar_url ? 'inline-flex' : 'hidden' }} items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-100 cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"/>
+                                <path d="M8 6V4h8v2"/>
+                                <path d="m19 6-1 14H6L5 6"/>
+                            </svg>
+                            Remove
+                        </button>
                     </div>
                 </div>
 
@@ -215,4 +212,72 @@
             </div>
         </form>
     </div>
+
+    <script>
+        function previewProfileAvatar(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('The selected image exceeds 5MB. Please choose a smaller photo.');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.getElementById('avatar-preview-img');
+                const fallback = document.getElementById('avatar-fallback');
+                const removeBtn = document.getElementById('avatar-remove-btn');
+                const removeInput = document.getElementById('remove-avatar');
+                const btnText = document.getElementById('avatar-btn-text');
+
+                if (img) {
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                }
+                if (fallback) {
+                    fallback.classList.add('hidden');
+                }
+                if (removeBtn) {
+                    removeBtn.classList.remove('hidden');
+                    removeBtn.classList.add('inline-flex');
+                }
+                if (removeInput) {
+                    removeInput.checked = false;
+                }
+                if (btnText) {
+                    btnText.textContent = 'Replace';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeProfileAvatar() {
+            const fileInput = document.getElementById('profile-avatar');
+            const removeInput = document.getElementById('remove-avatar');
+            const img = document.getElementById('avatar-preview-img');
+            const fallback = document.getElementById('avatar-fallback');
+            const removeBtn = document.getElementById('avatar-remove-btn');
+            const btnText = document.getElementById('avatar-btn-text');
+
+            if (fileInput) fileInput.value = '';
+            if (removeInput) removeInput.checked = true;
+
+            if (img) {
+                img.src = '';
+                img.classList.add('hidden');
+            }
+            if (fallback) {
+                fallback.classList.remove('hidden');
+            }
+            if (removeBtn) {
+                removeBtn.classList.add('hidden');
+                removeBtn.classList.remove('inline-flex');
+            }
+            if (btnText) {
+                btnText.textContent = 'Upload';
+            }
+        }
+    </script>
 @endsection
