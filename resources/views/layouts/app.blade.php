@@ -274,10 +274,18 @@
                                 $allNotifIds[] = 'maint_' . $mItem->id;
                             }
 
-                            // Ongoing maintenance reaching end date (today or past due) -> prompt to set Completed
+                            // Ongoing maintenance reaching past end date -> prompt to set Completed starting the day after end date
                             $ongoingDueItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
                                 ->where('status', 'ongoing')
-                                ->whereDate('scheduled_date_end', '<=', now()->toDateString())
+                                ->where(function ($q) {
+                                    $q->where(function ($sq) {
+                                        $sq->whereNotNull('scheduled_date_end')
+                                           ->whereDate('scheduled_date_end', '<', now()->toDateString());
+                                    })->orWhere(function ($sq) {
+                                        $sq->whereNull('scheduled_date_end')
+                                           ->whereDate('scheduled_date', '<', now()->toDateString());
+                                    });
+                                })
                                 ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
                                 ->latest('scheduled_date_end')
                                 ->get();
@@ -716,7 +724,7 @@
                                              data-notif-id="{{ $ongId }}"
                                              data-notif-time="{{ $notifTs }}"
                                              :class="isRead('{{ $ongId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-emerald-50/20 border-l-4 border-l-red-500 border-emerald-200/80 shadow-2xs text-slate-800'">
-                                            <a href="{{ route('maintenance.index', array_filter(['highlight_id' => $ongItem->id, 'auto_edit' => $ongIsToday ? 1 : null])) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
+                                            <a href="{{ route('maintenance.index', ['highlight_id' => $ongItem->id, 'auto_edit' => 1]) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
                                                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -725,8 +733,8 @@
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center justify-between gap-1">
-                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $ongId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $ongIsToday ? 'Maintenance Due for Completion' : 'Maintenance Ongoing' }}</p>
-                                                        <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">{{ $ongIsToday ? 'Set Completed' : 'Ongoing' }}</span>
+                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $ongId }}') ? 'text-slate-500' : 'text-slate-800'">Maintenance Due for Completion</p>
+                                                        <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Set Completed</span>
                                                     </div>
                                                     <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $ongId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $ongItem->vehicle_label ?: $ongItem->plate_number }} — {{ $ongItem->title }}</p>
                                                     <p class="text-[10px] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
