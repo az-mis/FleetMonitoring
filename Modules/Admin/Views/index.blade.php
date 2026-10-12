@@ -149,21 +149,39 @@
                 @csrf
                 <input type="hidden" name="_admin_form" value="create">
 
-                <div class="flex flex-col items-center text-center">
-                    <div class="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-700 text-2xl font-extrabold text-white ring-4 ring-emerald-50">
-                        <img id="add-avatar-preview-img" src="" alt="" class="hidden h-full w-full rounded-full object-cover">
-                        <span id="add-avatar-preview-initial">?</span>
-                        <button type="button" id="add-avatar-remove-btn" onclick="removeAddAvatar()" class="absolute -right-1 -top-1 hidden h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
-                            </svg>
-                        </button>
-                        <label for="add-avatar" class="absolute bottom-0 -right-1 flex items-center justify-center rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-white transition hover:bg-emerald-700 cursor-pointer">
-                            Select
-                        </label>
+                <div class="flex flex-col items-center justify-center text-center">
+                    <div class="relative">
+                        <div class="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-emerald-500 bg-emerald-700 text-2xl font-extrabold text-white shadow-md ring-4 ring-emerald-50">
+                            <img id="add-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
+                            <span id="add-avatar-preview-initial" class="flex h-full w-full items-center justify-center">?</span>
+                        </div>
                         <input type="file" name="avatar" id="add-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewAddAvatarFile(this)">
                     </div>
-                    <p class="mt-2 text-xs text-slate-500">Photo (optional, max 5MB)</p>
+
+                    <div class="mt-2.5 flex items-center justify-center gap-2">
+                        <label for="add-avatar" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 shadow-2xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                                <circle cx="12" cy="13" r="3"/>
+                            </svg>
+                            <span id="add-avatar-btn-text">Select Photo</span>
+                        </label>
+                        <button
+                            type="button"
+                            id="add-avatar-remove-btn"
+                            onclick="removeAddAvatar()"
+                            class="hidden inline-flex cursor-pointer items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 shadow-2xs"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"/>
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                            </svg>
+                            <span>Remove</span>
+                        </button>
+                    </div>
+
+                    <p class="mt-1 text-[11px] text-slate-500">Photo (optional, max 5MB)</p>
                     <p id="add-avatar-warning" class="mt-1 hidden text-xs font-semibold text-red-600"></p>
                     @error('avatar')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -276,24 +294,40 @@
                 <input type="hidden" name="_admin_action" id="edit-admin-action-field" value="{{ old('_admin_action') }}">
                 <input type="hidden" name="remove_avatar" id="edit-remove-avatar" value="0">
 
-                <div class="flex flex-col items-center text-center">
-                    <div class="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-700 text-2xl font-extrabold text-white ring-4 ring-emerald-50">
-                        <img id="edit-avatar-preview-img" src="" alt="" class="hidden h-full w-full rounded-full object-cover">
-                        <span id="edit-avatar-preview-initial"></span>
-                        <button type="button" id="edit-avatar-remove-btn" onclick="removeEditAvatar()" class="absolute -right-1 -top-1 hidden h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
-                            </svg>
-                        </button>
-                        <label for="edit-avatar" class="absolute bottom-0 right-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-emerald-600 text-white ring-2 ring-white transition hover:bg-emerald-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <div class="flex flex-col items-center justify-center text-center">
+                    <div class="relative">
+                        <div class="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-emerald-500 bg-emerald-700 text-2xl font-extrabold text-white shadow-md ring-4 ring-emerald-50">
+                            <img id="edit-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
+                            <span id="edit-avatar-preview-initial" class="flex h-full w-full items-center justify-center"></span>
+                        </div>
+                        <input type="file" name="avatar" id="edit-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewEditAvatarFile(this)">
+                    </div>
+
+                    <div class="mt-2.5 flex items-center justify-center gap-2">
+                        <label for="edit-avatar" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 shadow-2xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
                                 <circle cx="12" cy="13" r="3"/>
                             </svg>
+                            <span id="edit-avatar-btn-text">Change Photo</span>
                         </label>
-                        <input type="file" name="avatar" id="edit-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewEditAvatarFile(this)">
+                        <button
+                            type="button"
+                            id="edit-avatar-remove-btn"
+                            onclick="removeEditAvatar()"
+                            class="hidden inline-flex cursor-pointer items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 shadow-2xs"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"/>
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                            </svg>
+                            <span>Remove</span>
+                        </button>
                     </div>
-                    <p class="mt-2 text-xs text-slate-500">Photo (optional, max 5MB)</p>
+
+                    <p class="mt-1 text-[11px] text-slate-500">Photo (optional, max 5MB)</p>
+                    <p id="edit-avatar-warning" class="mt-1 hidden text-xs font-semibold text-red-600"></p>
                     @error('avatar')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -636,8 +670,10 @@
                 const removeBtn = document.getElementById('add-avatar-remove-btn');
                 if (removeBtn) {
                     removeBtn.classList.remove('hidden');
-                    removeBtn.classList.add('flex');
+                    removeBtn.classList.add('inline-flex');
                 }
+                const btnText = document.getElementById('add-avatar-btn-text');
+                if (btnText) btnText.textContent = 'Change Photo';
             };
             reader.readAsDataURL(file);
         }
@@ -657,8 +693,10 @@
             const removeBtn = document.getElementById('add-avatar-remove-btn');
             if (removeBtn) {
                 removeBtn.classList.add('hidden');
-                removeBtn.classList.remove('flex');
+                removeBtn.classList.remove('inline-flex');
             }
+            const btnText = document.getElementById('add-avatar-btn-text');
+            if (btnText) btnText.textContent = 'Select Photo';
         }
 
         /* ---------------- Edit Admin modal ---------------- */
@@ -686,19 +724,28 @@
                 const img = document.getElementById('edit-avatar-preview-img');
                 const initial = document.getElementById('edit-avatar-preview-initial');
                 const removeBtn = document.getElementById('edit-avatar-remove-btn');
+                const btnText = document.getElementById('edit-avatar-btn-text');
+                const warning = document.getElementById('edit-avatar-warning');
+                if (warning) {
+                    warning.classList.add('hidden');
+                    warning.textContent = '';
+                }
+
                 if (btn.dataset.avatar) {
                     img.src = btn.dataset.avatar;
                     img.classList.remove('hidden');
                     initial.classList.add('hidden');
-                    removeBtn.classList.remove('hidden');
-                    removeBtn.classList.add('flex');
+                    removeBtn?.classList.remove('hidden');
+                    removeBtn?.classList.add('inline-flex');
+                    if (btnText) btnText.textContent = 'Change Photo';
                 } else {
                     img.src = '';
                     img.classList.add('hidden');
                     initial.classList.remove('hidden');
-                    initial.textContent = btn.dataset.initial || '';
-                    removeBtn.classList.add('hidden');
-                    removeBtn.classList.remove('flex');
+                    initial.textContent = btn.dataset.initial || '?';
+                    removeBtn?.classList.add('hidden');
+                    removeBtn?.classList.remove('inline-flex');
+                    if (btnText) btnText.textContent = 'Upload Photo';
                 }
             }
             // When re-opened automatically after a validation error, the form
@@ -732,8 +779,26 @@
         }
 
         function previewEditAvatarFile(input) {
+            const warning = document.getElementById('edit-avatar-warning');
+            if (warning) {
+                warning.classList.add('hidden');
+                warning.textContent = '';
+            }
+
             const file = input.files && input.files[0];
             if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                if (warning) {
+                    warning.textContent = 'Warning: Image size exceeds 5MB limit. Please select a smaller file.';
+                    warning.classList.remove('hidden');
+                } else {
+                    alert('Warning: Image size exceeds 5MB limit.');
+                }
+                input.value = '';
+                removeEditAvatar();
+                return;
+            }
 
             document.getElementById('edit-remove-avatar').value = '0';
 
@@ -743,8 +808,13 @@
                 img.src = e.target.result;
                 img.classList.remove('hidden');
                 document.getElementById('edit-avatar-preview-initial').classList.add('hidden');
-                document.getElementById('edit-avatar-remove-btn').classList.remove('hidden');
-                document.getElementById('edit-avatar-remove-btn').classList.add('flex');
+                const removeBtn = document.getElementById('edit-avatar-remove-btn');
+                if (removeBtn) {
+                    removeBtn.classList.remove('hidden');
+                    removeBtn.classList.add('inline-flex');
+                }
+                const btnText = document.getElementById('edit-avatar-btn-text');
+                if (btnText) btnText.textContent = 'Change Photo';
             };
             reader.readAsDataURL(file);
         }
@@ -753,12 +823,23 @@
             document.getElementById('edit-avatar').value = '';
             document.getElementById('edit-remove-avatar').value = '1';
 
+            const warning = document.getElementById('edit-avatar-warning');
+            if (warning) {
+                warning.classList.add('hidden');
+                warning.textContent = '';
+            }
+
             const img = document.getElementById('edit-avatar-preview-img');
             img.src = '';
             img.classList.add('hidden');
             document.getElementById('edit-avatar-preview-initial').classList.remove('hidden');
-            document.getElementById('edit-avatar-remove-btn').classList.add('hidden');
-            document.getElementById('edit-avatar-remove-btn').classList.remove('flex');
+            const removeBtn = document.getElementById('edit-avatar-remove-btn');
+            if (removeBtn) {
+                removeBtn.classList.add('hidden');
+                removeBtn.classList.remove('inline-flex');
+            }
+            const btnText = document.getElementById('edit-avatar-btn-text');
+            if (btnText) btnText.textContent = 'Upload Photo';
         }
 
         function closeEditAdminModal() {
