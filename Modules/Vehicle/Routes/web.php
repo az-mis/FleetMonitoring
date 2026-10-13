@@ -21,6 +21,7 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::put('/{vehicle}/pms-items/{item}', [VehicleController::class, 'updatePmsItem'])->name('pms.update');
         Route::post('/{vehicle}/pms-items/{item}/log-done', [VehicleController::class, 'logPmsItemDone'])->name('pms.log-done');
         Route::delete('/{vehicle}/pms-items/{item}', [VehicleController::class, 'destroyPmsItem'])->name('pms.destroy');
+        Route::patch('/{vehicle}/odometer', [VehicleController::class, 'updateOdometer'])->name('odometer.update');
         Route::put('/{vehicle}', [VehicleController::class, 'update'])->name('update');
         Route::delete('/{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
     });

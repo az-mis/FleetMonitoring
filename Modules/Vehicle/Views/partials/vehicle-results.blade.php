@@ -81,7 +81,17 @@
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->color }}</td>
                             <td class="whitespace-nowrap px-4 py-3 font-medium">
                                 <div>
-                                    <span class="text-slate-800 font-bold">{{ number_format($vehicle->odometer) }} km</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-slate-800 font-bold" id="odo-display-{{ $vehicle->id }}">{{ number_format($vehicle->odometer) }} km</span>
+                                        <button
+                                            type="button"
+                                            onclick="openQuickOdometerModal({{ $vehicle->id }}, '{{ $vehicle->plate_number }}', {{ $vehicle->odometer }})"
+                                            class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer"
+                                            title="Quick update odometer reading"
+                                        >
+                                            Update
+                                        </button>
+                                    </div>
                                     @php $oil = $vehicle->change_oil_status; @endphp
                                     @if ($oil['status'] === 'overdue')
                                         <div class="mt-0.5 inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[10px] font-extrabold text-red-600" title="{{ $oil['label'] }}">
@@ -190,6 +200,22 @@
                                 <path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/>
                             </svg>
                             <span class="truncate">{{ $vehicle->engine_number ?: '—' }}</span>
+                        </div>
+
+                        {{-- Odometer with Quick Update button (CarMind style hero card) --}}
+                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-2.5 py-1.5 border border-slate-100 mt-1">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Odometer</span>
+                                <span class="text-xs font-black text-slate-800" id="card-odo-display-{{ $vehicle->id }}">{{ number_format($vehicle->odometer) }} km</span>
+                            </div>
+                            <button
+                                type="button"
+                                onclick="openQuickOdometerModal({{ $vehicle->id }}, '{{ $vehicle->plate_number }}', {{ $vehicle->odometer }})"
+                                class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-2xs"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                Update
+                            </button>
                         </div>
                     </div>
 

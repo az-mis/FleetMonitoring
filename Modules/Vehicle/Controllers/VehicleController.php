@@ -378,6 +378,35 @@ class VehicleController extends Controller
     }
 
     /**
+     * Quick Update Odometer (CarMind style: instant mileage sync)
+     */
+    public function updateOdometer(\Illuminate\Http\Request $request, Vehicle $vehicle): \Illuminate\Http\JsonResponse|RedirectResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $validated = $request->validate([
+            'odometer' => 'required|integer|min:0',
+        ]);
+
+        $vehicle->update([
+            'odometer' => $validated['odometer'],
+            'updated_by' => auth()->id(),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Odometer updated to " . number_format($validated['odometer']) . " km.",
+                'odometer' => $validated['odometer'],
+                'health_score' => $vehicle->fresh()->health_score,
+                'change_oil_status' => $vehicle->fresh()->change_oil_status,
+            ]);
+        }
+
+        return back()->with('success', "Odometer for {$vehicle->plate_number} updated to " . number_format($validated['odometer']) . " km.");
+    }
+
+    /**
      * @throws AuthorizationException
      */
     private function authorizeSuperAdmin(): void

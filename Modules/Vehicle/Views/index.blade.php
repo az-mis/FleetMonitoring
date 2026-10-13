@@ -2258,6 +2258,84 @@
                 alert('Failed to delete item.');
             });
         }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // QUICK ODOMETER UPDATE MODAL (CARMIND-STYLE)
+        // ══════════════════════════════════════════════════════════════════════
+        let quickOdoVehicleId = null;
+
+        function openQuickOdometerModal(vehicleId, plate, currentOdo) {
+            quickOdoVehicleId = vehicleId;
+            document.getElementById('quick-odo-plate').textContent = plate;
+            document.getElementById('quick-odo-current').textContent = Number(currentOdo).toLocaleString() + ' km';
+            const input = document.getElementById('quick-odo-input');
+            input.value = currentOdo;
+            input.min = currentOdo;
+
+            const modal = document.getElementById('quick-odometer-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeQuickOdometerModal() {
+            const modal = document.getElementById('quick-odometer-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            quickOdoVehicleId = null;
+        }
+
+        function handleQuickOdometerSubmit(event) {
+            event.preventDefault();
+            if (!quickOdoVehicleId) return;
+
+            const newOdo = parseInt(document.getElementById('quick-odo-input').value);
+            if (isNaN(newOdo) || newOdo < 0) return;
+
+            const btn = document.getElementById('quick-odo-submit-btn');
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`/vehicles/${quickOdoVehicleId}/odometer`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ odometer: newOdo }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.textContent = origText;
+
+                if (data.success) {
+                    // Update in-page displays without reloading
+                    const listSpan = document.getElementById(`odo-display-${quickOdoVehicleId}`);
+                    if (listSpan) listSpan.textContent = Number(newOdo).toLocaleString() + ' km';
+
+                    const cardSpan = document.getElementById(`card-odo-display-${quickOdoVehicleId}`);
+                    if (cardSpan) cardSpan.textContent = Number(newOdo).toLocaleString() + ' km';
+
+                    closeQuickOdometerModal();
+
+                    // Optional reload to refresh computed health bars, or notify
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Validation failed'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btn.disabled = false;
+                btn.textContent = origText;
+                alert('Failed to update odometer.');
+            });
+        }
     </script>
 
     {{-- PMS MODAL (CarMind style checklist) --}}
@@ -2346,6 +2424,60 @@
                     Close
                 </button>
             </div>
+        </div>
+    </div>
+
+    {{-- QUICK ODOMETER UPDATE MODAL (CarMind style: fast 1-field popup) --}}
+    <div id="quick-odometer-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div class="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-slate-100 p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-4.2 4.2"/><path d="m12 12v-6"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900">Update Odometer</h3>
+                        <p class="text-[11px] text-slate-400" id="quick-odo-plate">Vehicle</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeQuickOdometerModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <form onsubmit="handleQuickOdometerSubmit(event)" class="space-y-4">
+                <div>
+                    <div class="flex items-center justify-between text-xs mb-1.5">
+                        <span class="font-bold text-slate-600">Current Reading:</span>
+                        <span class="font-black text-slate-800" id="quick-odo-current">0 km</span>
+                    </div>
+
+                    <label class="block text-xs font-bold text-slate-700 mb-1">New Odometer Reading (km)</label>
+                    <div class="relative flex items-center rounded-xl border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-emerald-500">
+                        <input
+                            type="number"
+                            id="quick-odo-input"
+                            min="0"
+                            required
+                            class="w-full rounded-l-xl border-0 bg-transparent px-3 py-2 text-sm font-extrabold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0"
+                            placeholder="e.g. 62800"
+                        >
+                        <span class="border-l border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-500 rounded-r-xl">
+                            km
+                        </span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1">Updates oil change countdown, PMS intervals &amp; health score in real time.</p>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeQuickOdometerModal()" class="rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" id="quick-odo-submit-btn" class="rounded-xl bg-[#005a36] px-4 py-2 text-xs font-extrabold text-white hover:bg-[#00432a] transition cursor-pointer shadow-sm">
+                        Save Reading
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
