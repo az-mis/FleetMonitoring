@@ -131,21 +131,99 @@
                 <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[13px] text-rose-700">{{ $errors->first() }}</div>
             @endif
             @if(isset($assignedVehicles) && $assignedVehicles->count() > 1)
-                <div>
+                @php
+                    $initialSelectedId = old('vehicle_id', $assignedVehicles->first()->id);
+                @endphp
+                <div x-data="{
+                    open: false,
+                    selectedId: '{{ $initialSelectedId }}',
+                    vehicles: {{ json_encode($assignedVehicles->map(fn($v) => [
+                        'id' => $v->id,
+                        'plate' => $v->plate_number,
+                        'name' => $v->brand . ' ' . $v->model,
+                        'type' => $v->vehicle_type ?? '',
+                        'photo' => $v->photo_url,
+                    ])) }}
+                }" class="relative">
                     <label class="mb-1 block text-xs font-bold text-gray-600">Assigned Vehicle <span class="text-red-500">*</span></label>
-                    <select name="vehicle_id" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
-                        @foreach($assignedVehicles as $v)
-                            <option value="{{ $v->id }}" @selected(old('vehicle_id') == $v->id)>
-                                {{ $v->plate_number }} — {{ $v->brand }} {{ $v->model }}
-                            </option>
-                        @endforeach
-                    </select>
+                    
+                    {{-- Hidden input for form submission --}}
+                    <input type="hidden" name="vehicle_id" :value="selectedId" required>
+
+                    {{-- Dropdown Trigger Button --}}
+                    <button type="button" @click="open = !open" @click.outside="open = false"
+                        class="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white p-2.5 text-left text-sm transition hover:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                        <template x-for="v in vehicles" :key="v.id">
+                            <div x-show="selectedId == v.id" class="flex items-center gap-3 min-w-0">
+                                <div class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 border border-slate-200 overflow-hidden">
+                                    <template x-if="v.photo">
+                                        <img :src="v.photo" :alt="v.name" class="h-full w-full object-cover">
+                                    </template>
+                                    <template x-if="!v.photo">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+                                        </svg>
+                                    </template>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-slate-800 text-xs truncate" x-text="v.plate + ' — ' + v.name"></div>
+                                    <div class="text-[11px] text-slate-500" x-text="v.type || 'Vehicle'"></div>
+                                </div>
+                            </div>
+                        </template>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </button>
+
+                    {{-- Dropdown Menu Options with Photos --}}
+                    <div x-show="open" x-transition.origin.top.duration.150ms style="display: none;"
+                        class="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl space-y-1">
+                        <template x-for="v in vehicles" :key="v.id">
+                            <div @click="selectedId = v.id; open = false"
+                                class="flex cursor-pointer items-center justify-between rounded-lg p-2 transition hover:bg-emerald-50"
+                                :class="selectedId == v.id ? 'bg-emerald-50/70 border border-emerald-200/60' : 'border border-transparent'">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 border border-slate-200 overflow-hidden">
+                                        <template x-if="v.photo">
+                                            <img :src="v.photo" :alt="v.name" class="h-full w-full object-cover">
+                                        </template>
+                                        <template x-if="!v.photo">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+                                            </svg>
+                                        </template>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-slate-800 truncate" x-text="v.plate + ' — ' + v.name"></p>
+                                        <p class="text-[11px] text-slate-500" x-text="v.type || 'Vehicle'"></p>
+                                    </div>
+                                </div>
+                                <div x-show="selectedId == v.id" class="text-emerald-600 shrink-0 pr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             @elseif($assignedVehicle)
-                <div class="grid gap-0.5 rounded-lg bg-green-50 px-3 py-2.5 text-[13px] text-green-800">
+                <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-2.5 text-[13px] text-emerald-900">
                     <input type="hidden" name="vehicle_id" value="{{ $assignedVehicle->id }}">
-                    <b>{{ $assignedVehicle->plate_number }}</b>
-                    <span>{{ $assignedVehicle->brand }} {{ $assignedVehicle->model }}</span>
+                    <div class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-white border border-emerald-200 overflow-hidden shadow-2xs">
+                        @if($assignedVehicle->photo_url)
+                            <img src="{{ $assignedVehicle->photo_url }}" alt="{{ $assignedVehicle->model }}" class="h-full w-full object-cover">
+                        @else
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+                            </svg>
+                        @endif
+                    </div>
+                    <div>
+                        <b class="text-xs font-black text-emerald-950">{{ $assignedVehicle->plate_number }}</b>
+                        <p class="text-[11px] text-emerald-800 font-medium">{{ $assignedVehicle->brand }} {{ $assignedVehicle->model }}</p>
+                    </div>
                 </div>
             @endif
             <div>
