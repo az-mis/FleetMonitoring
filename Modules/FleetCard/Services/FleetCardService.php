@@ -129,4 +129,27 @@ class FleetCardService
             ]);
         });
     }
+
+    /**
+     * Delete a top-up log and revert card balance
+     */
+    public function deleteRecharge(FleetCard $card, FleetCardLog $log): void
+    {
+        DB::transaction(function () use ($card, $log) {
+            abort_unless($log->fleet_card_id === $card->id && $log->distance_source === 'recharge', 400);
+
+            $topUpAmount = abs((float) $log->consumed_amount);
+            $newBalance = max(0, (float) $card->current_balance - $topUpAmount);
+
+            // If initial budget was pushed up by top up, adjust it down or back to base
+            $newBudget = max($newBalance, (float) $card->initial_budget - $topUpAmount);
+
+            $card->current_balance = $newBalance;
+            $card->initial_budget = $newBudget;
+            $card->updated_by = auth()->id();
+            $card->save();
+
+            $log->delete();
+        });
+    }
 }

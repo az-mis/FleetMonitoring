@@ -599,7 +599,28 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Initial Budget Allocated (₱)</label>
-                <input type="number" step="0.01" id="edit-initial-budget" name="initial_budget" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-bold text-emerald-800 focus:border-emerald-500 focus:outline-none">
+                <input type="number" step="0.01" id="edit-initial-budget" name="initial_budget" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-bold text-emerald-800 focus:border-emerald-500 focus:outline-none" oninput="updateEditModalTotalBalance()">
+            </div>
+
+            {{-- TOP-UP HISTORY & TOTAL BALANCE SECTION --}}
+            <div id="edit-topup-container" class="rounded-xl border border-blue-100 bg-blue-50/60 p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                        <span>💳 Top-Up Entries</span>
+                    </span>
+                    <span id="edit-topup-count" class="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">0 entries</span>
+                </div>
+
+                {{-- List of Top-ups with Delete Button --}}
+                <div id="edit-topup-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    {{-- Dynamically populated via openEditCardModal --}}
+                </div>
+
+                {{-- Total Balance Summary --}}
+                <div class="pt-2 border-t border-blue-200/80 flex items-center justify-between">
+                    <span class="text-xs font-extrabold text-blue-950">Total Active Balance (Remaining):</span>
+                    <span id="edit-modal-total-balance" class="text-sm font-black text-emerald-800">₱0.00</span>
+                </div>
             </div>
 
             <div class="rounded-xl bg-amber-50/60 p-3 border border-amber-200/60 space-y-2">
@@ -841,8 +862,66 @@ function openEditCardModal(card) {
 
     pickEditVehicle(card.vehicle_id || '');
 
+    // Store card reference for live balance computation
+    window.currentEditingCard = card;
+
+    // Render Top-Up Entries with Delete Buttons
+    const topupList = document.getElementById('edit-topup-list');
+    const topupCount = document.getElementById('edit-topup-count');
+    const topupContainer = document.getElementById('edit-topup-container');
+    const logs = card.logs || [];
+    const recharges = logs.filter(l => l.distance_source === 'recharge' || l.consumed_amount < 0);
+
+    topupCount.textContent = `${recharges.length} ${recharges.length === 1 ? 'entry' : 'entries'}`;
+
+    if (recharges.length === 0) {
+        topupList.innerHTML = `<p class="text-[11px] text-gray-400 italic py-1">No top-ups recorded yet for this card.</p>`;
+    } else {
+        topupList.innerHTML = recharges.map(r => {
+            const amount = Math.abs(parseFloat(r.consumed_amount) || 0);
+            const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            return `
+                <div class="flex items-center justify-between rounded-lg bg-white p-2 border border-blue-200/80 shadow-xs">
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-extrabold text-xs text-blue-900">+₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span class="text-[10px] text-gray-400">${dateStr}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-500 truncate max-w-[200px]">${r.remarks || 'Budget Top-up'}</p>
+                    </div>
+                    <form action="/fleet-cards/${card.id}/recharge/${r.id}" method="POST" onsubmit="return confirm('Delete this top-up of ₱${amount.toFixed(2)}? This will reduce the balance accordingly.');">
+                        <input type="hidden" name="_token" value="${document.querySelector('input[name=_token]') ? document.querySelector('input[name=_token]').value : ''}">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="rounded-md p-1 text-red-500 hover:bg-red-50 hover:text-red-700 transition cursor-pointer" title="Delete wrong top-up">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            `;
+        }).join('');
+    }
+
+    updateEditModalTotalBalance();
+
     document.getElementById('edit-card-modal').classList.remove('hidden');
     document.getElementById('edit-card-modal').classList.add('flex');
+}
+
+function updateEditModalTotalBalance() {
+    const card = window.currentEditingCard;
+    if (!card) return;
+
+    const baseBudget = parseFloat(document.getElementById('edit-initial-budget').value) || 0;
+    const oldBudget = parseFloat(card.initial_budget) || 0;
+    const currentBal = parseFloat(card.current_balance) || 0;
+
+    // Show live remaining balance: current_balance adjusted by difference in initial budget
+    const diff = baseBudget - oldBudget;
+    const liveBal = Math.max(0, currentBal + diff);
+
+    document.getElementById('edit-modal-total-balance').textContent = `₱${liveBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function closeEditCardModal() {

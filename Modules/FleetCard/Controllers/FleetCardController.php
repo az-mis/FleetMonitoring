@@ -114,6 +114,15 @@ class FleetCardController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $newInitialBudget = (float) $validated['initial_budget'];
+        $oldInitialBudget = (float) $fleetCard->initial_budget;
+
+        // If the initial budget was changed, adjust current balance by the budget difference
+        if (abs($newInitialBudget - $oldInitialBudget) > 0.001) {
+            $diff = $newInitialBudget - $oldInitialBudget;
+            $validated['current_balance'] = max(0, (float) $fleetCard->current_balance + $diff);
+        }
+
         $validated['updated_by'] = auth()->id();
         $fleetCard->update($validated);
 
@@ -147,6 +156,12 @@ class FleetCardController extends Controller
         $this->fleetCardService->rechargeCard($fleetCard, (float) $validated['amount'], $validated['remarks'] ?? null);
 
         return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card budget topped up successfully!');
+    }
+
+    public function destroyRecharge(FleetCard $fleetCard, FleetCardLog $log): RedirectResponse
+    {
+        $this->fleetCardService->deleteRecharge($fleetCard, $log);
+        return redirect()->route('fleet-cards.index')->with('success', 'Top-up entry removed and balance updated!');
     }
 
     public function destroy(FleetCard $fleetCard): RedirectResponse
