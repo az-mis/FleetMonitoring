@@ -339,6 +339,57 @@
                         </div>
                     </section>
 
+                    {{-- CarMind-style Fleet Health Overview widget --}}
+                    @php $fh = $fleetHealth ?? ['score' => 100, 'label' => 'Good', 'color' => 'emerald', 'good' => 0, 'fair' => 0, 'poor' => 0, 'total' => 0]; @endphp
+                    <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="mb-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                        </svg>
+                                    </span>
+                                    <h3 class="font-bold text-gray-900">Fleet Health Overview</h3>
+                                </div>
+                                <span class="rounded-full px-2.5 py-0.5 text-xs font-extrabold
+                                    {{ $fh['color'] === 'emerald' ? 'bg-emerald-100 text-emerald-800' : ($fh['color'] === 'amber' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800') }}">
+                                    {{ $fh['score'] }}% {{ $fh['label'] }}
+                                </span>
+                            </div>
+
+                            <p class="text-xs text-slate-500 mb-3">Overall health computed from oil change intervals, PMS item schedules, and active maintenance.</p>
+
+                            {{-- Progress bar --}}
+                            <div class="h-3 w-full rounded-full bg-slate-100 overflow-hidden mb-4">
+                                <div class="h-full rounded-full transition-all
+                                    {{ $fh['color'] === 'emerald' ? 'bg-emerald-500' : ($fh['color'] === 'amber' ? 'bg-amber-400' : 'bg-red-500') }}"
+                                    style="width: {{ $fh['score'] }}%"></div>
+                            </div>
+
+                            {{-- 3 Pill stats --}}
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2.5 text-center">
+                                    <p class="text-lg font-black text-emerald-700">{{ $fh['good'] }}</p>
+                                    <p class="text-[10px] font-bold text-emerald-800 uppercase tracking-wide">Good (80%+)</p>
+                                </div>
+                                <div class="rounded-xl border border-amber-100 bg-amber-50/60 p-2.5 text-center">
+                                    <p class="text-lg font-black text-amber-700">{{ $fh['fair'] }}</p>
+                                    <p class="text-[10px] font-bold text-amber-800 uppercase tracking-wide">Fair (50–79%)</p>
+                                </div>
+                                <div class="rounded-xl border border-red-100 bg-red-50/60 p-2.5 text-center">
+                                    <p class="text-lg font-black text-red-700">{{ $fh['poor'] }}</p>
+                                    <p class="text-[10px] font-bold text-red-800 uppercase tracking-wide">Needs Action</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <span class="text-slate-400 font-medium">{{ $fh['total'] }} fleet vehicles monitored</span>
+                            <a href="{{ route('vehicles.index', $locationParam) }}" class="font-bold text-emerald-700 hover:underline">View Vehicles →</a>
+                        </div>
+                    </section>
+
                     <section class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="mb-3 flex items-center justify-between">
                             <h3 class="font-bold text-gray-900">Today's Trips</h3>

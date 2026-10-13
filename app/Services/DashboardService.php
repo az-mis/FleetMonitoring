@@ -218,6 +218,53 @@ class DashboardService
     }
 
     /**
+     * Compute Fleet Health Overview across vehicles in this location (CarMind style).
+     */
+    public function fleetHealth(?string $location): array
+    {
+        $vehicles = Vehicle::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->get();
+
+        if ($vehicles->isEmpty()) {
+            return [
+                'score'    => 100,
+                'label'    => 'Good',
+                'color'    => 'emerald',
+                'good'     => 0,
+                'fair'     => 0,
+                'poor'     => 0,
+                'total'    => 0,
+            ];
+        }
+
+        $scores = [];
+        $good = 0;
+        $fair = 0;
+        $poor = 0;
+
+        foreach ($vehicles as $v) {
+            $h = $v->health_score;
+            $scores[] = $h['score'];
+            if ($h['score'] >= 80) $good++;
+            elseif ($h['score'] >= 50) $fair++;
+            else $poor++;
+        }
+
+        $avgScore = (int) round(array_sum($scores) / count($scores));
+
+        return [
+            'score'    => $avgScore,
+            'label'    => $avgScore >= 80 ? 'Good' : ($avgScore >= 50 ? 'Fair' : 'Needs Attention'),
+            'color'    => $avgScore >= 80 ? 'emerald' : ($avgScore >= 50 ? 'amber' : 'red'),
+            'good'     => $good,
+            'fair'     => $fair,
+            'poor'     => $poor,
+            'total'    => $vehicles->count(),
+        ];
+    }
+
+    /**
      * Calendar events for Approved, Pending, and Maintenance items.
      */
     public function calendarEvents(?string $location): array

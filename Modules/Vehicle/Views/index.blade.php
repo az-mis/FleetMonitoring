@@ -1981,5 +1981,371 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // PMS CHECKLIST & SCHEDULE MODAL (CARMIND-STYLE)
+        // ══════════════════════════════════════════════════════════════════════
+        let currentPmsVehicleId = null;
+        let currentPmsVehicleOdo = 0;
+
+        function openVehiclePmsModal(vehicleId, plate, label, odo) {
+            currentPmsVehicleId = vehicleId;
+            currentPmsVehicleOdo = odo || 0;
+
+            document.getElementById('pms-modal-plate').textContent = plate;
+            document.getElementById('pms-modal-label').textContent = label;
+            document.getElementById('pms-modal-odo').textContent = Number(odo).toLocaleString() + ' km';
+            document.getElementById('pms-new-item-form').classList.add('hidden');
+
+            const modal = document.getElementById('vehicle-pms-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            loadVehiclePmsItems(vehicleId);
+        }
+
+        function closeVehiclePmsModal() {
+            const modal = document.getElementById('vehicle-pms-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            currentPmsVehicleId = null;
+        }
+
+        function togglePmsNewItemForm() {
+            const f = document.getElementById('pms-new-item-form');
+            f.classList.toggle('hidden');
+            if (!f.classList.contains('hidden')) {
+                document.getElementById('pms-item-name').focus();
+            }
+        }
+
+        function loadVehiclePmsItems(vehicleId) {
+            const listEl = document.getElementById('pms-items-list');
+            listEl.innerHTML = '<div class="text-center py-8 text-xs text-slate-400">Loading PMS items...</div>';
+
+            fetch(`/vehicles/${vehicleId}/pms-items`, { credentials: 'same-origin' })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) throw new Error('Failed to load items');
+
+                    // Update Health Score summary badge inside modal
+                    const hs = data.vehicle.health_score || { score: 100, label: 'Good', color: 'emerald' };
+                    const hsBadge = document.getElementById('pms-modal-health');
+                    hsBadge.textContent = `${hs.score}% ${hs.label}`;
+                    hsBadge.className = `rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                        hs.color === 'emerald' ? 'bg-emerald-100 text-emerald-800' :
+                        hs.color === 'amber' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                    }`;
+
+                    const items = data.items || [];
+                    if (items.length === 0) {
+                        listEl.innerHTML = `
+                            <div class="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                <p class="text-xs font-semibold text-slate-600">No PMS items configured yet.</p>
+                                <p class="text-[11px] text-slate-400 mt-1">Add items like "Engine Oil & Filter", "Air Filter", "Brake Fluid", or "Coolant".</p>
+                                <button type="button" onclick="togglePmsNewItemForm()" class="mt-3 text-xs font-bold text-emerald-700 hover:underline cursor-pointer">+ Add First Item</button>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Group items by category (replace vs inspect vs lubricate vs other)
+                    const groups = {
+                        replace: { title: 'Replace', items: [] },
+                        inspect: { title: 'Inspect & Check', items: [] },
+                        lubricate: { title: 'Lubricate & Service', items: [] },
+                        other: { title: 'Other Items', items: [] },
+                    };
+
+                    items.forEach(it => {
+                        const cat = groups[it.category] ? it.category : 'other';
+                        groups[cat].items.push(it);
+                    });
+
+                    let html = '';
+                    Object.values(groups).forEach(g => {
+                        if (g.items.length === 0) return;
+                        html += `
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-slate-500 pt-2 border-b border-slate-100 pb-1">
+                                    <span>${g.title} (${g.items.length})</span>
+                                </div>
+                                <div class="space-y-2">
+                        `;
+
+                        g.items.forEach(it => {
+                            const statusColor = it.status === 'overdue' ? 'bg-red-50 border-red-200 text-red-700' :
+                                                it.status === 'due_soon' ? 'bg-amber-50 border-amber-200 text-amber-800' :
+                                                it.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+                                                'bg-slate-50 border-slate-200 text-slate-600';
+
+                            const statusDot = it.status === 'overdue' ? 'bg-red-500 animate-pulse' :
+                                              it.status === 'due_soon' ? 'bg-amber-500' :
+                                              it.status === 'ok' ? 'bg-emerald-500' : 'bg-slate-400';
+
+                            // Interval rule text
+                            const intervalParts = [];
+                            if (it.interval_km) intervalParts.push(`every ${Number(it.interval_km).toLocaleString()} km`);
+                            if (it.interval_months) intervalParts.push(`every ${it.interval_months} mos`);
+                            const ruleText = intervalParts.join(' or ') || 'No interval set';
+
+                            // Next due text
+                            let nextDueText = '';
+                            if (it.next_due_km) nextDueText += `Due at ${Number(it.next_due_km).toLocaleString()} km`;
+                            if (it.next_due_date) {
+                                const d = new Date(it.next_due_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
+                                nextDueText += (nextDueText ? ' or ' : 'Due ') + d;
+                            }
+
+                            html += `
+                                <div class="rounded-xl border border-slate-200 bg-white p-3 hover:border-slate-300 transition">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold border ${statusColor}">
+                                                    <span class="h-1.5 w-1.5 rounded-full ${statusDot}"></span>
+                                                    ${it.status_label}
+                                                </span>
+                                                <h4 class="text-xs font-bold text-slate-900 truncate">${it.item_name}</h4>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 mt-1">
+                                                Rule: <strong class="text-slate-700">${ruleText}</strong>
+                                                ${nextDueText ? ` • <span class="text-slate-700 font-semibold">${nextDueText}</span>` : ''}
+                                            </p>
+                                            ${it.last_done_km || it.last_done_date ? `
+                                                <p class="text-[10px] text-slate-400 mt-0.5">
+                                                    Last done: ${it.last_done_km ? Number(it.last_done_km).toLocaleString() + ' km' : ''} ${it.last_done_date ? 'on ' + it.last_done_date : ''}
+                                                </p>
+                                            ` : ''}
+                                        </div>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <button
+                                                type="button"
+                                                onclick="logPmsDone(${it.id}, '${it.item_name.replace(/'/g, "\\'")}')"
+                                                class="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer"
+                                                title="Log this service as done now"
+                                            >
+                                                ✓ Done
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onclick="deletePmsItem(${it.id})"
+                                                class="rounded-lg p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                                                title="Delete this item"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        html += `</div></div>`;
+                    });
+
+                    listEl.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    listEl.innerHTML = '<div class="text-center py-8 text-xs text-red-500">Failed to load PMS items.</div>';
+                });
+        }
+
+        function handleCreatePmsItem(event) {
+            event.preventDefault();
+            if (!currentPmsVehicleId) return;
+
+            const name = document.getElementById('pms-item-name').value.trim();
+            const category = document.getElementById('pms-item-category').value;
+            const km = document.getElementById('pms-item-interval-km').value;
+            const months = document.getElementById('pms-item-interval-months').value;
+
+            if (!name) return;
+
+            const payload = {
+                item_name: name,
+                category: category,
+                interval_km: km ? parseInt(km) : null,
+                interval_months: months ? parseInt(months) : null,
+                last_done_km: currentPmsVehicleOdo || null,
+                last_done_date: new Date().toISOString().split('T')[0],
+            };
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`/vehicles/${currentPmsVehicleId}/pms-items`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('pms-item-name').value = '';
+                    document.getElementById('pms-item-interval-km').value = '';
+                    document.getElementById('pms-item-interval-months').value = '';
+                    document.getElementById('pms-new-item-form').classList.add('hidden');
+                    loadVehiclePmsItems(currentPmsVehicleId);
+                } else {
+                    alert('Failed to add item: ' + (data.message || 'Validation error'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('An error occurred while adding PMS item.');
+            });
+        }
+
+        function logPmsDone(itemId, itemName) {
+            if (!currentPmsVehicleId) return;
+            const odoInput = prompt(`Service done for "${itemName}". Enter vehicle odometer reading (km):`, currentPmsVehicleOdo);
+            if (odoInput === null) return; // user cancelled
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`/vehicles/${currentPmsVehicleId}/pms-items/${itemId}/log-done`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({
+                    odometer_km: parseInt(odoInput) || currentPmsVehicleOdo,
+                    done_date: new Date().toISOString().split('T')[0],
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadVehiclePmsItems(currentPmsVehicleId);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to log service.');
+            });
+        }
+
+        function deletePmsItem(itemId) {
+            if (!currentPmsVehicleId) return;
+            if (!confirm('Are you sure you want to remove this PMS item?')) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`/vehicles/${currentPmsVehicleId}/pms-items/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadVehiclePmsItems(currentPmsVehicleId);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to delete item.');
+            });
+        }
     </script>
+
+    {{-- PMS MODAL (CarMind style checklist) --}}
+    <div id="vehicle-pms-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden">
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base font-extrabold text-slate-900">PMS Schedule & Checklist</h3>
+                        <span id="pms-modal-health" class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">100% Good</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        <span id="pms-modal-plate" class="font-bold text-slate-700"></span> •
+                        <span id="pms-modal-label"></span> •
+                        Odometer: <strong id="pms-modal-odo" class="text-slate-800"></strong>
+                    </p>
+                </div>
+                <button type="button" onclick="closeVehiclePmsModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                {{-- Add new item form (collapsible) --}}
+                <div id="pms-new-item-form" class="hidden rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-3">
+                    <p class="text-xs font-extrabold text-slate-800">Add Maintenance Item to Schedule</p>
+                    <form onsubmit="handleCreatePmsItem(event)" class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Item Name</label>
+                                <input type="text" id="pms-item-name" placeholder="e.g. Engine Oil & Filter, Brake Pads" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Category</label>
+                                <select id="pms-item-category" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                    <option value="replace">Replace</option>
+                                    <option value="inspect">Inspect & Check</option>
+                                    <option value="lubricate">Lubricate & Service</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (km)</label>
+                                <input type="number" id="pms-item-interval-km" min="100" placeholder="e.g. 7500" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (months)</label>
+                                <input type="number" id="pms-item-interval-months" min="1" placeholder="e.g. 6" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-1">
+                            <button type="button" onclick="togglePmsNewItemForm()" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition">Save Item</button>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- Action Bar --}}
+                <div class="flex items-center justify-between">
+                    <p class="text-xs text-slate-500">Track routine service intervals like CarMind PMS booklets.</p>
+                    <button
+                        type="button"
+                        onclick="togglePmsNewItemForm()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-800 transition cursor-pointer"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                        Add Item
+                    </button>
+                </div>
+
+                {{-- Items container --}}
+                <div id="pms-items-list" class="space-y-4">
+                    {{-- Dynamically populated --}}
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="flex justify-end border-t border-slate-100 bg-slate-50 px-6 py-3">
+                <button type="button" onclick="closeVehiclePmsModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
 @endsection

@@ -16,6 +16,11 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::post('/types', [VehicleController::class, 'storeType'])->name('types.store');
         Route::post('/{vehicle}/inspections', [VehicleController::class, 'storeInspection'])->name('inspections.store');
         Route::get('/{vehicle}/inspections', [VehicleController::class, 'indexInspections'])->name('inspections.index');
+        Route::get('/{vehicle}/pms-items', [VehicleController::class, 'indexPmsItems'])->name('pms.index');
+        Route::post('/{vehicle}/pms-items', [VehicleController::class, 'storePmsItem'])->name('pms.store');
+        Route::put('/{vehicle}/pms-items/{item}', [VehicleController::class, 'updatePmsItem'])->name('pms.update');
+        Route::post('/{vehicle}/pms-items/{item}/log-done', [VehicleController::class, 'logPmsItemDone'])->name('pms.log-done');
+        Route::delete('/{vehicle}/pms-items/{item}', [VehicleController::class, 'destroyPmsItem'])->name('pms.destroy');
         Route::put('/{vehicle}', [VehicleController::class, 'update'])->name('update');
         Route::delete('/{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
     });

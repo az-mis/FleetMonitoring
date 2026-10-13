@@ -218,13 +218,24 @@
 
                         {{-- Schedule --}}
                         <td class="px-4 py-3 text-xs text-gray-500">
-                            <p>{{ $record->scheduled_date->format('M d, Y') }}
+                            <p class="font-medium text-slate-700">{{ $record->scheduled_date->format('M d, Y') }}
                                 @if($record->scheduled_date_end && $record->scheduled_date_end->ne($record->scheduled_date))
                                     – {{ $record->scheduled_date_end->format('M d, Y') }}
                                 @endif
                             </p>
+                            @if($record->trigger_km)
+                                @php $trig = $record->trigger_status; @endphp
+                                <div class="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold">
+                                    <span class="text-slate-500">At {{ number_format($record->trigger_km) }} km</span>
+                                    @if($trig === 'overdue')
+                                        <span class="rounded bg-red-100 px-1 py-0.2 text-[10px] font-bold text-red-700">KM Overdue</span>
+                                    @elseif($trig === 'due_soon')
+                                        <span class="rounded bg-amber-100 px-1 py-0.2 text-[10px] font-bold text-amber-700">KM Due Soon</span>
+                                    @endif
+                                </div>
+                            @endif
                             @if($record->completed_date)
-                                <p class="text-emerald-600">Completed: {{ $record->completed_date->format('M d, Y') }}</p>
+                                <p class="text-emerald-600 font-medium">Completed: {{ $record->completed_date->format('M d, Y') }}</p>
                             @endif
                         </td>
 
@@ -514,7 +525,7 @@
             {{-- Odometer & Cost --}}
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="mb-1 block text-xs font-bold text-gray-600">Odometer (km)</label>
+                    <label class="mb-1 block text-xs font-bold text-gray-600">Odometer at Service (km)</label>
                     <div class="relative flex items-center rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-emerald-400">
                         <input type="number" name="odometer" id="field-odometer" min="0" placeholder="e.g. 25000"
                             class="w-full rounded-l-lg border-0 bg-transparent px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0">
@@ -523,6 +534,23 @@
                         </div>
                     </div>
                 </div>
+                <div>
+                    <label class="mb-1 block text-xs font-bold text-gray-600">
+                        Trigger Odometer (km)
+                        <span class="ml-1 font-normal text-slate-400" title="Maintenance becomes due when vehicle reaches this km reading">ⓘ</span>
+                    </label>
+                    <div class="relative flex items-center rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-amber-400">
+                        <input type="number" name="trigger_km" id="field-trigger-km" min="0" placeholder="e.g. 30000"
+                            class="w-full rounded-l-lg border-0 bg-transparent px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0">
+                        <div class="flex h-9 shrink-0 items-center justify-center border-l border-gray-200 bg-amber-50 px-3 text-xs font-semibold text-amber-600 rounded-r-lg">
+                            km
+                        </div>
+                    </div>
+                    <p class="mt-0.5 text-[10px] text-slate-400">Due when odometer reaches this km</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="mb-1 block text-xs font-bold text-gray-600">Cost (₱)</label>
                     <input type="number" name="cost" id="field-cost" min="0" step="0.01" placeholder="0.00"
@@ -597,6 +625,7 @@
         'scheduled_date_end' => $r->scheduled_date_end?->format('Y-m-d'),
         'completed_date'     => $r->completed_date?->format('Y-m-d'),
         'odometer'           => $r->odometer,
+        'trigger_km'         => $r->trigger_km,
         'cost'               => $r->cost,
         'vendor'             => $r->vendor,
         'notes'              => $r->notes,
@@ -654,6 +683,7 @@ function openMaintenanceModal(id = null, showPrompt = false) {
         setField('scheduled_date_end', rec.scheduled_date_end ?? '');
         setField('completed_date',     rec.completed_date ?? '');
         setField('odometer',           rec.odometer ?? '');
+        setField('trigger_km',         rec.trigger_km ?? '');
         setField('cost',               rec.cost ?? '');
         setField('vendor',             rec.vendor ?? '');
         setField('notes',              rec.notes ?? '');
@@ -685,7 +715,7 @@ function closeMaintenanceModal() {
 }
 
 function resetForm() {
-    const fields = ['vehicle_id','type','priority','title','description','status','scheduled_date','scheduled_date_end','completed_date','odometer','cost','vendor','notes'];
+    const fields = ['vehicle_id','type','priority','title','description','status','scheduled_date','scheduled_date_end','completed_date','odometer','trigger_km','cost','vendor','notes'];
     fields.forEach(f => setField(f, f === 'type' ? 'Preventive' : f === 'priority' ? 'normal' : f === 'status' ? 'scheduled' : ''));
     document.getElementById('field-source-report-id').value = '';
     document.getElementById('source-report-banner').classList.add('hidden');

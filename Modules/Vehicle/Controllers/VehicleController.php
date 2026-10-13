@@ -251,6 +251,133 @@ class VehicleController extends Controller
     }
 
     /**
+     * Get PMS items for a vehicle (JSON)
+     */
+    public function indexPmsItems(Vehicle $vehicle): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $items = $vehicle->pmsItems()->latest()->get();
+
+        return response()->json([
+            'success' => true,
+            'vehicle' => [
+                'id' => $vehicle->id,
+                'plate_number' => $vehicle->plate_number,
+                'label' => trim("{$vehicle->brand} {$vehicle->model}"),
+                'odometer' => $vehicle->odometer,
+                'health_score' => $vehicle->health_score,
+            ],
+            'items' => $items,
+        ]);
+    }
+
+    /**
+     * Store new PMS checklist item for a vehicle
+     */
+    public function storePmsItem(\Illuminate\Http\Request $request, Vehicle $vehicle): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $validated = $request->validate([
+            'item_name'       => 'required|string|max:255',
+            'category'        => 'required|in:replace,inspect,lubricate,other',
+            'interval_km'     => 'nullable|integer|min:1',
+            'interval_months' => 'nullable|integer|min:1',
+            'last_done_km'    => 'nullable|integer|min:0',
+            'last_done_date'  => 'nullable|date',
+            'notes'           => 'nullable|string|max:500',
+        ]);
+
+        $item = $vehicle->pmsItems()->create([
+            ...$validated,
+            'created_by' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PMS item added.',
+            'item'    => $item,
+            'health_score' => $vehicle->fresh()->health_score,
+        ]);
+    }
+
+    /**
+     * Update an existing PMS checklist item
+     */
+    public function updatePmsItem(\Illuminate\Http\Request $request, Vehicle $vehicle, \Modules\Vehicle\Models\VehiclePmsItem $item): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $validated = $request->validate([
+            'item_name'       => 'required|string|max:255',
+            'category'        => 'required|in:replace,inspect,lubricate,other',
+            'interval_km'     => 'nullable|integer|min:1',
+            'interval_months' => 'nullable|integer|min:1',
+            'last_done_km'    => 'nullable|integer|min:0',
+            'last_done_date'  => 'nullable|date',
+            'notes'           => 'nullable|string|max:500',
+        ]);
+
+        $item->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PMS item updated.',
+            'item'    => $item->fresh(),
+            'health_score' => $vehicle->fresh()->health_score,
+        ]);
+    }
+
+    /**
+     * Quick "Log Done" for a PMS item (updates last done km/date and vehicle odometer if higher)
+     */
+    public function logPmsItemDone(\Illuminate\Http\Request $request, Vehicle $vehicle, \Modules\Vehicle\Models\VehiclePmsItem $item): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $validated = $request->validate([
+            'odometer_km' => 'nullable|integer|min:0',
+            'done_date'   => 'nullable|date',
+        ]);
+
+        $doneKm = $validated['odometer_km'] ?? $vehicle->odometer;
+        $doneDate = $validated['done_date'] ?? now()->toDateString();
+
+        $item->update([
+            'last_done_km'   => $doneKm,
+            'last_done_date' => $doneDate,
+        ]);
+
+        if ($doneKm && $doneKm > $vehicle->odometer) {
+            $vehicle->update(['odometer' => $doneKm]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Service logged for {$item->item_name}.",
+            'item'    => $item->fresh(),
+            'health_score' => $vehicle->fresh()->health_score,
+        ]);
+    }
+
+    /**
+     * Delete a PMS item
+     */
+    public function destroyPmsItem(Vehicle $vehicle, \Modules\Vehicle\Models\VehiclePmsItem $item): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $item->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PMS item removed.',
+            'health_score' => $vehicle->fresh()->health_score,
+        ]);
+    }
+
+    /**
      * @throws AuthorizationException
      */
     private function authorizeSuperAdmin(): void

@@ -26,6 +26,7 @@ class StoreMaintenanceRequest extends FormRequest
             'scheduled_date_end'  => ['nullable', 'date', 'after_or_equal:scheduled_date'],
             'completed_date'      => ['nullable', 'date', 'required_if:status,completed'],
             'odometer'            => ['nullable', 'integer', 'min:0'],
+            'trigger_km'          => ['nullable', 'integer', 'min:0'],
             'cost'                => ['nullable', 'numeric', 'min:0'],
             'vendor'              => ['nullable', 'string', 'max:255'],
             'notes'               => ['nullable', 'string'],

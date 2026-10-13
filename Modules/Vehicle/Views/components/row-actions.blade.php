@@ -1,6 +1,14 @@
-@props(['vehicle'])
-
 <div class="flex items-center justify-end gap-1">
+    <button
+        type="button"
+        onclick="openVehiclePmsModal({{ $vehicle->id }}, '{{ $vehicle->plate_number }}', '{{ trim($vehicle->brand . ' ' . $vehicle->model) }}', {{ $vehicle->odometer }})"
+        title="PMS Schedule & Checklist"
+        class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition shadow-xs cursor-pointer"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+    </button>
     <button
         type="button"
         onclick="openEditVehicleModal(this)"

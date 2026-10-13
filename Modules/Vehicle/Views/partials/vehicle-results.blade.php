@@ -27,6 +27,7 @@
                         <th class="px-4 py-3 font-semibold">Year</th>
                         <th class="px-4 py-3 font-semibold">Color</th>
                         <th class="px-4 py-3 font-semibold">Odometer</th>
+                        <th class="px-4 py-3 font-semibold">Health</th>
                         <th class="px-4 py-3 font-semibold">Type</th>
                         <th class="px-4 py-3 font-semibold">Fuel</th>
                         <th class="px-4 py-3 font-semibold">Location</th>
@@ -97,6 +98,26 @@
                                             <span>Oil OK</span>
                                         </div>
                                     @endif
+                                </div>
+                            </td>
+                            @php $health = $vehicle->health_score; @endphp
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <div class="flex flex-col items-start gap-0.5">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-xs font-extrabold
+                                            {{ $health['color'] === 'emerald' ? 'text-emerald-700' : ($health['color'] === 'amber' ? 'text-amber-700' : 'text-red-700') }}">
+                                            {{ $health['score'] }}%
+                                        </span>
+                                        <span class="text-[10px] font-bold
+                                            {{ $health['color'] === 'emerald' ? 'text-emerald-600' : ($health['color'] === 'amber' ? 'text-amber-600' : 'text-red-600') }}">
+                                            {{ $health['label'] }}
+                                        </span>
+                                    </div>
+                                    <div class="h-1.5 w-20 rounded-full bg-slate-100 overflow-hidden">
+                                        <div class="h-full rounded-full transition-all
+                                            {{ $health['color'] === 'emerald' ? 'bg-emerald-500' : ($health['color'] === 'amber' ? 'bg-amber-400' : 'bg-red-500') }}"
+                                            style="width: {{ $health['score'] }}%"></div>
+                                    </div>
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->vehicle_type ?: '—' }}</td>
@@ -192,6 +213,46 @@
                             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                         </svg>
                         <span class="truncate">{{ $vehicle->location ?: 'No location assigned' }}</span>
+                    </div>
+
+                    {{-- Vehicle Health Score --}}
+                    @php $health = $vehicle->health_score; @endphp
+                    <div class="border-t border-slate-100 pt-2 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Vehicle Health</span>
+                            <span class="text-xs font-extrabold
+                                {{ $health['color'] === 'emerald' ? 'text-emerald-700' : ($health['color'] === 'amber' ? 'text-amber-600' : 'text-red-600') }}">
+                                {{ $health['score'] }}% {{ $health['label'] }}
+                            </span>
+                        </div>
+                        <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full rounded-full transition-all
+                                {{ $health['color'] === 'emerald' ? 'bg-emerald-500' : ($health['color'] === 'amber' ? 'bg-amber-400' : 'bg-red-500') }}"
+                                style="width: {{ $health['score'] }}%"></div>
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] font-semibold">
+                            @if($health['overdue'] > 0)
+                                <span class="flex items-center gap-0.5 text-red-600">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                    {{ $health['overdue'] }} Overdue
+                                </span>
+                            @endif
+                            @if($health['due_soon'] > 0)
+                                <span class="flex items-center gap-0.5 text-amber-600">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+                                    {{ $health['due_soon'] }} Due Soon
+                                </span>
+                            @endif
+                            @if($health['on_track'] > 0)
+                                <span class="flex items-center gap-0.5 text-emerald-600">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                    {{ $health['on_track'] }} On Track
+                                </span>
+                            @endif
+                            @if($health['overdue'] === 0 && $health['due_soon'] === 0 && $health['on_track'] === 0)
+                                <span class="text-slate-400">No PMS items yet</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

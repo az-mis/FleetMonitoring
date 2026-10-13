@@ -45,6 +45,67 @@ class Vehicle extends Model
         return $this->hasMany(VehicleInspection::class)->latest('inspected_at');
     }
 
+    public function pmsItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(VehiclePmsItem::class)->orderBy('category')->orderBy('item_name');
+    }
+
+    public function maintenances(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\Modules\Maintenance\Models\VehicleMaintenance::class);
+    }
+
+    /**
+     * Compute a 0–100 Vehicle Health Score.
+     * Formula: equally weighted across oil status, PMS items, active maintenance burden.
+     */
+    public function getHealthScoreAttribute(): array
+    {
+        $points = 0;
+        $total  = 0;
+
+        // ── Oil Change ────────────────────────────────────────────
+        $oilStatus = $this->change_oil_status['status'];
+        $total += 2;
+        $points += match ($oilStatus) {
+            'ok'       => 2,
+            'due_soon' => 1,
+            default    => 0,
+        };
+
+        // ── PMS Items ─────────────────────────────────────────────
+        $pmsItems = $this->relationLoaded('pmsItems') ? $this->pmsItems : $this->pmsItems()->get();
+        $overdue  = 0;
+        $dueSoon  = 0;
+        $onTrack  = 0;
+        foreach ($pmsItems as $item) {
+            $total += 2;
+            $s = $item->status;
+            if ($s === 'overdue')        { $overdue++; }
+            elseif ($s === 'due_soon')   { $dueSoon++; $points += 1; }
+            else                         { $onTrack++;  $points += 2; }
+        }
+
+        // ── Active Maintenance (overdue) ──────────────────────────
+        $overdueMaint = $this->maintenances()
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->whereDate('scheduled_date', '<', now()->toDateString())
+            ->count();
+        $total  += 2;
+        $points += $overdueMaint === 0 ? 2 : 0;
+
+        $score = $total > 0 ? (int) round(($points / $total) * 100) : 100;
+
+        return [
+            'score'    => $score,
+            'overdue'  => $overdue,
+            'due_soon' => $dueSoon,
+            'on_track' => $onTrack,
+            'label'    => $score >= 80 ? 'Good' : ($score >= 50 ? 'Fair' : 'Poor'),
+            'color'    => $score >= 80 ? 'emerald' : ($score >= 50 ? 'amber' : 'red'),
+        ];
+    }
+
     public function latestInspection(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(VehicleInspection::class)->latestOfMany('inspected_at');
