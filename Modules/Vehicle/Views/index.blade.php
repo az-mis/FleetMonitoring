@@ -360,9 +360,15 @@
 
                             {{-- Vehicle Type --}}
                             <div class="sm:col-span-4">
-                                <label for="rv-vehicle_type" class="{{ $rvLabel }}">Vehicle Type <span class="text-red-500">*</span></label>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label for="rv-vehicle_type" class="{{ $rvLabel }} !mb-0">Vehicle Type <span class="text-red-500">*</span></label>
+                                    <button type="button" onclick="toggleInlineAddVehicleType('register')" class="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                        <span>+ New Type</span>
+                                    </button>
+                                </div>
                                 <div class="relative">
-                                    <select name="vehicle_type" id="rv-vehicle_type" class="{{ $rvSelect }} {{ $rvBorder('vehicle_type') }}" required>
+                                    <select name="vehicle_type" id="rv-vehicle_type" onchange="handleVehicleTypeSelectChange(this, 'register')" class="{{ $rvSelect }} {{ $rvBorder('vehicle_type') }}" required>
                                         <option value="">Select type</option>
                                         @if ($rvTypeValue !== '' && ! in_array($rvTypeValue, $rvTypes, true))
                                             <option value="{{ $rvTypeValue }}" selected>{{ $rvTypeValue }}</option>
@@ -370,12 +376,53 @@
                                         @foreach ($rvTypes as $typeOption)
                                             <option value="{{ $typeOption }}" @selected($rvTypeValue === $typeOption)>{{ $typeOption }}</option>
                                         @endforeach
+                                        <option value="__add_new" class="font-bold text-emerald-700 bg-emerald-50/80">+ Add New Vehicle Type...</option>
                                     </select>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                 </div>
                                 @error('vehicle_type')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
+
+                                {{-- Inline Add Vehicle Type Panel --}}
+                                <div id="rv-inline-add-type" class="hidden mt-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 shadow-2xs space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                            Add New Vehicle Type
+                                        </span>
+                                        <button type="button" onclick="toggleInlineAddVehicleType('register', false)" class="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer" title="Cancel">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Type Name</label>
+                                        <input type="text" id="rv-inline-type-name" maxlength="30" placeholder="e.g. Heavy Equipment, Ambulance" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); saveInlineVehicleType('register'); }" class="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                        <p id="rv-inline-type-error" class="hidden mt-1 text-[11px] font-semibold text-red-600"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Select Icon</label>
+                                        <div class="grid grid-cols-6 gap-1" id="rv-inline-type-icons">
+                                            @foreach (\Modules\Vehicle\Models\VehicleType::ICONS as $iconKey => $iconLabel)
+                                                <label class="cursor-pointer">
+                                                    <input type="radio" name="rv_inline_icon" value="{{ $iconKey }}" class="peer sr-only" @checked($loop->first)>
+                                                    <span class="flex flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white p-1 text-[9px] font-semibold text-slate-600 transition hover:bg-slate-50 peer-checked:border-emerald-600 peer-checked:bg-emerald-100 peer-checked:text-emerald-950 shadow-2xs">
+                                                        @include('vehicle::partials.vehicle-type-icon', ['iconOverride' => $iconKey, 'class' => 'h-3.5 w-3.5', 'stroke' => '1.75'])
+                                                        <span class="truncate max-w-full leading-none">{{ $iconLabel }}</span>
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-end gap-2 pt-1 border-t border-emerald-200/60">
+                                        <button type="button" onclick="toggleInlineAddVehicleType('register', false)" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                                            Cancel
+                                        </button>
+                                        <button type="button" id="rv-inline-type-save-btn" onclick="saveInlineVehicleType('register')" class="inline-flex items-center gap-1.5 rounded-lg bg-[#005a36] px-3 py-1 text-xs font-bold text-white shadow-xs hover:bg-[#00432a] transition cursor-pointer">
+                                            <span>Save &amp; Select</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- Fuel Type --}}
@@ -773,9 +820,15 @@
 
                         {{-- Vehicle Type --}}
                         <div class="sm:col-span-3">
-                            <label for="ev-vehicle_type" class="{{ $rvLabel }}">Vehicle Type <span class="text-red-500">*</span></label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="ev-vehicle_type" class="{{ $rvLabel }} !mb-0">Vehicle Type <span class="text-red-500">*</span></label>
+                                <button type="button" onclick="toggleInlineAddVehicleType('edit')" class="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                    <span>+ New Type</span>
+                                </button>
+                            </div>
                             <div class="relative">
-                                <select name="vehicle_type" id="ev-vehicle_type" class="{{ $rvSelect }} {{ $evBorder('vehicle_type') }}" required>
+                                <select name="vehicle_type" id="ev-vehicle_type" onchange="handleVehicleTypeSelectChange(this, 'edit')" class="{{ $rvSelect }} {{ $evBorder('vehicle_type') }}" required>
                                     <option value="">Select type</option>
                                     @if ($evTypeValue !== '' && ! in_array($evTypeValue, $rvTypes, true))
                                         <option value="{{ $evTypeValue }}" selected>{{ $evTypeValue }}</option>
@@ -783,6 +836,7 @@
                                     @foreach ($rvTypes as $typeOption)
                                         <option value="{{ $typeOption }}" @selected($evTypeValue === $typeOption)>{{ $typeOption }}</option>
                                     @endforeach
+                                    <option value="__add_new" class="font-bold text-emerald-700 bg-emerald-50/80">+ Add New Vehicle Type...</option>
                                 </select>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                             </div>
@@ -791,6 +845,46 @@
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
                             @endif
+
+                            {{-- Inline Add Vehicle Type Panel (Edit) --}}
+                            <div id="ev-inline-add-type" class="hidden mt-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 shadow-2xs space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                        Add New Vehicle Type
+                                    </span>
+                                    <button type="button" onclick="toggleInlineAddVehicleType('edit', false)" class="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer" title="Cancel">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Type Name</label>
+                                    <input type="text" id="ev-inline-type-name" maxlength="30" placeholder="e.g. Heavy Equipment, Ambulance" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); saveInlineVehicleType('edit'); }" class="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                    <p id="ev-inline-type-error" class="hidden mt-1 text-[11px] font-semibold text-red-600"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Select Icon</label>
+                                    <div class="grid grid-cols-6 gap-1" id="ev-inline-type-icons">
+                                        @foreach (\Modules\Vehicle\Models\VehicleType::ICONS as $iconKey => $iconLabel)
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="ev_inline_icon" value="{{ $iconKey }}" class="peer sr-only" @checked($loop->first)>
+                                                <span class="flex flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white p-1 text-[9px] font-semibold text-slate-600 transition hover:bg-slate-50 peer-checked:border-emerald-600 peer-checked:bg-emerald-100 peer-checked:text-emerald-950 shadow-2xs">
+                                                    @include('vehicle::partials.vehicle-type-icon', ['iconOverride' => $iconKey, 'class' => 'h-3.5 w-3.5', 'stroke' => '1.75'])
+                                                    <span class="truncate max-w-full leading-none">{{ $iconLabel }}</span>
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-end gap-2 pt-1 border-t border-emerald-200/60">
+                                    <button type="button" onclick="toggleInlineAddVehicleType('edit', false)" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                                        Cancel
+                                    </button>
+                                    <button type="button" id="ev-inline-type-save-btn" onclick="saveInlineVehicleType('edit')" class="inline-flex items-center gap-1.5 rounded-lg bg-[#005a36] px-3 py-1 text-xs font-bold text-white shadow-xs hover:bg-[#00432a] transition cursor-pointer">
+                                        <span>Save &amp; Select</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Fuel Type --}}
@@ -1883,6 +1977,135 @@
             const form = modal.querySelector('form');
             if (form) {
                 form.reset();
+            }
+        }
+
+        function handleVehicleTypeSelectChange(select, context) {
+            if (select.value === '__add_new') {
+                select.value = '';
+                toggleInlineAddVehicleType(context, true);
+            }
+        }
+
+        function toggleInlineAddVehicleType(context, forceOpen) {
+            const isRegister = context === 'register';
+            const panel = document.getElementById(isRegister ? 'rv-inline-add-type' : 'ev-inline-add-type');
+            if (!panel) return;
+
+            const shouldOpen = forceOpen !== undefined ? forceOpen : panel.classList.contains('hidden');
+            if (shouldOpen) {
+                panel.classList.remove('hidden');
+                const nameInput = document.getElementById(isRegister ? 'rv-inline-type-name' : 'ev-inline-type-name');
+                setTimeout(() => nameInput?.focus(), 50);
+            } else {
+                panel.classList.add('hidden');
+                const errorEl = document.getElementById(isRegister ? 'rv-inline-type-error' : 'ev-inline-type-error');
+                if (errorEl) errorEl.classList.add('hidden');
+            }
+        }
+
+        async function saveInlineVehicleType(context) {
+            const isRegister = context === 'register';
+            const nameInput = document.getElementById(isRegister ? 'rv-inline-type-name' : 'ev-inline-type-name');
+            const errorEl = document.getElementById(isRegister ? 'rv-inline-type-error' : 'ev-inline-type-error');
+            const saveBtn = document.getElementById(isRegister ? 'rv-inline-type-save-btn' : 'ev-inline-type-save-btn');
+            const iconRadio = document.querySelector(`input[name="${isRegister ? 'rv_inline_icon' : 'ev_inline_icon'}"]:checked`);
+
+            const name = nameInput?.value.trim();
+            const icon = iconRadio?.value || 'car';
+
+            if (!name) {
+                if (errorEl) {
+                    errorEl.textContent = 'Please enter a vehicle type name.';
+                    errorEl.classList.remove('hidden');
+                }
+                nameInput?.focus();
+                return;
+            }
+
+            if (errorEl) errorEl.classList.add('hidden');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.dataset.origText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<svg class="animate-spin -ml-0.5 mr-1 h-3.5 w-3.5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Saving...';
+            }
+
+            try {
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    || document.querySelector('input[name="_token"]')?.value;
+
+                const response = await fetch("{{ route('vehicles.types.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ name, icon })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    const msg = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || 'Failed to add vehicle type.');
+                    if (errorEl) {
+                        errorEl.textContent = msg;
+                        errorEl.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                const newTypeName = data.type.name;
+
+                // Sync new type into both dropdowns (Register & Edit)
+                ['rv-vehicle_type', 'ev-vehicle_type'].forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (!select) return;
+                    let optionExists = false;
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (select.options[i].value === newTypeName) {
+                            optionExists = true;
+                            break;
+                        }
+                    }
+                    if (!optionExists) {
+                        const opt = document.createElement('option');
+                        opt.value = newTypeName;
+                        opt.textContent = newTypeName;
+                        const addNewOpt = select.querySelector('option[value="__add_new"]');
+                        if (addNewOpt) {
+                            select.insertBefore(opt, addNewOpt);
+                        } else {
+                            select.appendChild(opt);
+                        }
+                    }
+                });
+
+                // Select the new type in the active dropdown
+                const activeSelect = document.getElementById(isRegister ? 'rv-vehicle_type' : 'ev-vehicle_type');
+                if (activeSelect) {
+                    activeSelect.value = newTypeName;
+                    activeSelect.dispatchEvent(new Event('change'));
+                }
+
+                // Reset and close inline form
+                if (nameInput) nameInput.value = '';
+                toggleInlineAddVehicleType(context, false);
+
+            } catch (err) {
+                console.error('Error adding vehicle type:', err);
+                if (errorEl) {
+                    errorEl.textContent = 'A network error occurred. Please try again.';
+                    errorEl.classList.remove('hidden');
+                }
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    if (saveBtn.dataset.origText) {
+                        saveBtn.innerHTML = saveBtn.dataset.origText;
+                    }
+                }
             }
         }
 

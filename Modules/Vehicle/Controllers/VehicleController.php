@@ -6,6 +6,7 @@ namespace Modules\Vehicle\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Modules\Admin\Enums\UserRole;
@@ -112,11 +113,24 @@ class VehicleController extends Controller
     /**
      * @throws AuthorizationException
      */
-    public function storeType(StoreVehicleTypeRequest $request): RedirectResponse
+    public function storeType(StoreVehicleTypeRequest $request): RedirectResponse|JsonResponse
     {
         $this->authorizeSuperAdmin();
 
         $type = $this->vehicleService->createVehicleType($request->validated());
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'type' => [
+                    'id' => $type->id,
+                    'name' => $type->name,
+                    'slug' => $type->slug,
+                    'icon' => $type->icon,
+                ],
+                'message' => "Vehicle type \"{$type->name}\" added.",
+            ]);
+        }
 
         return redirect()->route('vehicles.index', request()->only(['search', 'per_page', 'location']))
             ->with('success', "Vehicle type \"{$type->name}\" added.");
