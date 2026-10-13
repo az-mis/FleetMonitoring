@@ -185,63 +185,136 @@
         @endif
     </div>
 
-    {{-- Expense & Top Up Logs --}}
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs space-y-4">
-        <h3 class="text-sm font-bold text-gray-800 flex items-center justify-between">
-            <span>Transaction Logs & Computations</span>
-            <span class="text-xs text-gray-400 font-normal">Last {{ $recentLogs->count() }} transactions</span>
-        </h3>
+    {{-- CarMind-style Expense & Transaction History with Monthly Grouping & Category Filters --}}
+    @php
+        $groupedLogs = $recentLogs->groupBy(fn ($log) => $log->created_at->format('F Y'));
+    @endphp
+
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs space-y-4" x-data="{ activeCategory: 'all' }">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+            <div>
+                <h3 class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
+                    <span>Expenses &amp; Transaction History</span>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
+                </h3>
+                <p class="text-[11px] text-gray-400">Track fuel and service deductions grouped by month.</p>
+            </div>
+
+            {{-- Category Filter Pills (CarMind style: All, Fuel, PMS/Service, Parking, Top-up) --}}
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                    All
+                </button>
+                <button type="button" @click="activeCategory = 'fuel'" :class="activeCategory === 'fuel' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                    ⛽ Fuel
+                </button>
+                <button type="button" @click="activeCategory = 'service'" :class="activeCategory === 'service' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                    🛠️ PMS / Service
+                </button>
+                <button type="button" @click="activeCategory = 'parking'" :class="activeCategory === 'parking' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                    🅿️ Parking
+                </button>
+                <button type="button" @click="activeCategory = 'toll'" :class="activeCategory === 'toll' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                    🛣️ Toll
+                </button>
+                <button type="button" @click="activeCategory = 'topup'" :class="activeCategory === 'topup' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                    💳 Top-ups
+                </button>
+            </div>
+        </div>
 
         @if($recentLogs->isEmpty())
-            <p class="text-xs text-gray-400 text-center py-6">No transaction logs recorded yet.</p>
+            <p class="text-xs text-gray-400 text-center py-8">No transaction logs recorded yet.</p>
         @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-gray-600">
-                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider">
-                        <tr>
-                            <th class="px-3 py-2.5 rounded-l-lg">Date & Time</th>
-                            <th class="px-3 py-2.5">Card / Vehicle</th>
-                            <th class="px-3 py-2.5">Distance Source</th>
-                            <th class="px-3 py-2.5">Distance (km)</th>
-                            <th class="px-3 py-2.5">Rate (₱/km)</th>
-                            <th class="px-3 py-2.5">Expense / Top-up</th>
-                            <th class="px-3 py-2.5">New Balance</th>
-                            <th class="px-3 py-2.5 rounded-r-lg">Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 font-medium">
-                        @foreach ($recentLogs as $log)
-                            <tr class="hover:bg-gray-50/60 transition">
-                                <td class="px-3 py-2.5 text-gray-400 whitespace-nowrap">{{ $log->created_at->format('M d, Y g:i A') }}</td>
-                                <td class="px-3 py-2.5 font-bold text-gray-900">
-                                    {{ $log->fleetCard?->card_name ?? 'N/A' }}
-                                    @if($log->vehicle)
-                                        <span class="text-emerald-700 font-semibold block text-[11px]">({{ $log->vehicle->plate_number }})</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2.5">
-                                    @if($log->distance_source === 'odometer')
-                                        <span class="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-100">Odometer</span>
-                                        <span class="text-[10px] text-gray-400 block">{{ number_format($log->start_odometer) }} → {{ number_format($log->end_odometer) }}</span>
-                                    @elseif($log->distance_source === 'destination_master')
-                                        <span class="rounded bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-100">Destination Master</span>
-                                    @elseif($log->distance_source === 'recharge')
-                                        <span class="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
-                                    @else
-                                        <span class="rounded bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-700 border border-gray-200">Manual Input</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2.5 font-bold text-gray-800">{{ number_format($log->distance_km, 1) }} km</td>
-                                <td class="px-3 py-2.5 text-gray-500">₱{{ number_format($log->rate_peso_per_km, 2) }}</td>
-                                <td class="px-3 py-2.5 font-extrabold whitespace-nowrap {{ $log->consumed_amount < 0 ? 'text-emerald-600' : 'text-amber-700' }}">
-                                    {{ $log->consumed_amount < 0 ? '+₱' . number_format(abs($log->consumed_amount), 2) : '-₱' . number_format($log->consumed_amount, 2) }}
-                                </td>
-                                <td class="px-3 py-2.5 font-bold text-gray-900">₱{{ number_format($log->balance_after, 2) }}</td>
-                                <td class="px-3 py-2.5 text-gray-500 max-w-xs truncate">{{ $log->remarks ?: '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="space-y-6">
+                @foreach ($groupedLogs as $monthYear => $monthLogs)
+                    @php
+                        $monthExpenses = $monthLogs->where('consumed_amount', '>', 0)->sum('consumed_amount');
+                    @endphp
+                    <div class="space-y-2">
+                        {{-- Monthly Header & Running Total --}}
+                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2 border border-slate-200/80">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-700">{{ $monthYear }}</span>
+                            <span class="text-xs font-extrabold text-slate-900">
+                                Total: <strong class="text-amber-800">₱{{ number_format($monthExpenses, 2) }}</strong>
+                            </span>
+                        </div>
+
+                        {{-- Month Transactions Table --}}
+                        <div class="overflow-x-auto rounded-xl border border-gray-100">
+                            <table class="w-full text-left text-xs text-gray-600">
+                                <thead class="bg-gray-50 text-gray-400 font-bold uppercase tracking-wider text-[10px]">
+                                    <tr>
+                                        <th class="px-3 py-2">Date</th>
+                                        <th class="px-3 py-2">Category</th>
+                                        <th class="px-3 py-2">Card / Vehicle</th>
+                                        <th class="px-3 py-2">Method</th>
+                                        <th class="px-3 py-2">Distance</th>
+                                        <th class="px-3 py-2">Rate</th>
+                                        <th class="px-3 py-2">Amount</th>
+                                        <th class="px-3 py-2">New Balance</th>
+                                        <th class="px-3 py-2">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 font-medium">
+                                    @foreach ($monthLogs as $log)
+                                        @php
+                                            $cat = $log->category ?: ($log->distance_source === 'recharge' ? 'topup' : 'fuel');
+                                            $catBadge = match($cat) {
+                                                'fuel'    => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                                                'service' => 'bg-blue-50 text-blue-800 border-blue-200',
+                                                'parking' => 'bg-purple-50 text-purple-800 border-purple-200',
+                                                'toll'    => 'bg-indigo-50 text-indigo-800 border-indigo-200',
+                                                'topup'   => 'bg-sky-50 text-sky-800 border-sky-200',
+                                                default   => 'bg-slate-50 text-slate-700 border-slate-200',
+                                            };
+                                            $catLabel = match($cat) {
+                                                'fuel'    => '⛽ Fuel',
+                                                'service' => '🛠️ Service',
+                                                'parking' => '🅿️ Parking',
+                                                'toll'    => '🛣️ Toll',
+                                                'topup'   => '💳 Top-up',
+                                                default   => '📦 Other',
+                                            };
+                                        @endphp
+                                        <tr class="hover:bg-gray-50/60 transition" x-show="activeCategory === 'all' || activeCategory === '{{ $cat }}'">
+                                            <td class="px-3 py-2.5 text-gray-400 whitespace-nowrap">{{ $log->created_at->format('M d, g:i A') }}</td>
+                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border {{ $catBadge }}">
+                                                    {{ $catLabel }}
+                                                </span>
+                                            </td>
+                                            <td class="px-3 py-2.5 font-bold text-gray-900">
+                                                {{ $log->fleetCard?->card_name ?? 'N/A' }}
+                                                @if($log->vehicle)
+                                                    <span class="text-emerald-700 font-semibold block text-[11px]">({{ $log->vehicle->plate_number }})</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-3 py-2.5">
+                                                @if($log->distance_source === 'odometer')
+                                                    <span class="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-100">Odometer</span>
+                                                @elseif($log->distance_source === 'destination_master')
+                                                    <span class="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-100">Dest. Master</span>
+                                                @elseif($log->distance_source === 'recharge')
+                                                    <span class="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
+                                                @else
+                                                    <span class="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-bold text-gray-700 border border-gray-200">Manual</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-3 py-2.5 font-bold text-gray-800">{{ number_format($log->distance_km, 1) }} km</td>
+                                            <td class="px-3 py-2.5 text-gray-500">₱{{ number_format($log->rate_peso_per_km, 2) }}</td>
+                                            <td class="px-3 py-2.5 font-black whitespace-nowrap {{ $log->consumed_amount < 0 ? 'text-emerald-600' : 'text-amber-800' }}">
+                                                {{ $log->consumed_amount < 0 ? '+₱' . number_format(abs($log->consumed_amount), 2) : '-₱' . number_format($log->consumed_amount, 2) }}
+                                            </td>
+                                            <td class="px-3 py-2.5 font-bold text-gray-900">₱{{ number_format($log->balance_after, 2) }}</td>
+                                            <td class="px-3 py-2.5 text-gray-500 max-w-xs truncate">{{ $log->remarks ?: '—' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         @endif
     </div>
@@ -379,6 +452,18 @@
         <form id="expense-form" method="POST" class="space-y-3">
             @csrf
             
+            {{-- Expense Category Selection (CarMind style) --}}
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Expense Category</label>
+                <select name="category" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-semibold focus:border-emerald-500 focus:outline-none">
+                    <option value="fuel">⛽ Fuel (Gasoline / Diesel)</option>
+                    <option value="service">🛠️ PMS / Service</option>
+                    <option value="parking">🅿️ Parking Fee</option>
+                    <option value="toll">🛣️ Toll Fee</option>
+                    <option value="other">📦 Other Expense</option>
+                </select>
+            </div>
+
             {{-- Distance Source Selection --}}
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Select Distance Method</label>

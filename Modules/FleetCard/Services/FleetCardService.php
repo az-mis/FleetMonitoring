@@ -87,6 +87,7 @@ class FleetCardService
                 'vehicle_id' => $card->vehicle_id,
                 'vehicle_request_id' => $vehicleRequestId,
                 'distance_source' => $distanceSource,
+                'category' => $data['category'] ?? 'fuel',
                 'start_odometer' => $startOdo,
                 'end_odometer' => $endOdo,
                 'distance_km' => $finalDistance,

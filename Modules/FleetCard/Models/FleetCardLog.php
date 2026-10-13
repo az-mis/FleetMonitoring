@@ -18,6 +18,7 @@ class FleetCardLog extends Model
         'vehicle_id',
         'vehicle_request_id',
         'distance_source',
+        'category',
         'start_odometer',
         'end_odometer',
         'distance_km',

@@ -123,6 +123,7 @@ class FleetCardController extends Controller
     public function logExpense(Request $request, FleetCard $fleetCard): RedirectResponse
     {
         $validated = $request->validate([
+            'category' => 'nullable|string|in:fuel,service,parking,toll,other',
             'distance_source' => 'nullable|string|in:odometer,destination_master,manual',
             'start_odometer' => 'nullable|integer|min:0',
             'end_odometer' => 'nullable|integer|gt:start_odometer',
