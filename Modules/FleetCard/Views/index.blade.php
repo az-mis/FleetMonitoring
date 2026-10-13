@@ -97,7 +97,7 @@
                 </button>
             </div>
         @else
-            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @foreach ($cards as $card)
                     @php
                         $pct = $card->balance_percentage;
