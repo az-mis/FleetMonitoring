@@ -12,6 +12,7 @@ class VehiclePmsItem extends Model
 {
     protected $fillable = [
         'vehicle_id',
+        'template_id',
         'item_name',
         'category',
         'interval_km',
@@ -29,6 +30,11 @@ class VehiclePmsItem extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(VehiclePmsTemplate::class, 'template_id');
     }
 
     public function createdBy(): BelongsTo

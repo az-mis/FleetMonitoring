@@ -66,7 +66,7 @@ class MaintenanceService
             $data['completed_date'] = now()->toDateString();
         }
 
-        return VehicleMaintenance::create([
+        $record = VehicleMaintenance::create([
             ...$data,
             'plate_number'  => $vehicle->plate_number,
             'vehicle_label' => trim("{$vehicle->brand} {$vehicle->model}"),
@@ -74,6 +74,12 @@ class MaintenanceService
             'created_by'      => auth()->id(),
             'created_by_name' => auth()->user()?->name,
         ]);
+
+        if ($record->status === 'completed') {
+            $this->syncCompletedMaintenanceWithVehicleAndPms($record, $vehicle);
+        }
+
+        return $record;
     }
 
     public function update(VehicleMaintenance $record, array $data, Vehicle $vehicle): VehicleMaintenance
@@ -89,7 +95,56 @@ class MaintenanceService
             'location'      => $vehicle->location,
         ]);
 
+        if ($record->status === 'completed') {
+            $this->syncCompletedMaintenanceWithVehicleAndPms($record, $vehicle);
+        }
+
         return $record;
+    }
+
+    /**
+     * Bridges Maintenance completion into the Vehicle's oil status and PMS items.
+     */
+    private function syncCompletedMaintenanceWithVehicleAndPms(VehicleMaintenance $record, Vehicle $vehicle): void
+    {
+        $doneKm = $record->odometer ?? $vehicle->odometer;
+        $doneDate = $record->completed_date ?? now()->toDateString();
+
+        // 1. If maintenance type is Oil Change, sync vehicle change oil odometer
+        if ($record->type === 'Oil Change') {
+            $updateData = [];
+            if ($doneKm && $doneKm > ($vehicle->last_change_oil_odometer ?? 0)) {
+                $updateData['last_change_oil_odometer'] = $doneKm;
+            }
+            if ($doneKm && $doneKm > ($vehicle->odometer ?? 0)) {
+                $updateData['odometer'] = $doneKm;
+            }
+            if (!empty($updateData)) {
+                $vehicle->update($updateData);
+            }
+        }
+
+        // 2. If a specific PMS item was linked to this maintenance, update it
+        if ($record->pms_item_id && $pmsItem = $record->pmsItem) {
+            $pmsItem->update([
+                'last_done_km'   => $doneKm,
+                'last_done_date' => $doneDate,
+            ]);
+        } else {
+            // Find any matching PMS item by name or type
+            $matchingPmsItem = $vehicle->pmsItems()
+                ->where(function ($q) use ($record) {
+                    $q->where('item_name', 'like', "%{$record->type}%")
+                      ->orWhere('item_name', 'like', "%{$record->title}%");
+                })->first();
+
+            if ($matchingPmsItem) {
+                $matchingPmsItem->update([
+                    'last_done_km'   => $doneKm,
+                    'last_done_date' => $doneDate,
+                ]);
+            }
+        }
     }
 
     public function delete(VehicleMaintenance $record): void

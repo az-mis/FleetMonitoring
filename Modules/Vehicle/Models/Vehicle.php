@@ -50,6 +50,44 @@ class Vehicle extends Model
         return $this->hasMany(VehiclePmsItem::class)->orderBy('category')->orderBy('item_name');
     }
 
+    /**
+     * Synchronize this vehicle's PMS items with active global templates that apply to its vehicle_type.
+     */
+    public function syncPmsWithTemplates(): void
+    {
+        $templates = VehiclePmsTemplate::where('is_active', true)->get();
+
+        foreach ($templates as $template) {
+            if ($template->appliesToType($this->vehicle_type)) {
+                // Find existing item linked to this template or with the same name
+                $item = $this->pmsItems()->where(function ($q) use ($template) {
+                    $q->where('template_id', $template->id)
+                      ->orWhere('item_name', $template->item_name);
+                })->first();
+
+                if ($item) {
+                    // Update intervals/category from template if not customized
+                    $item->update([
+                        'template_id'     => $template->id,
+                        'category'        => $template->category,
+                        'interval_km'     => $template->interval_km,
+                        'interval_months' => $template->interval_months,
+                    ]);
+                } else {
+                    // Auto-seed from template
+                    $this->pmsItems()->create([
+                        'template_id'     => $template->id,
+                        'item_name'       => $template->item_name,
+                        'category'        => $template->category,
+                        'interval_km'     => $template->interval_km,
+                        'interval_months' => $template->interval_months,
+                        'notes'           => $template->notes,
+                    ]);
+                }
+            }
+        }
+    }
+
     public function maintenances(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\Modules\Maintenance\Models\VehicleMaintenance::class);

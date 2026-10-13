@@ -32,6 +32,8 @@ class VehicleMaintenance extends Model
         'created_by',
         'created_by_name',
         'source_report_id',
+        'pms_item_id',
+        'pms_template_id',
     ];
 
     protected $casts = [
@@ -44,6 +46,16 @@ class VehicleMaintenance extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function pmsItem(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Vehicle\Models\VehiclePmsItem::class, 'pms_item_id');
+    }
+
+    public function pmsTemplate(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Vehicle\Models\VehiclePmsTemplate::class, 'pms_template_id');
     }
 
     public function createdBy(): BelongsTo

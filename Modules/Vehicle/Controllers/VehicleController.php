@@ -222,10 +222,44 @@ class VehicleController extends Controller
 
         if ($changeOilDone) {
             $vehicleUpdates['last_change_oil_odometer'] = $newOdometer;
+            // Also sync PMS Oil Change item if present
+            $oilPmsItem = $vehicle->pmsItems()
+                ->where(fn($q) => $q->where('item_name', 'like', '%oil%')->orWhere('item_name', 'like', '%Oil%'))
+                ->first();
+            if ($oilPmsItem) {
+                $oilPmsItem->update([
+                    'last_done_km'   => $newOdometer,
+                    'last_done_date' => now()->toDateString(),
+                ]);
+            }
         }
 
         if (!empty($vehicleUpdates)) {
             $vehicle->update($vehicleUpdates);
+        }
+
+        // Bridge to Maintenance: if inspection overall_status is 'failed', auto-create a draft Maintenance record so admin can act on it
+        if ($hasFail) {
+            $failedItemNames = collect($validated['items'])
+                ->where('status', 'fail')
+                ->pluck('name')
+                ->implode(', ');
+
+            \Modules\Maintenance\Models\VehicleMaintenance::create([
+                'vehicle_id'      => $vehicle->id,
+                'plate_number'    => $vehicle->plate_number,
+                'vehicle_label'   => trim("{$vehicle->brand} {$vehicle->model}"),
+                'type'            => 'Repair',
+                'title'           => "Inspection Failed: {$failedItemNames}",
+                'description'     => "Flagged during vehicle inspection on " . now()->format('M j, Y') . ". Failed items: {$failedItemNames}." . (!empty($validated['notes']) ? " Notes: {$validated['notes']}" : ''),
+                'status'          => 'scheduled',
+                'priority'        => 'urgent',
+                'scheduled_date'  => now()->toDateString(),
+                'odometer'        => $newOdometer,
+                'location'        => $vehicle->location,
+                'created_by'      => auth()->id(),
+                'created_by_name' => auth()->user()?->name,
+            ]);
         }
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -270,6 +304,9 @@ class VehicleController extends Controller
     public function indexPmsItems(Vehicle $vehicle): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+
+        // Ensure global templates that apply to this vehicle's type are synced
+        $vehicle->syncPmsWithTemplates();
 
         $items = $vehicle->pmsItems()->latest()->get();
 
@@ -388,6 +425,70 @@ class VehicleController extends Controller
             'success' => true,
             'message' => 'PMS item removed.',
             'health_score' => $vehicle->fresh()->health_score,
+        ]);
+    }
+
+    /**
+     * List all global PMS templates
+     */
+    public function indexPmsTemplates(): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $templates = \Modules\Vehicle\Models\VehiclePmsTemplate::latest()->get();
+
+        return response()->json([
+            'success'   => true,
+            'templates' => $templates,
+        ]);
+    }
+
+    /**
+     * Store new global PMS template and immediately sync to matching vehicles
+     */
+    public function storePmsTemplate(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $validated = $request->validate([
+            'item_name'        => 'required|string|max:255',
+            'category'         => 'required|in:replace,inspect,lubricate,other',
+            'interval_km'      => 'nullable|integer|min:1',
+            'interval_months'  => 'nullable|integer|min:1',
+            'applicable_types' => 'nullable|array',
+            'notes'            => 'nullable|string|max:500',
+        ]);
+
+        $template = \Modules\Vehicle\Models\VehiclePmsTemplate::create([
+            ...$validated,
+            'created_by' => auth()->id(),
+        ]);
+
+        // Auto-sync this new template to all active vehicles matching applicable_types
+        $vehicles = Vehicle::all();
+        foreach ($vehicles as $vehicle) {
+            $vehicle->syncPmsWithTemplates();
+        }
+
+        return response()->json([
+            'success'  => true,
+            'message'  => "PMS Rule \"{$template->item_name}\" saved and applied across fleet.",
+            'template' => $template,
+        ]);
+    }
+
+    /**
+     * Delete a global PMS template
+     */
+    public function destroyPmsTemplate(\Modules\Vehicle\Models\VehiclePmsTemplate $template): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        $template->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PMS Rule removed.',
         ]);
     }
 

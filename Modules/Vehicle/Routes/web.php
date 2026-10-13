@@ -15,6 +15,9 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::post('/', [VehicleController::class, 'store'])->name('store');
         Route::post('/types', [VehicleController::class, 'storeType'])->name('types.store');
         Route::post('/{vehicle}/inspections', [VehicleController::class, 'storeInspection'])->name('inspections.store');
+        Route::get('/pms-templates', [VehicleController::class, 'indexPmsTemplates'])->name('pms-templates.index');
+        Route::post('/pms-templates', [VehicleController::class, 'storePmsTemplate'])->name('pms-templates.store');
+        Route::delete('/pms-templates/{template}', [VehicleController::class, 'destroyPmsTemplate'])->name('pms-templates.destroy');
         Route::get('/{vehicle}/inspections', [VehicleController::class, 'indexInspections'])->name('inspections.index');
         Route::get('/{vehicle}/pms-items', [VehicleController::class, 'indexPmsItems'])->name('pms.index');
         Route::post('/{vehicle}/pms-items', [VehicleController::class, 'storePmsItem'])->name('pms.store');

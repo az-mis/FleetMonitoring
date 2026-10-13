@@ -171,6 +171,13 @@
             </svg>
             <span>Add Vehicle Type</span>
         </button>
+
+        <button type="button" onclick="openPmsRulesModal()" class="vehicle-category-chip bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 hover:border-amber-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+            <span>PMS Rules & Templates</span>
+        </button>
     </div>
 
     <div id="vehicle-results">
@@ -2541,6 +2548,151 @@
         }
 
         // ══════════════════════════════════════════════════════════════════════
+        // GLOBAL PMS RULES & TEMPLATES
+        // ══════════════════════════════════════════════════════════════════════
+        function openPmsRulesModal() {
+            const modal = document.getElementById('pms-rules-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            loadPmsTemplates();
+        }
+
+        function closePmsRulesModal() {
+            const modal = document.getElementById('pms-rules-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function loadPmsTemplates() {
+            const listEl = document.getElementById('pms-templates-list');
+            listEl.innerHTML = '<div class="text-center py-6 text-xs text-slate-400">Loading rules...</div>';
+
+            fetch('/vehicles/pms-templates', { credentials: 'same-origin' })
+                .then(res => res.json())
+                .then(data => {
+                    const templates = data.templates || [];
+                    if (templates.length === 0) {
+                        listEl.innerHTML = `
+                            <div class="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                <p class="text-xs font-semibold text-slate-600">No global PMS rules defined yet.</p>
+                                <p class="text-[11px] text-slate-400 mt-1">Create rules like "Engine Oil Change every 5,000 km" above to auto-apply to vehicles.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = '';
+                    templates.forEach(tpl => {
+                        const intervals = [];
+                        if (tpl.interval_km) intervals.push(`every ${Number(tpl.interval_km).toLocaleString()} km`);
+                        if (tpl.interval_months) intervals.push(`every ${tpl.interval_months} months`);
+                        const intervalStr = intervals.join(' or ') || 'No interval';
+
+                        const typesStr = tpl.applicable_types && tpl.applicable_types.length
+                            ? tpl.applicable_types.join(', ')
+                            : 'All Vehicle Types';
+
+                        html += `
+                            <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 shadow-2xs hover:border-amber-300 transition">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h5 class="text-xs font-bold text-slate-900">${tpl.item_name}</h5>
+                                        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 uppercase">${tpl.category}</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">
+                                        <strong>Interval:</strong> <span class="text-amber-800 font-bold">${intervalStr}</span> •
+                                        <strong>Applies to:</strong> <span class="text-slate-700">${typesStr}</span>
+                                    </p>
+                                </div>
+                                <button type="button" onclick="deletePmsTemplate(${tpl.id})" class="rounded-lg p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer" title="Delete rule">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                </button>
+                            </div>
+                        `;
+                    });
+
+                    listEl.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    listEl.innerHTML = '<div class="text-center py-6 text-xs text-red-500">Failed to load rules.</div>';
+                });
+        }
+
+        function handleCreatePmsTemplate(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('tpl-item-name').value.trim();
+            const category = document.getElementById('tpl-category').value;
+            const km = document.getElementById('tpl-interval-km').value;
+            const months = document.getElementById('tpl-interval-months').value;
+
+            // Get checked types
+            const checkboxes = document.querySelectorAll('input[name="tpl_types"]:checked');
+            const types = Array.from(checkboxes).map(cb => cb.value);
+
+            if (!name) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch('/vehicles/pms-templates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({
+                    item_name: name,
+                    category: category,
+                    interval_km: km ? parseInt(km) : null,
+                    interval_months: months ? parseInt(months) : null,
+                    applicable_types: types.length > 0 ? types : null,
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('tpl-item-name').value = '';
+                    document.getElementById('tpl-interval-km').value = '';
+                    document.getElementById('tpl-interval-months').value = '';
+                    document.querySelectorAll('input[name="tpl_types"]').forEach(cb => cb.checked = false);
+                    loadPmsTemplates();
+                } else {
+                    alert('Error: ' + (data.message || 'Validation error'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('An error occurred.');
+            });
+        }
+
+        function deletePmsTemplate(id) {
+            if (!confirm('Are you sure you want to remove this PMS rule?')) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`/vehicles/pms-templates/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadPmsTemplates();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to delete rule.');
+            });
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
         // QUICK ODOMETER UPDATE MODAL (CARMIND-STYLE)
         // ══════════════════════════════════════════════════════════════════════
         let quickOdoVehicleId = null;
@@ -2702,6 +2854,95 @@
             {{-- Modal Footer --}}
             <div class="flex justify-end border-t border-slate-100 bg-slate-50 px-6 py-3">
                 <button type="button" onclick="closeVehiclePmsModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- GLOBAL PMS RULES & TEMPLATES MODAL --}}
+    <div id="pms-rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Global PMS Rules & Templates</h3>
+                        <p class="text-xs text-slate-500">Define recurring service intervals once. They automatically apply to all matching vehicle types.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closePmsRulesModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                {{-- Add new global rule form --}}
+                <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                    <p class="text-xs font-black uppercase tracking-wider text-slate-700">+ Create Fleet PMS Rule</p>
+                    <form onsubmit="handleCreatePmsTemplate(event)" class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Service Item Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="tpl-item-name" placeholder="e.g. Engine Oil & Filter Change" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Category <span class="text-red-500">*</span></label>
+                                <select id="tpl-category" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                                    <option value="replace">Replace</option>
+                                    <option value="inspect">Inspect & Check</option>
+                                    <option value="lubricate">Lubricate & Service</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (km)</label>
+                                <input type="number" id="tpl-interval-km" min="100" placeholder="e.g. 5000" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (months)</label>
+                                <input type="number" id="tpl-interval-months" min="1" placeholder="e.g. 6" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1.5">Apply to Vehicle Types (leave unchecked to apply to ALL)</label>
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                @foreach($vehicleTypes as $vt)
+                                    <label class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 cursor-pointer hover:bg-slate-100">
+                                        <input type="checkbox" name="tpl_types" value="{{ $vt->name }}" class="rounded text-amber-600 focus:ring-amber-500">
+                                        <span>{{ $vt->name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-1">
+                            <button type="submit" class="rounded-lg bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition cursor-pointer">
+                                Save Rule & Apply Across Fleet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- Existing Rules List --}}
+                <div>
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">Active Fleet Rules</h4>
+                    <div id="pms-templates-list" class="space-y-2">
+                        {{-- Dynamically loaded --}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end border-t border-slate-100 bg-slate-50 px-6 py-3">
+                <button type="button" onclick="closePmsRulesModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
                     Close
                 </button>
             </div>
