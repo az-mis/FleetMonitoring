@@ -556,6 +556,7 @@
                                             'completion' => $item->completion,
                                             'vehicle_id' => $item->vehicle_id,
                                             'vehicle_odometer' => (float) ($item->vehicle?->odometer ?? 0),
+                                            'is_future' => $item->travel_date->isFuture() && !$item->travel_date->isToday(),
                                         ];
                                     @endphp
 
@@ -577,18 +578,34 @@
                                                 View
                                             </button>
                                             @if($item->status === 'approved')
-                                                <button
-                                                    type="button"
-                                                    onclick='openTripCompletionModalFromRow(@json($modalData))'
-                                                    class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
-                                                    title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <circle cx="12" cy="12" r="10"/>
-                                                        <path d="m12 6 0 6 4 2"/>
-                                                    </svg>
-                                                    <span>{{ $item->completion ? 'Part B Log' : 'Log Part B' }}</span>
-                                                </button>
+                                                @php
+                                                    $isFutureTrip = $item->travel_date->isFuture() && !$item->travel_date->isToday();
+                                                @endphp
+                                                @if($isFutureTrip)
+                                                    <span
+                                                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-400 cursor-not-allowed select-none"
+                                                        title="This trip is scheduled for {{ $item->travel_date->format('M d, Y') }}. Completion cannot be logged until the trip takes place."
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="12" cy="12" r="10"/>
+                                                            <polyline points="12 6 12 12 16 14"/>
+                                                        </svg>
+                                                        <span>Upcoming</span>
+                                                    </span>
+                                                @else
+                                                    <button
+                                                        type="button"
+                                                        onclick='openTripCompletionModalFromRow(@json($modalData))'
+                                                        class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+                                                        title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="12" cy="12" r="10"/>
+                                                            <path d="m12 6 0 6 4 2"/>
+                                                        </svg>
+                                                        <span>{{ $item->completion ? 'Part B Log' : 'Log Part B' }}</span>
+                                                    </button>
+                                                @endif
                                                 <a
                                                     href="{{ route('trip-ticket', $item) }}"
                                                     target="_blank"
@@ -715,9 +732,18 @@
                         <p><span class="text-slate-500 font-medium">Destination:</span> <span id="preview-destination" class="font-semibold text-slate-800"></span></p>
                         <p><span class="text-slate-500 font-medium">Travel Date:</span> <span id="preview-travel-date" class="text-slate-600"></span></p>
                     </div>
+                    <div id="preview-future-notice" class="hidden rounded-lg border border-amber-300 bg-amber-50 p-2 text-amber-900 text-[11px] font-semibold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>This trip is scheduled for a future date. Part B cannot be logged until the trip takes place.</span>
+                    </div>
+
                     <div class="pt-2 border-t border-emerald-200/70 flex justify-end">
                         <button
                             type="button"
+                            id="preview-open-form-btn"
                             onclick="proceedToTripCompletionFromLookup()"
                             class="w-full rounded-lg bg-emerald-800 hover:bg-emerald-900 py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center"
                         >
@@ -3056,14 +3082,33 @@
             }
         }
 
-        function selectTripSuggestion(trip) {
-            hideLookupSuggestions();
-            document.getElementById('lookup-ticket-input').value = trip.trip_ticket_number || trip.reference_code;
+        function renderLookupPreview(trip) {
             currentLookupTrip = trip;
 
-            // Populate preview card
             document.getElementById('preview-ticket-badge').textContent = trip.trip_ticket_number || trip.reference_code;
-            document.getElementById('preview-status-badge').textContent = trip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
+            
+            const statusBadge = document.getElementById('preview-status-badge');
+            const futureNotice = document.getElementById('preview-future-notice');
+            const openBtn = document.getElementById('preview-open-form-btn');
+
+            if (trip.is_future) {
+                statusBadge.textContent = 'Scheduled / Upcoming';
+                statusBadge.className = 'text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full';
+                futureNotice.classList.remove('hidden');
+                openBtn.disabled = true;
+                openBtn.classList.remove('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
+                openBtn.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+                openBtn.textContent = 'Trip Not Yet Completed';
+            } else {
+                statusBadge.textContent = trip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
+                statusBadge.className = 'text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
+                futureNotice.classList.add('hidden');
+                openBtn.disabled = false;
+                openBtn.classList.add('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
+                openBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+                openBtn.textContent = 'Open Part B Completion Form →';
+            }
+
             document.getElementById('preview-vehicle-plate').textContent = trip.vehicle_plate || 'No Plate';
             document.getElementById('preview-vehicle-name').textContent = trip.vehicle_name ? `(${trip.vehicle_name})` : '';
             document.getElementById('preview-driver').textContent = trip.driver_name;
@@ -3071,6 +3116,12 @@
             document.getElementById('preview-travel-date').textContent = trip.travel_date;
 
             document.getElementById('lookup-preview-box').classList.remove('hidden');
+        }
+
+        function selectTripSuggestion(trip) {
+            hideLookupSuggestions();
+            document.getElementById('lookup-ticket-input').value = trip.trip_ticket_number || trip.reference_code;
+            renderLookupPreview(trip);
         }
 
         async function performTripLookup() {
@@ -3103,18 +3154,7 @@
                     throw new Error(data.error || 'No matching approved trip found.');
                 }
 
-                currentLookupTrip = data.trip;
-
-                // Populate preview
-                document.getElementById('preview-ticket-badge').textContent = currentLookupTrip.trip_ticket_number || currentLookupTrip.reference_code;
-                document.getElementById('preview-status-badge').textContent = currentLookupTrip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
-                document.getElementById('preview-vehicle-plate').textContent = currentLookupTrip.vehicle_plate || 'No Plate';
-                document.getElementById('preview-vehicle-name').textContent = currentLookupTrip.vehicle_name ? `(${currentLookupTrip.vehicle_name})` : '';
-                document.getElementById('preview-driver').textContent = currentLookupTrip.driver_name;
-                document.getElementById('preview-destination').textContent = currentLookupTrip.destination;
-                document.getElementById('preview-travel-date').textContent = currentLookupTrip.travel_date;
-
-                previewBox.classList.remove('hidden');
+                renderLookupPreview(data.trip);
             } catch (err) {
                 errEl.textContent = err.message;
                 errEl.classList.remove('hidden');

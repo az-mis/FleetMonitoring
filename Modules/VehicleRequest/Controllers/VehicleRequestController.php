@@ -555,6 +555,7 @@ class VehicleRequestController
                 ->map(function ($trip) {
                     $v = $trip->vehicle;
                     $d = $trip->confirmedDriver ?: $v?->assignedDriver;
+                    $isFuture = $trip->travel_date->isFuture() && !$trip->travel_date->isToday();
                     return [
                         'id' => $trip->id,
                         'trip_ticket_number' => $trip->trip_ticket_number,
@@ -563,6 +564,8 @@ class VehicleRequestController
                         'location' => $trip->location,
                         'destination' => $trip->destination,
                         'travel_date' => $trip->travel_date->format('M d, Y') . ($trip->travel_date_end ? (' – ' . $trip->travel_date_end->format('M d, Y')) : ''),
+                        'travel_date_raw' => $trip->travel_date->format('Y-m-d'),
+                        'is_future' => $isFuture,
                         'purpose' => $trip->purpose,
                         'vehicle_id' => $v?->id,
                         'vehicle_plate' => $v?->plate_number,
@@ -599,6 +602,7 @@ class VehicleRequestController
 
         $vehicle = $trip->vehicle;
         $driver = $trip->confirmedDriver ?: $vehicle?->assignedDriver;
+        $isFuture = $trip->travel_date->isFuture() && !$trip->travel_date->isToday();
 
         return response()->json([
             'trip' => [
@@ -609,6 +613,8 @@ class VehicleRequestController
                 'location' => $trip->location,
                 'destination' => $trip->destination,
                 'travel_date' => $trip->travel_date->format('M d, Y') . ($trip->travel_date_end ? (' – ' . $trip->travel_date_end->format('M d, Y')) : ''),
+                'travel_date_raw' => $trip->travel_date->format('Y-m-d'),
+                'is_future' => $isFuture,
                 'purpose' => $trip->purpose,
                 'vehicle_id' => $vehicle?->id,
                 'vehicle_plate' => $vehicle?->plate_number,
@@ -627,6 +633,15 @@ class VehicleRequestController
         abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
         if ($request->user()->role === UserRole::ADMIN && $vehicleRequest->location !== $request->user()->location) {
             abort(403, 'Unauthorized location access.');
+        }
+
+        // Prevent logging completion for future trips that have not occurred yet
+        if ($vehicleRequest->travel_date->isFuture() && !$vehicleRequest->travel_date->isToday()) {
+            $msg = "Cannot log completion for an upcoming trip scheduled on {$vehicleRequest->travel_date->format('M d, Y')}. The trip has not taken place yet.";
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $msg], 422);
+            }
+            return back()->with('error', $msg);
         }
 
         $data = $request->validate([
