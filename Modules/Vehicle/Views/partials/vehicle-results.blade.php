@@ -83,7 +83,7 @@
                                 @endif
                             </td>
 
-                            <td class="whitespace-nowrap px-3 py-3.5 text-slate-600 font-semibold">{{ $vehicle->year }}</td>
+                            <td class="whitespace-nowrap px-3 py-3.5 text-slate-600 font-semibold">{{ $vehicle->year ?: '—' }}</td>
                             <td class="whitespace-nowrap px-3 py-3.5 text-slate-600 font-medium">{{ $vehicle->color }}</td>
 
                             {{-- Odometer & Oil status badge --}}
@@ -200,7 +200,7 @@
                 <div class="space-y-2 p-4">
                     <p class="flex items-center gap-1.5 text-[15px] font-bold text-slate-900">
                         @include('vehicle::partials.vehicle-type-icon', ['type' => $vehicle->vehicle_type, 'class' => 'h-4 w-4 shrink-0 text-[#005a36]', 'stroke' => '2'])
-                        <span class="truncate">{{ $vehicle->brand }} {{ $vehicle->model }} {{ $vehicle->year }}</span>
+                        <span class="truncate">{{ $vehicle->brand }} {{ $vehicle->model }}{{ $vehicle->year ? ' ' . $vehicle->year : '' }}</span>
                     </p>
 
                     <div class="space-y-1.5 text-[13px] text-slate-500">

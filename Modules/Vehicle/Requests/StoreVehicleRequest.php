@@ -33,7 +33,7 @@ class StoreVehicleRequest extends FormRequest
             'engine_number' => ['nullable', 'string', 'max:50'],
             'brand' => ['required', 'string', 'max:100'],
             'model' => ['required', 'string', 'max:100'],
-            'year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'color' => ['required', 'string', 'max:50'],
             'odometer' => ['required', 'integer', 'min:0'],
             'change_oil_interval_km' => ['nullable', 'integer', 'min:500'],

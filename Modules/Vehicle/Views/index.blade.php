@@ -312,9 +312,9 @@
 
                             {{-- Year --}}
                             <div class="sm:col-span-4">
-                                <label for="rv-year" class="{{ $rvLabel }}">Year <span class="text-red-500">*</span></label>
+                                <label for="rv-year" class="{{ $rvLabel }}">Year <span class="text-xs font-normal text-slate-400">(Optional)</span></label>
                                 <div class="relative">
-                                    <input type="number" name="year" id="rv-year" value="{{ $rvOld('year') }}" min="1900" max="{{ date('Y') + 1 }}" placeholder="e.g. 2020" class="{{ $rvInput }} {{ $rvBorder('year') }} pr-10 {{ $rvNoSpin }}" required>
+                                    <input type="number" name="year" id="rv-year" value="{{ $rvOld('year') }}" min="1900" max="{{ date('Y') + 1 }}" placeholder="e.g. 2020" class="{{ $rvInput }} {{ $rvBorder('year') }} pr-10 {{ $rvNoSpin }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
                                 </div>
                                 @error('year')
@@ -478,7 +478,14 @@
     </div>
 
     @if ($errors->any() && old('_vehicle_form') === 'create')
-        <script>document.addEventListener('DOMContentLoaded', () => openRegisterVehicleModal());</script>
+        <script>
+            window.hasRegisterVehicleErrors = true;
+            document.addEventListener('DOMContentLoaded', () => openRegisterVehicleModal());
+        </script>
+    @else
+        <script>
+            window.hasRegisterVehicleErrors = false;
+        </script>
     @endif
 
     {{-- Add Vehicle Type modal --}}
@@ -712,9 +719,9 @@
                             </div>
 
                             <div>
-                                <label for="ev-year" class="{{ $rvLabel }}">Year <span class="text-red-500">*</span></label>
+                                <label for="ev-year" class="{{ $rvLabel }}">Year <span class="text-xs font-normal text-slate-400">(Optional)</span></label>
                                 <div class="relative">
-                                    <input type="number" name="year" id="ev-year" value="{{ $evOld('year') }}" min="1900" max="{{ date('Y') + 1 }}" placeholder="e.g. 2020" class="{{ $rvInput }} {{ $evBorder('year') }} pr-10 {{ $rvNoSpin }}" required>
+                                    <input type="number" name="year" id="ev-year" value="{{ $evOld('year') }}" min="1900" max="{{ date('Y') + 1 }}" placeholder="e.g. 2020" class="{{ $rvInput }} {{ $evBorder('year') }} pr-10 {{ $rvNoSpin }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
                                 </div>
                                 @if ($evIsOld)
@@ -887,7 +894,14 @@
     </div>
 
     @if ($errors->any() && old('_vehicle_form') === 'edit')
-        <script>document.addEventListener('DOMContentLoaded', () => openEditVehicleModal(null));</script>
+        <script>
+            window.hasEditVehicleErrors = true;
+            document.addEventListener('DOMContentLoaded', () => openEditVehicleModal(null));
+        </script>
+    @else
+        <script>
+            window.hasEditVehicleErrors = false;
+        </script>
     @endif
 
     {{-- View details modal --}}
@@ -1146,7 +1160,8 @@
                 icon.classList.remove('hidden');
             }
 
-            document.getElementById('view-vehicle-title').textContent = btn.dataset.brand + ' ' + btn.dataset.model + ' (' + btn.dataset.year + ')';
+            const yearLabel = btn.dataset.year ? ' (' + btn.dataset.year + ')' : '';
+            document.getElementById('view-vehicle-title').textContent = (btn.dataset.brand || '') + ' ' + (btn.dataset.model || '') + yearLabel;
             document.getElementById('view-vehicle-plate').textContent = btn.dataset.plate_number;
             document.getElementById('view-vehicle-chassis').textContent = btn.dataset.chassis_number;
             document.getElementById('view-vehicle-engine').textContent = btn.dataset.engine_number;
@@ -1317,10 +1332,25 @@
         }
 
         function closeEditVehicleModal() {
+            if (window.hasEditVehicleErrors) {
+                window.location.href = window.location.pathname + window.location.search;
+                return;
+            }
+
             const modal = document.getElementById('edit-vehicle-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.body.classList.remove('overflow-hidden');
+
+            const form = document.getElementById('edit-vehicle-form');
+            if (form) {
+                form.reset();
+            }
+            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            modal.querySelectorAll('.border-red-500').forEach(el => {
+                el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                el.classList.add('border-slate-200');
+            });
         }
 
         function handleEditVehiclePhotoChange(input) {
@@ -1516,10 +1546,35 @@
         }
 
         function closeRegisterVehicleModal() {
+            if (window.hasRegisterVehicleErrors) {
+                window.location.href = window.location.pathname + window.location.search;
+                return;
+            }
+
             const modal = document.getElementById('register-vehicle-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.body.classList.remove('overflow-hidden');
+
+            const form = document.getElementById('register-vehicle-form');
+            if (form) {
+                form.reset();
+            }
+            if (typeof clearRegisterPhoto === 'function') {
+                clearRegisterPhoto();
+            }
+            if (typeof syncRegisterBrand === 'function') {
+                syncRegisterBrand();
+            }
+            if (typeof showRegisterStep === 'function') {
+                showRegisterStep('form');
+            }
+
+            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            modal.querySelectorAll('.border-red-500').forEach(el => {
+                el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                el.classList.add('border-slate-200');
+            });
         }
 
         // Brand: dropdown with an "Other…" free-text fallback. The hidden #rv-brand input carries the final value.
@@ -1825,6 +1880,10 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.body.classList.remove('overflow-hidden');
+            const form = modal.querySelector('form');
+            if (form) {
+                form.reset();
+            }
         }
 
         let currentInspectionStoreUrl = '';

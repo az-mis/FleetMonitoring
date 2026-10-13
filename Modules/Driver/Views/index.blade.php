@@ -363,7 +363,14 @@
     </div>
 
     @if ($errors->any() && old('_driver_form') === 'create')
-        <script>document.addEventListener('DOMContentLoaded', () => openAddDriverModal());</script>
+        <script>
+            window.hasAddDriverErrors = true;
+            document.addEventListener('DOMContentLoaded', () => openAddDriverModal());
+        </script>
+    @else
+        <script>
+            window.hasAddDriverErrors = false;
+        </script>
     @endif
 
 
@@ -647,7 +654,14 @@
     </div>
 
     @if ($errors->any() && old('_driver_form') === 'edit')
-        <script>document.addEventListener('DOMContentLoaded', () => openEditDriverModal(null));</script>
+        <script>
+            window.hasEditDriverErrors = true;
+            document.addEventListener('DOMContentLoaded', () => openEditDriverModal(null));
+        </script>
+    @else
+        <script>
+            window.hasEditDriverErrors = false;
+        </script>
     @endif
 
     {{-- View details modal --}}
@@ -924,9 +938,27 @@
         }
 
         function closeAddDriverModal() {
+            if (window.hasAddDriverErrors) {
+                window.location.href = window.location.pathname + window.location.search;
+                return;
+            }
+
             const modal = document.getElementById('add-driver-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+
+            const form = document.getElementById('add-driver-form');
+            if (form) {
+                form.reset();
+            }
+            if (typeof clearAddDriverPhoto === 'function') {
+                clearAddDriverPhoto();
+            }
+            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            modal.querySelectorAll('.border-red-500').forEach(el => {
+                el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                el.classList.add('border-slate-200');
+            });
         }
 
         function handleAddDriverSubmit(event) {
@@ -1031,9 +1063,24 @@
         }
 
         function closeEditDriverModal() {
+            if (window.hasEditDriverErrors) {
+                window.location.href = window.location.pathname + window.location.search;
+                return;
+            }
+
             const modal = document.getElementById('edit-driver-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+
+            const form = document.getElementById('edit-driver-form');
+            if (form) {
+                form.reset();
+            }
+            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            modal.querySelectorAll('.border-red-500').forEach(el => {
+                el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                el.classList.add('border-slate-200');
+            });
         }
 
         function handleEditDriverSubmit(event) {
