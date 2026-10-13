@@ -1376,8 +1376,10 @@
 
         function setEditPhotoError(message) {
             const el = document.getElementById('ev-photo-error');
-            el.textContent = message || '';
-            el.classList.toggle('hidden', !message);
+            if (el) {
+                el.textContent = message || '';
+                el.classList.toggle('hidden', !message);
+            }
         }
 
         function openEditVehicleModal(btn) {
@@ -1445,7 +1447,8 @@
             if (form) {
                 form.reset();
             }
-            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            setEditPhotoError('');
+            modal.querySelectorAll('p.text-red-600:not(#ev-photo-error)').forEach(el => el.remove());
             modal.querySelectorAll('.border-red-500').forEach(el => {
                 el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
                 el.classList.add('border-slate-200');
@@ -1669,7 +1672,7 @@
                 showRegisterStep('form');
             }
 
-            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            modal.querySelectorAll('p.text-red-600:not(#rv-photo-error)').forEach(el => el.remove());
             modal.querySelectorAll('.border-red-500').forEach(el => {
                 el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
                 el.classList.add('border-slate-200');
@@ -1692,8 +1695,10 @@
 
         function setRegisterPhotoError(message) {
             const el = document.getElementById('rv-photo-error');
-            el.textContent = message || '';
-            el.classList.toggle('hidden', !message);
+            if (el) {
+                el.textContent = message || '';
+                el.classList.toggle('hidden', !message);
+            }
         }
 
         function resetRegisterPhotoPreview() {

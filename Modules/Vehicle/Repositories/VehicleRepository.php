@@ -37,6 +37,8 @@ class VehicleRepository implements VehicleRepositoryInterface
 
     public function create(array $data): Vehicle
     {
+        $odometer = (int) ($data['odometer'] ?? 0);
+
         return Vehicle::create([
             'plate_number' => $data['plate_number'],
             'photo' => $this->storePhoto($data['photo'] ?? null),
@@ -46,7 +48,9 @@ class VehicleRepository implements VehicleRepositoryInterface
             'model' => $data['model'],
             'year' => $data['year'],
             'color' => $data['color'],
-            'odometer' => $data['odometer'],
+            'odometer' => $odometer,
+            'last_change_oil_odometer' => $odometer, // Basis odometer for oil change interval
+            'change_oil_interval_km' => !empty($data['change_oil_interval_km']) ? (int) $data['change_oil_interval_km'] : 5000,
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
@@ -57,7 +61,8 @@ class VehicleRepository implements VehicleRepositoryInterface
 
     public function update(Vehicle $vehicle, array $data): Vehicle
     {
-        $vehicle->fill([
+        $newOdometer = (int) ($data['odometer'] ?? $vehicle->odometer);
+        $updateFields = [
             'plate_number' => $data['plate_number'],
             'chassis_number' => $data['chassis_number'] ?? null,
             'engine_number' => $data['engine_number'] ?? null,
@@ -65,12 +70,20 @@ class VehicleRepository implements VehicleRepositoryInterface
             'model' => $data['model'],
             'year' => $data['year'],
             'color' => $data['color'],
-            'odometer' => $data['odometer'],
+            'odometer' => $newOdometer,
+            'change_oil_interval_km' => !empty($data['change_oil_interval_km']) ? (int) $data['change_oil_interval_km'] : 5000,
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
             'updated_by' => auth()->id(),
-        ]);
+        ];
+
+        // If the vehicle never had a baseline change-oil odometer recorded, initialize it to the current odometer
+        if (empty($vehicle->last_change_oil_odometer) && $newOdometer > 0) {
+            $updateFields['last_change_oil_odometer'] = $newOdometer;
+        }
+
+        $vehicle->fill($updateFields);
 
         if (!empty($data['photo'])) {
             $this->deletePhotoFile($vehicle->photo);
