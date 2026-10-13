@@ -889,15 +889,11 @@ function openEditCardModal(card) {
                         </div>
                         <p class="text-[10px] text-gray-500 truncate max-w-[200px]">${r.remarks || 'Budget Top-up'}</p>
                     </div>
-                    <form action="/fleet-cards/${card.id}/recharge/${r.id}" method="POST" onsubmit="return confirm('Delete this top-up of ₱${amount.toFixed(2)}? This will reduce the balance accordingly.');">
-                        <input type="hidden" name="_token" value="${document.querySelector('input[name=_token]') ? document.querySelector('input[name=_token]').value : ''}">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" class="rounded-md p-1 text-red-500 hover:bg-red-50 hover:text-red-700 transition cursor-pointer" title="Delete wrong top-up">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>
-                            </svg>
-                        </button>
-                    </form>
+                    <button type="button" onclick="deleteTopUpEntry(${card.id}, ${r.id}, ${amount})" class="rounded-md p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 transition cursor-pointer" title="Delete wrong top-up">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>
+                        </svg>
+                    </button>
                 </div>
             `;
         }).join('');
@@ -922,6 +918,31 @@ function updateEditModalTotalBalance() {
     const liveBal = Math.max(0, currentBal + diff);
 
     document.getElementById('edit-modal-total-balance').textContent = `₱${liveBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+async function deleteTopUpEntry(cardId, logId, amount) {
+    if (!confirm(`Are you sure you want to delete this top-up of ₱${amount.toFixed(2)}? This will reduce the balance accordingly.`)) {
+        return;
+    }
+
+    try {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            || document.querySelector('input[name="_token"]')?.value;
+
+        const res = await fetch(`/fleet-cards/${cardId}/recharge/${logId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Reload page to reflect updated balance, top-up history, and audit log
+        window.location.reload();
+    } catch (err) {
+        alert('Failed to delete top-up: ' + err.message);
+    }
 }
 
 function closeEditCardModal() {

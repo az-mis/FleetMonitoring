@@ -158,9 +158,14 @@ class FleetCardController extends Controller
         return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card budget topped up successfully!');
     }
 
-    public function destroyRecharge(FleetCard $fleetCard, FleetCardLog $log): RedirectResponse
+    public function destroyRecharge(Request $request, FleetCard $fleetCard, FleetCardLog $log): JsonResponse|RedirectResponse
     {
         $this->fleetCardService->deleteRecharge($fleetCard, $log);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Top-up entry deleted successfully!']);
+        }
+
         return redirect()->route('fleet-cards.index')->with('success', 'Top-up entry removed and balance updated!');
     }
 
