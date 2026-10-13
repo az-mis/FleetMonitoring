@@ -1,4 +1,4 @@
-git commit -m "feat(vehicle): make year optional and reset modal form inputs on close"@php
+@php
     // data-category carries the vehicle type slug so the chips can filter rows/cards.
     $vehicleCategory = static fn (?string $type): string => \Modules\Vehicle\Models\VehicleType::resolve($type)?->slug ?? 'car';
 @endphp
