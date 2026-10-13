@@ -52,6 +52,12 @@ class VehicleReportService
         return Vehicle::where('assigned_driver_id', $driver->id)->first();
     }
 
+    /** All vehicles a driver is permanently assigned to. */
+    public function assignedVehiclesFor(User $driver): Collection
+    {
+        return Vehicle::where('assigned_driver_id', $driver->id)->get();
+    }
+
     public function create(array $data, Vehicle $vehicle, User $driver): VehicleIssueReport
     {
         return VehicleIssueReport::create([

@@ -130,8 +130,20 @@
             @if($errors->any())
                 <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[13px] text-rose-700">{{ $errors->first() }}</div>
             @endif
-            @if($assignedVehicle)
+            @if(isset($assignedVehicles) && $assignedVehicles->count() > 1)
+                <div>
+                    <label class="mb-1 block text-xs font-bold text-gray-600">Assigned Vehicle <span class="text-red-500">*</span></label>
+                    <select name="vehicle_id" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                        @foreach($assignedVehicles as $v)
+                            <option value="{{ $v->id }}" @selected(old('vehicle_id') == $v->id)>
+                                {{ $v->plate_number }} — {{ $v->brand }} {{ $v->model }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @elseif($assignedVehicle)
                 <div class="grid gap-0.5 rounded-lg bg-green-50 px-3 py-2.5 text-[13px] text-green-800">
+                    <input type="hidden" name="vehicle_id" value="{{ $assignedVehicle->id }}">
                     <b>{{ $assignedVehicle->plate_number }}</b>
                     <span>{{ $assignedVehicle->brand }} {{ $assignedVehicle->model }}</span>
                 </div>

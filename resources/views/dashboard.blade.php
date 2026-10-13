@@ -36,7 +36,8 @@
             $missingProfileItems[] = 'License Expiration Date';
         }
 
-        $driverVehicle = \Modules\Vehicle\Models\Vehicle::where('assigned_driver_id', $user?->id)->first();
+        $driverVehicles = \Modules\Vehicle\Models\Vehicle::where('assigned_driver_id', $user?->id)->get();
+        $driverVehicleIds = $driverVehicles->pluck('id')->all();
         
         try {
             $driverModulesSetting = \Modules\Settings\Models\FleetSetting::where('setting_key', 'driver_modules')->value('setting_value');
@@ -46,12 +47,12 @@
         }
 
         $driverRequestsQuery = \Modules\VehicleRequest\Models\VehicleRequest::query()
-            ->where(function ($q) use ($user, $driverVehicle) {
+            ->where(function ($q) use ($user, $driverVehicleIds) {
                 if ($user?->id) {
                     $q->where('confirmed_driver_id', $user->id);
                 }
-                if ($driverVehicle) {
-                    $q->orWhere('vehicle_id', $driverVehicle->id);
+                if (!empty($driverVehicleIds)) {
+                    $q->orWhereIn('vehicle_id', $driverVehicleIds);
                 }
             });
 
@@ -744,39 +745,52 @@
                 </div>
             </div>
 
-            {{-- My Permanent Assigned Vehicle Card --}}
+            {{-- My Permanent Assigned Vehicle(s) Card --}}
             @if($showAssignedVehicleSetting)
-                <div class="rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
-                    <p class="text-[9px] font-black uppercase tracking-wider text-emerald-700 mb-2">My Permanent Assigned Vehicle</p>
-                    @if($driverVehicle)
-                        <div class="flex flex-wrap items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-slate-100 p-0.5 border border-slate-200 overflow-hidden">
-                                    @if($driverVehicle->photo_url)
-                                        <img src="{{ $driverVehicle->photo_url }}" alt="{{ $driverVehicle->model }}" class="h-full w-full object-cover rounded">
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+                <div class="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <p class="text-[9px] font-black uppercase tracking-wider text-emerald-700">
+                            My Assigned Vehicle{{ $driverVehicles->count() > 1 ? 's (' . $driverVehicles->count() . ')' : '' }}
+                        </p>
+                    </div>
+                    @if($driverVehicles->isNotEmpty())
+                        <div class="grid grid-cols-1 {{ $driverVehicles->count() > 1 ? 'md:grid-cols-2' : '' }} gap-3">
+                            @foreach($driverVehicles as $vehicle)
+                                <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/50 p-2.5 transition hover:bg-slate-50">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-white p-0.5 border border-slate-200 overflow-hidden shadow-2xs">
+                                            @if($vehicle->photo_url)
+                                                <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->model }}" class="h-full w-full object-cover rounded">
+                                            @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+                                                </svg>
+                                            @endif
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h3 class="text-xs font-black text-slate-900 truncate">
+                                                {{ $vehicle->brand }} {{ $vehicle->model }} — <span class="font-extrabold text-slate-800">{{ $vehicle->plate_number }}</span>
+                                            </h3>
+                                            <p class="mt-0.5 text-[11px] font-medium text-slate-500 truncate">
+                                                Color: <span class="font-semibold text-slate-700">{{ $vehicle->color ?: 'N/A' }}</span> ·
+                                                Year: <span class="font-semibold text-slate-700">{{ $vehicle->year ?: 'N/A' }}</span> ·
+                                                Type: <span class="font-semibold text-slate-700">{{ $vehicle->vehicle_type ?: 'N/A' }}</span>
+                                            </p>
+                                            @if($vehicle->odometer)
+                                                <p class="mt-0.5 text-[10px] text-slate-400">
+                                                    Odometer: <span class="font-semibold text-slate-600">{{ number_format($vehicle->odometer) }} km</span>
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/80 shadow-2xs">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"/>
                                         </svg>
-                                    @endif
+                                        Ready
+                                    </span>
                                 </div>
-                                <div>
-                                    <h3 class="text-xs font-black text-slate-900">
-                                        {{ $driverVehicle->brand }} {{ $driverVehicle->model }} — <span class="font-extrabold text-slate-800">{{ $driverVehicle->plate_number }}</span>
-                                    </h3>
-                                    <p class="mt-0.5 text-[11px] font-medium text-slate-500">
-                                        Color: <span class="font-semibold text-slate-700">{{ $driverVehicle->color ?: 'N/A' }}</span> ·
-                                        Year: <span class="font-semibold text-slate-700">{{ $driverVehicle->year ?: 'N/A' }}</span> ·
-                                        Type: <span class="font-semibold text-slate-700">{{ $driverVehicle->vehicle_type ?: 'N/A' }}</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200/80 shadow-2xs">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"/>
-                                </svg>
-                                Ready for Dispatch
-                            </span>
+                            @endforeach
                         </div>
                     @else
                         <div class="flex items-center gap-2.5 rounded-lg bg-slate-50 p-2.5 border border-dashed border-slate-200">

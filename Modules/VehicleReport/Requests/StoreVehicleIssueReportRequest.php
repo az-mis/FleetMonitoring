@@ -16,6 +16,7 @@ class StoreVehicleIssueReportRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'vehicle_id'  => ['nullable', 'integer', 'exists:vehicles,id'],
             'issue_type'  => ['required', 'in:Tire,Engine,Brake,Battery,Electrical,Body / Exterior,Other'],
             'priority'    => ['required', 'in:normal,high,urgent'],
             'description' => ['required', 'string'],

@@ -31,10 +31,12 @@ class VehicleReportController extends Controller
 
         if (! $isAdmin) {
             $reports = $this->vehicleReportService->listForDriver($user->id);
-            $assignedVehicle = $this->vehicleReportService->assignedVehicleFor($user);
+            $assignedVehicles = $this->vehicleReportService->assignedVehiclesFor($user);
+            $assignedVehicle = $assignedVehicles->first();
         } else {
             $location = $isSuperAdmin ? null : $user?->location;
             $reports = $this->vehicleReportService->listForAdmin($location);
+            $assignedVehicles = collect();
             $assignedVehicle = null;
             $maintenanceByVehicle = VehicleMaintenance::orderBy('scheduled_date', 'desc')
                 ->get()
@@ -47,6 +49,7 @@ class VehicleReportController extends Controller
             'isAdmin'              => $isAdmin,
             'isSuperAdmin'         => $isSuperAdmin,
             'assignedVehicle'      => $assignedVehicle,
+            'assignedVehicles'     => $assignedVehicles,
             'maintenanceByVehicle' => $maintenanceByVehicle,
         ]);
     }
@@ -54,10 +57,19 @@ class VehicleReportController extends Controller
     public function store(StoreVehicleIssueReportRequest $request): RedirectResponse
     {
         $user = auth()->user();
-        $vehicle = $this->vehicleReportService->assignedVehicleFor($user);
+        $assignedVehicles = $this->vehicleReportService->assignedVehiclesFor($user);
 
-        if (! $vehicle) {
+        if ($assignedVehicles->isEmpty()) {
             return back()->with('error', 'You do not have a permanently assigned vehicle yet.');
+        }
+
+        if ($request->filled('vehicle_id')) {
+            $vehicle = $assignedVehicles->firstWhere('id', (int) $request->input('vehicle_id'));
+            if (! $vehicle) {
+                return back()->with('error', 'The selected vehicle is not assigned to your profile.');
+            }
+        } else {
+            $vehicle = $assignedVehicles->first();
         }
 
         $this->vehicleReportService->create($request->validated(), $vehicle, $user);
