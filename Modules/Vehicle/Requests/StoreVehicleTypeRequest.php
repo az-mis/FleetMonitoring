@@ -20,6 +20,7 @@ class StoreVehicleTypeRequest extends FormRequest
     {
         $this->merge([
             'name' => preg_replace('/\s+/', ' ', trim((string) $this->input('name'))),
+            'icon' => $this->input('icon') ?: 'car',
         ]);
     }
 
@@ -27,7 +28,7 @@ class StoreVehicleTypeRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:30', 'regex:/^[\pL\pN][\pL\pN \-\/&().]*$/u', Rule::unique('vehicle_types', 'name')],
-            'icon' => ['required', Rule::in(array_keys(VehicleType::ICONS))],
+            'icon' => ['nullable', Rule::in(array_keys(VehicleType::ICONS))],
         ];
     }
 
