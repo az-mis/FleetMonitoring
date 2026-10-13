@@ -136,12 +136,23 @@
 
                 <button
                     type="button"
+                    onclick="openPmsRulesModal()"
+                    class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/80 px-3.5 text-xs font-bold text-amber-900 shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition cursor-pointer"
+                    title="Configure routine PMS service rules across vehicle types"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                    <span>PMS Rules & Templates</span>
+                </button>
+
+                <button
+                    type="button"
                     onclick="openRegisterVehicleModal()"
                     class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm hover:bg-[#00432a] transition cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 5v14M5 12h14"/>
-
                     </svg>
                     <span>Register Vehicle</span>
                 </button>
@@ -170,13 +181,6 @@
                 <path d="M12 5v14M5 12h14"/>
             </svg>
             <span>Add Vehicle Type</span>
-        </button>
-
-        <button type="button" onclick="openPmsRulesModal()" class="vehicle-category-chip bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 hover:border-amber-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-            </svg>
-            <span>PMS Rules & Templates</span>
         </button>
     </div>
 
