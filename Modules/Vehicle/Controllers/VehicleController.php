@@ -478,17 +478,22 @@ class VehicleController extends Controller
     }
 
     /**
-     * Delete a global PMS template
+     * Delete a global PMS template and remove its generated vehicle items
      */
     public function destroyPmsTemplate(\Modules\Vehicle\Models\VehiclePmsTemplate $template): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
 
+        // Remove any vehicle PMS items spawned from this template
+        \Modules\Vehicle\Models\VehiclePmsItem::where('template_id', $template->id)
+            ->orWhere('item_name', $template->item_name)
+            ->delete();
+
         $template->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'PMS Rule removed.',
+            'message' => 'PMS Rule removed and cleaned up across fleet.',
         ]);
     }
 

@@ -117,11 +117,20 @@ class Vehicle extends Model
         $dueSoon  = 0;
         $onTrack  = 0;
         foreach ($pmsItems as $item) {
-            $total += 2;
             $s = $item->status;
-            if ($s === 'overdue')        { $overdue++; }
-            elseif ($s === 'due_soon')   { $dueSoon++; $points += 1; }
-            else                         { $onTrack++;  $points += 2; }
+            if ($s === 'overdue') {
+                $total += 2;
+                $overdue++;
+            } elseif ($s === 'due_soon') {
+                $total += 2;
+                $dueSoon++;
+                $points += 1;
+            } elseif ($s === 'ok') {
+                $total += 2;
+                $onTrack++;
+                $points += 2;
+            }
+            // 'unknown' items (not started yet, no interval or no last done) do not artificially inflate or penalize score
         }
 
         // ── Active Maintenance (overdue) ──────────────────────────
