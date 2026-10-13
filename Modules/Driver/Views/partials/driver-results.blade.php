@@ -209,15 +209,60 @@
 
                 {{-- Assigned Vehicle(s) Block --}}
                 <div class="p-4 pt-0">
-                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 mb-2">
-                            <span>🚗</span> ASSIGNED VEHICLE(S)
-                        </p>
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3"
+                        @if ($assignedVehicles->count() > 1)
+                            x-data="{ activeIndex: 0, total: {{ $assignedVehicles->count() }} }"
+                        @endif
+                    >
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                <span>🚗</span> ASSIGNED VEHICLES
+                                @if ($assignedVehicles->isNotEmpty())
+                                    <span class="inline-flex items-center justify-center rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-700">
+                                        {{ $assignedVehicles->count() }}
+                                    </span>
+                                @endif
+                            </p>
+
+                            @if ($assignedVehicles->count() > 1)
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[10px] font-bold text-slate-500 tabular-nums" x-text="`${activeIndex + 1}/${total}`"></span>
+                                    <div class="flex items-center gap-0.5">
+                                        <button
+                                            type="button"
+                                            @click="activeIndex = (activeIndex - 1 + total) % total"
+                                            title="Previous vehicle"
+                                            class="inline-flex h-5 w-5 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition shadow-2xs cursor-pointer"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="activeIndex = (activeIndex + 1) % total"
+                                            title="Next vehicle"
+                                            class="inline-flex h-5 w-5 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition shadow-2xs cursor-pointer"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
 
                         @if ($assignedVehicles->isNotEmpty())
-                            <div class="space-y-2">
-                                @foreach ($assignedVehicles as $v)
-                                    <div class="flex items-center gap-2.5">
+                            <div class="relative h-11">
+                                @foreach ($assignedVehicles as $index => $v)
+                                    <div
+                                        @if ($assignedVehicles->count() > 1)
+                                            x-show="activeIndex === {{ $index }}"
+                                            x-transition:enter="transition ease-out duration-150"
+                                            x-transition:enter-start="opacity-0 translate-x-1"
+                                            x-transition:enter-end="opacity-100 translate-x-0"
+                                            class="absolute inset-0 flex items-center gap-2.5"
+                                        @else
+                                            class="flex items-center gap-2.5 h-full"
+                                        @endif
+                                    >
                                         @if ($v->photo_url)
                                             <img src="{{ $v->photo_url }}" alt="{{ $v->brand }} {{ $v->model }}" class="h-9 w-12 shrink-0 rounded-md object-cover ring-1 ring-slate-200">
                                         @else
@@ -230,17 +275,32 @@
                                                 </svg>
                                             </div>
                                         @endif
-                                        <div class="min-w-0">
-                                            <p class="truncate text-xs font-bold text-slate-900">{{ $v->brand }} {{ $v->model }}</p>
-                                            <span class="inline-block rounded bg-slate-200/80 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wide text-slate-700">
+                                        <div class="min-w-0 flex-1">
+                                            <p class="truncate text-xs font-bold text-slate-900 leading-tight">{{ $v->brand }} {{ $v->model }}</p>
+                                            <span class="inline-block rounded bg-slate-200/80 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wide text-slate-700 mt-0.5">
                                                 {{ $v->plate_number }}
                                             </span>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
+
+                            @if ($assignedVehicles->count() > 1)
+                                {{-- Subtle Dots Indicator --}}
+                                <div class="mt-2 flex items-center justify-center gap-1 pt-0.5">
+                                    @foreach ($assignedVehicles as $index => $v)
+                                        <button
+                                            type="button"
+                                            @click="activeIndex = {{ $index }}"
+                                            class="h-1.5 rounded-full transition-all cursor-pointer"
+                                            :class="activeIndex === {{ $index }} ? 'w-3.5 bg-emerald-600' : 'w-1.5 bg-slate-300 hover:bg-slate-400'"
+                                            title="View vehicle {{ $index + 1 }}"
+                                        ></button>
+                                    @endforeach
+                                </div>
+                            @endif
                         @else
-                            <div class="py-2 text-center text-xs text-slate-400 font-medium">
+                            <div class="flex h-11 items-center justify-center text-xs text-slate-400 font-medium">
                                 No assigned vehicle
                             </div>
                         @endif

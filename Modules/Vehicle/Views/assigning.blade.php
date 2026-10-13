@@ -20,7 +20,7 @@
     <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Vehicle Assigning</h1>
-            <p class="text-sm text-slate-500">Assign each vehicle to one driver permanently</p>
+            <p class="text-sm text-slate-500">Assign a primary driver to each vehicle — a driver may be assigned to multiple vehicles</p>
         </div>
 
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -167,7 +167,7 @@
             <path d="M12 16v-4"/>
             <path d="M12 8h.01"/>
         </svg>
-        <span>Each driver here becomes the permanent, default driver for that vehicle unless they're absent. Per-request driver overrides (e.g. when the assigned driver is unavailable) are planned for a future update.</span>
+        <span>A driver can be assigned as the primary driver for multiple vehicles simultaneously. When a vehicle is dispatched, the assigned driver is the default — this can be overridden per request if needed.</span>
     </div>
 
     {{-- Cards Grid --}}
@@ -229,16 +229,13 @@
 
                             @php
                                 $availableDrivers = $drivers->filter(function ($d) use ($vehicle) {
-                                    // 1. Must match location if specified
-                                    $locMatch = empty($vehicle->location) || empty($d->location) || $d->location === $vehicle->location;
-                                    // 2. Must be unassigned OR assigned to THIS vehicle
-                                    $isUnassignedOrCurrent = $d->assignedVehicles->isEmpty() || $d->assignedVehicles->pluck('id')->contains($vehicle->id);
-                                    return $locMatch && $isUnassignedOrCurrent;
+                                    // Only filter by location; a driver may be assigned to multiple vehicles
+                                    return empty($vehicle->location) || empty($d->location) || $d->location === $vehicle->location;
                                 });
                             @endphp
 
                             <div>
-                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PERMANENT DRIVER</label>
+                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PRIMARY DRIVER</label>
                                 <div class="relative">
                                     <select
                                         name="assigned_driver_id"
@@ -247,8 +244,12 @@
                                     >
                                         <option value="">Unassigned</option>
                                         @foreach ($availableDrivers as $driver)
+                                            @php
+                                                $vCount = $driver->assignedVehicles->count();
+                                                $countLabel = $vCount > 0 ? " ({$vCount} vehicle" . ($vCount > 1 ? 's' : '') . ")" : '';
+                                            @endphp
                                             <option value="{{ $driver->id }}" @selected($vehicle->assigned_driver_id === $driver->id)>
-                                                {{ $driver->name }}
+                                                {{ $driver->name }}{{ $countLabel }}
                                             </option>
                                         @endforeach
                                     </select>

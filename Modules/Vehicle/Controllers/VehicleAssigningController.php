@@ -76,11 +76,6 @@ class VehicleAssigningController
             if (!empty($vehicle->location) && !empty($driver->location) && $driver->location !== $vehicle->location) {
                 return back()->withErrors(['assigned_driver_id' => 'The selected driver is not assigned to ' . $vehicle->location . '.']);
             }
-
-            // Enforce 1 driver -> 1 vehicle limit: unassign from previous vehicle if any
-            Vehicle::where('assigned_driver_id', $driver->id)
-                ->where('id', '!=', $vehicle->id)
-                ->update(['assigned_driver_id' => null]);
         }
 
         $vehicle->update(['assigned_driver_id' => $data['assigned_driver_id'] ?? null]);
