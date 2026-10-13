@@ -16,51 +16,55 @@
     </div>
 @else
     {{-- LIST VIEW --}}
-    <div id="vehicle-view-list" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div id="vehicle-view-list" class="overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-xs">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-100 text-left text-xs">
-                <thead class="bg-gray-50 font-bold uppercase tracking-wider text-slate-400">
+                <thead class="bg-slate-50/80 text-[11px] font-black uppercase tracking-wider text-slate-400">
                     <tr>
-                        <th class="px-4 py-3 font-semibold">Plate</th>
-                        <th class="px-4 py-3 font-semibold">Brand / Model</th>
-                        <th class="px-4 py-3 font-semibold">Assigned Driver</th>
-                        <th class="px-4 py-3 font-semibold">Year</th>
-                        <th class="px-4 py-3 font-semibold">Color</th>
-                        <th class="px-4 py-3 font-semibold">Odometer</th>
-                        <th class="px-4 py-3 font-semibold">Health</th>
-                        <th class="px-4 py-3 font-semibold">Type</th>
-                        <th class="px-4 py-3 font-semibold">Fuel</th>
-                        <th class="px-4 py-3 font-semibold">Location</th>
-                        <th class="px-4 py-3 text-right font-semibold"></th>
+                        <th class="px-5 py-3.5 font-bold">Plate</th>
+                        <th class="px-4 py-3.5 font-bold">Vehicle</th>
+                        <th class="px-4 py-3.5 font-bold">Assigned Driver</th>
+                        <th class="px-3 py-3.5 font-bold">Year</th>
+                        <th class="px-3 py-3.5 font-bold">Color</th>
+                        <th class="px-4 py-3.5 font-bold">Odometer &amp; Service</th>
+                        <th class="px-4 py-3.5 font-bold">Health Score</th>
+                        <th class="px-3 py-3.5 font-bold">Type</th>
+                        <th class="px-3 py-3.5 font-bold">Fuel</th>
+                        <th class="px-4 py-3.5 font-bold">Location</th>
+                        <th class="px-5 py-3.5 text-right font-bold">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-slate-700">
                     @foreach ($vehicles as $vehicle)
-                        <tr class="vehicle-row hover:bg-slate-50/70 transition" data-category="{{ $vehicleCategory($vehicle->vehicle_type) }}">
+                        <tr class="vehicle-row hover:bg-slate-50/80 transition duration-150" data-category="{{ $vehicleCategory($vehicle->vehicle_type) }}">
                             {{-- Plate Number with vehicle thumbnail --}}
-                            <td class="whitespace-nowrap px-4 py-3 font-bold text-slate-900">
+                            <td class="whitespace-nowrap px-5 py-3.5">
                                 <div class="flex items-center gap-3">
                                     @if ($vehicle->photo_url)
-                                        <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->plate_number }}" class="h-9 w-12 shrink-0 rounded-lg object-cover border border-slate-100">
+                                        <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->plate_number }}" class="h-10 w-14 shrink-0 rounded-xl object-cover border border-slate-200/70 shadow-2xs">
                                     @else
-                                        <div class="flex h-9 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200/60">
+                                        <div class="flex h-10 w-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400 border border-slate-200/60 shadow-2xs">
                                             @include('vehicle::partials.vehicle-type-icon', ['type' => $vehicle->vehicle_type, 'class' => 'h-5 w-5', 'stroke' => '1.75'])
                                         </div>
                                     @endif
-                                    <span>{{ $vehicle->plate_number }}</span>
+                                    <div>
+                                        <span class="font-extrabold text-slate-900 text-sm tracking-tight block">{{ $vehicle->plate_number }}</span>
+                                        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{{ $vehicle->vehicle_type ?: 'Vehicle' }}</span>
+                                    </div>
                                 </div>
                             </td>
 
                             {{-- Brand / Model --}}
-                            <td class="whitespace-nowrap px-4 py-3 font-semibold text-slate-800">
-                                {{ $vehicle->brand }} {{ $vehicle->model }}
+                            <td class="whitespace-nowrap px-4 py-3.5 font-bold text-slate-800">
+                                <p class="text-xs">{{ $vehicle->brand }}</p>
+                                <p class="text-[11px] font-medium text-slate-500">{{ $vehicle->model }}</p>
                             </td>
 
                             {{-- Assigned Driver --}}
-                            <td class="whitespace-nowrap px-4 py-3">
+                            <td class="whitespace-nowrap px-4 py-3.5">
                                 @if ($vehicle->assignedDriver)
                                     <div class="flex items-center gap-2.5">
-                                        <div class="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#005a36] text-white text-xs font-bold">
+                                        <div class="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#005a36] text-white text-[11px] font-extrabold shadow-2xs">
                                             @if ($vehicle->assignedDriver->avatar_url)
                                                 <img src="{{ $vehicle->assignedDriver->avatar_url }}" alt="{{ $vehicle->assignedDriver->name }}" class="h-full w-full object-cover">
                                             @else
@@ -73,68 +77,85 @@
                                         </div>
                                     </div>
                                 @else
-                                    <span class="text-slate-400">—</span>
+                                    <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span> Unassigned
+                                    </span>
                                 @endif
                             </td>
 
-                            <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->year }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->color }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 font-medium">
-                                <div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-slate-800 font-bold" id="odo-display-{{ $vehicle->id }}">{{ number_format($vehicle->odometer) }} km</span>
+                            <td class="whitespace-nowrap px-3 py-3.5 text-slate-600 font-semibold">{{ $vehicle->year }}</td>
+                            <td class="whitespace-nowrap px-3 py-3.5 text-slate-600 font-medium">{{ $vehicle->color }}</td>
+
+                            {{-- Odometer & Oil status badge --}}
+                            <td class="whitespace-nowrap px-4 py-3.5">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-900 font-extrabold text-xs tracking-tight" id="odo-display-{{ $vehicle->id }}">{{ number_format($vehicle->odometer) }} km</span>
                                         <button
                                             type="button"
                                             onclick="openQuickOdometerModal({{ $vehicle->id }}, '{{ $vehicle->plate_number }}', {{ $vehicle->odometer }})"
-                                            class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer"
+                                            class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-900 transition border border-emerald-200/60 cursor-pointer shadow-2xs"
                                             title="Quick update odometer reading"
                                         >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                                             Update
                                         </button>
                                     </div>
                                     @php $oil = $vehicle->change_oil_status; @endphp
                                     @if ($oil['status'] === 'overdue')
-                                        <div class="mt-0.5 inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[10px] font-extrabold text-red-600" title="{{ $oil['label'] }}">
+                                        <div class="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[10px] font-extrabold text-red-600 shadow-2xs" title="{{ $oil['label'] }}">
                                             <span class="h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse"></span>
                                             <span>Oil Overdue</span>
                                         </div>
                                     @elseif ($oil['status'] === 'due_soon')
-                                        <div class="mt-0.5 inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-extrabold text-amber-700" title="{{ $oil['label'] }}">
+                                        <div class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-extrabold text-amber-700 shadow-2xs" title="{{ $oil['label'] }}">
                                             <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
                                             <span>Oil Due Soon</span>
                                         </div>
                                     @else
-                                        <div class="mt-0.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700" title="{{ $oil['label'] }}">
+                                        <div class="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shadow-2xs" title="{{ $oil['label'] }}">
+                                            <span class="h-1 w-1 rounded-full bg-emerald-600"></span>
                                             <span>Oil OK</span>
                                         </div>
                                     @endif
                                 </div>
                             </td>
+
+                            {{-- Health Score Progress Bar --}}
                             @php $health = $vehicle->health_score; @endphp
-                            <td class="whitespace-nowrap px-4 py-3">
-                                <div class="flex flex-col items-start gap-0.5">
+                            <td class="whitespace-nowrap px-4 py-3.5">
+                                <div class="flex flex-col items-start gap-1">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="text-xs font-extrabold
+                                        <span class="text-xs font-black
                                             {{ $health['color'] === 'emerald' ? 'text-emerald-700' : ($health['color'] === 'amber' ? 'text-amber-700' : 'text-red-700') }}">
                                             {{ $health['score'] }}%
                                         </span>
-                                        <span class="text-[10px] font-bold
-                                            {{ $health['color'] === 'emerald' ? 'text-emerald-600' : ($health['color'] === 'amber' ? 'text-amber-600' : 'text-red-600') }}">
+                                        <span class="rounded px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wide
+                                            {{ $health['color'] === 'emerald' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80' : ($health['color'] === 'amber' ? 'bg-amber-50 text-amber-800 border border-amber-200/80' : 'bg-red-50 text-red-800 border border-red-200/80') }}">
                                             {{ $health['label'] }}
                                         </span>
                                     </div>
-                                    <div class="h-1.5 w-20 rounded-full bg-slate-100 overflow-hidden">
-                                        <div class="h-full rounded-full transition-all
+                                    <div class="h-1.5 w-24 rounded-full bg-slate-100 overflow-hidden border border-slate-200/40">
+                                        <div class="h-full rounded-full transition-all duration-300
                                             {{ $health['color'] === 'emerald' ? 'bg-emerald-500' : ($health['color'] === 'amber' ? 'bg-amber-400' : 'bg-red-500') }}"
                                             style="width: {{ $health['score'] }}%"></div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->vehicle_type ?: '—' }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->fuel_type ?: '—' }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-slate-500 font-medium">{{ $vehicle->location ?: '—' }}</td>
 
-                            <td class="whitespace-nowrap px-4 py-3 text-right">
+                            <td class="whitespace-nowrap px-3 py-3.5">
+                                <span class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 border border-slate-200/60">{{ $vehicle->vehicle_type ?: '—' }}</span>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-3.5 text-slate-500 font-medium">{{ $vehicle->fuel_type ?: '—' }}</td>
+
+                            <td class="whitespace-nowrap px-4 py-3.5">
+                                <span class="inline-flex items-center gap-1 text-slate-700 font-semibold text-[11px]">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    {{ $vehicle->location ?: '—' }}
+                                </span>
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-3.5 text-right">
                                 <x-vehicle::row-actions :vehicle="$vehicle" />
                             </td>
                         </tr>
