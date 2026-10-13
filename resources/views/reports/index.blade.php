@@ -109,6 +109,147 @@
         @endforeach
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════════════════ --}}
+    {{-- CARMIND-STYLE COST PER KM & PERIOD INSIGHTS --}}
+    {{-- ══════════════════════════════════════════════════════════════════════ --}}
+    @php
+        $ca = $costAnalysis ?? [
+            'total_spent' => 0, 'fuel_spent' => 0, 'maint_spent' => 0, 'total_km' => 0,
+            'cost_per_km' => 0, 'entry_count' => 0, 'prev_spent' => 0, 'diff_cost' => 0,
+            'diff_direction' => 'more', 'pct_change' => 0, 'vehicles' => [], 'insights' => []
+        ];
+    @endphp
+
+    <div class="grid gap-4 xl:grid-cols-3">
+        {{-- Hero Cost Card --}}
+        <section class="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-900 to-[#004d2e] p-5 text-white shadow-md xl:col-span-1 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between border-b border-emerald-700/60 pb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-200">Total Spent &middot; {{ $rangeLabels[$range] ?? 'Period' }}</span>
+                    <span class="rounded-full bg-emerald-800/80 px-2 py-0.5 text-[10px] font-extrabold text-emerald-100 ring-1 ring-emerald-500/30">
+                        {{ $ca['entry_count'] }} entries
+                    </span>
+                </div>
+
+                {{-- Big Amount --}}
+                <div class="mt-4">
+                    <p class="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                        ₱{{ number_format($ca['total_spent'], 2) }}
+                    </p>
+                    @if($ca['prev_spent'] > 0)
+                        <p class="mt-1 flex items-center gap-1.5 text-xs font-bold {{ $ca['diff_direction'] === 'more' ? 'text-amber-300' : 'text-emerald-200' }}">
+                            <span>{{ $ca['diff_direction'] === 'more' ? '▲' : '▼' }}</span>
+                            <span>₱{{ number_format($ca['diff_cost'], 2) }} ({{ $ca['pct_change'] }}%) {{ $ca['diff_direction'] }} than previous period</span>
+                        </p>
+                    @else
+                        <p class="mt-1 text-xs text-emerald-300/80">No prior period spending recorded for comparison.</p>
+                    @endif
+                </div>
+
+                {{-- Cost per km & Distance boxes --}}
+                <div class="mt-6 grid grid-cols-2 gap-3">
+                    <div class="rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Cost per km</p>
+                        <p class="mt-1 text-xl font-black text-white">₱{{ number_format($ca['cost_per_km'], 2) }}</p>
+                        <p class="text-[10px] text-emerald-200/80">Fuel &amp; service rate</p>
+                    </div>
+                    <div class="rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Distance</p>
+                        <p class="mt-1 text-xl font-black text-white">{{ number_format($ca['total_km'], 1) }} km</p>
+                        <p class="text-[10px] text-emerald-200/80">Logged trips</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-emerald-700/60 flex items-center justify-between text-[11px] text-emerald-200/80">
+                <span>Fuel: <strong>₱{{ number_format($ca['fuel_spent'], 2) }}</strong></span>
+                <span>Maintenance: <strong>₱{{ number_format($ca['maint_spent'], 2) }}</strong></span>
+            </div>
+        </section>
+
+        {{-- Insights & Breakdown (2 cols) --}}
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2 flex flex-col justify-between">
+            <div>
+                <div class="mb-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 12h5l3 7 4-14 3 7h5"/></svg>
+                        </span>
+                        <h3 class="text-sm font-extrabold text-slate-900">Period Insights</h3>
+                    </div>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 uppercase tracking-wide">Worth a Look</span>
+                </div>
+
+                {{-- Smart Insight Cards --}}
+                <div class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                    @forelse($ca['insights'] as $ins)
+                        @php
+                            $toneClass = match($ins['tone']) {
+                                'amber'   => 'border-amber-200 bg-amber-50/60 text-amber-900',
+                                'emerald' => 'border-emerald-200 bg-emerald-50/60 text-emerald-900',
+                                'violet'  => 'border-violet-200 bg-violet-50/60 text-violet-900',
+                                default   => 'border-sky-200 bg-sky-50/60 text-sky-900',
+                            };
+                            $tagClass = match($ins['tone']) {
+                                'amber'   => 'text-amber-700',
+                                'emerald' => 'text-emerald-700',
+                                'violet'  => 'text-violet-700',
+                                default   => 'text-sky-700',
+                            };
+                        @endphp
+                        <div class="rounded-xl border p-3 {{ $toneClass }}">
+                            <p class="text-[9px] font-black uppercase tracking-wider {{ $tagClass }}">{{ $ins['tag'] }}</p>
+                            <p class="mt-1 text-xs font-bold">{{ $ins['title'] }}</p>
+                            <p class="mt-0.5 text-[11px] opacity-80 leading-snug">{{ $ins['desc'] }}</p>
+                        </div>
+                    @empty
+                        <div class="col-span-3 py-6 text-center text-xs text-slate-400">
+                            Log vehicle trips with distance and card transactions to generate insights.
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- Top Vehicles by Cost Table Preview --}}
+                @if(!empty($ca['vehicles']))
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-800">Top Vehicles by Spend</span>
+                            <span class="text-[11px] text-slate-400">Showing top {{ min(4, count($ca['vehicles'])) }} vehicles</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="text-[10px] font-extrabold uppercase text-slate-400 border-b border-slate-100">
+                                        <th class="py-1.5 pr-2">Plate</th>
+                                        <th class="py-1.5 pr-2">Model</th>
+                                        <th class="py-1.5 pr-2 text-right">Distance</th>
+                                        <th class="py-1.5 pr-2 text-right">Total Spent</th>
+                                        <th class="py-1.5 text-right">Cost / km</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    @foreach(array_slice($ca['vehicles'], 0, 4) as $vRow)
+                                        <tr class="hover:bg-slate-50/60">
+                                            <td class="py-2 pr-2 font-bold text-slate-900">{{ $vRow['plate'] }}</td>
+                                            <td class="py-2 pr-2 text-slate-600">{{ $vRow['label'] }}</td>
+                                            <td class="py-2 pr-2 text-right text-slate-600">{{ number_format($vRow['total_km'], 1) }} km</td>
+                                            <td class="py-2 pr-2 text-right font-bold text-slate-900">₱{{ number_format($vRow['total_spent'], 2) }}</td>
+                                            <td class="py-2 text-right font-extrabold text-emerald-700">₱{{ number_format($vRow['cost_per_km'], 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <div class="mt-3 pt-2 text-right text-[11px] text-slate-400">
+                Formula: Total Spent (Fuel + Maintenance) &divide; Total Distance (km)
+            </div>
+        </section>
+    </div>
+
     {{-- Super Admin only: office comparison --}}
     @if($isSuperAdmin && ! $location && isset($locationBreakdown))
         @php $maxTrips = max(1, collect($locationBreakdown)->max('trips')); @endphp

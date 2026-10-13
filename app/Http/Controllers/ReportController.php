@@ -109,6 +109,7 @@ class ReportController extends Controller
             'statusBreakdown' => $this->reportService->statusBreakdown($summary),
             'tripLog' => $this->reportService->tripLog($location, $start, $end),
             'maintenanceLog' => $this->reportService->maintenanceLog($location, $start, $end),
+            'costAnalysis' => $this->reportService->costPerKmAnalysis($location, $start, $end),
             'generatedBy' => $user->name,
             'generatedAt' => now(),
             'scopeLabel' => $location ?: 'All Offices',
