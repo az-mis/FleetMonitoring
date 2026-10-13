@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleRequest\Models\VehicleRequest;
+use Modules\VehicleRequest\Models\TripTicketCompletion;
 use Modules\VehicleRequest\Requests\StoreVehicleRequest;
 use Modules\Maintenance\Models\VehicleMaintenance;
 use App\Models\User;
@@ -33,7 +34,7 @@ class VehicleRequestController
         $perPage = (int) $request->input('per_page', 10);
 
         $baseQuery = VehicleRequest::query()
-            ->with(['vehicle', 'confirmedDriver', 'approvedBy'])
+            ->with(['vehicle', 'confirmedDriver', 'approvedBy', 'completion'])
             ->when($location, fn ($builder) => $builder->where('location', $location));
 
         $counts = [
@@ -524,4 +525,149 @@ class VehicleRequestController
 
         return view('public.check-status', ['requestRecord' => $record]);
     }
+
+    public function lookupTripByTicketNumber(Request $request): JsonResponse
+    {
+        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
+
+        $queryStr = trim($request->string('ticket_number')->toString());
+        if (!$queryStr) {
+            return response()->json(['error' => 'Please provide a Trip Ticket Number.'], 422);
+        }
+
+        $user = $request->user();
+        $isSuperAdmin = $user->role === UserRole::SUPER_ADMIN;
+
+        $trip = VehicleRequest::query()
+            ->with(['vehicle', 'confirmedDriver', 'completion'])
+            ->where('status', 'approved')
+            ->where(function ($q) use ($queryStr) {
+                $q->where('trip_ticket_number', $queryStr)
+                  ->orWhere('trip_ticket_number', 'like', "%{$queryStr}%")
+                  ->orWhere('reference_code', $queryStr);
+            })
+            ->when(!$isSuperAdmin, fn ($q) => $q->where('location', $user->location))
+            ->first();
+
+        if (!$trip) {
+            return response()->json(['error' => "No approved trip found matching '{$queryStr}'." . (!$isSuperAdmin ? " (Filtered by your location: {$user->location})" : "")], 404);
+        }
+
+        $vehicle = $trip->vehicle;
+        $driver = $trip->confirmedDriver ?: $vehicle?->assignedDriver;
+
+        return response()->json([
+            'trip' => [
+                'id' => $trip->id,
+                'trip_ticket_number' => $trip->trip_ticket_number,
+                'reference_code' => $trip->reference_code,
+                'requester_name' => $trip->requester_name,
+                'location' => $trip->location,
+                'destination' => $trip->destination,
+                'travel_date' => $trip->travel_date->format('M d, Y') . ($trip->travel_date_end ? (' – ' . $trip->travel_date_end->format('M d, Y')) : ''),
+                'purpose' => $trip->purpose,
+                'vehicle_id' => $vehicle?->id,
+                'vehicle_plate' => $vehicle?->plate_number,
+                'vehicle_name' => $vehicle ? "{$vehicle->brand} {$vehicle->model}" : 'Unassigned',
+                'vehicle_odometer' => (float) ($vehicle?->odometer ?? 0),
+                'driver_id' => $driver?->id,
+                'driver_name' => $driver?->name ?? 'Unassigned',
+                'has_completion' => (bool) $trip->completion,
+                'completion' => $trip->completion,
+            ]
+        ]);
+    }
+
+    public function storeTripCompletion(Request $request, VehicleRequest $vehicleRequest): JsonResponse|RedirectResponse
+    {
+        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
+        if ($request->user()->role === UserRole::ADMIN && $vehicleRequest->location !== $request->user()->location) {
+            abort(403, 'Unauthorized location access.');
+        }
+
+        $data = $request->validate([
+            'departure_garage_time'     => ['nullable', 'string', 'max:50'],
+            'arrival_destination_time'  => ['nullable', 'string', 'max:50'],
+            'departure_destination_time'=> ['nullable', 'string', 'max:50'],
+            'arrival_garage_time'       => ['nullable', 'string', 'max:50'],
+
+            'odo_beginning'             => ['required', 'numeric', 'min:0'],
+            'odo_ending'                => ['required', 'numeric', 'gte:odo_beginning'],
+            'distance_travelled'        => ['nullable', 'numeric', 'min:0'],
+
+            'fuel_divisor'              => ['nullable', 'numeric', 'gt:0'],
+            'fuel_used_liters'          => ['nullable', 'numeric', 'min:0'],
+
+            'fuel_balance_in_tank'      => ['nullable', 'numeric', 'min:0'],
+            'fuel_issued_office'        => ['nullable', 'numeric', 'min:0'],
+            'fuel_purchased_trip'       => ['nullable', 'numeric', 'min:0'],
+            'fuel_total_liters'         => ['nullable', 'numeric', 'min:0'],
+            'fuel_ending_balance'       => ['nullable', 'numeric'],
+
+            'gear_oil_issued'           => ['nullable', 'numeric', 'min:0'],
+            'lub_oil_issued'            => ['nullable', 'numeric', 'min:0'],
+            'grease_issued'             => ['nullable', 'numeric', 'min:0'],
+
+            'remarks'                   => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $odoBeg = (float) $data['odo_beginning'];
+        $odoEnd = (float) $data['odo_ending'];
+        $distance = max(0, $odoEnd - $odoBeg);
+
+        $divisor = !empty($data['fuel_divisor']) ? (float) $data['fuel_divisor'] : null;
+        $fuelUsed = ($divisor && $divisor > 0) ? round($distance / $divisor, 2) : (float) ($data['fuel_used_liters'] ?? 0);
+
+        $balTank = (float) ($data['fuel_balance_in_tank'] ?? 0);
+        $issuedOffice = (float) ($data['fuel_issued_office'] ?? 0);
+        $purchasedTrip = (float) ($data['fuel_purchased_trip'] ?? 0);
+        $totalLiters = $balTank + $issuedOffice + $purchasedTrip;
+        $endingBal = round($totalLiters - $fuelUsed, 2);
+
+        $completion = TripTicketCompletion::updateOrCreate(
+            ['vehicle_request_id' => $vehicleRequest->id],
+            [
+                'trip_ticket_number'        => $vehicleRequest->trip_ticket_number ?? ('TRIP-' . $vehicleRequest->id),
+                'vehicle_id'                => $vehicleRequest->vehicle_id,
+                'driver_id'                 => $vehicleRequest->confirmed_driver_id ?: $vehicleRequest->vehicle?->assigned_driver_id,
+                'departure_garage_time'     => $data['departure_garage_time'] ?? null,
+                'arrival_destination_time'  => $data['arrival_destination_time'] ?? null,
+                'departure_destination_time'=> $data['departure_destination_time'] ?? null,
+                'arrival_garage_time'       => $data['arrival_garage_time'] ?? null,
+                'odo_beginning'             => $odoBeg,
+                'odo_ending'                => $odoEnd,
+                'distance_travelled'        => $distance,
+                'fuel_divisor'              => $divisor,
+                'fuel_used_liters'          => $fuelUsed,
+                'fuel_balance_in_tank'      => $balTank,
+                'fuel_issued_office'        => $issuedOffice,
+                'fuel_purchased_trip'       => $purchasedTrip,
+                'fuel_total_liters'         => $totalLiters,
+                'fuel_ending_balance'       => $endingBal,
+                'gear_oil_issued'           => $data['gear_oil_issued'] ?? null,
+                'lub_oil_issued'            => $data['lub_oil_issued'] ?? null,
+                'grease_issued'             => $data['grease_issued'] ?? null,
+                'remarks'                   => $data['remarks'] ?? null,
+                'completed_by'              => $request->user()->id,
+            ]
+        );
+
+        // Auto-update the vehicle's current odometer if the trip end odometer is higher
+        if ($vehicleRequest->vehicle && $odoEnd > $vehicleRequest->vehicle->odometer) {
+            $vehicleRequest->vehicle->update([
+                'odometer' => (int) round($odoEnd),
+            ]);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Trip Ticket {$vehicleRequest->trip_ticket_number} completion successfully recorded!",
+                'completion' => $completion,
+            ]);
+        }
+
+        return back()->with('success', "Trip Ticket {$vehicleRequest->trip_ticket_number} completion logged successfully!");
+    }
 }
+

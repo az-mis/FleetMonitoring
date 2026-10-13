@@ -19,4 +19,6 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
     Route::get('/vehicle-requests', [VehicleRequestController::class, 'index'])->name('vehicle-requests.index');
     Route::patch('/vehicle-requests/{vehicleRequest}/status', [VehicleRequestController::class, 'updateStatus'])->name('vehicle-requests.status');
     Route::post('/vehicle-requests/admin-create', [VehicleRequestController::class, 'adminStore'])->name('vehicle-requests.admin-create');
+    Route::get('/vehicle-requests/lookup-trip', [VehicleRequestController::class, 'lookupTripByTicketNumber'])->name('vehicle-requests.lookup-trip');
+    Route::post('/vehicle-requests/{vehicleRequest}/complete-trip', [VehicleRequestController::class, 'storeTripCompletion'])->name('vehicle-requests.complete-trip');
 });

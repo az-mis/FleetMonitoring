@@ -106,6 +106,19 @@
                 </div>
                 @endif
 
+                {{-- Search & Complete Trip Ticket Button --}}
+                <button
+                    type="button"
+                    onclick="openTripCompletionSearchModal()"
+                    class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 text-xs font-bold text-emerald-800 shadow-xs hover:bg-emerald-100 transition cursor-pointer"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m12 6 0 6 4 2"/>
+                    </svg>
+                    <span>Post-Trip Log</span>
+                </button>
+
                 {{-- New Request Button --}}
                 <button
                     type="button"
@@ -539,6 +552,10 @@
                                             'trip_ticket_number' => $item->trip_ticket_number,
                                             'approved_by_name' => $item->approvedBy?->name,
                                             'trip_ticket_url' => $item->trip_ticket_number ? route('trip-ticket', $item) : null,
+                                            'has_completion' => (bool) $item->completion,
+                                            'completion' => $item->completion,
+                                            'vehicle_id' => $item->vehicle_id,
+                                            'vehicle_odometer' => (float) ($item->vehicle?->odometer ?? 0),
                                         ];
                                     @endphp
 
@@ -560,6 +577,18 @@
                                                 View
                                             </button>
                                             @if($item->status === 'approved')
+                                                <button
+                                                    type="button"
+                                                    onclick='openTripCompletionModalFromRow(@json($modalData))'
+                                                    class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+                                                    title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <path d="m12 6 0 6 4 2"/>
+                                                    </svg>
+                                                    <span>{{ $item->completion ? 'Part B Log' : 'Log Part B' }}</span>
+                                                </button>
                                                 <a
                                                     href="{{ route('trip-ticket', $item) }}"
                                                     target="_blank"
@@ -623,6 +652,336 @@
             </div>
         </div>
     @endif
+
+    {{-- Modal 1: Search & Lookup Trip Ticket by Number --}}
+    <div id="trip-search-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+        <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-slate-100 flex flex-col">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">Post-Trip Log Lookup</h3>
+                        <p class="text-[11px] text-slate-500">Find an approved trip to log Part B</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTripCompletionSearchModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none cursor-pointer">&times;</button>
+            </div>
+
+            <div class="mt-4 space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Enter Trip Ticket No. or Ref Code</label>
+                    <div class="flex gap-2">
+                        <input
+                            type="text"
+                            id="lookup-ticket-input"
+                            placeholder="e.g. 26-10-004 or FMS-PAL-2026..."
+                            class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold text-slate-800 uppercase focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); performTripLookup(); }"
+                        >
+                        <button
+                            type="button"
+                            onclick="performTripLookup()"
+                            id="lookup-search-btn"
+                            class="rounded-xl bg-emerald-700 hover:bg-emerald-800 px-4 py-2 text-xs font-bold text-white transition cursor-pointer"
+                        >
+                            Find
+                        </button>
+                    </div>
+                    <p id="lookup-ticket-error" class="mt-1.5 hidden text-xs font-semibold text-red-600"></p>
+                </div>
+
+                {{-- Preview Card --}}
+                <div id="lookup-preview-box" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span id="preview-ticket-badge" class="font-mono text-xs font-extrabold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded-md"></span>
+                        <span id="preview-status-badge" class="text-[10px] font-bold text-emerald-800"></span>
+                    </div>
+                    <div class="text-xs text-slate-700 space-y-0.5">
+                        <p><span class="text-slate-500 font-medium">Vehicle:</span> <strong id="preview-vehicle-plate" class="text-slate-900"></strong> <span id="preview-vehicle-name" class="text-slate-500"></span></p>
+                        <p><span class="text-slate-500 font-medium">Driver:</span> <strong id="preview-driver" class="text-slate-900"></strong></p>
+                        <p><span class="text-slate-500 font-medium">Destination:</span> <span id="preview-destination" class="font-semibold text-slate-800"></span></p>
+                        <p><span class="text-slate-500 font-medium">Travel Date:</span> <span id="preview-travel-date" class="text-slate-600"></span></p>
+                    </div>
+                    <div class="pt-2 border-t border-emerald-200/70 flex justify-end">
+                        <button
+                            type="button"
+                            onclick="proceedToTripCompletionFromLookup()"
+                            class="w-full rounded-lg bg-emerald-800 hover:bg-emerald-900 py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center"
+                        >
+                            Open Part B Completion Form &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal 2: Part B Trip Ticket Completion & Computation Modal --}}
+    <div id="trip-completion-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-xs">
+        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden max-h-[94vh] flex flex-col">
+            {{-- Header --}}
+            <div class="flex items-center justify-between border-b border-gray-100 bg-emerald-50/50 px-5 py-3.5">
+                <div class="flex items-center gap-2.5">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">Trip Ticket Completion (Part B: Driver's Record)</h3>
+                        <p class="text-[11px] text-slate-500">Auto-calculate distance, fuel used, and tank balances</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTripCompletionModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
+            </div>
+
+            {{-- Body --}}
+            <form id="trip-completion-form" onsubmit="handleTripCompletionSubmit(event)" class="overflow-y-auto px-5 py-4 space-y-4 flex-1 text-xs">
+                @csrf
+                <input type="hidden" id="tc-request-id" name="vehicle_request_id">
+
+                {{-- Trip Summary Badge --}}
+                <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-3 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">TRIP TICKET</span>
+                            <span id="tc-ticket-number-badge" class="font-mono font-extrabold text-xs text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded"></span>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-600">
+                            Vehicle: <strong id="tc-vehicle-display" class="text-slate-900"></strong> &middot;
+                            Driver: <span id="tc-driver-display" class="font-bold text-slate-800"></span>
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Destination</span>
+                        <span id="tc-destination-display" class="font-bold text-slate-800 truncate max-w-[200px] block"></span>
+                    </div>
+                </div>
+
+                {{-- Section 1: Times --}}
+                <div class="rounded-xl border border-slate-200 p-3 space-y-2">
+                    <h4 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                        <span class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-600">1</span>
+                        Trip Departure & Arrival Times
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">1. Time Departure for Office/Garage</label>
+                            <input type="text" id="tc-dep-garage" name="departure_garage_time" placeholder="e.g. 5:15 am" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">2. Time Arrival at Destination</label>
+                            <input type="text" id="tc-arr-dest" name="arrival_destination_time" placeholder="e.g. 9:35 am" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">3. Time Departure from Destination</label>
+                            <input type="text" id="tc-dep-dest" name="departure_destination_time" placeholder="e.g. 3:55 pm" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">4. Time Arrival Back at Garage</label>
+                            <input type="text" id="tc-arr-garage" name="arrival_garage_time" placeholder="e.g. 7:40 pm" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Section 2: Speedometer & Distance Calculation --}}
+                <div class="rounded-xl border border-blue-200 bg-blue-50/40 p-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-extrabold text-blue-950 text-xs flex items-center gap-1.5">
+                            <span class="flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-[10px] font-black text-blue-800">2</span>
+                            Speedometer Readings (Odometer)
+                        </h4>
+                        <span class="text-[10px] font-bold text-blue-700">Auto-computes distance</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">At Beginning of Trip (km)</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                id="tc-odo-beg"
+                                name="odo_beginning"
+                                required
+                                oninput="calcTripTicketMath()"
+                                placeholder="e.g. 267220"
+                                class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">At End of Trip (km)</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                id="tc-odo-end"
+                                name="odo_ending"
+                                required
+                                oninput="calcTripTicketMath()"
+                                placeholder="e.g. 267650"
+                                class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-extrabold text-blue-900 mb-0.5">⚡ Distance Travelled (km)</label>
+                            <div class="h-8 rounded-lg bg-blue-100 border border-blue-300 px-3 flex items-center justify-between font-extrabold text-blue-900 text-xs">
+                                <span id="tc-calc-distance-display">0.00 km</span>
+                                <input type="hidden" id="tc-distance" name="distance_travelled" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Section 3: Fuel Computation with Admin Custom Divisor --}}
+                <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-3 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-extrabold text-amber-950 text-xs flex items-center gap-1.5">
+                            <span class="flex h-4 w-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-black text-amber-900">3</span>
+                            Fuel Consumption Calculation
+                        </h4>
+                        <span class="text-[10px] text-amber-800 font-semibold">(Distance &divide; Divisor = Liters Used)</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                        <div>
+                            <label class="block text-[11px] font-bold text-amber-900 mb-0.5">
+                                Fuel Divisor (km / Liter)
+                                <span class="font-normal text-amber-700">(Admin input, e.g. 8)</span>
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                id="tc-fuel-divisor"
+                                name="fuel_divisor"
+                                oninput="calcTripTicketMath()"
+                                placeholder="Enter divisor (e.g. 8)"
+                                class="w-full rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-950 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-extrabold text-amber-950 mb-0.5">Deduct: Used During Trip (Liters)</label>
+                            <div class="h-8 rounded-lg bg-amber-100 border border-amber-300 px-3 flex items-center justify-between font-extrabold text-amber-950 text-xs">
+                                <span id="tc-fuel-used-display">0.00 L</span>
+                                <input type="hidden" id="tc-fuel-used" name="fuel_used_liters" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Fuel Tank Ledger --}}
+                    <div class="pt-2 border-t border-amber-200/80 space-y-2">
+                        <p class="text-[11px] font-bold text-amber-900">Gasoline Accounting (Liters):</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">a. Balance in tank (L)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-fuel-bal-start"
+                                    name="fuel_balance_in_tank"
+                                    oninput="calcTripTicketMath()"
+                                    placeholder="e.g. 20.37"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">b. Issued from stock (L)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-fuel-issued"
+                                    name="fuel_issued_office"
+                                    oninput="calcTripTicketMath()"
+                                    placeholder="e.g. 54.11"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">c. Purchased during trip (L)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-fuel-purchased"
+                                    name="fuel_purchased_trip"
+                                    oninput="calcTripTicketMath()"
+                                    placeholder="e.g. 0.00"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
+                                >
+                            </div>
+                        </div>
+
+                        {{-- Total and Ending Balance Badges --}}
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <div class="rounded-lg bg-white border border-amber-200 px-3 py-1.5 flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-600">TOTAL LITERS (a+b+c):</span>
+                                <span id="tc-fuel-total-display" class="font-black text-xs text-slate-900">0.00 L</span>
+                                <input type="hidden" id="tc-fuel-total" name="fuel_total_liters" value="0">
+                            </div>
+                            <div class="rounded-lg bg-emerald-100 border border-emerald-300 px-3 py-1.5 flex items-center justify-between">
+                                <span class="text-[11px] font-extrabold text-emerald-900">e. ENDING BALANCE IN TANK:</span>
+                                <span id="tc-fuel-end-display" class="font-black text-xs text-emerald-900">0.00 L</span>
+                                <input type="hidden" id="tc-fuel-end" name="fuel_ending_balance" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Section 4: Other consumables & Remarks --}}
+                <div class="rounded-xl border border-slate-200 p-3 space-y-2.5">
+                    <h4 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                        <span class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-600">4</span>
+                        Other Consumables & Remarks (Optional)
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">7. Gear Oil (L)</label>
+                            <input type="number" step="0.01" id="tc-gear-oil" name="gear_oil_issued" placeholder="Liters" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">8. Lub Oil (L)</label>
+                            <input type="number" step="0.01" id="tc-lub-oil" name="lub_oil_issued" placeholder="Liters" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">9. Grease (L)</label>
+                            <input type="number" step="0.01" id="tc-grease" name="grease_issued" placeholder="Liters" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">11. Remarks</label>
+                        <textarea id="tc-remarks" name="remarks" rows="2" placeholder="Any trip remarks or notes..." class="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"></textarea>
+                    </div>
+                </div>
+
+                {{-- Footer Buttons --}}
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button
+                        type="button"
+                        onclick="closeTripCompletionModal()"
+                        class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        id="tc-submit-btn"
+                        class="inline-flex items-center gap-1.5 rounded-xl bg-[#005a36] hover:bg-[#00432a] px-5 py-2 text-xs font-extrabold text-white shadow-xs transition cursor-pointer"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        <span>Save Completed Trip Log</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     {{-- Review Request Modal --}}
     <div id="review-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-xs">
@@ -2599,5 +2958,206 @@
             }
         });
 
+        // ===== Trip Ticket Completion (Part B) Modal Logic =====
+        let currentLookupTrip = null;
+
+        function openTripCompletionSearchModal() {
+            document.getElementById('lookup-ticket-input').value = '';
+            document.getElementById('lookup-ticket-error').classList.add('hidden');
+            document.getElementById('lookup-preview-box').classList.add('hidden');
+            currentLookupTrip = null;
+
+            const modal = document.getElementById('trip-search-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => document.getElementById('lookup-ticket-input').focus(), 50);
+        }
+
+        function closeTripCompletionSearchModal() {
+            document.getElementById('trip-search-modal').classList.add('hidden');
+        }
+
+        async function performTripLookup() {
+            const input = document.getElementById('lookup-ticket-input');
+            const val = input.value.trim();
+            const errEl = document.getElementById('lookup-ticket-error');
+            const previewBox = document.getElementById('lookup-preview-box');
+            const btn = document.getElementById('lookup-search-btn');
+
+            errEl.classList.add('hidden');
+            previewBox.classList.add('hidden');
+            currentLookupTrip = null;
+
+            if (!val) {
+                errEl.textContent = 'Please enter a trip ticket number or reference code.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block animate-spin">⏳</span> Finding...`;
+
+            try {
+                const res = await fetch(`{{ route('vehicle-requests.lookup-trip') }}?ticket_number=${encodeURIComponent(val)}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || 'No matching approved trip found.');
+                }
+
+                currentLookupTrip = data.trip;
+
+                // Populate preview
+                document.getElementById('preview-ticket-badge').textContent = currentLookupTrip.trip_ticket_number || currentLookupTrip.reference_code;
+                document.getElementById('preview-status-badge').textContent = currentLookupTrip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
+                document.getElementById('preview-vehicle-plate').textContent = currentLookupTrip.vehicle_plate || 'No Plate';
+                document.getElementById('preview-vehicle-name').textContent = currentLookupTrip.vehicle_name ? `(${currentLookupTrip.vehicle_name})` : '';
+                document.getElementById('preview-driver').textContent = currentLookupTrip.driver_name;
+                document.getElementById('preview-destination').textContent = currentLookupTrip.destination;
+                document.getElementById('preview-travel-date').textContent = currentLookupTrip.travel_date;
+
+                previewBox.classList.remove('hidden');
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Find';
+            }
+        }
+
+        function proceedToTripCompletionFromLookup() {
+            if (!currentLookupTrip) return;
+            closeTripCompletionSearchModal();
+            populateAndOpenTripCompletionModal(currentLookupTrip);
+        }
+
+        function openTripCompletionModalFromRow(tripData) {
+            populateAndOpenTripCompletionModal({
+                id: tripData.id,
+                trip_ticket_number: tripData.trip_ticket_number,
+                vehicle_plate: tripData.vehicle,
+                vehicle_odometer: tripData.vehicle_odometer || 0,
+                driver_name: tripData.driver_name,
+                destination: tripData.destination,
+                completion: tripData.completion
+            });
+        }
+
+        function populateAndOpenTripCompletionModal(trip) {
+            const form = document.getElementById('trip-completion-form');
+            form.action = `/vehicle-requests/${trip.id}/complete-trip`;
+            document.getElementById('tc-request-id').value = trip.id;
+
+            // Badges & displays
+            document.getElementById('tc-ticket-number-badge').textContent = trip.trip_ticket_number || 'N/A';
+            document.getElementById('tc-vehicle-display').textContent = trip.vehicle_plate || trip.vehicle_name || 'Vehicle';
+            document.getElementById('tc-driver-display').textContent = trip.driver_name || 'Driver';
+            document.getElementById('tc-destination-display').textContent = trip.destination || '';
+
+            const c = trip.completion || {};
+
+            // Times
+            document.getElementById('tc-dep-garage').value = c.departure_garage_time || '';
+            document.getElementById('tc-arr-dest').value = c.arrival_destination_time || '';
+            document.getElementById('tc-dep-dest').value = c.departure_destination_time || '';
+            document.getElementById('tc-arr-garage').value = c.arrival_garage_time || '';
+
+            // Speedometer: if not set yet, pre-fill beginning odometer from vehicle's odometer
+            const defaultBeg = c.odo_beginning !== undefined && c.odo_beginning !== null ? c.odo_beginning : (trip.vehicle_odometer || 0);
+            document.getElementById('tc-odo-beg').value = defaultBeg > 0 ? defaultBeg : '';
+            document.getElementById('tc-odo-end').value = c.odo_ending || '';
+
+            // Fuel Divisor & Fuel Math
+            document.getElementById('tc-fuel-divisor').value = c.fuel_divisor || '';
+            document.getElementById('tc-fuel-bal-start').value = c.fuel_balance_in_tank || '';
+            document.getElementById('tc-fuel-issued').value = c.fuel_issued_office || '';
+            document.getElementById('tc-fuel-purchased').value = c.fuel_purchased_trip || '';
+
+            // Other consumables
+            document.getElementById('tc-gear-oil').value = c.gear_oil_issued || '';
+            document.getElementById('tc-lub-oil').value = c.lub_oil_issued || '';
+            document.getElementById('tc-grease').value = c.grease_issued || '';
+            document.getElementById('tc-remarks').value = c.remarks || '';
+
+            calcTripTicketMath();
+
+            document.getElementById('trip-completion-modal').classList.remove('hidden');
+        }
+
+        function closeTripCompletionModal() {
+            document.getElementById('trip-completion-modal').classList.add('hidden');
+        }
+
+        function calcTripTicketMath() {
+            const beg = parseFloat(document.getElementById('tc-odo-beg').value) || 0;
+            const end = parseFloat(document.getElementById('tc-odo-end').value) || 0;
+
+            const dist = end > beg ? (end - beg) : 0;
+            document.getElementById('tc-distance').value = dist.toFixed(2);
+            document.getElementById('tc-calc-distance-display').textContent = `${dist.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} km`;
+
+            // Fuel Divisor (Km per Liter) entered by admin
+            const divisor = parseFloat(document.getElementById('tc-fuel-divisor').value) || 0;
+            let fuelUsed = 0;
+            if (divisor > 0 && dist > 0) {
+                fuelUsed = dist / divisor;
+            }
+            document.getElementById('tc-fuel-used').value = fuelUsed.toFixed(2);
+            document.getElementById('tc-fuel-used-display').textContent = `${fuelUsed.toFixed(2)} L`;
+
+            // Tank Accounting
+            const balStart = parseFloat(document.getElementById('tc-fuel-bal-start').value) || 0;
+            const issued = parseFloat(document.getElementById('tc-fuel-issued').value) || 0;
+            const purchased = parseFloat(document.getElementById('tc-fuel-purchased').value) || 0;
+
+            const totalFuel = balStart + issued + purchased;
+            const endingBal = Math.max(0, totalFuel - fuelUsed);
+
+            document.getElementById('tc-fuel-total').value = totalFuel.toFixed(2);
+            document.getElementById('tc-fuel-total-display').textContent = `${totalFuel.toFixed(2)} L`;
+
+            document.getElementById('tc-fuel-end').value = endingBal.toFixed(2);
+            document.getElementById('tc-fuel-end-display').textContent = `${endingBal.toFixed(2)} L`;
+        }
+
+        async function handleTripCompletionSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('tc-submit-btn');
+
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = `<span>Saving...</span>`;
+
+            try {
+                const formData = new FormData(form);
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || form.querySelector('input[name="_token"]').value
+                    },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    const errorMsg = data.errors ? Object.values(data.errors).flat().join('\n') : (data.error || 'Failed to save completion.');
+                    alert(errorMsg);
+                    return;
+                }
+
+                closeTripCompletionModal();
+                // Reload to refresh table status & vehicle odometer
+                window.location.reload();
+            } catch (err) {
+                alert('An error occurred while saving: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
     </script>
 @endsection

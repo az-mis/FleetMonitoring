@@ -45,4 +45,9 @@ class VehicleRequest extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'approved_by');
     }
+
+    public function completion(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TripTicketCompletion::class, 'vehicle_request_id');
+    }
 }
