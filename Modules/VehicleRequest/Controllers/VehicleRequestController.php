@@ -531,12 +531,56 @@ class VehicleRequestController
         abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
 
         $queryStr = trim($request->string('ticket_number')->toString());
+        $user = $request->user();
+        $isSuperAdmin = $user->role === UserRole::SUPER_ADMIN;
+
+        // If 'suggest' parameter is passed or general autocomplete
+        if ($request->boolean('suggest') || $request->has('q')) {
+            $search = trim($request->string('q', $queryStr)->toString());
+            $results = VehicleRequest::query()
+                ->with(['vehicle', 'confirmedDriver', 'completion'])
+                ->where('status', 'approved')
+                ->when($search, function ($q) use ($search) {
+                    $q->where(function ($sq) use ($search) {
+                        $sq->where('trip_ticket_number', 'like', "%{$search}%")
+                           ->orWhere('reference_code', 'like', "%{$search}%")
+                           ->orWhere('requester_name', 'like', "%{$search}%")
+                           ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate_number', 'like', "%{$search}%"));
+                    });
+                })
+                ->when(!$isSuperAdmin, fn ($q) => $q->where('location', $user->location))
+                ->latest()
+                ->limit(8)
+                ->get()
+                ->map(function ($trip) {
+                    $v = $trip->vehicle;
+                    $d = $trip->confirmedDriver ?: $v?->assignedDriver;
+                    return [
+                        'id' => $trip->id,
+                        'trip_ticket_number' => $trip->trip_ticket_number,
+                        'reference_code' => $trip->reference_code,
+                        'requester_name' => $trip->requester_name,
+                        'location' => $trip->location,
+                        'destination' => $trip->destination,
+                        'travel_date' => $trip->travel_date->format('M d, Y') . ($trip->travel_date_end ? (' – ' . $trip->travel_date_end->format('M d, Y')) : ''),
+                        'purpose' => $trip->purpose,
+                        'vehicle_id' => $v?->id,
+                        'vehicle_plate' => $v?->plate_number,
+                        'vehicle_name' => $v ? "{$v->brand} {$v->model}" : 'Unassigned',
+                        'vehicle_odometer' => (float) ($v?->odometer ?? 0),
+                        'driver_id' => $d?->id,
+                        'driver_name' => $d?->name ?? 'Unassigned',
+                        'has_completion' => (bool) $trip->completion,
+                        'completion' => $trip->completion,
+                    ];
+                });
+
+            return response()->json(['suggestions' => $results]);
+        }
+
         if (!$queryStr) {
             return response()->json(['error' => 'Please provide a Trip Ticket Number.'], 422);
         }
-
-        $user = $request->user();
-        $isSuperAdmin = $user->role === UserRole::SUPER_ADMIN;
 
         $trip = VehicleRequest::query()
             ->with(['vehicle', 'confirmedDriver', 'completion'])

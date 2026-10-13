@@ -673,14 +673,16 @@
             </div>
 
             <div class="mt-4 space-y-3">
-                <div>
+                <div class="relative">
                     <label class="block text-xs font-bold text-slate-700 mb-1">Enter Trip Ticket No. or Ref Code</label>
                     <div class="flex gap-2">
                         <input
                             type="text"
                             id="lookup-ticket-input"
+                            autocomplete="off"
                             placeholder="e.g. 26-10-004 or FMS-PAL-2026..."
                             class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold text-slate-800 uppercase focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            oninput="onLookupInputTyped(this.value)"
                             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); performTripLookup(); }"
                         >
                         <button
@@ -692,6 +694,12 @@
                             Find
                         </button>
                     </div>
+
+                    {{-- Live Autocomplete Suggestions Dropdown --}}
+                    <div id="lookup-suggestions-box" class="absolute left-0 right-14 z-50 mt-1 hidden max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl space-y-1">
+                        {{-- Suggestions rendered via JS --}}
+                    </div>
+
                     <p id="lookup-ticket-error" class="mt-1.5 hidden text-xs font-semibold text-red-600"></p>
                 </div>
 
@@ -2960,11 +2968,13 @@
 
         // ===== Trip Ticket Completion (Part B) Modal Logic =====
         let currentLookupTrip = null;
+        let lookupDebounceTimer = null;
 
         function openTripCompletionSearchModal() {
             document.getElementById('lookup-ticket-input').value = '';
             document.getElementById('lookup-ticket-error').classList.add('hidden');
             document.getElementById('lookup-preview-box').classList.add('hidden');
+            hideLookupSuggestions();
             currentLookupTrip = null;
 
             const modal = document.getElementById('trip-search-modal');
@@ -2974,6 +2984,93 @@
 
         function closeTripCompletionSearchModal() {
             document.getElementById('trip-search-modal').classList.add('hidden');
+            hideLookupSuggestions();
+        }
+
+        function hideLookupSuggestions() {
+            const box = document.getElementById('lookup-suggestions-box');
+            if (box) {
+                box.classList.add('hidden');
+                box.innerHTML = '';
+            }
+        }
+
+        function onLookupInputTyped(val) {
+            clearTimeout(lookupDebounceTimer);
+            document.getElementById('lookup-ticket-error').classList.add('hidden');
+            document.getElementById('lookup-preview-box').classList.add('hidden');
+
+            const query = (val || '').trim();
+            if (!query) {
+                hideLookupSuggestions();
+                return;
+            }
+
+            lookupDebounceTimer = setTimeout(() => {
+                fetchLookupSuggestions(query);
+            }, 250);
+        }
+
+        async function fetchLookupSuggestions(query) {
+            const box = document.getElementById('lookup-suggestions-box');
+            try {
+                const res = await fetch(`{{ route('vehicle-requests.lookup-trip') }}?suggest=1&q=${encodeURIComponent(query)}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                const list = data.suggestions || [];
+
+                if (list.length === 0) {
+                    box.innerHTML = `<div class="p-2.5 text-center text-[11px] text-slate-400 font-medium">No approved trip tickets found matching "${query}"</div>`;
+                    box.classList.remove('hidden');
+                    return;
+                }
+
+                box.innerHTML = list.map(item => `
+                    <div
+                        onclick='selectTripSuggestion(${JSON.stringify(item).replace(/'/g, "&apos;")})'
+                        class="flex items-center justify-between p-2 rounded-lg hover:bg-emerald-50 cursor-pointer transition border border-transparent hover:border-emerald-200"
+                    >
+                        <div class="min-w-0 pr-2">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-mono text-xs font-black text-emerald-900 bg-emerald-100 px-1.5 py-0.2 rounded">${item.trip_ticket_number || item.reference_code}</span>
+                                <span class="text-[11px] font-bold text-slate-800 truncate">${item.requester_name}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-0.5 truncate">
+                                ${item.vehicle_plate ? `🚗 ${item.vehicle_plate}` : ''}
+                                ${item.destination ? ` &bull; 📍 ${item.destination}` : ''}
+                            </p>
+                        </div>
+                        <div class="shrink-0 text-right">
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ${item.has_completion ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}">
+                                ${item.has_completion ? 'Logged' : 'Ready'}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+
+                box.classList.remove('hidden');
+            } catch (err) {
+                console.error('Failed to load suggestions:', err);
+                hideLookupSuggestions();
+            }
+        }
+
+        function selectTripSuggestion(trip) {
+            hideLookupSuggestions();
+            document.getElementById('lookup-ticket-input').value = trip.trip_ticket_number || trip.reference_code;
+            currentLookupTrip = trip;
+
+            // Populate preview card
+            document.getElementById('preview-ticket-badge').textContent = trip.trip_ticket_number || trip.reference_code;
+            document.getElementById('preview-status-badge').textContent = trip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
+            document.getElementById('preview-vehicle-plate').textContent = trip.vehicle_plate || 'No Plate';
+            document.getElementById('preview-vehicle-name').textContent = trip.vehicle_name ? `(${trip.vehicle_name})` : '';
+            document.getElementById('preview-driver').textContent = trip.driver_name;
+            document.getElementById('preview-destination').textContent = trip.destination;
+            document.getElementById('preview-travel-date').textContent = trip.travel_date;
+
+            document.getElementById('lookup-preview-box').classList.remove('hidden');
         }
 
         async function performTripLookup() {
