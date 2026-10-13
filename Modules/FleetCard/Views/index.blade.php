@@ -579,52 +579,21 @@
                 </div>
             </div>
 
-            {{-- SEARCHABLE VEHICLE PICKER WITH PHOTO FOR EDIT MODAL --}}
-            <div class="relative" id="edit-vehicle-picker">
-                <label class="block text-xs font-bold text-gray-700 mb-1">Assigned Vehicle</label>
-                <select name="vehicle_id" id="edit-field-vehicle-id" tabindex="-1" aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 h-px w-full opacity-0">
-                    <option value="">-- Unassigned --</option>
-                    @foreach($vehicles as $v)
-                        <option value="{{ $v->id }}">{{ $v->plate_number }} – {{ $v->brand }} {{ $v->model }}</option>
-                    @endforeach
-                </select>
+            {{-- READ-ONLY ASSIGNED VEHICLE DISPLAY FOR EDIT MODAL --}}
+            <div id="edit-vehicle-picker">
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    Assigned Vehicle
+                    <span class="ml-1 text-[10px] font-normal text-gray-400">(cannot be changed)</span>
+                </label>
 
-                <button type="button" id="edit-vp-trigger" onclick="toggleEditVehiclePicker()" class="flex w-full items-center gap-3 rounded-xl border border-gray-300 bg-white px-3 py-2 text-left text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                {{-- Hidden input so vehicle_id is still submitted with the form --}}
+                <input type="hidden" name="vehicle_id" id="edit-field-vehicle-id">
+
+                {{-- Read-only display tile --}}
+                <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 cursor-not-allowed">
                     <span id="edit-vp-thumb" class="hidden h-9 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-white"></span>
-                    <span id="edit-vp-label" class="min-w-0 flex-1 truncate text-gray-400">Select vehicle...</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
-
-                <div id="edit-vp-panel" class="absolute left-0 right-0 z-50 mt-1 hidden rounded-xl border border-gray-200 bg-white p-2 shadow-xl">
-                    <input type="text" id="edit-vp-search" oninput="filterEditVehiclePicker()" placeholder="Search plate or model..." class="mb-2 w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <div class="max-h-60 space-y-0.5 overflow-y-auto">
-                        <button type="button" onclick="pickEditVehicle('')" class="edit-vp-opt flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-xs font-semibold text-gray-500 hover:bg-emerald-50">
-                            -- Unassigned --
-                        </button>
-                        @foreach($vehicles as $v)
-                            <button type="button" onclick="pickEditVehicle('{{ $v->id }}')"
-                                class="edit-vp-opt flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition hover:bg-emerald-50"
-                                data-id="{{ $v->id }}"
-                                data-plate="{{ $v->plate_number }}"
-                                data-model="{{ trim($v->brand.' '.$v->model) }}"
-                                data-location="{{ $v->location }}"
-                                data-photo="{{ $v->photo_url ?? '' }}"
-                                data-search="{{ strtolower($v->plate_number.' '.$v->brand.' '.$v->model.' '.$v->location) }}">
-                                <span class="flex h-9 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-white">
-                                    @if(!empty($v->photo_url))
-                                        <img src="{{ $v->photo_url }}" alt="" class="h-full w-full object-contain">
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
-                                    @endif
-                                </span>
-                                <span class="min-w-0">
-                                    <span class="block text-xs font-bold text-gray-900">{{ $v->plate_number }}</span>
-                                    <span class="block truncate text-[11px] text-gray-500">{{ trim($v->brand.' '.$v->model) }} @if($v->location) &middot; {{ $v->location }} @endif</span>
-                                </span>
-                            </button>
-                        @endforeach
-                        <p id="edit-vp-empty" class="hidden px-3 py-3 text-center text-xs text-gray-400">No vehicles found.</p>
-                    </div>
+                    <span id="edit-vp-label" class="min-w-0 flex-1 truncate text-gray-400 text-xs">Unassigned</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="11" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
             </div>
 
@@ -797,7 +766,8 @@ function onEditLocationChange(loc) {
 
 function pickEditVehicle(id) {
     document.getElementById('edit-field-vehicle-id').value = id;
-    document.getElementById('edit-vp-panel').classList.add('hidden');
+    const panel = document.getElementById('edit-vp-panel');
+    if (panel) panel.classList.add('hidden');
 
     const thumb = document.getElementById('edit-vp-thumb');
     const label = document.getElementById('edit-vp-label');
