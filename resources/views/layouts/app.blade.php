@@ -498,18 +498,12 @@
                         <span class="sidebar-label">Destinations</span>
                     </a>
 
-                    @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
-                        <a href="{{ route('content-settings') }}" title="Content Settings" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('content-settings*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>
-                            <span class="sidebar-label">Content Settings</span>
-                        </a>
-                    @endif
                 @endif
             </nav>
 
             {{-- Logged-in user + logout --}}
             <div class="border-t border-white/10 px-3 py-3 space-y-2">
-                <a href="{{ route('my-profile') }}" title="My Profile" class="user-profile-link group flex items-center gap-3 rounded-lg px-2 py-1.5 transition {{ request()->routeIs('my-profile') ? 'sidebar-active text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                <div title="{{ $user?->name }}" class="user-profile-link flex items-center gap-3 rounded-lg px-2 py-1.5 text-gray-300 cursor-default select-none">
                     @if ($hasPhoto)
                         <img
                             src="{{ $user->avatar_url }}"
@@ -525,10 +519,7 @@
                         <p class="truncate text-xs font-bold text-white">{{ $user?->name }}</p>
                         <p class="truncate text-[11px] text-emerald-200/80">{{ $user?->role?->value === 'super_admin' ? 'Super Admin' : ($user?->role?->name ?? 'Admin') }}</p>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-label ml-auto h-4 w-4 shrink-0 text-emerald-200/60 transition group-hover:translate-x-0.5 group-hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m9 18 6-6-6-6"/>
-                    </svg>
-                </a>
+                </div>
 
                 <div class="logout-btn-container">
                     <button
@@ -818,21 +809,69 @@
                         </div>
                     </div>
 
-                    @if ($hasPhoto)
-                        <img
-                            src="{{ $user->avatar_url }}"
-                            alt="{{ $user->name }}"
-                            class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/40 sm:ring-emerald-100"
+                    {{-- Profile Dropdown --}}
+                    <div class="relative" x-data="{ open: false }">
+                        <button
+                            type="button"
+                            @click="open = !open"
+                            class="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
+                            title="{{ $user?->name }}"
                         >
-                    @else
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/40 sm:bg-gray-100 sm:ring-emerald-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white sm:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/>
-                                <path d="M4 21a8 8 0 0 1 16 0 1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
-                            </svg>
+                            @if ($hasPhoto)
+                                <img
+                                    src="{{ $user->avatar_url }}"
+                                    alt="{{ $user->name }}"
+                                    class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/40 sm:ring-emerald-100"
+                                >
+                            @else
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/40 sm:bg-gray-100 sm:ring-emerald-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white sm:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/>
+                                        <path d="M4 21a8 8 0 0 1 16 0 1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
+                                    </svg>
+                                </div>
+                            @endif
+                        </button>
+
+                        {{-- Dropdown menu --}}
+                        <div
+                            x-show="open"
+                            x-cloak
+                            @click.outside="open = false"
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl"
+                            style="display: none;"
+                        >
+                            {{-- User info header --}}
+                            <div class="mb-1 px-3 py-2 border-b border-slate-100">
+                                <p class="text-xs font-bold text-slate-800 truncate">{{ $user?->name }}</p>
+                                <p class="text-[11px] text-slate-500 truncate">{{ $user?->role?->value === 'super_admin' ? 'Super Admin' : ($user?->role?->name ?? 'Admin') }}</p>
+                            </div>
+
+                            <a
+                                href="{{ route('my-profile') }}"
+                                @click="open = false"
+                                class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('my-profile') ? 'bg-emerald-50 text-emerald-800' : '' }}"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                                My Profile
+                            </a>
+
+                            <a
+                                href="{{ route('content-settings') }}"
+                                @click="open = false"
+                                class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('content-settings*') ? 'bg-emerald-50 text-emerald-800' : '' }}"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>
+                                Settings
+                            </a>
                         </div>
-                    @endif
-                </div>
+                    </div>
             </header>
 
             <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
