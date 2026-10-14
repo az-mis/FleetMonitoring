@@ -22,6 +22,8 @@ class FleetCardLog extends Model
         'start_odometer',
         'end_odometer',
         'distance_km',
+        'liters_used',
+        'fuel_price_per_liter',
         'rate_peso_per_km',
         'consumed_amount',
         'balance_before',
@@ -32,6 +34,8 @@ class FleetCardLog extends Model
 
     protected $casts = [
         'distance_km' => 'decimal:2',
+        'liters_used' => 'decimal:2',
+        'fuel_price_per_liter' => 'decimal:2',
         'rate_peso_per_km' => 'decimal:4',
         'consumed_amount' => 'decimal:2',
         'balance_before' => 'decimal:2',

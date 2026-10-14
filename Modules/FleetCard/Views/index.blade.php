@@ -165,6 +165,9 @@
                                 <button type="button" onclick="openRechargeModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200">
                                     💳 Top Up
                                 </button>
+                                <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', '{{ addslashes($card->card_name) }}')" class="inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition border border-slate-200" title="View transaction history for this card">
+                                    📋 History
+                                </button>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button type="button" onclick="openEditCardModal({{ json_encode($card) }})" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition" title="Edit Parameters">
@@ -190,7 +193,7 @@
         $groupedLogs = $recentLogs->groupBy(fn ($log) => $log->created_at->format('F Y'));
     @endphp
 
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs space-y-4" x-data="{ activeCategory: 'all' }">
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs space-y-4" x-data="{ activeCategory: 'all' }" id="history-section">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
             <div>
                 <h3 class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
@@ -198,6 +201,11 @@
                     <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
                 </h3>
                 <p class="text-[11px] text-gray-400">Track fuel and service deductions grouped by month.</p>
+                {{-- Active card filter badge --}}
+                <div id="history-card-filter-badge" class="hidden mt-1 flex items-center gap-1.5">
+                    <span class="text-[11px] text-emerald-700 font-bold" id="history-card-filter-label"></span>
+                    <button type="button" onclick="clearHistoryCardFilter()" class="text-[10px] text-red-500 hover:text-red-700 font-bold underline cursor-pointer">✕ Clear filter</button>
+                </div>
             </div>
 
             {{-- Category Filter Pills (CarMind style: All, Fuel, PMS/Service, Parking, Top-up) --}}
@@ -250,13 +258,15 @@
                                         <th class="px-3 py-2">Card / Vehicle</th>
                                         <th class="px-3 py-2">Method</th>
                                         <th class="px-3 py-2">Distance</th>
-                                        <th class="px-3 py-2">Rate</th>
+                                        <th class="px-3 py-2">Liters Used</th>
+                                        <th class="px-3 py-2">Price/Liter</th>
                                         <th class="px-3 py-2">Amount</th>
                                         <th class="px-3 py-2">New Balance</th>
                                         <th class="px-3 py-2">Remarks</th>
+                                        <th class="px-3 py-2 text-center">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100 font-medium">
+                                <tbody class="divide-y divide-gray-100 font-medium" id="history-tbody">
                                     @foreach ($monthLogs as $log)
                                         @php
                                             $cat = $log->category ?: ($log->distance_source === 'recharge' ? 'topup' : 'fuel');
@@ -276,8 +286,11 @@
                                                 'topup'   => '💳 Top-up',
                                                 default   => '📦 Other',
                                             };
+                                            $isExpense = $log->distance_source !== 'recharge' && $log->consumed_amount > 0;
                                         @endphp
-                                        <tr class="hover:bg-gray-50/60 transition" x-show="activeCategory === 'all' || activeCategory === '{{ $cat }}'">
+                                        <tr class="hover:bg-gray-50/60 transition history-log-row"
+                                            data-card-id="{{ $log->fleet_card_id }}"
+                                            x-show="activeCategory === 'all' || activeCategory === '{{ $cat }}'">
                                             <td class="px-3 py-2.5 text-gray-400 whitespace-nowrap">{{ $log->created_at->format('M d, g:i A') }}</td>
                                             <td class="px-3 py-2.5 whitespace-nowrap">
                                                 <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border {{ $catBadge }}">
@@ -294,20 +307,72 @@
                                                 @if($log->distance_source === 'odometer')
                                                     <span class="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-100">Odometer</span>
                                                 @elseif($log->distance_source === 'destination_master')
-                                                    <span class="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-100">Dest. Master</span>
+                                                    <span class="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-100">Trip Ticket</span>
                                                 @elseif($log->distance_source === 'recharge')
                                                     <span class="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
                                                 @else
                                                     <span class="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-bold text-gray-700 border border-gray-200">Manual</span>
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2.5 font-bold text-gray-800">{{ number_format($log->distance_km, 1) }} km</td>
-                                            <td class="px-3 py-2.5 text-gray-500">₱{{ number_format($log->rate_peso_per_km, 2) }}</td>
+                                            {{-- Distance column --}}
+                                            <td class="px-3 py-2.5 font-bold text-gray-800 whitespace-nowrap">
+                                                @if($log->distance_source !== 'recharge' && $log->distance_km > 0)
+                                                    {{ number_format($log->distance_km, 1) }} km
+                                                @else
+                                                    <span class="text-gray-300">—</span>
+                                                @endif
+                                            </td>
+                                            {{-- Liters Used column --}}
+                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                                @if($log->liters_used)
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-black text-amber-800">
+                                                        ⛽ {{ number_format($log->liters_used, 2) }} L
+                                                    </span>
+                                                @else
+                                                    <span class="text-gray-300">—</span>
+                                                @endif
+                                            </td>
+                                            {{-- Price/Liter column --}}
+                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                                @if($log->fuel_price_per_liter)
+                                                    <span class="text-slate-600 font-bold">₱{{ number_format($log->fuel_price_per_liter, 2) }}</span>
+                                                @else
+                                                    <span class="text-gray-300">—</span>
+                                                @endif
+                                            </td>
                                             <td class="px-3 py-2.5 font-black whitespace-nowrap {{ $log->consumed_amount < 0 ? 'text-emerald-600' : 'text-amber-800' }}">
                                                 {{ $log->consumed_amount < 0 ? '+₱' . number_format(abs($log->consumed_amount), 2) : '-₱' . number_format($log->consumed_amount, 2) }}
                                             </td>
                                             <td class="px-3 py-2.5 font-bold text-gray-900">₱{{ number_format($log->balance_after, 2) }}</td>
-                                            <td class="px-3 py-2.5 text-gray-500 max-w-xs truncate">{{ $log->remarks ?: '—' }}</td>
+                                            <td class="px-3 py-2.5 text-gray-500 max-w-[160px] truncate" title="{{ $log->remarks }}">{{ $log->remarks ?: '—' }}</td>
+                                            {{-- Actions column --}}
+                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                                <div class="flex items-center justify-center gap-1">
+                                                    {{-- View --}}
+                                                    <button type="button"
+                                                        onclick="viewLogDetail({{ json_encode($log) }})"
+                                                        class="rounded-md p-1.5 text-blue-500 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
+                                                        title="View details">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                    </button>
+                                                    {{-- Edit Remarks --}}
+                                                    <button type="button"
+                                                        onclick="editLogRemarks({{ $log->id }}, '{{ $log->fleetCard?->id }}', '{{ addslashes($log->remarks ?? '') }}')"
+                                                        class="rounded-md p-1.5 text-amber-500 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer"
+                                                        title="Edit remarks">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                    </button>
+                                                    {{-- Delete (expense only) --}}
+                                                    @if($isExpense)
+                                                        <button type="button"
+                                                            onclick="deleteExpenseLog({{ $log->fleetCard?->id }}, {{ $log->id }}, {{ $log->consumed_amount }})"
+                                                            class="rounded-md p-1.5 text-red-400 hover:bg-red-50 hover:text-red-700 transition cursor-pointer"
+                                                            title="Delete & restore balance">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -317,6 +382,39 @@
                 @endforeach
             </div>
         @endif
+    </div>
+</div>
+
+{{-- Log Detail Modal --}}
+<div id="log-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <h3 class="text-base font-extrabold text-gray-900">📋 Log Entry Details</h3>
+            <button type="button" onclick="closeLogDetailModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div id="log-detail-body" class="space-y-2 text-xs text-gray-700"></div>
+    </div>
+</div>
+
+{{-- Edit Log Remarks Modal --}}
+<div id="edit-log-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <h3 class="text-base font-extrabold text-gray-900">✏️ Edit Log Remarks</h3>
+            <button type="button" onclick="closeEditLogModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <form id="edit-log-form" method="POST" class="space-y-3">
+            @csrf
+            @method('PUT')
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Remarks / Notes</label>
+                <textarea id="edit-log-remarks-input" name="remarks" rows="3" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Enter remarks..."></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" onclick="closeEditLogModal()" class="rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-white hover:bg-amber-600">Save Remarks</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -1330,6 +1428,109 @@ function updateLiveCalc() {
     document.getElementById('live-consumed').innerText = '₱' + consumed.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('live-current-balance').innerText = '₱' + currentBal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('live-new-balance').innerText = '₱' + newBal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+// ── HISTORY CARD FILTER ──────────────────────────────────────────────
+let activeHistoryCardId = null;
+
+function filterHistoryByCard(cardId, cardName) {
+    activeHistoryCardId = String(cardId);
+    document.querySelectorAll('.history-log-row').forEach(row => {
+        const rowCardId = row.getAttribute('data-card-id');
+        row.style.display = (rowCardId === activeHistoryCardId) ? '' : 'none';
+    });
+    const badge = document.getElementById('history-card-filter-badge');
+    const label = document.getElementById('history-card-filter-label');
+    if (badge && label) {
+        label.innerText = '📋 Showing: ' + cardName;
+        badge.classList.remove('hidden');
+    }
+    // Scroll to history section
+    document.getElementById('history-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearHistoryCardFilter() {
+    activeHistoryCardId = null;
+    document.querySelectorAll('.history-log-row').forEach(row => {
+        row.style.display = '';
+    });
+    const badge = document.getElementById('history-card-filter-badge');
+    if (badge) badge.classList.add('hidden');
+}
+
+// ── LOG DETAIL MODAL ─────────────────────────────────────────────────
+function viewLogDetail(log) {
+    const body = document.getElementById('log-detail-body');
+    const fmt = v => v ? '₱' + parseFloat(v).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—';
+    const fmtNum = v => v ? parseFloat(v).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—';
+
+    const rows = [
+        ['Date', log.created_at ? new Date(log.created_at).toLocaleString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'}) : '—'],
+        ['Category', log.category || 'fuel'],
+        ['Method', log.distance_source],
+        ['Distance', log.distance_km > 0 ? fmtNum(log.distance_km) + ' km' : '—'],
+        ['Liters Used', log.liters_used ? fmtNum(log.liters_used) + ' L' : '—'],
+        ['Price per Liter', log.fuel_price_per_liter ? fmt(log.fuel_price_per_liter) : '—'],
+        ['Fuel Expense Consumed', log.consumed_amount > 0 ? fmt(log.consumed_amount) : '—'],
+        ['Balance Before', fmt(log.balance_before)],
+        ['Balance After', fmt(log.balance_after)],
+        ['Remarks', log.remarks || '—'],
+    ];
+
+    body.innerHTML = rows.map(([label, val]) => `
+        <div class="flex justify-between gap-3 py-1.5 border-b border-gray-100 last:border-0">
+            <span class="font-bold text-gray-500 shrink-0">${label}:</span>
+            <span class="font-semibold text-gray-900 text-right">${val}</span>
+        </div>
+    `).join('');
+
+    const modal = document.getElementById('log-detail-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeLogDetailModal() {
+    const modal = document.getElementById('log-detail-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// ── EDIT LOG REMARKS ─────────────────────────────────────────────────
+function editLogRemarks(logId, cardId, currentRemarks) {
+    document.getElementById('edit-log-form').action = '/fleet-cards/' + cardId + '/log/' + logId;
+    document.getElementById('edit-log-remarks-input').value = currentRemarks || '';
+    const modal = document.getElementById('edit-log-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeEditLogModal() {
+    const modal = document.getElementById('edit-log-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// ── DELETE EXPENSE LOG ───────────────────────────────────────────────
+async function deleteExpenseLog(cardId, logId, amount) {
+    const fmtAmt = parseFloat(amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    if (!confirm(`Delete this expense of ₱${fmtAmt}? The balance will be restored to the card.`)) return;
+
+    try {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            || document.querySelector('input[name="_token"]')?.value;
+
+        await fetch(`/fleet-cards/${cardId}/log/${logId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+            }
+        });
+
+        window.location.reload();
+    } catch (err) {
+        alert('Failed to delete expense log: ' + err.message);
+    }
 }
 </script>
 @endsection

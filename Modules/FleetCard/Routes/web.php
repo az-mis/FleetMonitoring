@@ -12,4 +12,6 @@ Route::middleware(['web', 'auth', 'verified'])->prefix('fleet-cards')->name('fle
     Route::post('/{fleetCard}/recharge', [FleetCardController::class, 'recharge'])->name('recharge');
     Route::delete('/{fleetCard}/recharge/{log}', [FleetCardController::class, 'destroyRecharge'])->name('destroy-recharge');
     Route::get('/{fleetCard}/preview-calc', [FleetCardController::class, 'previewCalc'])->name('preview-calc');
+    Route::delete('/{fleetCard}/log/{log}', [FleetCardController::class, 'destroyLog'])->name('destroy-log');
+    Route::put('/{fleetCard}/log/{log}', [FleetCardController::class, 'updateLog'])->name('update-log');
 });

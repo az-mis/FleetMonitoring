@@ -138,6 +138,7 @@ class FleetCardController extends Controller
             'start_odometer' => 'nullable|integer|min:0',
             'end_odometer' => 'nullable|integer|gt:start_odometer',
             'distance_km' => 'nullable|numeric|min:0',
+            'fuel_price_per_liter' => 'nullable|numeric|min:0',
             'vehicle_request_id' => 'nullable|exists:vehicle_requests,id',
             'remarks' => 'nullable|string|max:255',
         ]);
@@ -174,6 +175,46 @@ class FleetCardController extends Controller
     {
         $fleetCard->delete();
         return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card deleted successfully!');
+    }
+
+    /**
+     * Delete an expense log entry and revert card balance
+     */
+    public function destroyLog(Request $request, FleetCard $fleetCard, FleetCardLog $log): JsonResponse|RedirectResponse
+    {
+        abort_unless($log->fleet_card_id === $fleetCard->id, 403);
+        abort_if($log->distance_source === 'recharge', 400, 'Use destroy-recharge for top-up entries.');
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($fleetCard, $log) {
+            // Restore balance
+            $fleetCard->current_balance = min(
+                (float) $fleetCard->initial_budget,
+                (float) $fleetCard->current_balance + (float) $log->consumed_amount
+            );
+            $fleetCard->save();
+            $log->delete();
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Expense log deleted and balance restored.']);
+        }
+        return redirect()->route('fleet-cards.index')->with('success', 'Expense log deleted and balance restored!');
+    }
+
+    /**
+     * Update remarks on an expense log entry
+     */
+    public function updateLog(Request $request, FleetCard $fleetCard, FleetCardLog $log): RedirectResponse
+    {
+        abort_unless($log->fleet_card_id === $fleetCard->id, 403);
+
+        $validated = $request->validate([
+            'remarks' => 'nullable|string|max:500',
+        ]);
+
+        $log->update(['remarks' => $validated['remarks'] ?? $log->remarks]);
+
+        return redirect()->route('fleet-cards.index')->with('success', 'Log remarks updated!');
     }
 
     public function previewCalc(Request $request, FleetCard $fleetCard): JsonResponse

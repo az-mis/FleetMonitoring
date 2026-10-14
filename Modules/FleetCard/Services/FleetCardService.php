@@ -70,15 +70,28 @@ class FleetCardService
                 }
             }
 
-            $fuelPricePerLiter = isset($data['fuel_price_per_liter']) ? (float) $data['fuel_price_per_liter'] : 0.0;
+            $fuelPricePerLiter = isset($data['fuel_price_per_liter']) && (float) $data['fuel_price_per_liter'] > 0
+                ? (float) $data['fuel_price_per_liter']
+                : (float) $card->rate_peso;
+
             $costPerKm = $card->cost_per_km;
             $consumedAmount = 0.0;
+            $litersUsed = null;
+            $savedFuelPrice = null;
 
             if ($distanceSource === 'destination_master' && $vehicleRequestId) {
                 $vReq = VehicleRequest::with('completion')->find($vehicleRequestId);
+                
+                // Prioritize Part B completion actual distance travelled over estimated route distance
+                if ($vReq?->completion && (float) $vReq->completion->distance_travelled > 0) {
+                    $finalDistance = (float) $vReq->completion->distance_travelled;
+                }
+
                 $fuelUsed = (float) ($vReq?->completion?->fuel_used_liters ?? 0);
                 if ($fuelUsed > 0 && $fuelPricePerLiter > 0) {
                     $consumedAmount = round($fuelUsed * $fuelPricePerLiter, 2);
+                    $litersUsed = $fuelUsed;
+                    $savedFuelPrice = $fuelPricePerLiter;
                 } else {
                     $consumedAmount = round($finalDistance * $costPerKm, 2);
                 }
@@ -104,6 +117,8 @@ class FleetCardService
                 'start_odometer' => $startOdo,
                 'end_odometer' => $endOdo,
                 'distance_km' => $finalDistance,
+                'liters_used' => $litersUsed,
+                'fuel_price_per_liter' => $savedFuelPrice,
                 'rate_peso_per_km' => $costPerKm,
                 'consumed_amount' => $consumedAmount,
                 'balance_before' => $balanceBefore,
