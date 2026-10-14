@@ -581,16 +581,19 @@
                                 @php
                                     $ticketNum = $r->trip_ticket_number ?: $r->reference_code;
                                     $dist = 0;
-                                    if ($r->completion && (float)$r->completion->distance_travelled > 0) {
-                                        $dist = (float)$r->completion->distance_travelled;
+                                    $fuelUsed = 0;
+                                    if ($r->completion) {
+                                        $dist = (float) ($r->completion->distance_travelled ?? 0);
+                                        $fuelUsed = (float) ($r->completion->fuel_used_liters ?? 0);
                                     } elseif ((float)$r->distance_km > 0) {
                                         $dist = (float)$r->distance_km;
                                     }
                                     $searchText = strtolower("{$r->trip_ticket_number} {$r->reference_code} {$r->destination} {$r->requester_name}");
+                                    $labelDisplay = $ticketNum . ' — ' . $r->destination . ($fuelUsed > 0 ? " ({$fuelUsed} L used)" : ($dist > 0 ? " ({$dist} km)" : ''));
                                 @endphp
                                 <button
                                     type="button"
-                                    onclick="pickTripTicket('{{ $r->id }}', '{{ addslashes($ticketNum . ' — ' . $r->destination . ' (' . $dist . ' km)') }}', {{ $dist }})"
+                                    onclick="pickTripTicket('{{ $r->id }}', '{{ addslashes($labelDisplay) }}', {{ $dist }}, {{ $fuelUsed }})"
                                     class="tt-option-item w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 transition cursor-pointer flex flex-col gap-0.5"
                                     data-search="{{ $searchText }}"
                                 >
@@ -601,12 +604,18 @@
                                             @endif
                                             <span class="font-bold text-xs text-slate-900 truncate">{{ $r->reference_code }}</span>
                                         </div>
-                                        <span class="font-black text-xs text-emerald-700 shrink-0">{{ number_format($dist, 1) }} km</span>
+                                        @if($fuelUsed > 0)
+                                            <span class="font-black text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+                                                ⛽ {{ number_format($fuelUsed, 2) }} L
+                                            </span>
+                                        @else
+                                            <span class="font-black text-xs text-emerald-700 shrink-0">{{ number_format($dist, 1) }} km</span>
+                                        @endif
                                     </div>
                                     <div class="flex items-center justify-between gap-2 text-[10px] text-slate-500">
                                         <span class="truncate">{{ $r->destination }}</span>
                                         @if($r->completion)
-                                            <span class="text-blue-600 font-semibold shrink-0">✓ Completed Log</span>
+                                            <span class="text-blue-600 font-semibold shrink-0">✓ Completed Log ({{ number_format($dist, 1) }} km)</span>
                                         @endif
                                     </div>
                                 </button>
@@ -616,7 +625,7 @@
                     </div>
                 </div>
 
-                <p class="text-[11px] text-purple-700 italic">Distance is auto-retrieved from the completed trip log or measured destination distance.</p>
+                <p class="text-[11px] text-purple-700 italic">Fetches the actual Liters used from Part B completed trip log.</p>
             </div>
 
             {{-- Fields for Option 3: Manual Distance --}}
@@ -639,27 +648,68 @@
             </div>
 
             {{-- LIVE CALCULATION BOX --}}
-            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-2">
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-3">
                 <div class="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-emerald-900 border-b border-emerald-200/80 pb-1.5">
                     <span>⚡ Live Computation Summary</span>
                     <span id="live-rate-badge" class="rounded bg-white px-2 py-0.5 text-[10px] text-emerald-800 shadow-2xs">₱0/km</span>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-xs">
+
+                {{-- Option 2 View: Liters Used + Price/Liter Input -> Fuel Expense Consumed --}}
+                <div id="live-calc-trip-ticket-mode" class="hidden space-y-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                        <div>
+                            <span class="text-xs font-bold text-amber-900 block mb-1">Liters Used During Trip:</span>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-amber-100/60 overflow-hidden shadow-2xs">
+                                <span id="live-liters-used" class="w-full px-3 py-1.5 text-sm font-black text-amber-950 truncate">0.00</span>
+                                <span class="border-l border-amber-200 bg-amber-200/70 px-3 py-1.5 text-xs font-black text-amber-900 select-none shrink-0">
+                                    L
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-700 block mb-1">Fuel Price per Liter:</span>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                <span class="border-r border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs font-bold text-slate-600 select-none shrink-0">
+                                    ₱
+                                </span>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="expense-fuel-price-per-liter"
+                                    name="fuel_price_per_liter"
+                                    placeholder="e.g. 68.50"
+                                    oninput="updateLiveCalc()"
+                                    class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                                >
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1.5 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                    price/liter
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Option 1 & 3 View: Computed Distance --}}
+                <div id="live-calc-distance-mode" class="grid grid-cols-2 gap-2 text-xs">
                     <div>
                         <span class="text-emerald-700 font-medium">Computed Distance:</span>
                         <p class="font-extrabold text-emerald-950 text-base" id="live-distance">0.0 km</p>
                     </div>
-                    <div>
-                        <span class="text-emerald-700 font-medium">Fuel Expense Consumed:</span>
+                </div>
+
+                {{-- Fuel Consumed and Balances Grid --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-emerald-200/70 text-xs">
+                    <div class="rounded-xl bg-white/80 border border-emerald-200/70 p-2.5">
+                        <span class="text-emerald-700 font-bold block text-[11px]">Fuel Expense Consumed:</span>
                         <p class="font-black text-amber-800 text-base" id="live-consumed">₱0.00</p>
                     </div>
-                    <div>
-                        <span class="text-emerald-700 font-medium">Current Balance:</span>
-                        <p class="font-bold text-emerald-900" id="live-current-balance">₱0.00</p>
+                    <div class="rounded-xl bg-white/80 border border-emerald-200/70 p-2.5">
+                        <span class="text-emerald-700 font-bold block text-[11px]">Current Balance:</span>
+                        <p class="font-bold text-emerald-900 text-sm" id="live-current-balance">₱0.00</p>
                     </div>
-                    <div>
-                        <span class="text-emerald-700 font-medium">Balance After Expense:</span>
-                        <p class="font-extrabold text-emerald-900 text-sm" id="live-new-balance">₱0.00</p>
+                    <div class="rounded-xl bg-emerald-100/70 border border-emerald-300 p-2.5">
+                        <span class="text-emerald-800 font-bold block text-[11px]">Balance After Expense:</span>
+                        <p class="font-extrabold text-emerald-950 text-base" id="live-new-balance">₱0.00</p>
                     </div>
                 </div>
             </div>
@@ -1128,9 +1178,13 @@ function openExpenseModal(card) {
     document.getElementById('expense-end-odo').value = '';
     document.getElementById('expense-manual-km').value = '';
     
-    // Reset Trip Ticket picker
+    // Reset Trip Ticket picker & fuel price
     document.getElementById('expense-dest-select').value = '';
     document.getElementById('expense-dest-select').setAttribute('data-distance', '0');
+    document.getElementById('expense-dest-select').setAttribute('data-liters-used', '0');
+    const priceInput = document.getElementById('expense-fuel-price-per-liter');
+    if (priceInput) priceInput.value = '';
+
     const label = document.getElementById('tt-picker-label');
     if (label) {
         label.innerText = '-- Pick Trip Ticket / Destination --';
@@ -1157,6 +1211,12 @@ function toggleExpenseSourceFields() {
     document.getElementById('field-group-odometer').classList.toggle('hidden', source !== 'odometer');
     document.getElementById('field-group-destination').classList.toggle('hidden', source !== 'destination_master');
     document.getElementById('field-group-manual').classList.toggle('hidden', source !== 'manual');
+
+    // Toggle live calculation modes
+    const isTripTicket = source === 'destination_master';
+    document.getElementById('live-calc-trip-ticket-mode')?.classList.toggle('hidden', !isTripTicket);
+    document.getElementById('live-calc-distance-mode')?.classList.toggle('hidden', isTripTicket);
+
     updateLiveCalc();
 }
 
@@ -1190,10 +1250,11 @@ function filterTripTicketOptions() {
     document.getElementById('tt-empty-state')?.classList.toggle('hidden', count > 0);
 }
 
-function pickTripTicket(id, labelText, distance) {
+function pickTripTicket(id, labelText, distance, fuelUsed) {
     const hiddenInput = document.getElementById('expense-dest-select');
     hiddenInput.value = id;
-    hiddenInput.setAttribute('data-distance', distance);
+    hiddenInput.setAttribute('data-distance', distance || 0);
+    hiddenInput.setAttribute('data-liters-used', fuelUsed || 0);
 
     const label = document.getElementById('tt-picker-label');
     if (label) {
@@ -1221,31 +1282,68 @@ function updateLiveCalc() {
     if (!currentActiveCard) return;
 
     const source = document.getElementById('expense-source-select').value;
-    let distance = 0.0;
-
-    if (source === 'odometer') {
-        const start = parseFloat(document.getElementById('expense-start-odo').value) || 0;
-        const end = parseFloat(document.getElementById('expense-end-odo').value) || 0;
-        if (end > start) {
-            distance = end - start;
-        }
-    } else if (source === 'destination_master') {
-        const destInput = document.getElementById('expense-dest-select');
-        distance = parseFloat(destInput ? destInput.getAttribute('data-distance') : 0) || 0;
-    } else {
-        distance = parseFloat(document.getElementById('expense-manual-km').value) || 0;
-    }
-
     const ratePeso = parseFloat(currentActiveCard.rate_peso) || 0;
     const rateKm = parseFloat(currentActiveCard.rate_km) || 1;
     const costPerKm = rateKm > 0 ? (ratePeso / rateKm) : 0;
-
-    const consumed = distance * costPerKm;
     const currentBal = parseFloat(currentActiveCard.current_balance) || 0;
+
+    let consumed = 0.0;
+    let distance = 0.0;
+
+    if (source === 'destination_master') {
+        // Option 2: Base on Trip Ticket -> Liters Used * Price per Liter
+        const destInput = document.getElementById('expense-dest-select');
+        const litersUsed = parseFloat(destInput ? destInput.getAttribute('data-liters-used') : 0) || 0;
+        distance = parseFloat(destInput ? destInput.getAttribute('data-distance') : 0) || 0;
+
+        const pricePerLiter = parseFloat(document.getElementById('expense-fuel-price-per-liter')?.value) || 0;
+
+        // Display Liters used in the Live Computation Summary
+        const liveLitersEl = document.getElementById('live-liters-used');
+        if (liveLitersEl) {
+            liveLitersEl.innerText = litersUsed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        if (litersUsed > 0 && pricePerLiter > 0) {
+            consumed = litersUsed * pricePerLiter;
+        } else if (litersUsed === 0 && distance > 0) {
+            // Fallback to distance * costPerKm if no Part B completion logged yet
+            consumed = distance * costPerKm;
+        }
+
+        const rateBadge = document.getElementById('live-rate-badge');
+        if (rateBadge) {
+            rateBadge.innerText = pricePerLiter > 0
+                ? ('₱' + pricePerLiter.toFixed(2) + ' / L')
+                : ('₱' + costPerKm.toFixed(2) + ' / km');
+        }
+    } else {
+        // Option 1 & Option 3: Base on Distance
+        if (source === 'odometer') {
+            const start = parseFloat(document.getElementById('expense-start-odo').value) || 0;
+            const end = parseFloat(document.getElementById('expense-end-odo').value) || 0;
+            if (end > start) {
+                distance = end - start;
+            }
+        } else {
+            distance = parseFloat(document.getElementById('expense-manual-km').value) || 0;
+        }
+
+        consumed = distance * costPerKm;
+
+        const rateBadge = document.getElementById('live-rate-badge');
+        if (rateBadge) {
+            rateBadge.innerText = '₱' + costPerKm.toFixed(2) + ' / km';
+        }
+
+        const liveDistEl = document.getElementById('live-distance');
+        if (liveDistEl) {
+            liveDistEl.innerText = distance.toFixed(1) + ' km';
+        }
+    }
+
     const newBal = Math.max(0, currentBal - consumed);
 
-    document.getElementById('live-rate-badge').innerText = '₱' + costPerKm.toFixed(2) + ' / km';
-    document.getElementById('live-distance').innerText = distance.toFixed(1) + ' km';
     document.getElementById('live-consumed').innerText = '₱' + consumed.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('live-current-balance').innerText = '₱' + currentBal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('live-new-balance').innerText = '₱' + newBal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});

@@ -70,8 +70,21 @@ class FleetCardService
                 }
             }
 
+            $fuelPricePerLiter = isset($data['fuel_price_per_liter']) ? (float) $data['fuel_price_per_liter'] : 0.0;
             $costPerKm = $card->cost_per_km;
-            $consumedAmount = round($finalDistance * $costPerKm, 2);
+            $consumedAmount = 0.0;
+
+            if ($distanceSource === 'destination_master' && $vehicleRequestId) {
+                $vReq = VehicleRequest::with('completion')->find($vehicleRequestId);
+                $fuelUsed = (float) ($vReq?->completion?->fuel_used_liters ?? 0);
+                if ($fuelUsed > 0 && $fuelPricePerLiter > 0) {
+                    $consumedAmount = round($fuelUsed * $fuelPricePerLiter, 2);
+                } else {
+                    $consumedAmount = round($finalDistance * $costPerKm, 2);
+                }
+            } else {
+                $consumedAmount = round($finalDistance * $costPerKm, 2);
+            }
 
             $balanceBefore = (float) $card->current_balance;
             $balanceAfter = $balanceBefore - $consumedAmount;
