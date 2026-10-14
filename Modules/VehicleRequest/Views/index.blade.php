@@ -581,31 +581,19 @@
                                                 @php
                                                     $isFutureTrip = $item->travel_date->isFuture() && !$item->travel_date->isToday();
                                                 @endphp
-                                                @if($isFutureTrip)
-                                                    <span
-                                                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-400 cursor-not-allowed select-none"
-                                                        title="This trip is scheduled for {{ $item->travel_date->format('M d, Y') }}. Completion cannot be logged until the trip takes place."
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <circle cx="12" cy="12" r="10"/>
-                                                            <polyline points="12 6 12 12 16 14"/>
-                                                        </svg>
-                                                        <span>Upcoming</span>
-                                                    </span>
-                                                @else
-                                                    <button
-                                                        type="button"
-                                                        onclick='openTripCompletionModalFromRow(@json($modalData))'
-                                                        class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
-                                                        title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <circle cx="12" cy="12" r="10"/>
-                                                            <path d="m12 6 0 6 4 2"/>
-                                                        </svg>
-                                                        <span>{{ $item->completion ? 'Part B Log' : 'Log Part B' }}</span>
-                                                    </button>
-                                                @endif
+                                                {{-- TEMPORARY FOR TESTING: allow logging completion even if trip date is upcoming --}}
+                                                <button
+                                                    type="button"
+                                                    onclick='openTripCompletionModalFromRow(@json($modalData))'
+                                                    class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+                                                    title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <circle cx="12" cy="12" r="10"/>
+                                                        <path d="m12 6 0 6 4 2"/>
+                                                    </svg>
+                                                    <span>{{ $item->completion ? 'Part B Log' : 'Log Part B' }}</span>
+                                                </button>
                                                 <a
                                                     href="{{ route('trip-ticket', $item) }}"
                                                     target="_blank"
@@ -836,36 +824,49 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">At Beginning of Trip (km)</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                id="tc-odo-beg"
-                                name="odo_beginning"
-                                required
-                                oninput="calcTripTicketMath()"
-                                placeholder="e.g. 267220"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            >
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">At Beginning of Trip</label>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-odo-beg"
+                                    name="odo_beginning"
+                                    required
+                                    oninput="calcTripTicketMath()"
+                                    placeholder="e.g. 267220"
+                                    class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                >
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                    km
+                                </span>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">At End of Trip (km)</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                id="tc-odo-end"
-                                name="odo_ending"
-                                required
-                                oninput="calcTripTicketMath()"
-                                placeholder="e.g. 267650"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            >
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">At End of Trip</label>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-odo-end"
+                                    name="odo_ending"
+                                    required
+                                    oninput="calcTripTicketMath()"
+                                    placeholder="e.g. 267650"
+                                    class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                >
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                    km
+                                </span>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-extrabold text-blue-900 mb-0.5">⚡ Distance Travelled (km)</label>
-                            <div class="h-8 rounded-lg bg-blue-100 border border-blue-300 px-3 flex items-center justify-between font-extrabold text-blue-900 text-xs">
-                                <span id="tc-calc-distance-display">0.00 km</span>
+                            <label class="block text-[11px] font-extrabold text-blue-900 mb-1">⚡ Distance Travelled</label>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-emerald-50/40 overflow-hidden shadow-2xs">
+                                <span id="tc-calc-distance-display" class="w-full px-3 py-1.5 text-xs font-black text-emerald-950 truncate">0.00</span>
                                 <input type="hidden" id="tc-distance" name="distance_travelled" value="0">
+                                <span class="border-l border-emerald-200 bg-emerald-100/70 px-3 py-1.5 text-[11px] font-black text-emerald-800 select-none shrink-0">
+                                    km
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -883,25 +884,33 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
                         <div>
-                            <label class="block text-[11px] font-bold text-amber-900 mb-0.5">
-                                Fuel Divisor (km / Liter)
+                            <label class="block text-[11px] font-bold text-amber-900 mb-1">
+                                Fuel Divisor
                                 <span class="font-normal text-amber-700">(Admin input, e.g. 8)</span>
                             </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                id="tc-fuel-divisor"
-                                name="fuel_divisor"
-                                oninput="calcTripTicketMath()"
-                                placeholder="Enter divisor (e.g. 8)"
-                                class="w-full rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-950 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                            >
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-fuel-divisor"
+                                    name="fuel_divisor"
+                                    oninput="calcTripTicketMath()"
+                                    placeholder="e.g. 8"
+                                    class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-amber-950 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                >
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                    km/L
+                                </span>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-extrabold text-amber-950 mb-0.5">Deduct: Used During Trip (Liters)</label>
-                            <div class="h-8 rounded-lg bg-amber-100 border border-amber-300 px-3 flex items-center justify-between font-extrabold text-amber-950 text-xs">
-                                <span id="tc-fuel-used-display">0.00 L</span>
+                            <label class="block text-[11px] font-extrabold text-amber-950 mb-1">Deduct: Used During Trip</label>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-amber-100/60 overflow-hidden shadow-2xs">
+                                <span id="tc-fuel-used-display" class="w-full px-3 py-1.5 text-xs font-black text-amber-950 truncate">0.00</span>
                                 <input type="hidden" id="tc-fuel-used" name="fuel_used_liters" value="0">
+                                <span class="border-l border-amber-200 bg-amber-200/70 px-3 py-1.5 text-[11px] font-black text-amber-900 select-none shrink-0">
+                                    L
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -911,54 +920,79 @@
                         <p class="text-[11px] font-bold text-amber-900">Gasoline Accounting (Liters):</p>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div>
-                                <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">a. Balance in tank (L)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    id="tc-fuel-bal-start"
-                                    name="fuel_balance_in_tank"
-                                    oninput="calcTripTicketMath()"
-                                    placeholder="e.g. 20.37"
-                                    class="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
-                                >
+                                <label class="block text-[10px] font-semibold text-slate-600 mb-1">a. Balance in tank</label>
+                                <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        id="tc-fuel-bal-start"
+                                        name="fuel_balance_in_tank"
+                                        oninput="calcTripTicketMath()"
+                                        placeholder="e.g. 20.37"
+                                        class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                    >
+                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                        L
+                                    </span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">b. Issued from stock (L)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    id="tc-fuel-issued"
-                                    name="fuel_issued_office"
-                                    oninput="calcTripTicketMath()"
-                                    placeholder="e.g. 54.11"
-                                    class="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
-                                >
+                                <label class="block text-[10px] font-semibold text-slate-600 mb-1">b. Issued from stock</label>
+                                <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        id="tc-fuel-issued"
+                                        name="fuel_issued_office"
+                                        oninput="calcTripTicketMath()"
+                                        placeholder="e.g. 54.11"
+                                        class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                    >
+                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                        L
+                                    </span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">c. Purchased during trip (L)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    id="tc-fuel-purchased"
-                                    name="fuel_purchased_trip"
-                                    oninput="calcTripTicketMath()"
-                                    placeholder="e.g. 0.00"
-                                    class="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
-                                >
+                                <label class="block text-[10px] font-semibold text-slate-600 mb-1">c. Purchased during trip</label>
+                                <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        id="tc-fuel-purchased"
+                                        name="fuel_purchased_trip"
+                                        oninput="calcTripTicketMath()"
+                                        placeholder="e.g. 0.00"
+                                        class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                    >
+                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                        L
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
                         {{-- Total and Ending Balance Badges --}}
-                        <div class="grid grid-cols-2 gap-2 pt-1">
-                            <div class="rounded-lg bg-white border border-amber-200 px-3 py-1.5 flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-slate-600">TOTAL LITERS (a+b+c):</span>
-                                <span id="tc-fuel-total-display" class="font-black text-xs text-slate-900">0.00 L</span>
-                                <input type="hidden" id="tc-fuel-total" name="fuel_total_liters" value="0">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1">TOTAL LITERS (a+b+c)</label>
+                                <div class="flex items-center rounded-full border border-emerald-500 bg-slate-50 overflow-hidden shadow-2xs">
+                                    <span id="tc-fuel-total-display" class="w-full px-3 py-1.5 text-xs font-black text-slate-900 truncate">0.00</span>
+                                    <input type="hidden" id="tc-fuel-total" name="fuel_total_liters" value="0">
+                                    <span class="border-l border-slate-200 bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600 select-none shrink-0">
+                                        L
+                                    </span>
+                                </div>
                             </div>
-                            <div class="rounded-lg bg-emerald-100 border border-emerald-300 px-3 py-1.5 flex items-center justify-between">
-                                <span class="text-[11px] font-extrabold text-emerald-900">e. ENDING BALANCE IN TANK:</span>
-                                <span id="tc-fuel-end-display" class="font-black text-xs text-emerald-900">0.00 L</span>
-                                <input type="hidden" id="tc-fuel-end" name="fuel_ending_balance" value="0">
+                            <div>
+                                <label class="block text-[10px] font-extrabold text-emerald-900 mb-1">e. ENDING BALANCE IN TANK</label>
+                                <div class="flex items-center rounded-full border border-emerald-500 bg-emerald-50/70 overflow-hidden shadow-2xs">
+                                    <span id="tc-fuel-end-display" class="w-full px-3 py-1.5 text-xs font-black text-emerald-950 truncate">0.00</span>
+                                    <input type="hidden" id="tc-fuel-end" name="fuel_ending_balance" value="0">
+                                    <span class="border-l border-emerald-200 bg-emerald-100 px-3 py-1.5 text-[10px] font-black text-emerald-900 select-none shrink-0">
+                                        L
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -972,16 +1006,52 @@
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div>
-                            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">7. Gear Oil (L)</label>
-                            <input type="number" step="0.01" id="tc-gear-oil" name="gear_oil_issued" placeholder="Liters" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800">
+                            <label class="block text-[10px] font-semibold text-slate-600 mb-1">7. Gear Oil</label>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-gear-oil"
+                                    name="gear_oil_issued"
+                                    placeholder="e.g. 0.00"
+                                    class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                >
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                    L
+                                </span>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">8. Lub Oil (L)</label>
-                            <input type="number" step="0.01" id="tc-lub-oil" name="lub_oil_issued" placeholder="Liters" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800">
+                            <label class="block text-[10px] font-semibold text-slate-600 mb-1">8. Lub Oil</label>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-lub-oil"
+                                    name="lub_oil_issued"
+                                    placeholder="e.g. 0.00"
+                                    class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                >
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                    L
+                                </span>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">9. Grease (L)</label>
-                            <input type="number" step="0.01" id="tc-grease" name="grease_issued" placeholder="Liters" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-800">
+                            <label class="block text-[10px] font-semibold text-slate-600 mb-1">9. Grease</label>
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    id="tc-grease"
+                                    name="grease_issued"
+                                    placeholder="e.g. 0.00"
+                                    class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                                >
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                    L
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -3089,25 +3159,14 @@
             
             const statusBadge = document.getElementById('preview-status-badge');
             const futureNotice = document.getElementById('preview-future-notice');
-            const openBtn = document.getElementById('preview-open-form-btn');
-
-            if (trip.is_future) {
-                statusBadge.textContent = 'Scheduled / Upcoming';
-                statusBadge.className = 'text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full';
-                futureNotice.classList.remove('hidden');
-                openBtn.disabled = true;
-                openBtn.classList.remove('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
-                openBtn.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-                openBtn.textContent = 'Trip Not Yet Completed';
-            } else {
-                statusBadge.textContent = trip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
-                statusBadge.className = 'text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
-                futureNotice.classList.add('hidden');
-                openBtn.disabled = false;
-                openBtn.classList.add('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
-                openBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-                openBtn.textContent = 'Open Part B Completion Form →';
-            }
+            // TEMPORARY FOR TESTING: allow logging completion even if trip.is_future
+            statusBadge.textContent = trip.has_completion ? '✓ Part B Already Logged' : (trip.is_future ? 'Scheduled / Upcoming (Testing Enabled)' : 'Ready to Complete');
+            statusBadge.className = 'text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
+            futureNotice.classList.add('hidden');
+            openBtn.disabled = false;
+            openBtn.classList.add('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
+            openBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+            openBtn.textContent = 'Open Part B Completion Form →';
 
             document.getElementById('preview-vehicle-plate').textContent = trip.vehicle_plate || 'No Plate';
             document.getElementById('preview-vehicle-name').textContent = trip.vehicle_name ? `(${trip.vehicle_name})` : '';
@@ -3233,7 +3292,7 @@
 
             const dist = end > beg ? (end - beg) : 0;
             document.getElementById('tc-distance').value = dist.toFixed(2);
-            document.getElementById('tc-calc-distance-display').textContent = `${dist.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} km`;
+            document.getElementById('tc-calc-distance-display').textContent = dist.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // Fuel Divisor (Km per Liter) entered by admin
             const divisor = parseFloat(document.getElementById('tc-fuel-divisor').value) || 0;
@@ -3242,7 +3301,7 @@
                 fuelUsed = dist / divisor;
             }
             document.getElementById('tc-fuel-used').value = fuelUsed.toFixed(2);
-            document.getElementById('tc-fuel-used-display').textContent = `${fuelUsed.toFixed(2)} L`;
+            document.getElementById('tc-fuel-used-display').textContent = fuelUsed.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             // Tank Accounting
             const balStart = parseFloat(document.getElementById('tc-fuel-bal-start').value) || 0;
@@ -3253,10 +3312,10 @@
             const endingBal = Math.max(0, totalFuel - fuelUsed);
 
             document.getElementById('tc-fuel-total').value = totalFuel.toFixed(2);
-            document.getElementById('tc-fuel-total-display').textContent = `${totalFuel.toFixed(2)} L`;
+            document.getElementById('tc-fuel-total-display').textContent = totalFuel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             document.getElementById('tc-fuel-end').value = endingBal.toFixed(2);
-            document.getElementById('tc-fuel-end-display').textContent = `${endingBal.toFixed(2)} L`;
+            document.getElementById('tc-fuel-end-display').textContent = endingBal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         async function handleTripCompletionSubmit(e) {

@@ -141,17 +141,17 @@
                         {{-- Rate & Capacity Info Box --}}
                         <div class="grid grid-cols-2 gap-2 rounded-xl bg-gray-50 p-3 text-xs border border-gray-100">
                             <div>
-                                <span class="text-gray-400 font-medium">Consumption Rate:</span>
+                                <span class="text-gray-400 font-medium">Fuel Price:</span>
                                 <p class="font-extrabold text-gray-800">
-                                    ₱{{ number_format($card->rate_peso, 0) }} per {{ number_format($card->rate_km, 0) }} km
-                                    <span class="text-[11px] font-semibold text-emerald-700 block">(₱{{ number_format($card->cost_per_km, 2) }} / km)</span>
+                                    ₱{{ number_format($card->rate_peso, 2) }}
+                                    <span class="text-[11px] font-semibold text-emerald-700 block">per Liter</span>
                                 </p>
                             </div>
                             <div>
-                                <span class="text-gray-400 font-medium">Est. Distance Capacity:</span>
+                                <span class="text-gray-400 font-medium">Est. Fuel Capacity:</span>
                                 <p class="font-extrabold text-gray-800">
-                                    ~{{ number_format($card->remaining_km_capacity, 1) }} km
-                                    <span class="text-[11px] font-semibold text-gray-500 block">Remaining range</span>
+                                    ~{{ $card->rate_peso > 0 ? number_format((float)$card->current_balance / (float)$card->rate_peso, 1) : 0 }} L
+                                    <span class="text-[11px] font-semibold text-gray-500 block">Available fuel capacity</span>
                                 </p>
                             </div>
                         </div>
@@ -411,41 +411,31 @@
             </div>
 
             <div class="rounded-xl bg-amber-50/60 p-3 border border-amber-200/60 space-y-2">
-                <label class="block text-xs font-bold text-amber-900">Fuel Consumption Rule</label>
-                <p class="text-[11px] text-amber-700">Specify how much peso worth of fuel is consumed for every X distance.</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Peso Worth</span>
-                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="rate_peso"
-                                value="100.00"
-                                required
-                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                            >
-                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
-                                ₱
-                            </span>
-                        </div>
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-amber-900">Fuel Price Rule</label>
+                    <span class="text-[10px] text-amber-700 font-semibold">(Default fuel price per liter)</span>
+                </div>
+                <p class="text-[11px] text-amber-700">Specify the default price per liter for this fleet card (used to auto-calculate trip fuel costs).</p>
+                <div>
+                    <span class="text-[10px] font-bold text-gray-500 block mb-1">Price per Liter</span>
+                    <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20 max-w-sm">
+                        <span class="border-r border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs font-bold text-slate-600 select-none shrink-0">
+                            ₱
+                        </span>
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="rate_peso"
+                            value="68.50"
+                            required
+                            class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                        >
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                            / Liter
+                        </span>
                     </div>
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Every Distance</span>
-                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="rate_km"
-                                value="5.00"
-                                required
-                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                            >
-                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
-                                km
-                            </span>
-                        </div>
-                    </div>
+                    {{-- Hidden rate_km defaulting to 1 so rate_peso is rate per unit --}}
+                    <input type="hidden" name="rate_km" value="1.00">
                 </div>
             </div>
 
@@ -808,40 +798,31 @@
             </div>
 
             <div class="rounded-xl bg-amber-50/60 p-3 border border-amber-200/60 space-y-2">
-                <label class="block text-xs font-bold text-amber-900">Fuel Consumption Rule</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Peso Worth</span>
-                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
-                            <input
-                                type="number"
-                                step="0.01"
-                                id="edit-rate-peso"
-                                name="rate_peso"
-                                required
-                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                            >
-                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
-                                ₱
-                            </span>
-                        </div>
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-amber-900">Fuel Price Rule</label>
+                    <span class="text-[10px] text-amber-700 font-semibold">(Default fuel price per liter)</span>
+                </div>
+                <p class="text-[11px] text-amber-700">Specify the default price per liter for this fleet card (used to auto-calculate trip fuel costs).</p>
+                <div>
+                    <span class="text-[10px] font-bold text-gray-500 block mb-1">Price per Liter</span>
+                    <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20 max-w-sm">
+                        <span class="border-r border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs font-bold text-slate-600 select-none shrink-0">
+                            ₱
+                        </span>
+                        <input
+                            type="number"
+                            step="0.01"
+                            id="edit-rate-peso"
+                            name="rate_peso"
+                            required
+                            class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                        >
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                            / Liter
+                        </span>
                     </div>
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Every Distance</span>
-                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
-                            <input
-                                type="number"
-                                step="0.01"
-                                id="edit-rate-km"
-                                name="rate_km"
-                                required
-                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                            >
-                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
-                                km
-                            </span>
-                        </div>
-                    </div>
+                    {{-- Hidden rate_km defaulting to 1 so rate_peso is rate per unit --}}
+                    <input type="hidden" id="edit-rate-km" name="rate_km" value="1.00">
                 </div>
             </div>
 
@@ -1183,7 +1164,9 @@ function openExpenseModal(card) {
     document.getElementById('expense-dest-select').setAttribute('data-distance', '0');
     document.getElementById('expense-dest-select').setAttribute('data-liters-used', '0');
     const priceInput = document.getElementById('expense-fuel-price-per-liter');
-    if (priceInput) priceInput.value = '';
+    if (priceInput) {
+        priceInput.value = card.rate_peso ? parseFloat(card.rate_peso).toFixed(2) : '';
+    }
 
     const label = document.getElementById('tt-picker-label');
     if (label) {
