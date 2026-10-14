@@ -43,10 +43,11 @@ class FleetCardController extends Controller
             ->get();
 
         $pendingRequests = VehicleRequest::query()
+            ->with(['completion', 'vehicle', 'confirmedDriver'])
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
             ->whereIn('status', ['approved', 'completed', 'pending'])
             ->latest()
-            ->take(30)
+            ->take(50)
             ->get();
 
         // Calculate summary cards metrics

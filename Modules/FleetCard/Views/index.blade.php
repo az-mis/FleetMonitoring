@@ -415,12 +415,36 @@
                 <p class="text-[11px] text-amber-700">Specify how much peso worth of fuel is consumed for every X distance.</p>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <span class="text-[10px] font-bold text-gray-500">Peso Worth (₱)</span>
-                        <input type="number" step="0.01" name="rate_peso" value="100.00" required class="w-full rounded-lg border border-amber-300 px-2.5 py-1.5 text-xs font-bold focus:outline-none">
+                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Peso Worth</span>
+                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="rate_peso"
+                                value="100.00"
+                                required
+                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                            >
+                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                ₱
+                            </span>
+                        </div>
                     </div>
                     <div>
-                        <span class="text-[10px] font-bold text-gray-500">Every Distance (km)</span>
-                        <input type="number" step="0.01" name="rate_km" value="5.00" required class="w-full rounded-lg border border-amber-300 px-2.5 py-1.5 text-xs font-bold focus:outline-none">
+                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Every Distance</span>
+                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="rate_km"
+                                value="5.00"
+                                required
+                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                            >
+                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                km
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -469,7 +493,7 @@
                 <label class="block text-xs font-bold text-gray-700 mb-1">Select Distance Method</label>
                 <select id="expense-source-select" name="distance_source" onchange="toggleExpenseSourceFields()" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-semibold focus:border-emerald-500 focus:outline-none">
                     <option value="odometer">Option 1: Base on Odometer Reading (Start → End)</option>
-                    <option value="destination_master">Option 2: Base on Destination Master Distance (Point Zero)</option>
+                    <option value="destination_master">Option 2: Base on Trip Ticket</option>
                     <option value="manual">Option 3: Manual Distance Input (km)</option>
                 </select>
             </div>
@@ -477,31 +501,141 @@
             {{-- Fields for Option 1: Odometer --}}
             <div id="field-group-odometer" class="grid grid-cols-2 gap-3 rounded-xl bg-blue-50/60 p-3 border border-blue-200/60">
                 <div>
-                    <label class="block text-[11px] font-bold text-blue-900 mb-1">Start Odometer (km)</label>
-                    <input type="number" id="expense-start-odo" name="start_odometer" placeholder="e.g. 10000" oninput="updateLiveCalc()" class="w-full rounded-lg border border-blue-300 px-2.5 py-1.5 text-xs font-bold focus:outline-none">
+                    <label class="block text-[11px] font-bold text-blue-900 mb-1">Start Odometer</label>
+                    <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                        <input
+                            type="number"
+                            id="expense-start-odo"
+                            name="start_odometer"
+                            placeholder="e.g. 10000"
+                            oninput="updateLiveCalc()"
+                            class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                        >
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                            km
+                        </span>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-blue-900 mb-1">End Odometer (km)</label>
-                    <input type="number" id="expense-end-odo" name="end_odometer" placeholder="e.g. 10150" oninput="updateLiveCalc()" class="w-full rounded-lg border border-blue-300 px-2.5 py-1.5 text-xs font-bold focus:outline-none">
+                    <label class="block text-[11px] font-bold text-blue-900 mb-1">End Odometer</label>
+                    <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                        <input
+                            type="number"
+                            id="expense-end-odo"
+                            name="end_odometer"
+                            placeholder="e.g. 10150"
+                            oninput="updateLiveCalc()"
+                            class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                        >
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                            km
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {{-- Fields for Option 2: Destination Master --}}
+            {{-- Fields for Option 2: Base on Trip Ticket (Searchable Dropdown) --}}
             <div id="field-group-destination" class="hidden space-y-2 rounded-xl bg-purple-50/60 p-3 border border-purple-200/60">
-                <label class="block text-xs font-bold text-purple-900">Select Travel Request / Destination</label>
-                <select id="expense-dest-select" name="vehicle_request_id" onchange="onDestinationSelectChange()" class="w-full rounded-lg border border-purple-300 px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
-                    <option value="">-- Pick Travel Request / Destination --</option>
-                    @foreach($pendingRequests as $r)
-                        <option value="{{ $r->id }}" data-distance="{{ $r->distance_km ?: 0 }}">{{ $r->reference_code }} — {{ $r->destination }} ({{ $r->distance_km ?: 'Calculated' }} km)</option>
-                    @endforeach
-                </select>
-                <p class="text-[11px] text-purple-700 italic">Distance is measured from Point Zero (Office).</p>
+                <label class="block text-xs font-bold text-purple-900">Select Trip Ticket</label>
+                
+                {{-- Hidden input for vehicle_request_id --}}
+                <input type="hidden" id="expense-dest-select" name="vehicle_request_id" value="">
+                
+                {{-- Custom Searchable Picker --}}
+                <div class="relative" id="trip-ticket-picker">
+                    {{-- Picker Trigger Button --}}
+                    <button
+                        type="button"
+                        id="tt-picker-btn"
+                        onclick="toggleTripTicketPicker()"
+                        class="flex w-full items-center justify-between rounded-xl border border-purple-300 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
+                    >
+                        <span id="tt-picker-label" class="truncate text-slate-400">-- Pick Trip Ticket / Destination --</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-400 transition" id="tt-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+
+                    {{-- Dropdown Panel with Search Box (like image 4) --}}
+                    <div id="tt-picker-panel" class="absolute left-0 right-0 z-30 mt-1 hidden max-h-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl flex flex-col">
+                        {{-- Search Input Box --}}
+                        <div class="p-2 border-b border-slate-100 bg-slate-50">
+                            <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs px-2.5 py-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                                <input
+                                    type="text"
+                                    id="tt-search-input"
+                                    placeholder="Search Trip Ticket No., Ref Code, Destination..."
+                                    oninput="filterTripTicketOptions()"
+                                    class="w-full bg-transparent text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                                >
+                            </div>
+                        </div>
+
+                        {{-- Options List --}}
+                        <div id="tt-options-list" class="overflow-y-auto max-h-56 divide-y divide-slate-100 p-1">
+                            @foreach($pendingRequests as $r)
+                                @php
+                                    $ticketNum = $r->trip_ticket_number ?: $r->reference_code;
+                                    $dist = 0;
+                                    if ($r->completion && (float)$r->completion->distance_travelled > 0) {
+                                        $dist = (float)$r->completion->distance_travelled;
+                                    } elseif ((float)$r->distance_km > 0) {
+                                        $dist = (float)$r->distance_km;
+                                    }
+                                    $searchText = strtolower("{$r->trip_ticket_number} {$r->reference_code} {$r->destination} {$r->requester_name}");
+                                @endphp
+                                <button
+                                    type="button"
+                                    onclick="pickTripTicket('{{ $r->id }}', '{{ addslashes($ticketNum . ' — ' . $r->destination . ' (' . $dist . ' km)') }}', {{ $dist }})"
+                                    class="tt-option-item w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 transition cursor-pointer flex flex-col gap-0.5"
+                                    data-search="{{ $searchText }}"
+                                >
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-1.5 truncate">
+                                            @if($r->trip_ticket_number)
+                                                <span class="font-mono font-extrabold text-[11px] text-emerald-900 bg-emerald-100 px-1.5 py-0.2 rounded">{{ $r->trip_ticket_number }}</span>
+                                            @endif
+                                            <span class="font-bold text-xs text-slate-900 truncate">{{ $r->reference_code }}</span>
+                                        </div>
+                                        <span class="font-black text-xs text-emerald-700 shrink-0">{{ number_format($dist, 1) }} km</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2 text-[10px] text-slate-500">
+                                        <span class="truncate">{{ $r->destination }}</span>
+                                        @if($r->completion)
+                                            <span class="text-blue-600 font-semibold shrink-0">✓ Completed Log</span>
+                                        @endif
+                                    </div>
+                                </button>
+                            @endforeach
+                            <p id="tt-empty-state" class="hidden text-center py-4 text-xs text-slate-400">No matching Trip Tickets found.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-purple-700 italic">Distance is auto-retrieved from the completed trip log or measured destination distance.</p>
             </div>
 
             {{-- Fields for Option 3: Manual Distance --}}
             <div id="field-group-manual" class="hidden space-y-1 rounded-xl bg-gray-50 p-3 border border-gray-200">
-                <label class="block text-xs font-bold text-gray-700">Distance Travelled (km)</label>
-                <input type="number" step="0.1" id="expense-manual-km" name="distance_km" placeholder="e.g. 75.5" oninput="updateLiveCalc()" class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold focus:outline-none">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Distance Travelled</label>
+                <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20 max-w-xs">
+                    <input
+                        type="number"
+                        step="0.1"
+                        id="expense-manual-km"
+                        name="distance_km"
+                        placeholder="e.g. 75.5"
+                        oninput="updateLiveCalc()"
+                        class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                    >
+                    <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                        km
+                    </span>
+                </div>
             </div>
 
             {{-- LIVE CALCULATION BOX --}}
@@ -627,12 +761,36 @@
                 <label class="block text-xs font-bold text-amber-900">Fuel Consumption Rule</label>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <span class="text-[10px] font-bold text-gray-500">Peso Worth (₱)</span>
-                        <input type="number" step="0.01" id="edit-rate-peso" name="rate_peso" required class="w-full rounded-lg border border-amber-300 px-2.5 py-1.5 text-xs font-bold focus:outline-none">
+                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Peso Worth</span>
+                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                            <input
+                                type="number"
+                                step="0.01"
+                                id="edit-rate-peso"
+                                name="rate_peso"
+                                required
+                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                            >
+                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                ₱
+                            </span>
+                        </div>
                     </div>
                     <div>
-                        <span class="text-[10px] font-bold text-gray-500">Every Distance (km)</span>
-                        <input type="number" step="0.01" id="edit-rate-km" name="rate_km" required class="w-full rounded-lg border border-amber-300 px-2.5 py-1.5 text-xs font-bold focus:outline-none">
+                        <span class="text-[10px] font-bold text-gray-500 block mb-1">Every Distance</span>
+                        <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
+                            <input
+                                type="number"
+                                step="0.01"
+                                id="edit-rate-km"
+                                name="rate_km"
+                                required
+                                class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                            >
+                            <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                km
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -969,7 +1127,18 @@ function openExpenseModal(card) {
     document.getElementById('expense-start-odo').value = card.vehicle ? card.vehicle.odometer : '';
     document.getElementById('expense-end-odo').value = '';
     document.getElementById('expense-manual-km').value = '';
+    
+    // Reset Trip Ticket picker
     document.getElementById('expense-dest-select').value = '';
+    document.getElementById('expense-dest-select').setAttribute('data-distance', '0');
+    const label = document.getElementById('tt-picker-label');
+    if (label) {
+        label.innerText = '-- Pick Trip Ticket / Destination --';
+        label.className = 'truncate text-slate-400';
+    }
+    const panel = document.getElementById('tt-picker-panel');
+    if (panel) panel.classList.add('hidden');
+    document.getElementById('tt-picker-chevron')?.classList.remove('rotate-180');
 
     toggleExpenseSourceFields();
     updateLiveCalc();
@@ -991,13 +1160,62 @@ function toggleExpenseSourceFields() {
     updateLiveCalc();
 }
 
-function onDestinationSelectChange() {
-    const select = document.getElementById('expense-dest-select');
-    const selectedOpt = select.options[select.selectedIndex];
-    const dist = selectedOpt ? selectedOpt.getAttribute('data-distance') : 0;
-    document.getElementById('expense-manual-km').value = dist || 0;
+// ── TRIP TICKET SEARCHABLE PICKER LOGIC ─────────────────────────────
+function toggleTripTicketPicker() {
+    const panel = document.getElementById('tt-picker-panel');
+    const chevron = document.getElementById('tt-picker-chevron');
+    if (!panel) return;
+    const isHidden = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !isHidden);
+    chevron?.classList.toggle('rotate-180', isHidden);
+    if (isHidden) {
+        const input = document.getElementById('tt-search-input');
+        if (input) {
+            input.value = '';
+            filterTripTicketOptions();
+            setTimeout(() => input.focus(), 50);
+        }
+    }
+}
+
+function filterTripTicketOptions() {
+    const q = (document.getElementById('tt-search-input')?.value || '').toLowerCase().trim();
+    let count = 0;
+    document.querySelectorAll('.tt-option-item').forEach(el => {
+        const text = (el.getAttribute('data-search') || '').toLowerCase();
+        const matches = !q || text.includes(q);
+        el.classList.toggle('hidden', !matches);
+        if (matches) count++;
+    });
+    document.getElementById('tt-empty-state')?.classList.toggle('hidden', count > 0);
+}
+
+function pickTripTicket(id, labelText, distance) {
+    const hiddenInput = document.getElementById('expense-dest-select');
+    hiddenInput.value = id;
+    hiddenInput.setAttribute('data-distance', distance);
+
+    const label = document.getElementById('tt-picker-label');
+    if (label) {
+        label.innerText = labelText;
+        label.className = 'truncate text-slate-900 font-bold';
+    }
+
+    const panel = document.getElementById('tt-picker-panel');
+    if (panel) panel.classList.add('hidden');
+    document.getElementById('tt-picker-chevron')?.classList.remove('rotate-180');
+
     updateLiveCalc();
 }
+
+// Close trip ticket picker when clicking outside
+document.addEventListener('click', function(e) {
+    const picker = document.getElementById('trip-ticket-picker');
+    if (picker && !picker.contains(e.target)) {
+        document.getElementById('tt-picker-panel')?.classList.add('hidden');
+        document.getElementById('tt-picker-chevron')?.classList.remove('rotate-180');
+    }
+});
 
 function updateLiveCalc() {
     if (!currentActiveCard) return;
@@ -1012,9 +1230,8 @@ function updateLiveCalc() {
             distance = end - start;
         }
     } else if (source === 'destination_master') {
-        const select = document.getElementById('expense-dest-select');
-        const selectedOpt = select.options[select.selectedIndex];
-        distance = parseFloat(selectedOpt ? selectedOpt.getAttribute('data-distance') : 0) || 0;
+        const destInput = document.getElementById('expense-dest-select');
+        distance = parseFloat(destInput ? destInput.getAttribute('data-distance') : 0) || 0;
     } else {
         distance = parseFloat(document.getElementById('expense-manual-km').value) || 0;
     }
