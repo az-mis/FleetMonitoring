@@ -51,6 +51,7 @@ class DashboardController extends Controller
                 'fleetHealth' => $this->dashboardService->fleetHealth($dashboardLocation),
                 'fleetBudget' => $this->dashboardService->fleetBudget($dashboardLocation),
                 'todaysTrips' => $this->dashboardService->todaysTrips($dashboardLocation),
+                'upcomingTrips' => $this->dashboardService->upcomingTrips($dashboardLocation),
                 'calendarEvents' => $this->dashboardService->calendarEvents($dashboardLocation),
                 'requestsPerMonth' => $this->reportService->requestsPerMonth($dashboardLocation),
                 'topDestinations' => $this->reportService->topDestinations($dashboardLocation),

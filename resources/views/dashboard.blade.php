@@ -461,21 +461,66 @@
                 <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
                     <section class="min-w-0 rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
                         <div class="mb-2 flex items-center justify-between">
-                            <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Today's Trips</h3>
+                            <div class="flex items-center gap-1.5">
+                                <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Today & Upcoming Trips</h3>
+                                @php
+                                    $totalTripsCount = $todaysTrips->count() + $upcomingTrips->count();
+                                @endphp
+                                @if($totalTripsCount > 0)
+                                    <span class="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-black text-emerald-800">{{ $totalTripsCount }}</span>
+                                @endif
+                            </div>
                             <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'approved']) }}" class="text-[10px] font-bold text-emerald-700 hover:underline">View all →</a>
                         </div>
-                        <div class="space-y-1.5 max-h-44 overflow-y-auto">
-                            @forelse($todaysTrips as $trip)
-                                <div class="rounded-lg border border-emerald-100 bg-emerald-50/50 p-2">
-                                    <div class="flex justify-between gap-2">
-                                        <p class="text-xs font-bold text-emerald-950 truncate">{{ $trip->destination }}</p>
-                                        <span class="shrink-0 text-[10px] font-bold text-emerald-700">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
+                        <div class="space-y-1.5 max-h-48 overflow-y-auto">
+                            @if($todaysTrips->isNotEmpty())
+                                @foreach($todaysTrips as $trip)
+                                    <div class="rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 transition hover:bg-emerald-50">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                                <span class="rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white shrink-0">Today</span>
+                                                <p class="text-xs font-bold text-emerald-950 truncate">{{ $trip->destination }}</p>
+                                            </div>
+                                            <span class="shrink-0 text-[10px] font-extrabold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
+                                        </div>
+                                        <div class="mt-1 flex items-center justify-between text-[10px] text-emerald-800">
+                                            <span class="truncate">{{ $trip->requester_name }}</span>
+                                            <span class="shrink-0 font-medium">{{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</span>
+                                        </div>
                                     </div>
-                                    <p class="mt-0.5 text-[10px] text-emerald-800">{{ $trip->requester_name }} · {{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</p>
+                                @endforeach
+                            @endif
+
+                            @if($upcomingTrips->isNotEmpty())
+                                @if($todaysTrips->isNotEmpty())
+                                    <div class="pt-1">
+                                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Upcoming</p>
+                                    </div>
+                                @endif
+                                @foreach($upcomingTrips as $trip)
+                                    <div class="rounded-lg border border-slate-200/80 bg-slate-50/70 p-2 transition hover:bg-slate-100/70">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                                <span class="rounded bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide shrink-0">
+                                                    {{ $trip->travel_date->isTomorrow() ? 'Tomorrow' : $trip->travel_date->format('M j') }}
+                                                </span>
+                                                <p class="text-xs font-bold text-slate-900 truncate">{{ $trip->destination }}</p>
+                                            </div>
+                                            <span class="shrink-0 text-[10px] font-extrabold text-slate-700 bg-white border border-slate-200 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
+                                        </div>
+                                        <div class="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                                            <span class="truncate">{{ $trip->requester_name }}</span>
+                                            <span class="shrink-0 font-medium text-slate-600">{{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+
+                            @if($todaysTrips->isEmpty() && $upcomingTrips->isEmpty())
+                                <div class="py-6 text-center text-xs text-slate-400">
+                                    <p>No active or upcoming trips scheduled.</p>
                                 </div>
-                            @empty
-                                <p class="py-6 text-center text-xs text-gray-400">No trips out today.</p>
-                            @endforelse
+                            @endif
                         </div>
                     </section>
 

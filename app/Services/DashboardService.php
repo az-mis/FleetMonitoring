@@ -320,12 +320,12 @@ class DashboardService
     }
 
     /**
-     * Today's trips departing/out today.
+     * Today's active trips departing or currently out today.
      */
     public function todaysTrips(?string $location): Collection
     {
         return VehicleRequest::query()
-            ->with('vehicle')
+            ->with(['vehicle', 'confirmedDriver'])
             ->when($location, fn ($q) => $q->where('location', $location))
             ->where('status', 'approved')
             ->whereDate('travel_date', '<=', now()->toDateString())
@@ -334,6 +334,21 @@ class DashboardService
             })
             ->orderBy('travel_date')
             ->limit(8)
+            ->get();
+    }
+
+    /**
+     * Upcoming trips scheduled in the future.
+     */
+    public function upcomingTrips(?string $location, int $limit = 6): Collection
+    {
+        return VehicleRequest::query()
+            ->with(['vehicle', 'confirmedDriver'])
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->where('status', 'approved')
+            ->whereDate('travel_date', '>', now()->toDateString())
+            ->orderBy('travel_date', 'asc')
+            ->limit($limit)
             ->get();
     }
 
