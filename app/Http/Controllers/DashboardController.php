@@ -49,6 +49,7 @@ class DashboardController extends Controller
                 'kpis' => $this->dashboardService->kpis($dashboardLocation, $isSuperAdmin),
                 'fleetStatus' => $this->dashboardService->fleetStatus($dashboardLocation),
                 'fleetHealth' => $this->dashboardService->fleetHealth($dashboardLocation),
+                'fleetBudget' => $this->dashboardService->fleetBudget($dashboardLocation),
                 'todaysTrips' => $this->dashboardService->todaysTrips($dashboardLocation),
                 'calendarEvents' => $this->dashboardService->calendarEvents($dashboardLocation),
                 'requestsPerMonth' => $this->reportService->requestsPerMonth($dashboardLocation),
@@ -91,6 +92,7 @@ class DashboardController extends Controller
             'alerts' => $this->dashboardService->alerts($location),
             'kpis' => $this->dashboardService->kpis($location, $isSuperAdmin),
             'fleetStatus' => $this->dashboardService->fleetStatus($location),
+            'fleetBudget' => $this->dashboardService->fleetBudget($location),
             'updatedAt' => now()->toIso8601String(),
         ]);
     }

@@ -14,27 +14,77 @@
 @endphp
 
 @section('content')
-<div class="space-y-6">
-    {{-- Header & Actions --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center rounded-lg bg-emerald-100 p-2 text-emerald-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="20" height="14" x="2" y="5" rx="2"/>
-                        <line x1="2" x2="22" y1="10" y2="10"/>
-                    </svg>
-                </span>
-                <div>
-                    <h1 class="text-xl font-extrabold text-gray-900 tracking-tight sm:text-2xl">Fleet Cards & Fuel Budget</h1>
-                    <p class="text-xs text-gray-500 sm:text-sm">Manage fuel card budget allocation, consumption rates, and auto-expense calculation.</p>
-                </div>
+<div class="space-y-4">
+    {{-- Header & Actions (Compact) --}}
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-2.5">
+            <span class="inline-flex items-center justify-center rounded-xl bg-emerald-100 p-2 text-emerald-700 shadow-2xs">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                    <line x1="2" x2="22" y1="10" y2="10"/>
+                </svg>
+            </span>
+            <div>
+                <h1 class="text-lg font-black text-gray-900 tracking-tight sm:text-xl">Fleet Cards &amp; Fuel Budget</h1>
+                <p class="text-[11px] text-gray-500">Track fuel cards, consumption rates, and trip deductions.</p>
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-            <button type="button" onclick="openAddCardModal()" class="inline-flex items-center gap-2 rounded-xl bg-[#0f5d33] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#0b4726]">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div class="flex items-center gap-2">
+            @if($isSuperAdmin)
+                {{-- Location filter (Super Admin - Compact) --}}
+                @php
+                    $currentLocation = request('location');
+                @endphp
+                <div class="relative shrink-0">
+                    <button type="button" onclick="toggleFleetCardLocationMenu()" class="inline-flex h-8 items-center justify-between gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 shadow-2xs cursor-pointer">
+                        <span class="flex items-center gap-1.5 truncate">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span class="max-w-[12rem] truncate">{{ $currentLocation ?: 'All Locations' }}</span>
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 text-slate-400 transition" id="fleetcard-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+
+                    <div id="fleetcard-location-menu" class="absolute right-0 z-30 mt-1 hidden w-56 overflow-hidden rounded-xl bg-white p-1 shadow-xl ring-1 ring-black/5">
+                        <a href="{{ route('fleet-cards.index') }}" class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ empty($currentLocation) ? 'bg-emerald-50 text-emerald-800 font-bold' : '' }}">
+                            <span>All Locations</span>
+                            @if(empty($currentLocation))
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                            @endif
+                        </a>
+                        @foreach ($locations as $loc)
+                            @php $isCurrent = $loc === $currentLocation; @endphp
+                            <a href="{{ route('fleet-cards.index', ['location' => $loc]) }}" class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $isCurrent ? 'bg-emerald-50 text-emerald-800 font-bold' : '' }}">
+                                <span class="truncate">{{ $loc }}</span>
+                                @if($isCurrent)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <script>
+                    function toggleFleetCardLocationMenu() {
+                        const menu = document.getElementById('fleetcard-location-menu');
+                        const chevron = document.getElementById('fleetcard-location-chevron');
+                        const willOpen = menu.classList.contains('hidden');
+                        menu.classList.toggle('hidden', !willOpen);
+                        chevron.classList.toggle('rotate-180', willOpen);
+                    }
+
+                    document.addEventListener('click', function (e) {
+                        const menu = document.getElementById('fleetcard-location-menu');
+                        if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !e.target.closest('button[onclick="toggleFleetCardLocationMenu()"]')) {
+                            menu.classList.add('hidden');
+                            document.getElementById('fleetcard-location-chevron')?.classList.remove('rotate-180');
+                        }
+                    });
+                </script>
+            @endif
+
+            <button type="button" onclick="openAddCardModal()" class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#0f5d33] px-3 text-xs font-bold text-white shadow-2xs transition hover:bg-[#0b4726] cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 12h14"/><path d="M12 5v14"/>
                 </svg>
                 Register Fleet Card
@@ -42,141 +92,143 @@
         </div>
     </div>
 
-    {{-- Summary Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-xs transition hover:shadow-md">
+    {{-- Summary Cards (Compact) --}}
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-2xs hover:shadow-xs transition">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Total Allocated Budget</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Allocated Budget</span>
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 text-xs shadow-2xs">
                     💳
                 </span>
             </div>
-            <p class="mt-3 text-2xl font-black text-gray-900">₱{{ number_format($totalInitialBudget, 2) }}</p>
-            <p class="mt-1 text-[11px] font-semibold text-gray-400">Total budget across registered fleet cards</p>
+            <p class="mt-1.5 text-lg font-black text-gray-900">₱{{ number_format($totalInitialBudget, 2) }}</p>
+            <p class="text-[10px] text-gray-400">Total registered cards budget</p>
         </div>
 
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-xs transition hover:shadow-md">
+        <div class="rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-2xs hover:shadow-xs transition">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Total Expense Consumed</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Expense Consumed</span>
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 text-xs shadow-2xs">
                     ⛽
                 </span>
             </div>
-            <p class="mt-3 text-2xl font-black text-amber-700">₱{{ number_format($totalConsumed, 2) }}</p>
-            <p class="mt-1 text-[11px] font-semibold text-gray-400">Computed trip fuel expenditure</p>
+            <p class="mt-1.5 text-lg font-black text-amber-700">₱{{ number_format($totalConsumed, 2) }}</p>
+            <p class="text-[10px] text-gray-400">Total fuel &amp; service deductions</p>
         </div>
 
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-xs transition hover:shadow-md">
+        <div class="rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-2xs hover:shadow-xs transition">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Total Remaining Balance</span>
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Remaining Balance</span>
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 text-xs shadow-2xs">
                     ✅
                 </span>
             </div>
-            <p class="mt-3 text-2xl font-black text-emerald-700">₱{{ number_format($totalCurrentBalance, 2) }}</p>
-            <p class="mt-1 text-[11px] font-semibold text-gray-400">Available balance remaining</p>
+            <p class="mt-1.5 text-lg font-black text-emerald-700">₱{{ number_format($totalCurrentBalance, 2) }}</p>
+            <p class="text-[10px] text-gray-400">Total active funds available</p>
         </div>
     </div>
 
-    {{-- Cards Grid --}}
-    <div class="space-y-3">
-        <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
-            <span>Active Fleet Cards</span>
-            <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">{{ $cards->count() }}</span>
-        </h2>
+    {{-- Cards Grid (Compact) --}}
+    <div class="space-y-2.5">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xs font-black uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                <span>Active Fleet Cards</span>
+                <span class="rounded-full bg-emerald-100 px-2 py-0.2 text-[10px] font-bold text-emerald-800">{{ $cards->count() }}</span>
+            </h2>
+        </div>
 
         @if($cards->isEmpty())
-            <div class="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
-                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-3">
+            <div class="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center">
+                <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2">
                     💳
                 </div>
-                <h3 class="text-sm font-bold text-gray-800">No Fleet Cards Registered Yet</h3>
-                <p class="mt-1 text-xs text-gray-500 max-w-sm mx-auto">Add a fleet card assigned to a vehicle (e.g. for Palawan) with budget & fuel consumption rate.</p>
-                <button type="button" onclick="openAddCardModal()" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#0f5d33] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0b4726]">
+                <h3 class="text-xs font-bold text-gray-800">No Fleet Cards Registered Yet</h3>
+                <p class="mt-0.5 text-[11px] text-gray-500 max-w-sm mx-auto">Add a fleet card assigned to a vehicle with budget and price per liter.</p>
+                <button type="button" onclick="openAddCardModal()" class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0f5d33] px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-[#0b4726]">
                     + Add First Fleet Card
                 </button>
             </div>
         @else
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 @foreach ($cards as $card)
                     @php
                         $pct = $card->balance_percentage;
                         $barColor = $pct > 50 ? 'bg-emerald-500' : ($pct > 20 ? 'bg-amber-500' : 'bg-red-500');
                         $badgeColor = $pct > 50 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($pct > 20 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-700 border-red-200');
                     @endphp
-                    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs transition hover:shadow-md space-y-4">
+                    <div class="rounded-xl border border-gray-200/90 bg-white p-3.5 shadow-2xs transition hover:shadow-xs space-y-3">
                         {{-- Top row --}}
-                        <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-extrabold text-gray-900 text-base">{{ $card->card_name }}</span>
-                                    <span class="rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-mono font-bold text-gray-600 border border-gray-200">{{ $card->card_number }}</span>
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="font-extrabold text-gray-900 text-sm truncate">{{ $card->card_name }}</span>
+                                    <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-mono font-bold text-slate-600 border border-slate-200 shrink-0">{{ $card->card_number }}</span>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-0.5">
+                                <p class="text-[11px] text-gray-500 mt-0.5 truncate">
                                     Assigned: 
                                     @if($card->vehicle)
-                                        <span class="font-bold text-emerald-800">{{ $card->vehicle->plate_number }}</span> ({{ $card->vehicle->brand }} {{ $card->vehicle->model }})
+                                        <span class="font-bold text-emerald-800">{{ $card->vehicle->plate_number }}</span> <span class="text-gray-400">({{ $card->vehicle->brand }} {{ $card->vehicle->model }})</span>
                                     @else
                                         <span class="text-gray-400 italic">Unassigned</span>
                                     @endif
                                     • <span class="font-semibold text-gray-600">📍 {{ $card->location }}</span>
                                 </p>
                             </div>
-                            <span class="shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold {{ $badgeColor }}">
+                            <span class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold {{ $badgeColor }}">
                                 {{ $pct }}% Balance
                             </span>
                         </div>
 
                         {{-- Budget Progress --}}
                         <div class="space-y-1">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-gray-700">Remaining: <span class="text-emerald-700 font-extrabold text-sm">₱{{ number_format($card->current_balance, 2) }}</span></span>
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-bold text-gray-700">Remaining: <span class="text-emerald-700 font-extrabold text-xs">₱{{ number_format($card->current_balance, 2) }}</span></span>
                                 <span class="text-gray-400 font-medium">Budget: ₱{{ number_format($card->initial_budget, 2) }}</span>
                             </div>
-                            <div class="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+                            <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
                                 <div class="h-full rounded-full transition-all duration-500 {{ $barColor }}" style="width: {{ min(100, max(0, $pct)) }}%"></div>
                             </div>
                         </div>
 
-                        {{-- Rate & Capacity Info Box --}}
-                        <div class="grid grid-cols-2 gap-2 rounded-xl bg-gray-50 p-3 text-xs border border-gray-100">
+                        {{-- Rate & Capacity Info Box (Compact Grid) --}}
+                        <div class="grid grid-cols-2 gap-2 rounded-lg bg-gray-50/80 p-2 text-[11px] border border-gray-100">
                             <div>
-                                <span class="text-gray-400 font-medium">Fuel Price:</span>
-                                <p class="font-extrabold text-gray-800">
+                                <span class="text-gray-400 text-[10px] block">Fuel Price:</span>
+                                <p class="font-extrabold text-gray-800 text-xs">
                                     ₱{{ number_format($card->rate_peso, 2) }}
-                                    <span class="text-[11px] font-semibold text-emerald-700 block">per Liter</span>
+                                    <span class="text-[10px] font-semibold text-emerald-700 font-normal">/ Liter</span>
                                 </p>
                             </div>
                             <div>
-                                <span class="text-gray-400 font-medium">Est. Fuel Capacity:</span>
-                                <p class="font-extrabold text-gray-800">
+                                <span class="text-gray-400 text-[10px] block">Est. Fuel Capacity:</span>
+                                <p class="font-extrabold text-gray-800 text-xs">
                                     ~{{ $card->rate_peso > 0 ? number_format((float)$card->current_balance / (float)$card->rate_peso, 1) : 0 }} L
-                                    <span class="text-[11px] font-semibold text-gray-500 block">Available fuel capacity</span>
+                                    <span class="text-[10px] text-gray-400 font-normal block truncate">Available capacity</span>
                                 </p>
                             </div>
                         </div>
 
-                        {{-- Actions --}}
-                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <button type="button" onclick="openExpenseModal({{ json_encode($card) }})" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition">
-                                    ⛽ Compute & Log Expense
+                        {{-- Actions (Compact) --}}
+                        <div class="flex items-center justify-between gap-1.5 pt-2 border-t border-gray-100">
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="openExpenseModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-2xs">
+                                    ⛽ Compute
                                 </button>
-                                <button type="button" onclick="openRechargeModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200">
+                                <button type="button" onclick="openRechargeModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200 cursor-pointer">
                                     💳 Top Up
                                 </button>
-                                <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', '{{ addslashes($card->card_name) }}')" class="inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition border border-slate-200" title="View transaction history for this card">
+                                <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', '{{ addslashes($card->card_name) }}')" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition border border-slate-200 cursor-pointer" title="View transaction history for this card">
                                     📋 History
                                 </button>
                             </div>
-                            <div class="flex items-center gap-1">
-                                <button type="button" onclick="openEditCardModal({{ json_encode($card) }})" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition" title="Edit Parameters">
+                            <div class="flex items-center gap-0.5">
+                                <button type="button" onclick="openEditCardModal({{ json_encode($card) }})" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition cursor-pointer" title="Edit Parameters">
                                     ✏️
                                 </button>
                                 <form action="{{ route('fleet-cards.destroy', $card->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this fleet card?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 transition" title="Delete Card">
+                                    <button type="submit" class="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Delete Card">
                                         🗑️
                                     </button>
                                 </form>
@@ -193,77 +245,77 @@
         $groupedLogs = $recentLogs->groupBy(fn ($log) => $log->created_at->format('F Y'));
     @endphp
 
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs space-y-4" x-data="{ activeCategory: 'all' }" id="history-section">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+    <div class="rounded-xl border border-gray-200/90 bg-white p-3.5 shadow-2xs space-y-3" x-data="{ activeCategory: 'all' }" id="history-section">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
             <div>
-                <h3 class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
+                <h3 class="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
                     <span>Expenses &amp; Transaction History</span>
-                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
+                    <span class="rounded-full bg-slate-100 px-2 py-0.2 text-[10px] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
                 </h3>
-                <p class="text-[11px] text-gray-400">Track fuel and service deductions grouped by month.</p>
+                <p class="text-[10px] text-gray-400">Track fuel and service deductions grouped by month.</p>
                 {{-- Active card filter badge --}}
                 <div id="history-card-filter-badge" class="hidden mt-1 flex items-center gap-1.5">
-                    <span class="text-[11px] text-emerald-700 font-bold" id="history-card-filter-label"></span>
-                    <button type="button" onclick="clearHistoryCardFilter()" class="text-[10px] text-red-500 hover:text-red-700 font-bold underline cursor-pointer">✕ Clear filter</button>
+                    <span class="text-[10px] text-emerald-700 font-bold" id="history-card-filter-label"></span>
+                    <button type="button" onclick="clearHistoryCardFilter()" class="text-[9px] text-red-500 hover:text-red-700 font-bold underline cursor-pointer">✕ Clear filter</button>
                 </div>
             </div>
 
-            {{-- Category Filter Pills (CarMind style: All, Fuel, PMS/Service, Parking, Top-up) --}}
-            <div class="flex flex-wrap items-center gap-1.5">
-                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+            {{-- Category Filter Pills (Compact) --}}
+            <div class="flex flex-wrap items-center gap-1">
+                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
                     All
                 </button>
-                <button type="button" @click="activeCategory = 'fuel'" :class="activeCategory === 'fuel' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'fuel'" :class="activeCategory === 'fuel' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
                     ⛽ Fuel
                 </button>
-                <button type="button" @click="activeCategory = 'service'" :class="activeCategory === 'service' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
-                    🛠️ PMS / Service
+                <button type="button" @click="activeCategory = 'service'" :class="activeCategory === 'service' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
+                    🛠️ Service
                 </button>
-                <button type="button" @click="activeCategory = 'parking'" :class="activeCategory === 'parking' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'parking'" :class="activeCategory === 'parking' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
                     🅿️ Parking
                 </button>
-                <button type="button" @click="activeCategory = 'toll'" :class="activeCategory === 'toll' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'toll'" :class="activeCategory === 'toll' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
                     🛣️ Toll
                 </button>
-                <button type="button" @click="activeCategory = 'topup'" :class="activeCategory === 'topup' ? 'bg-[#005a36] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'topup'" :class="activeCategory === 'topup' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
                     💳 Top-ups
                 </button>
             </div>
         </div>
 
         @if($recentLogs->isEmpty())
-            <p class="text-xs text-gray-400 text-center py-8">No transaction logs recorded yet.</p>
+            <p class="text-xs text-gray-400 text-center py-6">No transaction logs recorded yet.</p>
         @else
-            <div class="space-y-6">
+            <div class="space-y-4">
                 @foreach ($groupedLogs as $monthYear => $monthLogs)
                     @php
                         $monthExpenses = $monthLogs->where('consumed_amount', '>', 0)->sum('consumed_amount');
                     @endphp
-                    <div class="space-y-2">
+                    <div class="space-y-1.5">
                         {{-- Monthly Header & Running Total --}}
-                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2 border border-slate-200/80">
-                            <span class="text-xs font-black uppercase tracking-wider text-slate-700">{{ $monthYear }}</span>
-                            <span class="text-xs font-extrabold text-slate-900">
+                        <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 border border-slate-200/80">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-700">{{ $monthYear }}</span>
+                            <span class="text-[11px] font-extrabold text-slate-900">
                                 Total: <strong class="text-amber-800">₱{{ number_format($monthExpenses, 2) }}</strong>
                             </span>
                         </div>
 
                         {{-- Month Transactions Table --}}
-                        <div class="overflow-x-auto rounded-xl border border-gray-100">
-                            <table class="w-full text-left text-xs text-gray-600">
-                                <thead class="bg-gray-50 text-gray-400 font-bold uppercase tracking-wider text-[10px]">
+                        <div class="overflow-x-auto rounded-lg border border-gray-100">
+                            <table class="w-full text-left text-[11px] text-gray-600">
+                                <thead class="bg-gray-50 text-gray-400 font-bold uppercase tracking-wider text-[9px]">
                                     <tr>
-                                        <th class="px-3 py-2">Date</th>
-                                        <th class="px-3 py-2">Category</th>
-                                        <th class="px-3 py-2">Card / Vehicle</th>
-                                        <th class="px-3 py-2">Method</th>
-                                        <th class="px-3 py-2">Distance</th>
-                                        <th class="px-3 py-2">Liters Used</th>
-                                        <th class="px-3 py-2">Price/Liter</th>
-                                        <th class="px-3 py-2">Amount</th>
-                                        <th class="px-3 py-2">New Balance</th>
-                                        <th class="px-3 py-2">Remarks</th>
-                                        <th class="px-3 py-2 text-center">Actions</th>
+                                        <th class="px-2.5 py-1.5">Date</th>
+                                        <th class="px-2.5 py-1.5">Category</th>
+                                        <th class="px-2.5 py-1.5">Card / Vehicle</th>
+                                        <th class="px-2.5 py-1.5">Method</th>
+                                        <th class="px-2.5 py-1.5">Distance</th>
+                                        <th class="px-2.5 py-1.5">Liters Used</th>
+                                        <th class="px-2.5 py-1.5">Price/Liter</th>
+                                        <th class="px-2.5 py-1.5">Amount</th>
+                                        <th class="px-2.5 py-1.5">New Balance</th>
+                                        <th class="px-2.5 py-1.5">Remarks</th>
+                                        <th class="px-2.5 py-1.5 text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 font-medium" id="history-tbody">
@@ -291,31 +343,31 @@
                                         <tr class="hover:bg-gray-50/60 transition history-log-row"
                                             data-card-id="{{ $log->fleet_card_id }}"
                                             x-show="activeCategory === 'all' || activeCategory === '{{ $cat }}'">
-                                            <td class="px-3 py-2.5 text-gray-400 whitespace-nowrap">{{ $log->created_at->format('M d, g:i A') }}</td>
-                                            <td class="px-3 py-2.5 whitespace-nowrap">
-                                                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border {{ $catBadge }}">
+                                            <td class="px-2.5 py-1.5 text-gray-400 whitespace-nowrap">{{ $log->created_at->format('M d, g:i A') }}</td>
+                                            <td class="px-2.5 py-1.5 whitespace-nowrap">
+                                                <span class="rounded-full px-2 py-0.2 text-[9px] font-bold border {{ $catBadge }}">
                                                     {{ $catLabel }}
                                                 </span>
                                             </td>
-                                            <td class="px-3 py-2.5 font-bold text-gray-900">
+                                            <td class="px-2.5 py-1.5 font-bold text-gray-900">
                                                 {{ $log->fleetCard?->card_name ?? 'N/A' }}
                                                 @if($log->vehicle)
-                                                    <span class="text-emerald-700 font-semibold block text-[11px]">({{ $log->vehicle->plate_number }})</span>
+                                                    <span class="text-emerald-700 font-semibold block text-[10px]">({{ $log->vehicle->plate_number }})</span>
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2.5">
+                                            <td class="px-2.5 py-1.5">
                                                 @if($log->distance_source === 'odometer')
-                                                    <span class="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-100">Odometer</span>
+                                                    <span class="rounded bg-blue-50 px-1 py-0.2 text-[9px] font-bold text-blue-700 border border-blue-100">Odometer</span>
                                                 @elseif($log->distance_source === 'destination_master')
-                                                    <span class="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-100">Trip Ticket</span>
+                                                    <span class="rounded bg-purple-50 px-1 py-0.2 text-[9px] font-bold text-purple-700 border border-purple-100">Trip Ticket</span>
                                                 @elseif($log->distance_source === 'recharge')
-                                                    <span class="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
+                                                    <span class="rounded bg-emerald-50 px-1 py-0.2 text-[9px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
                                                 @else
-                                                    <span class="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-bold text-gray-700 border border-gray-200">Manual</span>
+                                                    <span class="rounded bg-gray-100 px-1 py-0.2 text-[9px] font-bold text-gray-700 border border-gray-200">Manual</span>
                                                 @endif
                                             </td>
                                             {{-- Distance column --}}
-                                            <td class="px-3 py-2.5 font-bold text-gray-800 whitespace-nowrap">
+                                            <td class="px-2.5 py-1.5 font-bold text-gray-800 whitespace-nowrap">
                                                 @if($log->distance_source !== 'recharge' && $log->distance_km > 0)
                                                     {{ number_format($log->distance_km, 1) }} km
                                                 @else
@@ -323,9 +375,9 @@
                                                 @endif
                                             </td>
                                             {{-- Liters Used column --}}
-                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                            <td class="px-2.5 py-1.5 whitespace-nowrap">
                                                 @if($log->liters_used)
-                                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-black text-amber-800">
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.2 text-[9px] font-black text-amber-800">
                                                         ⛽ {{ number_format($log->liters_used, 2) }} L
                                                     </span>
                                                 @else
@@ -333,32 +385,32 @@
                                                 @endif
                                             </td>
                                             {{-- Price/Liter column --}}
-                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                            <td class="px-2.5 py-1.5 whitespace-nowrap">
                                                 @if($log->fuel_price_per_liter)
                                                     <span class="text-slate-600 font-bold">₱{{ number_format($log->fuel_price_per_liter, 2) }}</span>
                                                 @else
                                                     <span class="text-gray-300">—</span>
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2.5 font-black whitespace-nowrap {{ $log->consumed_amount < 0 ? 'text-emerald-600' : 'text-amber-800' }}">
+                                            <td class="px-2.5 py-1.5 font-black whitespace-nowrap {{ $log->consumed_amount < 0 ? 'text-emerald-600' : 'text-amber-800' }}">
                                                 {{ $log->consumed_amount < 0 ? '+₱' . number_format(abs($log->consumed_amount), 2) : '-₱' . number_format($log->consumed_amount, 2) }}
                                             </td>
-                                            <td class="px-3 py-2.5 font-bold text-gray-900">₱{{ number_format($log->balance_after, 2) }}</td>
-                                            <td class="px-3 py-2.5 text-gray-500 max-w-[160px] truncate" title="{{ $log->remarks }}">{{ $log->remarks ?: '—' }}</td>
+                                            <td class="px-2.5 py-1.5 font-bold text-gray-900">₱{{ number_format($log->balance_after, 2) }}</td>
+                                            <td class="px-2.5 py-1.5 text-gray-500 max-w-[150px] truncate" title="{{ $log->remarks }}">{{ $log->remarks ?: '—' }}</td>
                                             {{-- Actions column --}}
-                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                            <td class="px-2.5 py-1.5 whitespace-nowrap">
                                                 <div class="flex items-center justify-center gap-1">
                                                     {{-- View --}}
                                                     <button type="button"
                                                         onclick="viewLogDetail({{ json_encode($log) }})"
-                                                        class="rounded-md p-1.5 text-blue-500 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
+                                                        class="rounded p-1 text-blue-500 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
                                                         title="View details">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                                     </button>
                                                     {{-- Edit Remarks --}}
                                                     <button type="button"
                                                         onclick="editLogRemarks({{ $log->id }}, '{{ $log->fleetCard?->id }}', '{{ addslashes($log->remarks ?? '') }}')"
-                                                        class="rounded-md p-1.5 text-amber-500 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer"
+                                                        class="rounded p-1 text-amber-500 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer"
                                                         title="Edit remarks">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                     </button>
@@ -366,7 +418,7 @@
                                                     @if($isExpense)
                                                         <button type="button"
                                                             onclick="deleteExpenseLog({{ $log->fleetCard?->id }}, {{ $log->id }}, {{ $log->consumed_amount }})"
-                                                            class="rounded-md p-1.5 text-red-400 hover:bg-red-50 hover:text-red-700 transition cursor-pointer"
+                                                            class="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-700 transition cursor-pointer"
                                                             title="Delete & restore balance">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                                         </button>
@@ -580,14 +632,14 @@
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Select Distance Method</label>
                 <select id="expense-source-select" name="distance_source" onchange="toggleExpenseSourceFields()" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-semibold focus:border-emerald-500 focus:outline-none">
+                    <option value="destination_master" selected>Option 2: Base on Trip Ticket</option>
                     <option value="odometer">Option 1: Base on Odometer Reading (Start → End)</option>
-                    <option value="destination_master">Option 2: Base on Trip Ticket</option>
                     <option value="manual">Option 3: Manual Distance Input (km)</option>
                 </select>
             </div>
 
             {{-- Fields for Option 1: Odometer --}}
-            <div id="field-group-odometer" class="grid grid-cols-2 gap-3 rounded-xl bg-blue-50/60 p-3 border border-blue-200/60">
+            <div id="field-group-odometer" class="hidden grid-cols-2 gap-3 rounded-xl bg-blue-50/60 p-3 border border-blue-200/60">
                 <div>
                     <label class="block text-[11px] font-bold text-blue-900 mb-1">Start Odometer</label>
                     <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
@@ -623,7 +675,7 @@
             </div>
 
             {{-- Fields for Option 2: Base on Trip Ticket (Searchable Dropdown) --}}
-            <div id="field-group-destination" class="hidden space-y-2 rounded-xl bg-purple-50/60 p-3 border border-purple-200/60">
+            <div id="field-group-destination" class="space-y-2 rounded-xl bg-purple-50/60 p-3 border border-purple-200/60">
                 <label class="block text-xs font-bold text-purple-900">Select Trip Ticket</label>
                 
                 {{-- Hidden input for vehicle_request_id --}}
@@ -1253,6 +1305,7 @@ function openExpenseModal(card) {
     document.getElementById('expense-card-name').innerText = card.card_name + ' (' + (card.vehicle ? card.vehicle.plate_number : 'Unassigned') + ')';
     
     // Reset fields
+    document.getElementById('expense-source-select').value = 'destination_master';
     document.getElementById('expense-start-odo').value = card.vehicle ? card.vehicle.odometer : '';
     document.getElementById('expense-end-odo').value = '';
     document.getElementById('expense-manual-km').value = '';

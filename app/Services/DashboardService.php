@@ -11,6 +11,7 @@ use Modules\Admin\Enums\UserRole;
 use Modules\Maintenance\Models\VehicleMaintenance;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleReport\Models\VehicleIssueReport;
+use Modules\FleetCard\Models\FleetCard;
 use Modules\VehicleRequest\Models\VehicleRequest;
 
 class DashboardService
@@ -390,6 +391,35 @@ class DashboardService
         return [
             'direction' => $percent >= 0 ? 'up' : 'down',
             'percent' => abs($percent),
+        ];
+    }
+
+    /**
+     * Fleet Card budget summary — total allocated, consumed, and remaining balance.
+     */
+    public function fleetBudget(?string $location): array
+    {
+        $cards = FleetCard::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->get(['initial_budget', 'current_balance']);
+
+        $totalAllocated  = (float) $cards->sum('initial_budget');
+        $totalRemaining  = (float) $cards->sum('current_balance');
+        $totalConsumed   = max(0.0, $totalAllocated - $totalRemaining);
+        $consumedPercent = $totalAllocated > 0
+            ? round(($totalConsumed / $totalAllocated) * 100, 1)
+            : 0.0;
+        $remainingPercent = $totalAllocated > 0
+            ? round(($totalRemaining / $totalAllocated) * 100, 1)
+            : 0.0;
+
+        return [
+            'total_allocated'   => $totalAllocated,
+            'total_consumed'    => $totalConsumed,
+            'total_remaining'   => $totalRemaining,
+            'consumed_percent'  => $consumedPercent,
+            'remaining_percent' => $remainingPercent,
+            'card_count'        => $cards->count(),
         ];
     }
 }

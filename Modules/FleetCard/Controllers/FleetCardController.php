@@ -46,6 +46,7 @@ class FleetCardController extends Controller
             ->with(['completion', 'vehicle', 'confirmedDriver'])
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
             ->whereIn('status', ['approved', 'completed', 'pending'])
+            ->whereNotIn('id', FleetCardLog::whereNotNull('vehicle_request_id')->pluck('vehicle_request_id'))
             ->latest()
             ->take(50)
             ->get();
@@ -186,11 +187,16 @@ class FleetCardController extends Controller
         abort_if($log->distance_source === 'recharge', 400, 'Use destroy-recharge for top-up entries.');
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($fleetCard, $log) {
-            // Restore balance
-            $fleetCard->current_balance = min(
-                (float) $fleetCard->initial_budget,
-                (float) $fleetCard->current_balance + (float) $log->consumed_amount
-            );
+            // Restore balance to what it was BEFORE the expense (recorded in the log)
+            $restoredBalance = (float) $log->balance_before;
+
+            // If initial_budget is somehow less than balance_before (data corruption),
+            // restore initial_budget as well so the card reflects the correct ceiling
+            if ($restoredBalance > (float) $fleetCard->initial_budget) {
+                $fleetCard->initial_budget = $restoredBalance;
+            }
+
+            $fleetCard->current_balance = $restoredBalance;
             $fleetCard->save();
             $log->delete();
         });
