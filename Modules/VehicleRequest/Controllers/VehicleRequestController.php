@@ -670,11 +670,11 @@ class VehicleRequestController
             'remarks'                   => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $odoBeg = (float) $data['odo_beginning'];
-        $odoEnd = (float) $data['odo_ending'];
+        $odoBeg = (int) round((float) $data['odo_beginning']);
+        $odoEnd = (int) round((float) $data['odo_ending']);
         $distance = max(0, $odoEnd - $odoBeg);
 
-        $divisor = !empty($data['fuel_divisor']) ? (float) $data['fuel_divisor'] : null;
+        $divisor = !empty($data['fuel_divisor']) ? (int) round((float) $data['fuel_divisor']) : null;
         $fuelUsed = ($divisor && $divisor > 0) ? round($distance / $divisor, 2) : (float) ($data['fuel_used_liters'] ?? 0);
 
         $balTank = (float) ($data['fuel_balance_in_tank'] ?? 0);

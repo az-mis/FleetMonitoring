@@ -828,7 +828,7 @@
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
-                                    step="0.01"
+                                    step="1"
                                     id="tc-odo-beg"
                                     name="odo_beginning"
                                     required
@@ -846,7 +846,7 @@
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
-                                    step="0.01"
+                                    step="1"
                                     id="tc-odo-end"
                                     name="odo_ending"
                                     required
@@ -862,7 +862,7 @@
                         <div>
                             <label class="block text-[11px] font-extrabold text-blue-900 mb-1">⚡ Distance Travelled</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-emerald-50/40 overflow-hidden shadow-2xs">
-                                <span id="tc-calc-distance-display" class="w-full px-3 py-1.5 text-xs font-black text-emerald-950 truncate">0.00</span>
+                                <span id="tc-calc-distance-display" class="w-full px-3 py-1.5 text-xs font-black text-emerald-950 truncate">0</span>
                                 <input type="hidden" id="tc-distance" name="distance_travelled" value="0">
                                 <span class="border-l border-emerald-200 bg-emerald-100/70 px-3 py-1.5 text-[11px] font-black text-emerald-800 select-none shrink-0">
                                     km
@@ -891,7 +891,7 @@
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
-                                    step="0.01"
+                                    step="1"
                                     id="tc-fuel-divisor"
                                     name="fuel_divisor"
                                     oninput="calcTripTicketMath()"
@@ -3261,12 +3261,12 @@
             document.getElementById('tc-arr-garage').value = c.arrival_garage_time || '';
 
             // Speedometer: if not set yet, pre-fill beginning odometer from vehicle's odometer
-            const defaultBeg = c.odo_beginning !== undefined && c.odo_beginning !== null ? c.odo_beginning : (trip.vehicle_odometer || 0);
+            const defaultBeg = c.odo_beginning !== undefined && c.odo_beginning !== null ? Math.round(c.odo_beginning) : Math.round(trip.vehicle_odometer || 0);
             document.getElementById('tc-odo-beg').value = defaultBeg > 0 ? defaultBeg : '';
-            document.getElementById('tc-odo-end').value = c.odo_ending || '';
+            document.getElementById('tc-odo-end').value = (c.odo_ending !== undefined && c.odo_ending !== null && c.odo_ending !== '') ? Math.round(c.odo_ending) : '';
 
             // Fuel Divisor & Fuel Math
-            document.getElementById('tc-fuel-divisor').value = c.fuel_divisor || '';
+            document.getElementById('tc-fuel-divisor').value = (c.fuel_divisor !== undefined && c.fuel_divisor !== null && c.fuel_divisor !== '') ? Math.round(c.fuel_divisor) : '';
             document.getElementById('tc-fuel-bal-start').value = c.fuel_balance_in_tank || '';
             document.getElementById('tc-fuel-issued').value = c.fuel_issued_office || '';
             document.getElementById('tc-fuel-purchased').value = c.fuel_purchased_trip || '';
@@ -3287,15 +3287,18 @@
         }
 
         function calcTripTicketMath() {
-            const beg = parseFloat(document.getElementById('tc-odo-beg').value) || 0;
-            const end = parseFloat(document.getElementById('tc-odo-end').value) || 0;
+            const begInput = document.getElementById('tc-odo-beg').value;
+            const endInput = document.getElementById('tc-odo-end').value;
+            const beg = begInput !== '' ? Math.round(parseFloat(begInput)) : 0;
+            const end = endInput !== '' ? Math.round(parseFloat(endInput)) : 0;
 
-            const dist = end > beg ? (end - beg) : 0;
-            document.getElementById('tc-distance').value = dist.toFixed(2);
-            document.getElementById('tc-calc-distance-display').textContent = dist.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const dist = (end > beg && endInput !== '') ? (end - beg) : 0;
+            document.getElementById('tc-distance').value = dist;
+            document.getElementById('tc-calc-distance-display').textContent = dist.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
 
-            // Fuel Divisor (Km per Liter) entered by admin
-            const divisor = parseFloat(document.getElementById('tc-fuel-divisor').value) || 0;
+            // Fuel Divisor (Km per Liter) entered by admin as whole number
+            const divisorInput = document.getElementById('tc-fuel-divisor').value;
+            const divisor = divisorInput !== '' ? Math.round(parseFloat(divisorInput)) : 0;
             let fuelUsed = 0;
             if (divisor > 0 && dist > 0) {
                 fuelUsed = dist / divisor;
