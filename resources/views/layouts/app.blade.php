@@ -102,14 +102,42 @@
             background: #f2a51a;
         }
 
+        /*
+         * Sidebar groups. The label is a plain heading in the group's color (--section): no icon, box or hover,
+         * so it never reads as a button. The group's links sit indented beside a guide line in the same color.
+         */
         #sidebar .sidebar-section-label {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
             margin: 0 0 0.375rem;
             padding: 0 0.75rem;
-            font-size: 0.65625rem;
-            font-weight: 700;
+            cursor: default;
+            user-select: none;
+        }
+        #sidebar .sidebar-section-text {
+            font-size: 0.6875rem;
+            font-weight: 800;
             letter-spacing: 0.14em;
             text-transform: uppercase;
-            color: rgba(167, 243, 208, 0.5);
+            color: var(--section);
+        }
+        #sidebar .sidebar-section-rule {
+            height: 1px;
+            flex: 1;
+            background: linear-gradient(90deg, color-mix(in srgb, var(--section) 40%, transparent), transparent);
+        }
+        #sidebar .sidebar-section-items {
+            margin-left: 1.25rem;
+            padding-left: 0.375rem;
+            border-left: 1px solid color-mix(in srgb, var(--section) 30%, transparent);
+        }
+        /* Link icons carry a soft tint of their group's color */
+        #sidebar .sidebar-section .sidebar-item:not(.sidebar-active) .sidebar-item-icon {
+            color: color-mix(in srgb, var(--section) 78%, white);
+        }
+        #sidebar .sidebar-section .sidebar-item:not(.sidebar-active):hover .sidebar-item-icon {
+            color: #fff;
         }
 
         #sidebar .sidebar-nav {
@@ -132,12 +160,19 @@
             padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
         }
-        /* Section names become thin dividers on the rail; pending counts become a dot on the icon */
+        /* On the rail a group becomes a short bar in its color; pending counts become a dot on the icon */
+        #sidebar.sidebar-collapsed .sidebar-section-items {
+            margin-left: 0;
+            padding-left: 0;
+            border-left: 0;
+        }
         #sidebar.sidebar-collapsed .sidebar-section-label {
-            height: 1px;
-            margin: 0 0.5rem 0.5rem;
+            height: 3px;
+            width: 1.5rem;
+            margin: 0.25rem auto 0.5rem;
             padding: 0;
-            background: rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--section) 70%, transparent);
         }
         #sidebar.sidebar-collapsed .sidebar-rail-dot {
             display: block;
@@ -362,7 +397,7 @@
             @endphp
 
             {{-- Grouped sections instead of a dropdown, so every page is one click away and the list stays short --}}
-            <nav class="sidebar-nav flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Main navigation">
+            <nav class="sidebar-nav flex-1 space-y-4 overflow-y-auto px-3 py-4" aria-label="Main navigation">
                 <div class="space-y-0.5">
                     <x-sidebar-link :href="route('dashboard')" label="Dashboard" :active="request()->routeIs('dashboard')">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -370,8 +405,7 @@
                 </div>
 
                 @if ($isFleetAdmin)
-                    <div class="space-y-0.5" role="group" aria-labelledby="nav-operations">
-                        <p id="nav-operations" class="sidebar-section-label"><span class="sidebar-label">Operations</span></p>
+                    <x-sidebar-section id="nav-operations" label="Operations" color="#7dd3fc">
                         <x-sidebar-link :href="route('vehicle-requests.index')" label="Travel Requests" :active="request()->routeIs('vehicle-requests.*')" :badge="$pendingTravelCount > 0 ? $pendingTravelCount : null" :locked="$locked('vehicleRequests')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v3H9z"/><rect width="16" height="16" x="4" y="5" rx="2"/><path d="M8 11h8M8 15h5"/></svg>
                         </x-sidebar-link>
@@ -383,10 +417,9 @@
                         <x-sidebar-link :href="route('vehicle-assigning.index')" label="Vehicle Assigning" :active="request()->routeIs('vehicle-assigning.*')" :locked="$locked('vehicleAssigning')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>
                         </x-sidebar-link>
-                    </div>
+                    </x-sidebar-section>
 
-                    <div class="space-y-0.5" role="group" aria-labelledby="nav-fleet">
-                        <p id="nav-fleet" class="sidebar-section-label"><span class="sidebar-label">Fleet</span></p>
+                    <x-sidebar-section id="nav-fleet" label="Fleet" color="#fdba74">
                         <x-sidebar-link :href="route('vehicles.index')" label="Vehicles" :active="request()->routeIs('vehicles.*') && ! request()->routeIs('vehicles.inspections.*')" :locked="$locked('vehicles')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
                         </x-sidebar-link>
@@ -402,10 +435,9 @@
                         <x-sidebar-link :href="route('fleet-cards.index')" label="Fleet Cards" :active="request()->routeIs('fleet-cards.*')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                         </x-sidebar-link>
-                    </div>
+                    </x-sidebar-section>
 
-                    <div class="space-y-0.5" role="group" aria-labelledby="nav-administration">
-                        <p id="nav-administration" class="sidebar-section-label"><span class="sidebar-label">Administration</span></p>
+                    <x-sidebar-section id="nav-administration" label="Administration" color="#c4b5fd">
                         <x-sidebar-link :href="route('reports.index')" label="Reports" :active="request()->routeIs('reports.*')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-8"/></svg>
                         </x-sidebar-link>
@@ -420,19 +452,18 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                             </x-sidebar-link>
                         @endcan
-                    </div>
+                    </x-sidebar-section>
                 @endif
 
                 @if ($user?->role === \Modules\Admin\Enums\UserRole::DRIVER)
-                    <div class="space-y-0.5" role="group" aria-labelledby="nav-my-work">
-                        <p id="nav-my-work" class="sidebar-section-label"><span class="sidebar-label">My Work</span></p>
+                    <x-sidebar-section id="nav-my-work" label="My Work" color="#7dd3fc">
                         <x-sidebar-link :href="route('travel-history')" label="Travel History" :active="request()->routeIs('travel-history')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-6-8-12a8 8 0 0 1 16 0c0 6-8 12-8 12z"/><path d="M12 7v3l2 2"/></svg>
                         </x-sidebar-link>
                         <x-sidebar-link :href="route('vehicle-reports.index')" label="Report Vehicle Issue" :active="request()->routeIs('vehicle-reports.*')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                         </x-sidebar-link>
-                    </div>
+                    </x-sidebar-section>
                 @endif
             </nav>
 

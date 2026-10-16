@@ -11,9 +11,10 @@
         'font-medium text-emerald-50/75 hover:bg-white/[0.07] hover:text-white' => ! $active,
     ]) }}
 >
+    {{-- Active icon is white so it stands apart from the group tints; the gold bar marks the current page --}}
     <span @class([
-        'relative flex h-5 w-5 shrink-0 items-center justify-center',
-        'text-amber-300' => $active,
+        'sidebar-item-icon relative flex h-5 w-5 shrink-0 items-center justify-center',
+        'text-white' => $active,
         'text-emerald-200/70 group-hover:text-emerald-50' => ! $active,
     ])>
         {{ $slot }}
