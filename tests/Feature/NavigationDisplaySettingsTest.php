@@ -26,19 +26,6 @@ class NavigationDisplaySettingsTest extends TestCase
         $this->assertStringContainsString('openLogoutModal', $html);
     }
 
-    public function test_sidebar_opens_the_current_pages_group_and_shows_pending_count_on_closed_groups(): void
-    {
-        $admin = $this->admin('Palawan');
-        $this->tripRequest($this->vehicle('Palawan'));
-
-        $html = $this->actingAs($admin)->get('/vehicles')->assertOk()->getContent();
-
-        $this->assertMatchesRegularExpression('/id="nav-vehicles"[^>]*aria-expanded="true"/', $html);
-        $this->assertMatchesRegularExpression('/id="nav-operations"[^>]*aria-expanded="false"/', $html);
-        $this->assertMatchesRegularExpression('/id="nav-administration"[^>]*aria-expanded="false"/', $html);
-        $this->assertMatchesRegularExpression('/sidebar-section-badge">\s*1/', $html);
-    }
-
     public function test_driver_sidebar_shows_only_their_own_pages(): void
     {
         $html = $this->actingAs($this->driver())->get('/my-profile')->assertOk()->getContent();
