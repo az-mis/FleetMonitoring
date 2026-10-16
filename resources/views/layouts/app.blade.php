@@ -132,6 +132,75 @@
             padding-left: 0.375rem;
             border-left: 1px solid color-mix(in srgb, var(--section) 30%, transparent);
         }
+
+        /* Collapsible groups: the header is a real button with a chevron; items slide open/closed */
+        #sidebar .sidebar-section-toggle {
+            width: 100%;
+            margin-bottom: 0.25rem;
+            padding-block: 0.4375rem;
+            border-radius: 0.625rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        #sidebar .sidebar-section-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        #sidebar .sidebar-section-toggle:focus-visible {
+            outline: 2px solid var(--section);
+            outline-offset: 1px;
+        }
+        #sidebar .sidebar-section-chevron {
+            height: 0.875rem;
+            width: 0.875rem;
+            flex-shrink: 0;
+            color: var(--section);
+            transition: transform 0.2s ease;
+        }
+        #sidebar .sidebar-section.is-collapsed .sidebar-section-chevron {
+            transform: rotate(-90deg);
+        }
+        #sidebar .sidebar-section-badge {
+            display: inline-flex;
+            height: 1.125rem;
+            min-width: 1.125rem;
+            align-items: center;
+            justify-content: center;
+            padding: 0 0.3125rem;
+            border-radius: 999px;
+            background: #f43f5e;
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        /* The count moves to the Travel Requests link once the group is open */
+        #sidebar .sidebar-section:not(.is-collapsed) .sidebar-section-badge {
+            display: none;
+        }
+        #sidebar .sidebar-section-items-wrap {
+            display: grid;
+            grid-template-rows: 1fr;
+            transition: grid-template-rows 0.22s ease;
+        }
+        #sidebar .sidebar-section-items-wrap > .sidebar-section-items {
+            min-height: 0;
+            overflow: hidden;
+        }
+        #sidebar .sidebar-section.is-collapsed .sidebar-section-items-wrap {
+            grid-template-rows: 0fr;
+        }
+        /* Hidden links leave the tab order once the closing slide has finished */
+        #sidebar .sidebar-section.is-collapsed .sidebar-section-items {
+            visibility: hidden;
+            transition: visibility 0s linear 0.22s;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #sidebar .sidebar-section-items-wrap,
+            #sidebar .sidebar-section-chevron,
+            #sidebar .sidebar-section.is-collapsed .sidebar-section-items {
+                transition: none;
+            }
+        }
         /* Link icons carry a soft tint of their group's color */
         #sidebar .sidebar-section .sidebar-item:not(.sidebar-active) .sidebar-item-icon {
             color: color-mix(in srgb, var(--section) 78%, white);
@@ -170,9 +239,18 @@
             height: 3px;
             width: 1.5rem;
             margin: 0.25rem auto 0.5rem;
-            padding: 0;
+            padding: 0 !important;
             border-radius: 999px;
             background: color-mix(in srgb, var(--section) 70%, transparent);
+            pointer-events: none;
+        }
+        /* Dropdowns don't suit an icon rail: every group stays open there */
+        #sidebar.sidebar-collapsed .sidebar-section.is-collapsed .sidebar-section-items-wrap {
+            grid-template-rows: 1fr;
+        }
+        #sidebar.sidebar-collapsed .sidebar-section.is-collapsed .sidebar-section-items {
+            visibility: visible;
+            transition: none;
         }
         #sidebar.sidebar-collapsed .sidebar-rail-dot {
             display: block;
@@ -394,9 +472,13 @@
             @php
                 $isFleetAdmin = in_array($user?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true);
                 $locked = fn (string $module) => ! $isSuperAdmin && ! ($moduleFlags[$module] ?? true);
+                // The group holding the current page starts open
+                $inOperations = request()->routeIs('vehicle-requests.*', 'driver.*', 'vehicle-assigning.*');
+                $inVehicles = request()->routeIs('vehicles.*', 'maintenance.*', 'vehicle-reports.*', 'fleet-cards.*');
+                $inAdministration = request()->routeIs('reports.*', 'destinations.*', 'approving-officers.*', 'admin.*');
             @endphp
 
-            {{-- Grouped sections instead of a dropdown, so every page is one click away and the list stays short --}}
+            {{-- Collapsible groups (one open at a time) keep the list short; the rail shows every icon --}}
             <nav class="sidebar-nav flex-1 space-y-4 overflow-y-auto px-3 py-4" aria-label="Main navigation">
                 <div class="space-y-0.5">
                     <x-sidebar-link :href="route('dashboard')" label="Dashboard" :active="request()->routeIs('dashboard')">
@@ -405,7 +487,7 @@
                 </div>
 
                 @if ($isFleetAdmin)
-                    <x-sidebar-section id="nav-operations" label="Operations" color="#7dd3fc">
+                    <x-sidebar-section id="nav-operations" label="Operations" color="#7dd3fc" collapsible :open="$inOperations" :badge="$pendingTravelCount > 0 ? $pendingTravelCount : null">
                         <x-sidebar-link :href="route('vehicle-requests.index')" label="Travel Requests" :active="request()->routeIs('vehicle-requests.*')" :badge="$pendingTravelCount > 0 ? $pendingTravelCount : null" :locked="$locked('vehicleRequests')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v3H9z"/><rect width="16" height="16" x="4" y="5" rx="2"/><path d="M8 11h8M8 15h5"/></svg>
                         </x-sidebar-link>
@@ -419,8 +501,8 @@
                         </x-sidebar-link>
                     </x-sidebar-section>
 
-                    <x-sidebar-section id="nav-fleet" label="Fleet" color="#fdba74">
-                        <x-sidebar-link :href="route('vehicles.index')" label="Vehicles" :active="request()->routeIs('vehicles.*') && ! request()->routeIs('vehicles.inspections.*')" :locked="$locked('vehicles')">
+                    <x-sidebar-section id="nav-vehicles" label="Vehicles" color="#fdba74" collapsible :open="$inVehicles">
+                        <x-sidebar-link :href="route('vehicles.index')" label="Vehicles List" :active="request()->routeIs('vehicles.*') && ! request()->routeIs('vehicles.inspections.*')" :locked="$locked('vehicles')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
                         </x-sidebar-link>
                         <x-sidebar-link :href="route('vehicles.inspections.page')" label="Vehicle Inspections" :active="request()->routeIs('vehicles.inspections.*')" :locked="$locked('vehicles')">
@@ -437,7 +519,7 @@
                         </x-sidebar-link>
                     </x-sidebar-section>
 
-                    <x-sidebar-section id="nav-administration" label="Administration" color="#c4b5fd">
+                    <x-sidebar-section id="nav-administration" label="Administration" color="#c4b5fd" collapsible :open="$inAdministration">
                         <x-sidebar-link :href="route('reports.index')" label="Reports" :active="request()->routeIs('reports.*')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-8"/></svg>
                         </x-sidebar-link>
@@ -1050,6 +1132,17 @@
             toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
             // Keep the off-canvas drawer out of the tab order while it is closed on mobile
             sidebar.inert = isMobile && !expanded;
+        }
+
+        // Sidebar groups work like an accordion: opening one closes the others, so the list stays short
+        function toggleSidebarSection(button) {
+            const section = button.closest('.sidebar-section');
+            const willOpen = section.classList.contains('is-collapsed');
+            document.querySelectorAll('#sidebar .sidebar-section.is-collapsible').forEach(function(other) {
+                const open = other === section ? willOpen : false;
+                other.classList.toggle('is-collapsed', !open);
+                other.querySelector('.sidebar-section-toggle')?.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
         }
 
         function openSidebar() {
