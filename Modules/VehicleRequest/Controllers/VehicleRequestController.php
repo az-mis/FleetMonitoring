@@ -635,14 +635,13 @@ class VehicleRequestController
             abort(403, 'Unauthorized location access.');
         }
 
-        // TEMPORARY FOR TESTING: allow logging completion even if trip date is in the future
-        // if ($vehicleRequest->travel_date->isFuture() && !$vehicleRequest->travel_date->isToday()) {
-        //     $msg = "Cannot log completion for an upcoming trip scheduled on {$vehicleRequest->travel_date->format('M d, Y')}. The trip has not taken place yet.";
-        //     if ($request->wantsJson()) {
-        //         return response()->json(['error' => $msg], 422);
-        //     }
-        //     return back()->with('error', $msg);
-        // }
+        if ($vehicleRequest->travel_date->isFuture() && !$vehicleRequest->travel_date->isToday()) {
+            $msg = "Cannot log completion for an upcoming trip scheduled on {$vehicleRequest->travel_date->format('M d, Y')}. The trip has not taken place yet.";
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $msg], 422);
+            }
+            return back()->with('error', $msg);
+        }
 
         $data = $request->validate([
             'departure_garage_time'     => ['nullable', 'string', 'max:50'],

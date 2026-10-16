@@ -581,19 +581,28 @@
                                                 @php
                                                     $isFutureTrip = $item->travel_date->isFuture() && !$item->travel_date->isToday();
                                                 @endphp
-                                                {{-- TEMPORARY FOR TESTING: allow logging completion even if trip date is upcoming --}}
-                                                <button
-                                                    type="button"
-                                                    onclick='openTripCompletionModalFromRow(@json($modalData))'
-                                                    class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
-                                                    title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <circle cx="12" cy="12" r="10"/>
-                                                        <path d="m12 6 0 6 4 2"/>
-                                                    </svg>
-                                                    <span>{{ $item->completion ? 'Part B Log' : 'Log Part B' }}</span>
-                                                </button>
+                                                @if($isFutureTrip && !$item->completion)
+                                                    <span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-400 cursor-not-allowed" title="Trip scheduled on {{ $item->travel_date->format('M d, Y') }}. Part B can only be logged once trip starts or finishes.">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="12" cy="12" r="10"/>
+                                                            <polyline points="12 6 12 12 16 14"/>
+                                                        </svg>
+                                                        <span>Upcoming</span>
+                                                    </span>
+                                                @else
+                                                    <button
+                                                        type="button"
+                                                        onclick='openTripCompletionModalFromRow(@json($modalData))'
+                                                        class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+                                                        title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="12" cy="12" r="10"/>
+                                                            <path d="m12 6 0 6 4 2"/>
+                                                        </svg>
+                                                        <span>{{ $item->completion ? 'Part B Log' : 'Log Part B' }}</span>
+                                                    </button>
+                                                @endif
                                                 <a
                                                     href="{{ route('trip-ticket', $item) }}"
                                                     target="_blank"
@@ -3159,14 +3168,25 @@
             
             const statusBadge = document.getElementById('preview-status-badge');
             const futureNotice = document.getElementById('preview-future-notice');
-            // TEMPORARY FOR TESTING: allow logging completion even if trip.is_future
-            statusBadge.textContent = trip.has_completion ? '✓ Part B Already Logged' : (trip.is_future ? 'Scheduled / Upcoming (Testing Enabled)' : 'Ready to Complete');
-            statusBadge.className = 'text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
-            futureNotice.classList.add('hidden');
-            openBtn.disabled = false;
-            openBtn.classList.add('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
-            openBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-            openBtn.textContent = 'Open Part B Completion Form →';
+            const openBtn = document.getElementById('preview-open-form-btn');
+
+            if (trip.is_future) {
+                statusBadge.textContent = 'Scheduled / Upcoming';
+                statusBadge.className = 'text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full';
+                futureNotice.classList.remove('hidden');
+                openBtn.disabled = true;
+                openBtn.classList.remove('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
+                openBtn.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+                openBtn.textContent = 'Trip Not Yet Completed';
+            } else {
+                statusBadge.textContent = trip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
+                statusBadge.className = 'text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
+                futureNotice.classList.add('hidden');
+                openBtn.disabled = false;
+                openBtn.classList.add('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
+                openBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+                openBtn.textContent = 'Open Part B Completion Form →';
+            }
 
             document.getElementById('preview-vehicle-plate').textContent = trip.vehicle_plate || 'No Plate';
             document.getElementById('preview-vehicle-name').textContent = trip.vehicle_name ? `(${trip.vehicle_name})` : '';
