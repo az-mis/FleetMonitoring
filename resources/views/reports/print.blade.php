@@ -47,6 +47,9 @@
         .bar-row .num { width: 22px; text-align: right; font-weight: 700; }
         .empty { color: #94a3b8; font-style: italic; padding: 6px 0; }
         .foot { position: absolute; left: 12mm; right: 12mm; bottom: 6mm; font-size: 9px; color: #555; display: flex; justify-content: space-between; border-top: 1px solid #cbd5e1; padding-top: 3px; }
+        /* On narrow screens the fixed-width A4 sheet pans inside this wrapper instead of scrolling the whole page */
+        .sheet-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        @media screen and (max-width: 840px) { .sheet { margin: 12px; } }
         @page { size: A4; margin: 0; }
         @media print {
             body { background: #fff !important; }
@@ -54,6 +57,7 @@
             .sheet { margin: 0 !important; box-shadow: none !important; width: 210mm; min-height: 0; }
             * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             thead { display: table-header-group; }
+            .sheet-scroll { overflow: visible !important; }
         }
     </style>
 </head>
@@ -63,6 +67,7 @@
         <button type="button" onclick="window.print()">Print / Save as PDF</button>
     </div>
 
+    <div class="sheet-scroll">
     <div class="sheet">
         <img class="hdr" src="{{ asset('trip-ticket-header.png') }}" alt="Department of Agriculture MIMAROPA Region">
 
@@ -171,6 +176,7 @@
             <span>Doc. No.: DAMIMAROPA-F083-2023 &middot; Rev. No.: 0 &middot; Issued Date: 10/23/23</span>
             <span>{{ $scopeLabel }}</span>
         </div>
+    </div>
     </div>
 </body>
 </html>

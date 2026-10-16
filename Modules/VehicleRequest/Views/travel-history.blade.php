@@ -35,7 +35,7 @@
 
         return [
             'id' => $trip->id,
-            'destination' => $trip->destination ?: 'N/A',
+            'destination' => $trip->destination ? str_replace(';;', ', ', $trip->destination) : 'N/A',
             'purpose' => $trip->purpose ?: '',
             'requester_name' => $trip->requester_name ?: 'N/A',
             'requester_office' => $trip->requester_office ?: '',
@@ -49,7 +49,7 @@
             'more_passengers_count' => max(0, count($passengers) - 1),
             'all_passengers' => count($passengers) > 0 ? $passengers : [$trip->requester_name ?: 'Requester'],
             'ticket_url' => route('trip-ticket', $trip->id),
-            'search_text' => strtolower(e(($trip->destination ?: '') . ' ' . ($trip->requester_name ?: '') . ' ' . ($trip->vehicle?->plate_number ?: '') . ' ' . ($trip->purpose ?: '') . ' ' . implode(' ', $passengers))),
+            'search_text' => strtolower(str_replace(';;', ', ', $trip->destination ?: '') . ' ' . ($trip->requester_name ?: '') . ' ' . ($trip->vehicle?->plate_number ?: '') . ' ' . ($trip->purpose ?: '') . ' ' . implode(' ', $passengers)),
         ];
     });
 
@@ -123,14 +123,14 @@
             {{-- Tabs & Search Bar --}}
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 {{-- Filter Tabs --}}
-                <div class="inline-flex rounded-lg bg-slate-100 p-1">
-                    <button type="button" @click="activeTab = 'upcoming'" :class="activeTab === 'upcoming' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
+                <div class="flex flex-wrap gap-0.5 self-start rounded-lg bg-slate-100 p-1 sm:self-auto">
+                    <button type="button" @click="activeTab = 'upcoming'" :class="activeTab === 'upcoming' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="whitespace-nowrap rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
                         Active / Upcoming ({{ $upcomingCount }})
                     </button>
-                    <button type="button" @click="activeTab = 'completed'" :class="activeTab === 'completed' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
+                    <button type="button" @click="activeTab = 'completed'" :class="activeTab === 'completed' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="whitespace-nowrap rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
                         Completed ({{ $completedCount }})
                     </button>
-                    <button type="button" @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
+                    <button type="button" @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900 font-semibold'" class="whitespace-nowrap rounded-md px-3 py-1.5 text-xs transition cursor-pointer">
                         All ({{ $totalCount }})
                     </button>
                 </div>
@@ -160,7 +160,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
                         @forelse($mappedTrips as $trip)
-                            <tr x-show="matchesRow('{{ $trip['is_upcoming'] ? 'upcoming' : 'completed' }}', '{{ $trip['search_text'] }}')" class="hover:bg-slate-50/50 transition">
+                            <tr data-trip-row data-status="{{ $trip['is_upcoming'] ? 'upcoming' : 'completed' }}" data-search="{{ $trip['search_text'] }}" x-show="matchesRow($el.dataset.status, $el.dataset.search)" class="hover:bg-slate-50/50 transition">
                                 {{-- Destination & Purpose --}}
                                 <td class="py-3 px-3">
                                     <div class="flex items-center gap-1.5">
@@ -234,6 +234,13 @@
                                 </td>
                             </tr>
                         @endforelse
+                        @if($totalCount > 0)
+                            <tr x-show="!hasVisibleRows()" style="display: none;">
+                                <td colspan="6" class="py-10 text-center text-xs text-slate-500 font-medium">
+                                    No trips match this view.
+                                </td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -265,19 +272,19 @@
         </div>
 
         {{-- Travel Dispatch Details Modal --}}
-        <div x-show="isModalOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
-            <div @click.away="isModalOpen = false" class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
+        <div x-show="isModalOpen" x-transition.opacity @keydown.escape.window="isModalOpen = false" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+            <div @click.away="isModalOpen = false" role="dialog" aria-modal="true" aria-labelledby="travel-details-title" class="flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
                 {{-- Modal Header --}}
-                <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
-                    <h3 class="text-sm font-extrabold text-slate-900">Travel Dispatch Details</h3>
-                    <button type="button" @click="isModalOpen = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                <div class="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-3.5">
+                    <h3 id="travel-details-title" class="text-sm font-extrabold text-slate-900">Travel Dispatch Details</h3>
+                    <button type="button" @click="isModalOpen = false" aria-label="Close" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                 </div>
 
                 {{-- Modal Content --}}
                 <template x-if="selectedTrip">
-                    <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+                    <div class="min-h-0 flex-1 p-5 space-y-4 overflow-y-auto">
                         {{-- Destination Green Header Box --}}
                         <div class="flex items-center justify-between rounded-xl bg-emerald-50/70 border border-emerald-200/80 p-3.5">
                             <div>
@@ -394,7 +401,7 @@
                 </template>
 
                 {{-- Modal Footer --}}
-                <div class="flex justify-end border-t border-slate-100 px-5 py-3 bg-slate-50/50">
+                <div class="flex shrink-0 justify-end border-t border-slate-100 px-5 py-3 bg-slate-50/50">
                     <button type="button" @click="isModalOpen = false" class="rounded-xl border border-slate-200 bg-white px-4 py-1.5 text-xs font-extrabold text-slate-700 hover:bg-slate-100 transition cursor-pointer">
                         Close
                     </button>
@@ -426,6 +433,11 @@
                     }
 
                     return true;
+                },
+
+                hasVisibleRows() {
+                    return Array.from(document.querySelectorAll('[data-trip-row]'))
+                        .some(row => this.matchesRow(row.dataset.status, row.dataset.search || ''));
                 },
 
                 openModal(trip) {

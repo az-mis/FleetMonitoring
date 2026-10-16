@@ -36,6 +36,7 @@
                         id="assign-search-input"
                         value="{{ request('search') }}"
                         autocomplete="off"
+                        aria-label="Search vehicles"
                         placeholder="Search plate, brand, driver..."
                         class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     >
@@ -235,10 +236,11 @@
                             @endphp
 
                             <div>
-                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PRIMARY DRIVER</label>
+                                <label for="assign-driver-{{ $vehicle->id }}" class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PRIMARY DRIVER</label>
                                 <div class="relative">
                                     <select
                                         name="assigned_driver_id"
+                                        id="assign-driver-{{ $vehicle->id }}"
                                         onchange="this.form.submit()"
                                         class="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-3 pr-8 text-xs font-semibold text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
                                     >
@@ -310,23 +312,23 @@
             </div>
 
             <div class="flex items-center gap-1">
-                <a href="{{ $vehicles->url(1) }}" @if($vehicles->onFirstPage()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
+                <a href="{{ $vehicles->url(1) }}" aria-label="First page" @if($vehicles->onFirstPage()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
                     &laquo;
                 </a>
-                <a href="{{ $vehicles->previousPageUrl() ?: '#' }}" @if($vehicles->onFirstPage()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
+                <a href="{{ $vehicles->previousPageUrl() ?: '#' }}" aria-label="Previous page" @if($vehicles->onFirstPage()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
                     &lt;
                 </a>
 
                 @foreach ($vehicles->getUrlRange(max(1, $vehicles->currentPage() - 1), min($vehicles->lastPage(), $vehicles->currentPage() + 1)) as $page => $url)
-                    <a href="{{ $url }}" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $vehicles->currentPage() ? 'bg-emerald-700 text-white border-emerald-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+                    <a href="{{ $url }}" @if ($page == $vehicles->currentPage()) aria-current="page" @endif class="inline-flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $vehicles->currentPage() ? 'bg-emerald-700 text-white border-emerald-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
                         {{ $page }}
                     </a>
                 @endforeach
 
-                <a href="{{ $vehicles->nextPageUrl() ?: '#' }}" @if(!$vehicles->hasMorePages()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
+                <a href="{{ $vehicles->nextPageUrl() ?: '#' }}" aria-label="Next page" @if(!$vehicles->hasMorePages()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
                     &gt;
                 </a>
-                <a href="{{ $vehicles->url($vehicles->lastPage()) }}" @if(!$vehicles->hasMorePages()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
+                <a href="{{ $vehicles->url($vehicles->lastPage()) }}" aria-label="Last page" @if(!$vehicles->hasMorePages()) class="pointer-events-none opacity-30 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500" @else class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50" @endif>
                     &raquo;
                 </a>
             </div>

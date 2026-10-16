@@ -135,23 +135,23 @@
         </div>
 
         <div class="flex items-center gap-1">
-            <button type="button" onclick="goToAdminPage(1)" @disabled($admins->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToAdminPage(1)" aria-label="First page" @disabled($admins->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &laquo;
             </button>
-            <button type="button" onclick="goToAdminPage({{ max(1, $admins->currentPage() - 1) }})" @disabled($admins->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToAdminPage({{ max(1, $admins->currentPage() - 1) }})" aria-label="Previous page" @disabled($admins->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &lt;
             </button>
 
             @foreach ($admins->getUrlRange(max(1, $admins->currentPage() - 1), min($admins->lastPage(), $admins->currentPage() + 1)) as $page => $url)
-                <button type="button" onclick="goToAdminPage({{ $page }})" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $admins->currentPage() ? 'bg-emerald-700 text-white border-emerald-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+                <button type="button" onclick="goToAdminPage({{ $page }})" aria-label="Page {{ $page }}" @if ($page == $admins->currentPage()) aria-current="page" @endif class="inline-flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $admins->currentPage() ? 'bg-emerald-700 text-white border-emerald-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
                     {{ $page }}
                 </button>
             @endforeach
 
-            <button type="button" onclick="goToAdminPage({{ min($admins->lastPage(), $admins->currentPage() + 1) }})" @disabled(!$admins->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToAdminPage({{ min($admins->lastPage(), $admins->currentPage() + 1) }})" aria-label="Next page" @disabled(!$admins->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &gt;
             </button>
-            <button type="button" onclick="goToAdminPage({{ $admins->lastPage() }})" @disabled(!$admins->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToAdminPage({{ $admins->lastPage() }})" aria-label="Last page" @disabled(!$admins->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &raquo;
             </button>
         </div>

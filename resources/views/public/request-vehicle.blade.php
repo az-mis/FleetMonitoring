@@ -48,9 +48,9 @@
 <main class="min-h-screen px-3 py-4 sm:px-8 sm:py-6">
     <div class="mx-auto max-w-2xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-4 shadow-2xl backdrop-blur-sm sm:p-6">
         <nav class="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-emerald-200/15 pb-3 text-xs text-emerald-100/75">
-            <a href="{{ route('check-status') }}" class="hover:text-white">⌕ Check Request Status</a>
+            <a href="{{ route('check-status') }}" class="inline-flex min-h-8 items-center hover:text-white"><span aria-hidden="true">⌕</span>&nbsp;Check Request Status</a>
             <span class="hidden rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 font-semibold uppercase tracking-wide text-emerald-300 sm:inline-block">▣ Public Request Form</span>
-            <a href="{{ route('login') }}" class="hover:text-white">Staff Login →</a>
+            <a href="{{ route('login') }}" class="inline-flex min-h-8 items-center hover:text-white">Staff Login →</a>
         </nav>
         <div class="mb-4 flex items-center gap-2.5">
             <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-10 w-10 rounded-full bg-white object-contain p-1">
@@ -149,8 +149,11 @@ $offices = [
                     <button
                         type="button"
                         id="office-dropdown-trigger"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-controls="office-dropdown-panel"
                         onclick="toggleOfficeDropdown()"
-                        class="group flex h-9 w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-left text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none transition cursor-pointer relative"
+                        class="group flex h-9 w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-left text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
                         <span id="office-dropdown-selected-label" class="truncate {{ old('requesterOffice') ? 'text-emerald-100' : 'text-emerald-100/40' }}">{{ old('requesterOffice') ?: '— Select your office / division —' }}</span>
@@ -173,6 +176,7 @@ $offices = [
                             <input
                                 type="text"
                                 id="office-search-input"
+                                aria-label="Search office"
                                 oninput="filterOfficeOptions()"
                                 placeholder="Search office..."
                                 class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none"
@@ -180,8 +184,10 @@ $offices = [
                         </div>
 
                         {{-- Options List --}}
-                        <div id="office-options-list" class="max-h-56 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
+                        <div id="office-options-list" role="listbox" aria-label="Offices" class="max-h-56 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
                             <div
+                                role="option" tabindex="0"
+                                onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                                 onclick="selectOffice('', '— Select your office / division —')"
                                 class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100/60 hover:bg-emerald-800/40 hover:text-emerald-200 transition"
                                 data-label="— select your office / division —"
@@ -190,6 +196,8 @@ $offices = [
                             </div>
                             @foreach($offices as $office)
                                 <div
+                                    role="option" tabindex="0"
+                                    onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                                     onclick="selectOffice('{{ addslashes($office['label']) }}')"
                                     class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100 hover:bg-emerald-800/50 hover:text-white transition"
                                     data-label="{{ strtolower($office['label'] . ' ' . $office['value']) }}"
@@ -223,7 +231,7 @@ $offices = [
                 <div class="relative" id="public-dest-dropdown-container">
                     <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span>To (Destination) <span class="text-emerald-300">*</span></span>
+                        <span id="public-dest-label">To (Destination) <span class="text-emerald-300">*</span></span>
                     </label>
 
                     {{-- Hidden inputs --}}
@@ -234,8 +242,15 @@ $offices = [
                     {{-- Trigger Button / Pill Display Box --}}
                     <div
                         id="public-dest-dropdown-trigger"
+                        role="button"
+                        tabindex="0"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-controls="public-dest-dropdown-panel"
+                        aria-labelledby="public-dest-label"
                         onclick="togglePublicDestDropdown()"
-                        class="group flex min-h-[40px] w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-3 pr-3 text-left text-[12px] text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none transition cursor-pointer relative"
+                        onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown')) { event.preventDefault(); togglePublicDestDropdown(); }"
+                        class="group flex min-h-[40px] w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-3 pr-3 text-left text-[12px] text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
                     >
                         <div id="public-dest-pills-container" class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 py-1">
                             <span id="public-dest-placeholder" class="text-emerald-100/40">
@@ -253,6 +268,10 @@ $offices = [
                     {{-- Dropdown Panel --}}
                     <div
                         id="public-dest-dropdown-panel"
+                        role="listbox"
+                        aria-multiselectable="true"
+                        aria-labelledby="public-dest-label"
+                        onkeydown="if (event.key === 'Escape') { event.preventDefault(); closePublicDestDropdown(); document.getElementById('public-dest-dropdown-trigger')?.focus(); }"
                         style="max-height: 230px; overflow-y: auto; overscroll-behavior: contain;"
                         class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md max-h-[230px] overflow-y-auto overscroll-contain scrollbar-thin"
                     >
@@ -265,6 +284,7 @@ $offices = [
                                 <input
                                     type="text"
                                     id="public-dest-search-input"
+                                    aria-label="Search or add a destination"
                                     oninput="filterPublicDestOptions()"
                                     onkeydown="onPublicDestSearchKeyDown(event)"
                                     placeholder="Type place name or search registered locations..."
@@ -397,6 +417,7 @@ $offices = [
             const isHidden = panel.classList.contains('hidden');
             if (isHidden) {
                 panel.classList.remove('hidden');
+                document.getElementById('office-dropdown-trigger')?.setAttribute('aria-expanded', 'true');
                 if (chevron) chevron.classList.add('rotate-180');
                 if (searchInput) {
                     searchInput.value = '';
@@ -413,6 +434,7 @@ $offices = [
             const chevron = document.getElementById('office-dropdown-chevron');
             if (panel) panel.classList.add('hidden');
             if (chevron) chevron.classList.remove('rotate-180');
+            document.getElementById('office-dropdown-trigger')?.setAttribute('aria-expanded', 'false');
         }
 
         function selectOffice(val, displayLabel = null) {
@@ -457,6 +479,15 @@ $offices = [
                 }
             }
         }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const officePanel = document.getElementById('office-dropdown-panel');
+            if (officePanel && !officePanel.classList.contains('hidden')) {
+                closeOfficeDropdown();
+                document.getElementById('office-dropdown-trigger')?.focus();
+            }
+        });
 
         document.addEventListener('click', (e) => {
             const container = document.getElementById('custom-office-dropdown-container');
@@ -510,20 +541,21 @@ $offices = [
             if (!list) return;
 
             let html = '';
-            destinations.forEach(d => {
-                const escapedName = (d.name || '').replace(/'/g, "\\'");
+            // Keep the rendered list so option handlers reference entries by index instead of inlining names into JS
+            window.__publicDestRenderList = destinations;
+            destinations.forEach((d, i) => {
                 const isPicked = selectedPublicDestinations.some(item => item.name.toLowerCase() === d.name.toLowerCase());
 
                 html += `
-                    <div onclick="togglePublicSelectedDest('${escapedName}', ${d.distance_km})" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-emerald-800/80 text-white font-bold border border-emerald-400' : 'text-emerald-100 hover:bg-emerald-800/50 hover:text-white'}" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
+                    <div role="option" tabindex="0" aria-selected="${isPicked ? 'true' : 'false'}" onclick="togglePublicSelectedDest(window.__publicDestRenderList[${i}].name, window.__publicDestRenderList[${i}].distance_km)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-emerald-800/80 text-white font-bold border border-emerald-400' : 'text-emerald-100 hover:bg-emerald-800/50 hover:text-white'}" data-label="${esc((d.name + ' ' + d.distance_km + 'km').toLowerCase())}">
                         <div class="flex items-center gap-2">
                             <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isPicked ? 'border-emerald-300 bg-emerald-500 text-emerald-950 font-black' : 'border-emerald-500/40 bg-emerald-950/60'}">
                                 ${isPicked ? '✓' : ''}
                             </span>
-                            <span>${d.name}</span>
+                            <span>${esc(d.name)}</span>
                         </div>
                         <span class="inline-flex items-center rounded-md bg-emerald-900/60 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-bold text-emerald-300 shrink-0">
-                            ${d.distance_km} kms
+                            ${esc(d.distance_km)} kms
                         </span>
                     </div>
                 `;
@@ -592,8 +624,8 @@ $offices = [
                     selectedPublicDestinations.forEach((item, index) => {
                         pillsHtml += `
                             <span class="inline-flex items-center gap-1 rounded-md bg-emerald-800/90 border border-emerald-400/60 px-2 py-0.5 text-xs font-bold text-white shadow-2xs">
-                                <span>${item.name}</span>
-                                <button type="button" onclick="removePublicSelectedDest(${index}, event)" class="hover:text-red-300 text-emerald-300 font-extrabold ml-1 cursor-pointer">✕</button>
+                                <span>${esc(item.name)}</span>
+                                <button type="button" onclick="removePublicSelectedDest(${index}, event)" aria-label="Remove ${esc(item.name)}" class="hover:text-red-300 text-emerald-300 font-extrabold ml-1 cursor-pointer">✕</button>
                             </span>
                         `;
                     });
@@ -612,6 +644,7 @@ $offices = [
             const isHidden = panel.classList.contains('hidden');
             if (isHidden) {
                 panel.classList.remove('hidden');
+                document.getElementById('public-dest-dropdown-trigger')?.setAttribute('aria-expanded', 'true');
                 if (chevron) chevron.classList.add('rotate-180');
                 if (searchInput) {
                     searchInput.value = '';
@@ -628,6 +661,7 @@ $offices = [
             const chevron = document.getElementById('public-dest-dropdown-chevron');
             if (panel) panel.classList.add('hidden');
             if (chevron) chevron.classList.remove('rotate-180');
+            document.getElementById('public-dest-dropdown-trigger')?.setAttribute('aria-expanded', 'false');
         }
 
         function filterPublicDestOptions() {
@@ -638,10 +672,9 @@ $offices = [
             const customAddItem = document.getElementById('public-dest-custom-add-item');
             if (customAddItem) {
                 if (query.length > 0) {
-                    const escapedQuery = query.replace(/'/g, "\\'");
                     customAddItem.innerHTML = `
-                        <div onclick="addPublicCustomDest('${escapedQuery}')" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-900/80 border border-emerald-400/60 p-2 text-xs font-bold text-emerald-200 hover:bg-emerald-800 transition">
-                            <span class="truncate">➕ Add custom: "${query}"</span>
+                        <div role="button" tabindex="0" onclick="addPublicCustomDest((document.getElementById('public-dest-search-input')?.value || '').trim())" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-900/80 border border-emerald-400/60 p-2 text-xs font-bold text-emerald-200 hover:bg-emerald-800 transition">
+                            <span class="truncate">➕ Add custom: "${esc(query)}"</span>
                             <span class="text-[10px] text-emerald-300 font-semibold shrink-0">Press Enter</span>
                         </div>
                     `;

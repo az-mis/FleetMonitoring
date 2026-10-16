@@ -40,6 +40,7 @@
                         id="vehicle-search-input"
                         value="{{ request('search') }}"
                         autocomplete="off"
+                        aria-label="Search vehicles"
                         placeholder="Search by plate number, brand, model, or VIN..."
                         oninput="onVehicleSearchInput()"
                         class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
@@ -214,7 +215,7 @@
     </style>
 
     <div id="register-vehicle-modal" class="fixed inset-0 z-50 hidden items-stretch justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-6">
-        <div class="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[92vh] sm:max-w-3xl sm:rounded-2xl">
+        <div role="dialog" aria-modal="true" aria-labelledby="register-vehicle-modal-title" class="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[92vh] sm:max-w-3xl sm:rounded-2xl">
 
             {{-- Header --}}
             <div class="flex shrink-0 items-center justify-between bg-[#005a36] px-5 py-4 text-white sm:px-6">
@@ -222,7 +223,7 @@
                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#005a36]">
                         @include('vehicle::partials.vehicle-type-icon', ['type' => 'car', 'class' => 'h-5 w-5', 'stroke' => '2'])
                     </span>
-                    <h2 class="truncate text-lg font-bold tracking-tight sm:text-xl">Register New Vehicle</h2>
+                    <h2 id="register-vehicle-modal-title" class="truncate text-lg font-bold tracking-tight sm:text-xl">Register New Vehicle</h2>
                 </div>
                 <button type="button" onclick="closeRegisterVehicleModal()" aria-label="Close" class="shrink-0 rounded-lg p-1.5 text-white/90 transition hover:bg-white/10 hover:text-white cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -243,14 +244,15 @@
                             {{-- Vehicle Photo --}}
                             <div class="sm:col-span-6">
                                 <p class="mb-2 text-sm font-bold text-slate-900">Vehicle Photo</p>
-                                <div class="flex flex-col gap-3 sm:flex-row">
+                                <div class="relative flex flex-col gap-3 sm:flex-row">
+                                    <input type="file" name="photo" id="rv-photo" accept="image/png,image/jpeg,image/webp" class="peer sr-only" onchange="handleVehiclePhotoChange(this)">
                                     <label
                                         for="rv-photo"
                                         id="rv-photo-dropzone"
                                         ondragover="handleRegisterPhotoDrag(event, true)"
                                         ondragleave="handleRegisterPhotoDrag(event, false)"
                                         ondrop="handleRegisterPhotoDrop(event)"
-                                        class="flex h-36 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 text-center transition hover:border-emerald-500 hover:bg-emerald-50/40 sm:h-[204px]"
+                                        class="flex h-36 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 text-center transition hover:border-emerald-500 hover:bg-emerald-50/40 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 sm:h-[204px]"
                                     >
                                         <span class="text-slate-500">
                                             @include('vehicle::partials.vehicle-type-icon', ['type' => 'car', 'class' => 'h-8 w-8', 'stroke' => '1.5'])
@@ -258,7 +260,6 @@
                                         <span class="text-xs text-slate-500"><span class="font-semibold text-slate-800">Click to upload</span> or drag and drop</span>
                                         <span class="text-[11px] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
                                     </label>
-                                    <input type="file" name="photo" id="rv-photo" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="handleVehiclePhotoChange(this)">
 
                                     <div id="rv-photo-preview" class="hidden shrink-0 sm:w-40">
                                         <div class="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -549,13 +550,13 @@
         $avtIcon = $avtActive ? old('icon', 'car') : 'car';
     @endphp
     <div id="add-vehicle-type-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
-        <div class="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div role="dialog" aria-modal="true" aria-labelledby="add-vehicle-type-modal-title" class="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
             <div class="flex shrink-0 items-center justify-between bg-[#005a36] px-5 py-4 text-white">
                 <div class="flex min-w-0 items-center gap-3">
                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#005a36]">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                     </span>
-                    <h2 class="truncate text-lg font-bold tracking-tight">Add Vehicle Type</h2>
+                    <h2 id="add-vehicle-type-modal-title" class="truncate text-lg font-bold tracking-tight">Add Vehicle Type</h2>
                 </div>
                 <button type="button" onclick="closeAddVehicleTypeModal()" aria-label="Close" class="shrink-0 rounded-lg p-1.5 text-white/90 transition hover:bg-white/10 hover:text-white cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
@@ -637,7 +638,7 @@
     @endphp
 
     <div id="edit-vehicle-modal" class="fixed inset-0 z-50 hidden items-stretch justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-6">
-        <div class="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[92vh] sm:max-w-3xl sm:rounded-2xl">
+        <div role="dialog" aria-modal="true" aria-labelledby="edit-vehicle-modal-title" class="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[92vh] sm:max-w-3xl sm:rounded-2xl">
 
             {{-- Header --}}
             <div class="flex shrink-0 items-center justify-between bg-[#005a36] px-5 py-4 text-white sm:px-6">
@@ -646,7 +647,7 @@
                         @include('vehicle::partials.vehicle-type-icon', ['type' => 'car', 'class' => 'h-5 w-5', 'stroke' => '2'])
                     </span>
                     <div class="min-w-0">
-                        <h2 class="truncate text-lg font-bold leading-tight tracking-tight sm:text-xl">Update Vehicle Information</h2>
+                        <h2 id="edit-vehicle-modal-title" class="truncate text-lg font-bold leading-tight tracking-tight sm:text-xl">Update Vehicle Information</h2>
                         <p id="edit-vehicle-subtitle" class="truncate text-xs text-white/85 sm:text-[13px]">Edit the vehicle details and click Save to apply changes.</p>
                     </div>
                 </div>
@@ -668,7 +669,7 @@
                     <div class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12">
 
                         {{-- Vehicle Photo --}}
-                        <div class="sm:col-span-5">
+                        <div class="relative sm:col-span-5">
                             <p class="mb-2 text-sm font-bold text-slate-900">Vehicle Photo</p>
 
                             <div class="relative flex h-44 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 text-slate-400">
@@ -683,13 +684,14 @@
                                 </button>
                             </div>
 
+                            <input type="file" name="photo" id="ev-photo" accept="image/png,image/jpeg,image/webp" class="peer sr-only" onchange="handleEditVehiclePhotoChange(this)">
                             <label
                                 for="ev-photo"
                                 id="ev-photo-dropzone"
                                 ondragover="handleEditPhotoDrag(event, true)"
                                 ondragleave="handleEditPhotoDrag(event, false)"
                                 ondrop="handleEditPhotoDrop(event)"
-                                class="mt-3 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 py-3.5 text-center transition hover:border-emerald-500 hover:bg-emerald-50/40"
+                                class="mt-3 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 py-3.5 text-center transition hover:border-emerald-500 hover:bg-emerald-50/40 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500"
                             >
                                 <span class="flex items-center gap-2 text-sm font-semibold text-slate-800">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
@@ -698,7 +700,6 @@
                                 <span class="text-xs text-slate-500">Click to upload or drag and drop</span>
                                 <span class="text-[11px] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
                             </label>
-                            <input type="file" name="photo" id="ev-photo" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="handleEditVehiclePhotoChange(this)">
                             <p id="ev-photo-error" class="mt-1.5 hidden text-xs text-red-600"></p>
                             @if ($evIsOld)
                                 @error('photo')
@@ -1080,7 +1081,7 @@
 
     {{-- Delete confirmation modal --}}
     <div id="delete-vehicle-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div role="dialog" aria-modal="true" aria-labelledby="delete-vehicle-modal-title" aria-describedby="delete-vehicle-warning" class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <div class="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 9v4M12 17h.01"/>
@@ -1088,7 +1089,7 @@
                 </svg>
             </div>
 
-            <h2 class="mt-4 text-lg font-semibold text-gray-900">Delete vehicle?</h2>
+            <h2 id="delete-vehicle-modal-title" class="mt-4 text-lg font-semibold text-gray-900">Delete vehicle?</h2>
             <p id="delete-vehicle-warning" class="mt-1 text-sm text-gray-500">
                 This will permanently remove <span id="delete-vehicle-name" class="font-medium text-gray-700"></span> from the fleet. This action cannot be undone.
             </p>
@@ -1326,6 +1327,7 @@
             const other = document.getElementById('ev-brand-other');
             const wrap = document.getElementById('ev-brand-other-wrap');
             const hidden = document.getElementById('ev-brand');
+            if (!select || !other || !wrap || !hidden) return;
 
             const isOther = select.value === '__other';
             wrap.classList.toggle('hidden', !isOther);
@@ -1336,6 +1338,7 @@
         function setEditBrandValue(value) {
             const select = document.getElementById('ev-brand-select');
             const other = document.getElementById('ev-brand-other');
+            if (!select || !other) return;
             const match = Array.from(select.options).find((o) => o.value && o.value !== '__other' && o.value.toLowerCase() === value.toLowerCase());
 
             if (match) {
@@ -1448,7 +1451,13 @@
                 form.reset();
             }
             setEditPhotoError('');
-            modal.querySelectorAll('p.text-red-600:not(#ev-photo-error)').forEach(el => el.remove());
+            // Keep the persistent inline error slots (only clear them); remove server-rendered errors.
+            modal.querySelectorAll('p.text-red-600:not(#ev-photo-error):not(#ev-inline-type-error)').forEach(el => el.remove());
+            const evInlineTypeError = document.getElementById('ev-inline-type-error');
+            if (evInlineTypeError) {
+                evInlineTypeError.textContent = '';
+                evInlineTypeError.classList.add('hidden');
+            }
             modal.querySelectorAll('.border-red-500').forEach(el => {
                 el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
                 el.classList.add('border-slate-200');
@@ -1672,7 +1681,13 @@
                 showRegisterStep('form');
             }
 
-            modal.querySelectorAll('p.text-red-600:not(#rv-photo-error)').forEach(el => el.remove());
+            // Keep the persistent inline error slots (only clear them); remove server-rendered errors.
+            modal.querySelectorAll('p.text-red-600:not(#rv-photo-error):not(#rv-inline-type-error)').forEach(el => el.remove());
+            const rvInlineTypeError = document.getElementById('rv-inline-type-error');
+            if (rvInlineTypeError) {
+                rvInlineTypeError.textContent = '';
+                rvInlineTypeError.classList.add('hidden');
+            }
             modal.querySelectorAll('.border-red-500').forEach(el => {
                 el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
                 el.classList.add('border-slate-200');
@@ -1971,6 +1986,11 @@
     </div>
 
     <script>
+        // HTML-escape user-provided values before interpolating them into innerHTML templates.
+        function escHtml(v) {
+            return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
         function openAddVehicleTypeModal() {
             const modal = document.getElementById('add-vehicle-type-modal');
             modal.classList.remove('hidden');
@@ -2401,9 +2421,9 @@
                                             <div class="flex items-center gap-2">
                                                 <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold border ${statusColor}">
                                                     <span class="h-1.5 w-1.5 rounded-full ${statusDot}"></span>
-                                                    ${it.status_label}
+                                                    ${escHtml(it.status_label)}
                                                 </span>
-                                                <h4 class="text-xs font-bold text-slate-900 truncate">${it.item_name}</h4>
+                                                <h4 class="text-xs font-bold text-slate-900 truncate">${escHtml(it.item_name)}</h4>
                                             </div>
                                             <p class="text-[11px] text-slate-500 mt-1">
                                                 Rule: <strong class="text-slate-700">${ruleText}</strong>
@@ -2418,7 +2438,8 @@
                                         <div class="flex items-center gap-1.5 shrink-0">
                                             <button
                                                 type="button"
-                                                onclick="logPmsDone(${it.id}, '${it.item_name.replace(/'/g, "\\'")}')"
+                                                onclick="logPmsDone(${it.id}, this.dataset.itemName)"
+                                                data-item-name="${escHtml(it.item_name)}"
                                                 class="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer"
                                                 title="Log this service as done now"
                                             >
@@ -2605,12 +2626,12 @@
                             <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 shadow-2xs hover:border-amber-300 transition">
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <h5 class="text-xs font-bold text-slate-900">${tpl.item_name}</h5>
-                                        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 uppercase">${tpl.category}</span>
+                                        <h5 class="text-xs font-bold text-slate-900">${escHtml(tpl.item_name)}</h5>
+                                        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 uppercase">${escHtml(tpl.category)}</span>
                                     </div>
                                     <p class="text-[11px] text-slate-500 mt-0.5">
                                         <strong>Interval:</strong> <span class="text-amber-800 font-bold">${intervalStr}</span> •
-                                        <strong>Applies to:</strong> <span class="text-slate-700">${typesStr}</span>
+                                        <strong>Applies to:</strong> <span class="text-slate-700">${escHtml(typesStr)}</span>
                                     </p>
                                 </div>
                                 <button type="button" onclick="deletePmsTemplate(${tpl.id})" class="rounded-lg p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer" title="Delete rule">
@@ -2778,16 +2799,40 @@
                 alert('Failed to update odometer.');
             });
         }
+
+        // Escape closes the topmost open modal via its existing close function.
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            // The inline "add vehicle type" inputs already use Escape to cancel themselves.
+            if (e.target.id === 'rv-inline-type-name' || e.target.id === 'ev-inline-type-name') return;
+
+            const modals = [
+                ['register-vehicle-modal', closeRegisterVehicleModal],
+                ['add-vehicle-type-modal', closeAddVehicleTypeModal],
+                ['edit-vehicle-modal', closeEditVehicleModal],
+                ['delete-vehicle-modal', closeDeleteVehicleModal],
+                ['vehicle-pms-modal', closeVehiclePmsModal],
+                ['pms-rules-modal', closePmsRulesModal],
+                ['quick-odometer-modal', closeQuickOdometerModal],
+            ];
+            for (let i = modals.length - 1; i >= 0; i--) {
+                const el = document.getElementById(modals[i][0]);
+                if (el && !el.classList.contains('hidden')) {
+                    modals[i][1]();
+                    break;
+                }
+            }
+        });
     </script>
 
     {{-- PMS MODAL (CarMind style checklist) --}}
     <div id="vehicle-pms-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-        <div class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden">
+        <div role="dialog" aria-modal="true" aria-labelledby="vehicle-pms-modal-title" class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden">
             {{-- Modal Header --}}
             <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
                 <div>
                     <div class="flex items-center gap-2">
-                        <h3 class="text-base font-extrabold text-slate-900">PMS Schedule & Checklist</h3>
+                        <h3 id="vehicle-pms-modal-title" class="text-base font-extrabold text-slate-900">PMS Schedule & Checklist</h3>
                         <span id="pms-modal-health" class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">100% Good</span>
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5">
@@ -2796,7 +2841,7 @@
                         Odometer: <strong id="pms-modal-odo" class="text-slate-800"></strong>
                     </p>
                 </div>
-                <button type="button" onclick="closeVehiclePmsModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
+                <button type="button" onclick="closeVehiclePmsModal()" aria-label="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -2871,7 +2916,7 @@
 
     {{-- GLOBAL PMS RULES & TEMPLATES MODAL --}}
     <div id="pms-rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-        <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden">
+        <div role="dialog" aria-modal="true" aria-labelledby="pms-rules-modal-title" class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden">
             <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
                 <div class="flex items-center gap-2">
                     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
@@ -2880,11 +2925,11 @@
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-extrabold text-slate-900">Global PMS Rules & Templates</h3>
+                        <h3 id="pms-rules-modal-title" class="text-base font-extrabold text-slate-900">Global PMS Rules & Templates</h3>
                         <p class="text-xs text-slate-500">Define recurring service intervals once. They automatically apply to all matching vehicle types.</p>
                     </div>
                 </div>
-                <button type="button" onclick="closePmsRulesModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
+                <button type="button" onclick="closePmsRulesModal()" aria-label="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -2960,18 +3005,18 @@
 
     {{-- QUICK ODOMETER UPDATE MODAL (CarMind style: fast 1-field popup) --}}
     <div id="quick-odometer-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-        <div class="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-slate-100 p-6 space-y-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="quick-odometer-modal-title" class="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-slate-100 p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-4.2 4.2"/><path d="m12 12v-6"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-sm font-extrabold text-slate-900">Update Odometer</h3>
+                        <h3 id="quick-odometer-modal-title" class="text-sm font-extrabold text-slate-900">Update Odometer</h3>
                         <p class="text-[11px] text-slate-400" id="quick-odo-plate">Vehicle</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeQuickOdometerModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
+                <button type="button" onclick="closeQuickOdometerModal()" aria-label="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
                     ✕
                 </button>
             </div>

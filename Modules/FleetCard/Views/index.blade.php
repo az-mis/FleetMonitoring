@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Fleet Cards')
 
 @php
     $isSuperAdmin = auth()->user()?->role?->value === 'super_admin';
@@ -30,7 +31,7 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             @if($isSuperAdmin)
                 {{-- Location filter (Super Admin - Compact) --}}
                 @php
@@ -45,7 +46,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 text-slate-400 transition" id="fleetcard-location-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
 
-                    <div id="fleetcard-location-menu" class="absolute right-0 z-30 mt-1 hidden w-56 overflow-hidden rounded-xl bg-white p-1 shadow-xl ring-1 ring-black/5">
+                    <div id="fleetcard-location-menu" class="absolute left-0 sm:left-auto sm:right-0 z-30 mt-1 hidden w-56 overflow-hidden rounded-xl bg-white p-1 shadow-xl ring-1 ring-black/5">
                         <a href="{{ route('fleet-cards.index') }}" class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ empty($currentLocation) ? 'bg-emerald-50 text-emerald-800 font-bold' : '' }}">
                             <span>All Locations</span>
                             @if(empty($currentLocation))
@@ -92,6 +93,17 @@
         </div>
     </div>
 
+    @if($errors->any())
+        <div role="alert" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <p class="font-bold">Please fix the following:</p>
+            <ul class="mt-1 list-disc space-y-0.5 pl-5">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- Summary Cards (Compact) --}}
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div class="rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-2xs hover:shadow-xs transition">
@@ -133,7 +145,7 @@
         <div class="flex items-center justify-between">
             <h2 class="text-xs font-black uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
                 <span>Active Fleet Cards</span>
-                <span class="rounded-full bg-emerald-100 px-2 py-0.2 text-[10px] font-bold text-emerald-800">{{ $cards->count() }}</span>
+                <span class="rounded-full bg-emerald-100 px-2 py-px text-[10px] font-bold text-emerald-800">{{ $cards->count() }}</span>
             </h2>
         </div>
 
@@ -209,26 +221,26 @@
                         </div>
 
                         {{-- Actions (Compact) --}}
-                        <div class="flex items-center justify-between gap-1.5 pt-2 border-t border-gray-100">
-                            <div class="flex items-center gap-1.5">
+                        <div class="flex flex-wrap items-center justify-between gap-1.5 pt-2 border-t border-gray-100">
+                            <div class="flex flex-wrap items-center gap-1.5">
                                 <button type="button" onclick="openExpenseModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-2xs">
                                     ⛽ Compute
                                 </button>
                                 <button type="button" onclick="openRechargeModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200 cursor-pointer">
                                     💳 Top Up
                                 </button>
-                                <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', '{{ addslashes($card->card_name) }}')" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition border border-slate-200 cursor-pointer" title="View transaction history for this card">
+                                <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', @js($card->card_name))" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition border border-slate-200 cursor-pointer" title="View transaction history for this card">
                                     📋 History
                                 </button>
                             </div>
                             <div class="flex items-center gap-0.5">
-                                <button type="button" onclick="openEditCardModal({{ json_encode($card) }})" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition cursor-pointer" title="Edit Parameters">
+                                <button type="button" onclick="openEditCardModal({{ json_encode($card) }})" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition cursor-pointer" title="Edit Parameters" aria-label="Edit fleet card">
                                     ✏️
                                 </button>
                                 <form action="{{ route('fleet-cards.destroy', $card->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this fleet card?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Delete Card">
+                                    <button type="submit" class="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Delete Card" aria-label="Delete fleet card">
                                         🗑️
                                     </button>
                                 </form>
@@ -250,7 +262,7 @@
             <div>
                 <h3 class="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
                     <span>Expenses &amp; Transaction History</span>
-                    <span class="rounded-full bg-slate-100 px-2 py-0.2 text-[10px] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
+                    <span class="rounded-full bg-slate-100 px-2 py-px text-[10px] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
                 </h3>
                 <p class="text-[10px] text-gray-400">Track fuel and service deductions grouped by month.</p>
                 {{-- Active card filter badge --}}
@@ -303,7 +315,7 @@
                         {{-- Month Transactions Table --}}
                         <div class="overflow-x-auto rounded-lg border border-gray-100">
                             <table class="w-full text-left text-[11px] text-gray-600">
-                                <thead class="bg-gray-50 text-gray-400 font-bold uppercase tracking-wider text-[9px]">
+                                <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[9px]">
                                     <tr>
                                         <th class="px-2.5 py-1.5">Date</th>
                                         <th class="px-2.5 py-1.5">Category</th>
@@ -318,7 +330,7 @@
                                         <th class="px-2.5 py-1.5 text-center">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100 font-medium" id="history-tbody">
+                                <tbody class="divide-y divide-gray-100 font-medium">
                                     @foreach ($monthLogs as $log)
                                         @php
                                             $cat = $log->category ?: ($log->distance_source === 'recharge' ? 'topup' : 'fuel');
@@ -345,7 +357,7 @@
                                             x-show="activeCategory === 'all' || activeCategory === '{{ $cat }}'">
                                             <td class="px-2.5 py-1.5 text-gray-400 whitespace-nowrap">{{ $log->created_at->format('M d, g:i A') }}</td>
                                             <td class="px-2.5 py-1.5 whitespace-nowrap">
-                                                <span class="rounded-full px-2 py-0.2 text-[9px] font-bold border {{ $catBadge }}">
+                                                <span class="rounded-full px-2 py-px text-[9px] font-bold border {{ $catBadge }}">
                                                     {{ $catLabel }}
                                                 </span>
                                             </td>
@@ -357,13 +369,13 @@
                                             </td>
                                             <td class="px-2.5 py-1.5">
                                                 @if($log->distance_source === 'odometer')
-                                                    <span class="rounded bg-blue-50 px-1 py-0.2 text-[9px] font-bold text-blue-700 border border-blue-100">Odometer</span>
+                                                    <span class="rounded bg-blue-50 px-1 py-px text-[9px] font-bold text-blue-700 border border-blue-100">Odometer</span>
                                                 @elseif($log->distance_source === 'destination_master')
-                                                    <span class="rounded bg-purple-50 px-1 py-0.2 text-[9px] font-bold text-purple-700 border border-purple-100">Trip Ticket</span>
+                                                    <span class="rounded bg-purple-50 px-1 py-px text-[9px] font-bold text-purple-700 border border-purple-100">Trip Ticket</span>
                                                 @elseif($log->distance_source === 'recharge')
-                                                    <span class="rounded bg-emerald-50 px-1 py-0.2 text-[9px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
+                                                    <span class="rounded bg-emerald-50 px-1 py-px text-[9px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
                                                 @else
-                                                    <span class="rounded bg-gray-100 px-1 py-0.2 text-[9px] font-bold text-gray-700 border border-gray-200">Manual</span>
+                                                    <span class="rounded bg-gray-100 px-1 py-px text-[9px] font-bold text-gray-700 border border-gray-200">Manual</span>
                                                 @endif
                                             </td>
                                             {{-- Distance column --}}
@@ -377,7 +389,7 @@
                                             {{-- Liters Used column --}}
                                             <td class="px-2.5 py-1.5 whitespace-nowrap">
                                                 @if($log->liters_used)
-                                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.2 text-[9px] font-black text-amber-800">
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-px text-[9px] font-black text-amber-800">
                                                         ⛽ {{ number_format($log->liters_used, 2) }} L
                                                     </span>
                                                 @else
@@ -404,14 +416,14 @@
                                                     <button type="button"
                                                         onclick="viewLogDetail({{ json_encode($log) }})"
                                                         class="rounded p-1 text-blue-500 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
-                                                        title="View details">
+                                                        title="View details" aria-label="View details">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                                     </button>
                                                     {{-- Edit Remarks --}}
                                                     <button type="button"
-                                                        onclick="editLogRemarks({{ $log->id }}, '{{ $log->fleetCard?->id }}', '{{ addslashes($log->remarks ?? '') }}')"
+                                                        onclick="editLogRemarks({{ $log->id }}, '{{ $log->fleetCard?->id }}', @js($log->remarks ?? ''))"
                                                         class="rounded p-1 text-amber-500 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer"
-                                                        title="Edit remarks">
+                                                        title="Edit remarks" aria-label="Edit remarks">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                     </button>
                                                     {{-- Delete (expense only) --}}
@@ -419,7 +431,7 @@
                                                         <button type="button"
                                                             onclick="deleteExpenseLog({{ $log->fleetCard?->id }}, {{ $log->id }}, {{ $log->consumed_amount }})"
                                                             class="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-700 transition cursor-pointer"
-                                                            title="Delete & restore balance">
+                                                            title="Delete & restore balance" aria-label="Delete expense and restore balance">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                                         </button>
                                                     @endif
@@ -439,10 +451,10 @@
 
 {{-- Log Detail Modal --}}
 <div id="log-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="log-detail-title" class="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 class="text-base font-extrabold text-gray-900">📋 Log Entry Details</h3>
-            <button type="button" onclick="closeLogDetailModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+            <h3 id="log-detail-title" class="text-base font-extrabold text-gray-900">📋 Log Entry Details</h3>
+            <button type="button" onclick="closeLogDetailModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         <div id="log-detail-body" class="space-y-2 text-xs text-gray-700"></div>
     </div>
@@ -450,12 +462,12 @@
 
 {{-- Edit Log Remarks Modal --}}
 <div id="edit-log-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="edit-log-title" class="w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 class="text-base font-extrabold text-gray-900">✏️ Edit Log Remarks</h3>
-            <button type="button" onclick="closeEditLogModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+            <h3 id="edit-log-title" class="text-base font-extrabold text-gray-900">✏️ Edit Log Remarks</h3>
+            <button type="button" onclick="closeEditLogModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
-        <form id="edit-log-form" method="POST" class="space-y-3">
+        <form id="edit-log-form" method="POST" class="space-y-3" onsubmit="this.querySelector('[type=submit]').disabled = true">
             @csrf
             @method('PUT')
             <div>
@@ -472,20 +484,20 @@
 
 {{-- Modal 1: Add Fleet Card --}}
 <div id="add-card-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="add-card-title" class="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 class="text-base font-extrabold text-gray-900">Register New Fleet Card</h3>
-            <button type="button" onclick="closeAddCardModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+            <h3 id="add-card-title" class="text-base font-extrabold text-gray-900">Register New Fleet Card</h3>
+            <button type="button" onclick="closeAddCardModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
 
-        <form action="{{ route('fleet-cards.store') }}" method="POST" class="space-y-3">
+        <form action="{{ route('fleet-cards.store') }}" method="POST" class="space-y-3" onsubmit="this.querySelector('[type=submit]').disabled = true">
             @csrf
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Fleet Card Name / Provider</label>
                 <input type="text" name="card_name" placeholder="e.g. Petron Fleet Card Palawan #1" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Card Number</label>
                     <input type="text" name="card_number" placeholder="FC-10492" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
@@ -604,16 +616,16 @@
 
 {{-- Modal 2: Compute & Log Expense --}}
 <div id="expense-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="expense-card-title" class="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
             <div>
                 <h3 class="text-base font-extrabold text-gray-900" id="expense-card-title">Compute Trip Fuel Expense</h3>
                 <p class="text-xs text-gray-500" id="expense-card-sub">Fleet Card: <span id="expense-card-name" class="font-bold text-emerald-800"></span></p>
             </div>
-            <button type="button" onclick="closeExpenseModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+            <button type="button" onclick="closeExpenseModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
 
-        <form id="expense-form" method="POST" class="space-y-3">
+        <form id="expense-form" method="POST" class="space-y-3" onsubmit="this.querySelector('[type=submit]').disabled = true">
             @csrf
             
             {{-- Expense Category Selection (CarMind style) --}}
@@ -639,7 +651,7 @@
             </div>
 
             {{-- Fields for Option 1: Odometer --}}
-            <div id="field-group-odometer" class="hidden grid-cols-2 gap-3 rounded-xl bg-blue-50/60 p-3 border border-blue-200/60">
+            <div id="field-group-odometer" class="hidden grid grid-cols-1 gap-3 sm:grid-cols-2 rounded-xl bg-blue-50/60 p-3 border border-blue-200/60">
                 <div>
                     <label class="block text-[11px] font-bold text-blue-900 mb-1">Start Odometer</label>
                     <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
@@ -728,19 +740,20 @@
                                     } elseif ((float)$r->distance_km > 0) {
                                         $dist = (float)$r->distance_km;
                                     }
-                                    $searchText = strtolower("{$r->trip_ticket_number} {$r->reference_code} {$r->destination} {$r->requester_name}");
-                                    $labelDisplay = $ticketNum . ' — ' . $r->destination . ($fuelUsed > 0 ? " ({$fuelUsed} L used)" : ($dist > 0 ? " ({$dist} km)" : ''));
+                                    $destDisplay = str_replace(';;', ', ', (string) $r->destination);
+                                    $searchText = strtolower("{$r->trip_ticket_number} {$r->reference_code} {$destDisplay} {$r->requester_name}");
+                                    $labelDisplay = $ticketNum . ' — ' . $destDisplay . ($fuelUsed > 0 ? " ({$fuelUsed} L used)" : ($dist > 0 ? " ({$dist} km)" : ''));
                                 @endphp
                                 <button
                                     type="button"
-                                    onclick="pickTripTicket('{{ $r->id }}', '{{ addslashes($labelDisplay) }}', {{ $dist }}, {{ $fuelUsed }})"
+                                    onclick="pickTripTicket('{{ $r->id }}', @js($labelDisplay), {{ $dist }}, {{ $fuelUsed }})"
                                     class="tt-option-item w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 transition cursor-pointer flex flex-col gap-0.5"
                                     data-search="{{ $searchText }}"
                                 >
                                     <div class="flex items-center justify-between gap-2">
                                         <div class="flex items-center gap-1.5 truncate">
                                             @if($r->trip_ticket_number)
-                                                <span class="font-mono font-extrabold text-[11px] text-emerald-900 bg-emerald-100 px-1.5 py-0.2 rounded">{{ $r->trip_ticket_number }}</span>
+                                                <span class="font-mono font-extrabold text-[11px] text-emerald-900 bg-emerald-100 px-1.5 py-px rounded">{{ $r->trip_ticket_number }}</span>
                                             @endif
                                             <span class="font-bold text-xs text-slate-900 truncate">{{ $r->reference_code }}</span>
                                         </div>
@@ -753,7 +766,7 @@
                                         @endif
                                     </div>
                                     <div class="flex items-center justify-between gap-2 text-[10px] text-slate-500">
-                                        <span class="truncate">{{ $r->destination }}</span>
+                                        <span class="truncate">{{ $destDisplay }}</span>
                                         @if($r->completion)
                                             <span class="text-blue-600 font-semibold shrink-0">✓ Completed Log ({{ number_format($dist, 1) }} km)</span>
                                         @endif
@@ -869,13 +882,13 @@
 
 {{-- Modal 3: Edit Fleet Card --}}
 <div id="edit-card-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="edit-card-title" class="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 class="text-base font-extrabold text-gray-900">Edit Fleet Card Parameters</h3>
-            <button type="button" onclick="closeEditCardModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+            <h3 id="edit-card-title" class="text-base font-extrabold text-gray-900">Edit Fleet Card Parameters</h3>
+            <button type="button" onclick="closeEditCardModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
 
-        <form id="edit-card-form" method="POST" class="space-y-3">
+        <form id="edit-card-form" method="POST" class="space-y-3" onsubmit="this.querySelector('[type=submit]').disabled = true">
             @csrf
             @method('PUT')
             <div>
@@ -883,7 +896,7 @@
                 <input type="text" id="edit-card-name" name="card_name" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Card Number</label>
                     <input type="text" id="edit-card-number" name="card_number" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none">
@@ -986,13 +999,13 @@
 
 {{-- Modal 4: Top Up Budget --}}
 <div id="recharge-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="recharge-title" class="w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 class="text-base font-extrabold text-gray-900">Top Up Fleet Card</h3>
-            <button type="button" onclick="closeRechargeModal()" class="text-gray-400 hover:text-gray-600">✕</button>
+            <h3 id="recharge-title" class="text-base font-extrabold text-gray-900">Top Up Fleet Card</h3>
+            <button type="button" onclick="closeRechargeModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
 
-        <form id="recharge-form" method="POST" class="space-y-3">
+        <form id="recharge-form" method="POST" class="space-y-3" onsubmit="this.querySelector('[type=submit]').disabled = true">
             @csrf
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Top-up Amount (₱)</label>
@@ -1015,6 +1028,37 @@
 <script>
 let currentActiveCard = null;
 const vehiclesData = @json($vehicles);
+
+function escHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+// Escape closes whichever fleet-card modal is open
+document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    const modals = [
+        ['log-detail-modal', closeLogDetailModal],
+        ['edit-log-modal', closeEditLogModal],
+        ['add-card-modal', closeAddCardModal],
+        ['expense-modal', closeExpenseModal],
+        ['edit-card-modal', closeEditCardModal],
+        ['recharge-modal', closeRechargeModal],
+    ];
+    for (const [id, close] of modals) {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden')) {
+            close();
+        }
+    }
+});
+
+// Re-enable submit buttons disabled by onsubmit when the page is restored from bfcache
+window.addEventListener('pageshow', function (e) {
+    if (e.persisted) {
+        document.querySelectorAll('#add-card-modal, #expense-modal, #edit-card-modal, #recharge-modal, #edit-log-modal')
+            .forEach(modal => modal.querySelectorAll('[type=submit][disabled]').forEach(btn => { btn.disabled = false; }));
+    }
+});
 
 // ── ADD VEHICLE PICKER LOGIC ──────────────────────────────────────
 function toggleAddVehiclePicker() {
@@ -1087,6 +1131,8 @@ function pickAddVehicle(id) {
 // ── EDIT VEHICLE PICKER LOGIC ─────────────────────────────────────
 function toggleEditVehiclePicker() {
     const panel = document.getElementById('edit-vp-panel');
+    // Vehicle field is read-only in the edit modal; the picker panel/search no longer exist.
+    if (!panel || !document.getElementById('edit-vp-search')) return;
     const isHidden = panel.classList.contains('hidden');
     panel.classList.toggle('hidden', !isHidden);
     if (isHidden) {
@@ -1097,7 +1143,10 @@ function toggleEditVehiclePicker() {
 }
 
 function filterEditVehiclePicker() {
-    const q = (document.getElementById('edit-vp-search').value || '').toLowerCase().trim();
+    const searchEl = document.getElementById('edit-vp-search');
+    // Vehicle field is read-only in the edit modal; nothing to filter.
+    if (!searchEl) return;
+    const q = (searchEl.value || '').toLowerCase().trim();
     const locSelect = document.getElementById('edit-card-location');
     const selectedLoc = locSelect ? locSelect.value.toLowerCase().trim() : '';
     let count = 0;
@@ -1114,7 +1163,7 @@ function filterEditVehiclePicker() {
             btn.classList.add('hidden');
         }
     });
-    document.getElementById('edit-vp-empty').classList.toggle('hidden', count > 0);
+    document.getElementById('edit-vp-empty')?.classList.toggle('hidden', count > 0);
 }
 
 function onEditLocationChange(loc) {
@@ -1226,9 +1275,9 @@ function openEditCardModal(card) {
                             <span class="font-extrabold text-xs text-blue-900">+₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             <span class="text-[10px] text-gray-400">${dateStr}</span>
                         </div>
-                        <p class="text-[10px] text-gray-500 truncate max-w-[200px]">${r.remarks || 'Budget Top-up'}</p>
+                        <p class="text-[10px] text-gray-500 truncate max-w-[200px]">${escHtml(r.remarks || 'Budget Top-up')}</p>
                     </div>
-                    <button type="button" onclick="deleteTopUpEntry(${card.id}, ${r.id}, ${amount})" class="rounded-md p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 transition cursor-pointer" title="Delete wrong top-up">
+                    <button type="button" onclick="deleteTopUpEntry(${card.id}, ${r.id}, ${amount})" class="rounded-md p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 transition cursor-pointer" title="Delete wrong top-up" aria-label="Delete top-up">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>
                         </svg>
@@ -1533,7 +1582,7 @@ function viewLogDetail(log) {
     body.innerHTML = rows.map(([label, val]) => `
         <div class="flex justify-between gap-3 py-1.5 border-b border-gray-100 last:border-0">
             <span class="font-bold text-gray-500 shrink-0">${label}:</span>
-            <span class="font-semibold text-gray-900 text-right">${val}</span>
+            <span class="font-semibold text-gray-900 text-right break-words">${escHtml(val)}</span>
         </div>
     `).join('');
 

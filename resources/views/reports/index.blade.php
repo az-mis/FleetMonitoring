@@ -70,7 +70,7 @@
     <form method="GET" action="{{ route('reports.index') }}" id="filter-form" class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center">
         @if($isSuperAdmin)
             <div class="flex items-center gap-2">
-                <label for="f-location" class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Office</label>
+                <label for="f-location" class="text-[11px] font-bold uppercase tracking-wide text-slate-500">Office</label>
                 <select id="f-location" name="location" onchange="this.form.submit()" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                     <option value="">All Offices</option>
                     @foreach($locationOptions as $opt)
@@ -89,9 +89,9 @@
         </div>
 
         <div id="custom-dates" class="{{ $range === 'custom' ? 'flex' : 'hidden' }} flex-wrap items-center gap-2">
-            <input type="date" name="from" value="{{ request('from', $rangeStart->toDateString()) }}" class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            <input type="date" name="from" aria-label="From date" value="{{ request('from', $rangeStart->toDateString()) }}" class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
             <span class="text-xs text-slate-400">to</span>
-            <input type="date" name="to" value="{{ request('to', $rangeEnd->toDateString()) }}" class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            <input type="date" name="to" aria-label="To date" value="{{ request('to', $rangeEnd->toDateString()) }}" class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
             <button type="submit" class="rounded-lg bg-slate-800 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-slate-900 cursor-pointer">Apply</button>
         </div>
 
@@ -99,12 +99,12 @@
     </form>
 
     {{-- KPI cards --}}
-    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
         @foreach($kpis as $kpi)
-            <div class="rounded-2xl border bg-white p-4 shadow-sm {{ explode(' ', $tones[$kpi['tone']])[0] }}">
-                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">{{ $kpi['label'] }}</p>
-                <p class="mt-1 truncate text-2xl font-black leading-tight {{ explode(' ', $tones[$kpi['tone']])[1] }}">{{ $kpi['value'] }}</p>
-                <p class="mt-0.5 truncate text-[11px] text-slate-400">{{ $kpi['hint'] }}</p>
+            <div class="min-w-0 rounded-2xl border bg-white p-4 shadow-sm {{ explode(' ', $tones[$kpi['tone']])[0] }}">
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-500">{{ $kpi['label'] }}</p>
+                <p class="mt-1 break-words text-xl font-black leading-tight tabular-nums sm:text-2xl {{ explode(' ', $tones[$kpi['tone']])[1] }}">{{ $kpi['value'] }}</p>
+                <p class="mt-0.5 truncate text-[11px] text-slate-500" title="{{ $kpi['hint'] }}">{{ $kpi['hint'] }}</p>
             </div>
         @endforeach
     </div>
@@ -133,7 +133,7 @@
 
                 {{-- Big Amount --}}
                 <div class="mt-4">
-                    <p class="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                    <p class="break-words text-2xl font-black tracking-tight text-white tabular-nums sm:text-4xl">
                         ₱{{ number_format($ca['total_spent'], 2) }}
                     </p>
                     @if($ca['prev_spent'] > 0)
@@ -150,12 +150,12 @@
                 <div class="mt-6 grid grid-cols-2 gap-3">
                     <div class="rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
                         <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Cost per km</p>
-                        <p class="mt-1 text-xl font-black text-white">₱{{ number_format($ca['cost_per_km'], 2) }}</p>
+                        <p class="mt-1 break-words text-lg font-black text-white tabular-nums sm:text-xl">₱{{ number_format($ca['cost_per_km'], 2) }}</p>
                         <p class="text-[10px] text-emerald-200/80">Fuel &amp; service rate</p>
                     </div>
                     <div class="rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
                         <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Distance</p>
-                        <p class="mt-1 text-xl font-black text-white">{{ number_format($ca['total_km'], 1) }} km</p>
+                        <p class="mt-1 break-words text-lg font-black text-white tabular-nums sm:text-xl">{{ number_format($ca['total_km'], 1) }} km</p>
                         <p class="text-[10px] text-emerald-200/80">Logged trips</p>
                     </div>
                 </div>
@@ -203,7 +203,7 @@
                             <p class="mt-0.5 text-[11px] opacity-80 leading-snug">{{ $ins['desc'] }}</p>
                         </div>
                     @empty
-                        <div class="col-span-3 py-6 text-center text-xs text-slate-400">
+                        <div class="col-span-full py-6 text-center text-xs text-slate-500">
                             Log vehicle trips with distance and card transactions to generate insights.
                         </div>
                     @endforelse
@@ -278,7 +278,7 @@
                     <tbody>
                         @foreach($locationBreakdown as $row)
                             <tr class="cursor-pointer border-b border-gray-50 transition last:border-0 hover:bg-emerald-50/40" onclick="window.location='{{ route('reports.index', array_filter(['location' => $row['location'], 'range' => $range, 'from' => request('from'), 'to' => request('to')])) }}'">
-                                <td class="py-2.5 pr-4 font-bold text-gray-800">{{ $row['location'] }}</td>
+                                <td class="py-2.5 pr-4 font-bold text-gray-800"><a href="{{ route('reports.index', array_filter(['location' => $row['location'], 'range' => $range, 'from' => request('from'), 'to' => request('to')])) }}" class="hover:underline focus-visible:underline focus-visible:outline-none" onclick="event.stopPropagation()">{{ $row['location'] }}</a></td>
                                 <td class="py-2.5 pr-4 text-right text-gray-600">{{ $row['vehicles'] }}</td>
                                 <td class="py-2.5 pr-4 text-right text-gray-600">{{ $row['requests'] }}</td>
                                 <td class="py-2.5 pr-4 text-right font-semibold text-amber-700">{{ $row['pending'] }}</td>
@@ -364,7 +364,7 @@
                         <th class="px-4 py-2.5 font-bold">Vehicle</th>
                         <th class="px-4 py-2.5 font-bold">Destination</th>
                         <th class="px-4 py-2.5 font-bold">Status</th>
-                        <th class="px-4 py-2.5"></th>
+                        <th class="relative px-4 py-2.5"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody>

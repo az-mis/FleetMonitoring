@@ -137,13 +137,13 @@
 
     {{-- Register Driver modal --}}
     <div id="add-driver-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl my-auto">
+        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl my-auto" role="dialog" aria-modal="true" aria-labelledby="add-driver-modal-title">
 
             {{-- Step 1: form --}}
             <div id="add-driver-step-form">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Add Driver</h2>
-                    <button type="button" onclick="closeAddDriverModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <h2 id="add-driver-modal-title" class="text-lg font-semibold text-gray-900">Add Driver</h2>
+                    <button type="button" onclick="closeAddDriverModal()" aria-label="Close" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                         </svg>
@@ -157,22 +157,24 @@
 
                     {{-- Centered avatar upload --}}
                     <div class="flex flex-col items-center gap-2">
-                        <div class="relative cursor-pointer" onclick="document.getElementById('add-driver-avatar').click()">
-                            <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-white text-2xl font-bold" id="add-driver-avatar-circle">
+                        <input type="file" name="avatar" id="add-driver-avatar" accept="image/png,image/jpeg,image/webp" class="peer sr-only" onchange="previewAddDriverAvatar(this)">
+                        <label for="add-driver-avatar" class="relative cursor-pointer rounded-full peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-2">
+                            <span class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-white text-2xl font-bold" id="add-driver-avatar-circle">
                                 <img id="add-driver-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover rounded-full">
                                 <span id="add-driver-avatar-initial">D</span>
-                            </div>
+                            </span>
                             <span class="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-white border border-gray-200 shadow">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/>
                                 </svg>
                             </span>
-                        </div>
-                        <input type="file" name="avatar" id="add-driver-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewAddDriverAvatar(this)">
+                        </label>
                         <p class="text-xs text-gray-400">Photo (optional, max 5MB)</p>
-                        @error('avatar')
-                            <p class="text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        @if (old('_driver_form') !== 'edit')
+                            @error('avatar')
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     {{-- Full Name --}}
@@ -184,11 +186,11 @@
                             id="add-driver-name"
                             placeholder="Driver's full name"
                             value="{{ old('_driver_form') === 'create' ? old('name') : '' }}"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror"
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('name') ? 'border-red-300' : '' }}"
                             required
                             oninput="updateAddDriverInitial(this.value)"
                         >
-                        @error('name')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                        @if (old('_driver_form') !== 'edit') @error('name')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                     </div>
 
                     {{-- Email --}}
@@ -200,10 +202,10 @@
                             id="add-driver-email"
                             placeholder="driver@example.com"
                             value="{{ old('_driver_form') === 'create' ? old('email') : '' }}"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('email') border-red-300 @enderror"
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('email') ? 'border-red-300' : '' }}"
                             required
                         >
-                        @error('email')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                        @if (old('_driver_form') !== 'edit') @error('email')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                     </div>
 
                     {{-- Temporary Password --}}
@@ -213,11 +215,11 @@
                             type="password"
                             name="password"
                             id="add-driver-password"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror"
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('password') ? 'border-red-300' : '' }}"
                             required
                         >
                         <input type="hidden" name="password_confirmation" id="add-driver-password-confirm">
-                        @error('password')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                        @if (old('_driver_form') !== 'edit') @error('password')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                     </div>
 
                     {{-- Assigned Location / Office Province --}}
@@ -237,7 +239,7 @@
                     </div>
 
                     {{-- Birth Date + License No. --}}
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="add-driver-birth-date" class="block text-sm font-medium text-gray-700">Birth Date</label>
                             <input
@@ -245,9 +247,9 @@
                                 name="birth_date"
                                 id="add-driver-birth-date"
                                 value="{{ old('_driver_form') === 'create' ? old('birth_date') : '' }}"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('birth_date') border-red-300 @enderror"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('birth_date') ? 'border-red-300' : '' }}"
                             >
-                            @error('birth_date')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            @if (old('_driver_form') !== 'edit') @error('birth_date')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                         </div>
                         <div>
                             <label for="add-driver-license-no" class="block text-sm font-medium text-gray-700">License No. <span class="text-red-500">*</span></label>
@@ -257,15 +259,15 @@
                                 id="add-driver-license-no"
                                 placeholder="e.g. N01-23-456789"
                                 value="{{ old('_driver_form') === 'create' ? old('license_number') : '' }}"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('license_number') border-red-300 @enderror"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('license_number') ? 'border-red-300' : '' }}"
                                 required
                             >
-                            @error('license_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            @if (old('_driver_form') !== 'edit') @error('license_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                         </div>
                     </div>
 
                     {{-- License Expiration + Phone Number --}}
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="add-driver-license-expiration" class="block text-sm font-medium text-gray-700">License Expiration <span class="text-red-500">*</span></label>
                             <input
@@ -273,10 +275,10 @@
                                 name="license_expiration_date"
                                 id="add-driver-license-expiration"
                                 value="{{ old('_driver_form') === 'create' ? old('license_expiration_date') : '' }}"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('license_expiration_date') border-red-300 @enderror"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('license_expiration_date') ? 'border-red-300' : '' }}"
                                 required
                             >
-                            @error('license_expiration_date')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            @if (old('_driver_form') !== 'edit') @error('license_expiration_date')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                         </div>
                         <div>
                             <label for="add-driver-phone" class="block text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
@@ -290,10 +292,10 @@
                                 pattern="09[0-9]{9}"
                                 title="Must start with 09 and be exactly 11 digits"
                                 value="{{ old('_driver_form') === 'create' ? old('phone_number') : '' }}"
-                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('phone_number') border-red-300 @enderror"
+                                class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('phone_number') ? 'border-red-300' : '' }}"
                                 required
                             >
-                            @error('phone_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            @if (old('_driver_form') !== 'edit') @error('phone_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                         </div>
                     </div>
 
@@ -306,9 +308,9 @@
                             id="add-driver-address"
                             placeholder="Complete address"
                             value="{{ old('_driver_form') === 'create' ? old('address') : '' }}"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('address') border-red-300 @enderror"
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') !== 'edit' && $errors->has('address') ? 'border-red-300' : '' }}"
                         >
-                        @error('address')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                        @if (old('_driver_form') !== 'edit') @error('address')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                     </div>
 
                     {{-- Submit --}}
@@ -376,12 +378,12 @@
 
     {{-- Edit Driver modal --}}
     <div id="edit-driver-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl my-auto">
+        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl my-auto" role="dialog" aria-modal="true" aria-labelledby="edit-driver-modal-title">
 
             <div id="edit-driver-step-form">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                    <h2 class="text-base font-extrabold text-gray-900">Edit Driver</h2>
-                    <button type="button" onclick="closeEditDriverModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <h2 id="edit-driver-modal-title" class="text-base font-extrabold text-gray-900">Edit Driver</h2>
+                    <button type="button" onclick="closeEditDriverModal()" aria-label="Close" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                         </svg>
@@ -403,11 +405,11 @@
                                 <img id="edit-driver-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
                                 <span id="edit-driver-avatar-preview-initial" class="text-lg font-bold text-gray-700"></span>
                             </div>
-                            <input type="file" name="avatar" id="edit-driver-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewEditDriverAvatarFile(this)">
                         </div>
 
                         <div class="mt-1.5 flex items-center gap-2">
-                            <label for="edit-driver-avatar" class="inline-flex cursor-pointer items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">
+                            <input type="file" name="avatar" id="edit-driver-avatar" accept="image/png,image/jpeg,image/webp" class="peer sr-only" onchange="previewEditDriverAvatarFile(this)">
+                            <label for="edit-driver-avatar" class="inline-flex cursor-pointer items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
                                     <circle cx="12" cy="13" r="3"/>
@@ -418,7 +420,7 @@
                                 type="button"
                                 id="edit-driver-avatar-remove-btn"
                                 onclick="removeEditDriverAvatar()"
-                                class="hidden inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition"
+                                class="hidden items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M3 6h18"/>
@@ -428,6 +430,11 @@
                                 <span>Remove</span>
                             </button>
                         </div>
+                        @if (old('_driver_form') === 'edit')
+                            @error('avatar')
+                                <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     {{-- Full Name & Email --}}
@@ -439,12 +446,14 @@
                                 name="name"
                                 id="edit-driver-name"
                                 value="{{ old('_driver_form') === 'edit' ? old('name') : '' }}"
-                                class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror"
+                                class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') === 'edit' && $errors->has('name') ? 'border-red-300' : '' }}"
                                 required
                             >
-                            @error('name')
-                                <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
-                            @enderror
+                            @if (old('_driver_form') === 'edit')
+                                @error('name')
+                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
 
                         <div>
@@ -454,7 +463,7 @@
                                 name="email"
                                 id="edit-driver-email"
                                 value="{{ old('_driver_form') === 'edit' ? old('email') : '' }}"
-                                class="mt-0.5 w-full rounded-lg border border-slate-200 bg-slate-100/70 px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none cursor-not-allowed @error('email') border-red-300 @enderror"
+                                class="mt-0.5 w-full rounded-lg border border-slate-200 bg-slate-100/70 px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none cursor-not-allowed {{ old('_driver_form') === 'edit' && $errors->has('email') ? 'border-red-300' : '' }}"
                                 required
                                 readonly
                             >
@@ -474,6 +483,11 @@
                                 <option value="{{ $opt }}">{{ $opt }}</option>
                             @endforeach
                         </select>
+                        @if (old('_driver_form') === 'edit')
+                            @error('location')
+                                <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     {{-- Birth Date & License No. --}}
@@ -487,6 +501,11 @@
                                 value="{{ old('_driver_form') === 'edit' ? old('birth_date') : '' }}"
                                 class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                             >
+                            @if (old('_driver_form') === 'edit')
+                                @error('birth_date')
+                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
                         <div>
                             <label for="edit-driver-license-no" class="block text-[11px] font-bold text-gray-700">License No. <span class="text-red-500">*</span></label>
@@ -499,6 +518,11 @@
                                 class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                                 required
                             >
+                            @if (old('_driver_form') === 'edit')
+                                @error('license_number')
+                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
                     </div>
 
@@ -514,6 +538,11 @@
                                 class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                                 required
                             >
+                            @if (old('_driver_form') === 'edit')
+                                @error('license_expiration_date')
+                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
                         <div>
                             <label for="edit-driver-phone" class="block text-[11px] font-bold text-gray-700">Phone Number <span class="text-red-500">*</span></label>
@@ -530,6 +559,11 @@
                                 class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                                 required
                             >
+                            @if (old('_driver_form') === 'edit')
+                                @error('phone_number')
+                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
                     </div>
 
@@ -544,6 +578,11 @@
                             value="{{ old('_driver_form') === 'edit' ? old('address') : '' }}"
                             class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         >
+                        @if (old('_driver_form') === 'edit')
+                            @error('address')
+                                <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     {{-- Change Password (Optional) with Eye Toggle --}}
@@ -564,12 +603,13 @@
                                         name="password"
                                         id="edit-driver-password"
                                         placeholder="••••••••"
-                                        class="w-full rounded-lg border border-gray-300 bg-white pl-2.5 pr-8 py-1 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror"
+                                        class="w-full rounded-lg border border-gray-300 bg-white pl-2.5 pr-8 py-1 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') === 'edit' && $errors->has('password') ? 'border-red-300' : '' }}"
                                     >
                                     <button
                                         type="button"
                                         onclick="togglePasswordVisibility('edit-driver-password', 'edit-pass-eye-icon')"
-                                        class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                                        aria-label="Show password"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
                                     >
                                         <svg id="edit-pass-eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
@@ -577,9 +617,11 @@
                                         </svg>
                                     </button>
                                 </div>
-                                @error('password')
-                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
-                                @enderror
+                                @if (old('_driver_form') === 'edit')
+                                    @error('password')
+                                        <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                    @enderror
+                                @endif
                             </div>
                             <div>
                                 <label for="edit-driver-password-confirm" class="block text-[10px] font-semibold text-gray-600">Confirm New Password</label>
@@ -594,7 +636,8 @@
                                     <button
                                         type="button"
                                         onclick="togglePasswordVisibility('edit-driver-password-confirm', 'edit-confirm-pass-eye-icon')"
-                                        class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                                        aria-label="Show password"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
                                     >
                                         <svg id="edit-confirm-pass-eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
@@ -620,7 +663,7 @@
             <div id="edit-driver-step-confirm" class="hidden relative">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                     <h2 class="text-base font-extrabold text-gray-900">Confirm Driver Update?</h2>
-                    <button type="button" onclick="closeEditDriverModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <button type="button" onclick="closeEditDriverModal()" aria-label="Close" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                         </svg>
@@ -666,10 +709,10 @@
 
     {{-- View details modal --}}
     <div id="view-driver-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl my-auto">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl my-auto" role="dialog" aria-modal="true" aria-labelledby="view-driver-modal-title">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-gray-900">Driver details</h2>
-                <button type="button" onclick="closeViewDriverModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <h2 id="view-driver-modal-title" class="text-lg font-semibold text-gray-900">Driver details</h2>
+                <button type="button" onclick="closeViewDriverModal()" aria-label="Close" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                     </svg>
@@ -739,7 +782,7 @@
 
     {{-- Delete confirmation modal --}}
     <div id="delete-driver-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-driver-modal-title">
             <div class="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 9v4M12 17h.01"/>
@@ -747,7 +790,7 @@
                 </svg>
             </div>
 
-            <h2 class="mt-4 text-lg font-semibold text-gray-900">Delete driver?</h2>
+            <h2 id="delete-driver-modal-title" class="mt-4 text-lg font-semibold text-gray-900">Delete driver?</h2>
             <p class="mt-1 text-sm text-gray-500">
                 This will permanently remove <span id="delete-driver-name" class="font-medium text-gray-700"></span>'s account. This action cannot be undone.
             </p>
@@ -954,7 +997,7 @@
             if (typeof clearAddDriverPhoto === 'function') {
                 clearAddDriverPhoto();
             }
-            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            modal.querySelectorAll('p.text-red-600').forEach(el => el.remove());
             modal.querySelectorAll('.border-red-500').forEach(el => {
                 el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
                 el.classList.add('border-slate-200');
@@ -1002,6 +1045,7 @@
 
             if (btn) {
                 form.action = btn.dataset.updateUrl;
+                document.getElementById('edit-driver-action-field').value = btn.dataset.updateUrl;
                 document.getElementById('edit-driver-name').value = btn.dataset.name;
                 document.getElementById('edit-driver-email').value = btn.dataset.email;
                 document.getElementById('edit-driver-location').value = btn.dataset.location || '';
@@ -1019,12 +1063,14 @@
                     img.classList.remove('hidden');
                     initial.classList.add('hidden');
                     removeBtn?.classList.remove('hidden');
+                    removeBtn?.classList.add('inline-flex');
                 } else {
                     img.src = '';
                     img.classList.add('hidden');
                     initial.classList.remove('hidden');
                     initial.textContent = btn.dataset.initial || '';
                     removeBtn?.classList.add('hidden');
+                    removeBtn?.classList.remove('inline-flex');
                 }
             }
 
@@ -1046,7 +1092,9 @@
                 img.src = e.target.result;
                 img.classList.remove('hidden');
                 document.getElementById('edit-driver-avatar-preview-initial').classList.add('hidden');
-                document.getElementById('edit-driver-avatar-remove-btn')?.classList.remove('hidden');
+                const removeBtn = document.getElementById('edit-driver-avatar-remove-btn');
+                removeBtn?.classList.remove('hidden');
+                removeBtn?.classList.add('inline-flex');
             };
             reader.readAsDataURL(file);
         }
@@ -1059,7 +1107,9 @@
             img.src = '';
             img.classList.add('hidden');
             document.getElementById('edit-driver-avatar-preview-initial').classList.remove('hidden');
-            document.getElementById('edit-driver-avatar-remove-btn')?.classList.add('hidden');
+            const removeBtn = document.getElementById('edit-driver-avatar-remove-btn');
+            removeBtn?.classList.add('hidden');
+            removeBtn?.classList.remove('inline-flex');
         }
 
         function closeEditDriverModal() {
@@ -1076,7 +1126,7 @@
             if (form) {
                 form.reset();
             }
-            modal.querySelectorAll('.text-red-600').forEach(el => el.remove());
+            modal.querySelectorAll('p.text-red-600').forEach(el => el.remove());
             modal.querySelectorAll('.border-red-500').forEach(el => {
                 el.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
                 el.classList.add('border-slate-200');
@@ -1153,15 +1203,30 @@
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
             if (!input) return;
+            const toggleBtn = icon?.closest('button');
 
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.innerHTML = `<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/>`;
+                toggleBtn?.setAttribute('aria-label', 'Hide password');
             } else {
                 input.type = 'password';
                 icon.innerHTML = `<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>`;
+                toggleBtn?.setAttribute('aria-label', 'Show password');
             }
         }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            const isOpen = (id) => {
+                const el = document.getElementById(id);
+                return el && !el.classList.contains('hidden');
+            };
+            if (isOpen('delete-driver-modal')) closeDeleteDriverModal();
+            else if (isOpen('view-driver-modal')) closeViewDriverModal();
+            else if (isOpen('edit-driver-modal')) closeEditDriverModal();
+            else if (isOpen('add-driver-modal')) closeAddDriverModal();
+        });
 
         function toggleDriverLocationMenu() {
             const menu = document.getElementById('driver-location-menu');

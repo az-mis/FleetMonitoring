@@ -12,6 +12,7 @@
         data-created="{{ $admin->created_at->format('M d, Y \a\t g:i A') }}"
         data-updated="{{ $admin->updated_at->format('M d, Y \a\t g:i A') }}"
         title="View"
+        aria-label="View {{ $admin->name }}"
         class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition"
     >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -36,6 +37,7 @@
         data-signee2-title="{{ $officer?->signee2_title }}"
         data-update-url="{{ route('admin.update', $admin) }}"
         title="Edit"
+        aria-label="Edit {{ $admin->name }}"
         class="rounded-lg p-2 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition"
     >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -50,6 +52,7 @@
         data-name="{{ $admin->name }}"
         data-delete-url="{{ route('admin.destroy', $admin) }}"
         title="Delete"
+        aria-label="Delete {{ $admin->name }}"
         class="rounded-lg p-2 text-gray-500 hover:bg-red-50 hover:text-red-600 transition"
     >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

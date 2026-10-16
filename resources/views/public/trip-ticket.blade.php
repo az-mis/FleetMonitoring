@@ -52,6 +52,9 @@
         .sign .space { min-height: 20px; }
         .sign .name { border-top: 1px solid #333; text-align: center; font-weight: 700; padding-top: 1px; }
         .sign .ttl { font-size: 10px; text-align: center; }
+        /* On narrow screens keep the official A4 layout intact and let it pan horizontally instead of clipping */
+        .sheet-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        @media screen and (max-width: 840px) { .sheet { width: 210mm; max-width: none; margin: 12px; } }
         @page { size: A4; margin: 0; }
         @media print {
             body { background: #fff !important; }
@@ -59,6 +62,7 @@
             .sheet { margin: 0 !important; box-shadow: none !important; max-width: none; width: 210mm; height: 297mm; page-break-after: avoid; }
             .body { padding-bottom: 8mm; }
             * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sheet-scroll { overflow: visible !important; }
         }
     </style>
 </head>
@@ -67,6 +71,7 @@
         <button type="button" onclick="window.print()">Print / Save as PDF</button>
     </div>
 
+    <div class="sheet-scroll">
     <div class="sheet">
         <img class="hdr" src="{{ asset('trip-ticket-header.png') }}" alt="Department of Agriculture MIMAROPA Region">
 
@@ -175,6 +180,7 @@
                 <div>Issued Date: 10/23/23</div>
             </div>
         </div>
+    </div>
     </div>
 </body>
 </html>

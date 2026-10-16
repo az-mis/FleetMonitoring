@@ -18,7 +18,7 @@
     @endphp
 
     {{-- Page header --}}
-    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Travel Requests</h1>
             <p class="text-sm text-slate-500">Review and confirm staff travel requests submitted via QR code</p>
@@ -254,7 +254,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'pending' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>Pending</span>
-            <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['pending'] }}
             </span>
         </button>
@@ -266,7 +266,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'approved' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>Approved</span>
-            <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['approved'] }}
             </span>
         </button>
@@ -278,7 +278,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'declined' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>Declined</span>
-            <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $statusTab === 'declined' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'declined' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['declined'] }}
             </span>
         </button>
@@ -290,7 +290,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'all' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>All</span>
-            <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['total'] }}
             </span>
         </button>
@@ -314,7 +314,7 @@
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-100 text-left text-xs">
-                    <thead class="bg-gray-50/80 font-bold uppercase tracking-wider text-slate-400">
+                    <thead class="bg-gray-50/80 font-bold uppercase tracking-wider text-slate-500">
                         <tr>
                             <th class="px-3 py-3 font-semibold">VEHICLE</th>
                             <th class="px-3 py-3 font-semibold">REFERENCE / TRIP NO.</th>
@@ -669,7 +669,7 @@
 
     {{-- Modal 1: Search & Lookup Trip Ticket by Number --}}
     <div id="trip-search-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-slate-100 flex flex-col">
+        <div role="dialog" aria-modal="true" aria-labelledby="trip-search-title" class="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-slate-100 flex flex-col">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div class="flex items-center gap-2">
                     <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
@@ -679,11 +679,11 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-black text-slate-900">Post-Trip Log Lookup</h3>
+                        <h3 id="trip-search-title" class="text-sm font-black text-slate-900">Post-Trip Log Lookup</h3>
                         <p class="text-[11px] text-slate-500">Find an approved trip to log Part B</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeTripCompletionSearchModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none cursor-pointer">&times;</button>
+                <button type="button" onclick="closeTripCompletionSearchModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
 
             <div class="mt-4 space-y-3">
@@ -754,7 +754,7 @@
 
     {{-- Modal 2: Part B Trip Ticket Completion & Computation Modal --}}
     <div id="trip-completion-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-xs">
-        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden max-h-[94vh] flex flex-col">
+        <div role="dialog" aria-modal="true" aria-labelledby="trip-completion-title" class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden max-h-[94vh] flex flex-col">
             {{-- Header --}}
             <div class="flex items-center justify-between border-b border-gray-100 bg-emerald-50/50 px-5 py-3.5">
                 <div class="flex items-center gap-2.5">
@@ -765,11 +765,11 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-black text-slate-900">Trip Ticket Completion (Part B: Driver's Record)</h3>
+                        <h3 id="trip-completion-title" class="text-sm font-black text-slate-900">Trip Ticket Completion (Part B: Driver's Record)</h3>
                         <p class="text-[11px] text-slate-500">Auto-calculate distance, fuel used, and tank balances</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeTripCompletionModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
+                <button type="button" onclick="closeTripCompletionModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
 
             {{-- Body --}}
@@ -1098,11 +1098,11 @@
 
     {{-- Review Request Modal --}}
     <div id="review-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-xs">
-        <div class="w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
             {{-- Modal Header --}}
             <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                 <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide" id="modal-title">Review Request</h3>
-                <button type="button" onclick="closeReviewModal()" class="text-slate-400 hover:text-slate-600 text-base font-bold cursor-pointer leading-none">&times;</button>
+                <button type="button" onclick="closeReviewModal()" aria-label="Close" class="-mr-1.5 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 text-base font-bold cursor-pointer leading-none">&times;</button>
             </div>
 
             <div class="mt-2.5 overflow-y-auto pr-1 space-y-2.5 text-xs flex-1">
@@ -1138,7 +1138,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">REQUESTER</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-requester"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-requester"></p>
                         </div>
                     </div>
 
@@ -1164,7 +1164,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">LOCATION</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-location"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-location"></p>
                         </div>
                     </div>
 
@@ -1178,7 +1178,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">RIDING ALONG</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-riding"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-riding"></p>
                         </div>
                     </div>
 
@@ -1195,7 +1195,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">OFFICE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-office"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-office"></p>
                         </div>
                     </div>
 
@@ -1206,7 +1206,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">CONTACT</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-contact"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-contact"></p>
                         </div>
                     </div>
 
@@ -1220,7 +1220,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">VEHICLE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-vehicle"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-vehicle"></p>
                         </div>
                     </div>
 
@@ -1232,7 +1232,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">DESTINATION</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-destination"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-destination"></p>
                         </div>
                     </div>
 
@@ -1246,7 +1246,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">TRAVEL DATE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-travel-date"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-travel-date"></p>
                         </div>
                     </div>
 
@@ -1260,7 +1260,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">PURPOSE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-purpose"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-purpose"></p>
                         </div>
                     </div>
 
@@ -1274,7 +1274,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">PASSENGERS</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-passengers"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-passengers"></p>
                         </div>
                         </div>
                     </div>
@@ -1287,7 +1287,7 @@
                         </svg>
                         <div class="min-w-0">
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">APPROVED BY</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug truncate" id="modal-detail-approved-by"></p>
+                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-approved-by"></p>
                         </div>
                     </div>
                 </div>
@@ -1302,7 +1302,7 @@
 
                     {{-- MODE 1: Pending — Review Form --}}
                     <div id="modal-pending-actions">
-                        <form id="review-form" method="POST" action="" class="space-y-2.5">
+                        <form id="review-form" method="POST" action="" class="space-y-2.5" onsubmit="lockSubmitButton(document.getElementById('modal-decline-action-btn'))">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" id="modal-status-input" value="approved">
@@ -1432,15 +1432,14 @@
                 </div>
             </div>
         </div>
-    </div>
 
 
     {{-- Confirm Request Approval Modal --}}
     <div id="confirm-approval-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl transition-all scale-100">
+        <div role="dialog" aria-modal="true" aria-labelledby="confirm-approval-title" class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl transition-all scale-100">
             <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Confirm Request Approval?</h4>
-                <button type="button" onclick="closeApprovalConfirm()" class="text-slate-400 hover:text-slate-600 text-base font-bold cursor-pointer leading-none">&times;</button>
+                <h4 id="confirm-approval-title" class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Confirm Request Approval?</h4>
+                <button type="button" onclick="closeApprovalConfirm()" aria-label="Close" class="text-slate-400 hover:text-slate-600 text-base font-bold cursor-pointer leading-none">&times;</button>
             </div>
 
             <div class="mt-3.5 space-y-3">
@@ -1470,8 +1469,8 @@
                     </button>
                     <button
                         type="button"
-                        onclick="submitApprovalForm()"
-                        class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                        onclick="submitApprovalForm(this)"
+                        class="flex-1 rounded-xl bg-[#008751] hover:bg-[#007345] py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Yes, Approve Request
                     </button>
@@ -1482,7 +1481,7 @@
 
     {{-- Manual Request Entry Modal --}}
     <div id="manual-request-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
-        <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 my-6 overflow-hidden max-h-[90vh] flex flex-col">
+        <div role="dialog" aria-modal="true" aria-labelledby="manual-request-title" class="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 my-6 overflow-hidden max-h-[90vh] flex flex-col">
             {{-- Header (Clean, Crisp, High-Contrast) --}}
             <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-white shrink-0">
                 <div class="flex items-center gap-3">
@@ -1495,7 +1494,7 @@
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-black text-slate-900 tracking-tight">New Manual Trip Request</h3>
+                        <h3 id="manual-request-title" class="text-base font-black text-slate-900 tracking-tight">New Manual Trip Request</h3>
                         <p class="text-xs font-medium text-slate-500">Create and immediately approve a trip ticket on behalf of staff (chat, text, or call).</p>
                     </div>
                 </div>
@@ -1799,9 +1798,9 @@
                     {{-- Mini-Calendar Widget matching QR Code Form --}}
                     <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
                         <div class="mb-2 flex items-center justify-between">
-                            <button type="button" id="manual-cal-prev" onclick="changeManualMonth(-1)" class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">‹</button>
+                            <button type="button" id="manual-cal-prev" onclick="changeManualMonth(-1)" aria-label="Previous month" class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">‹</button>
                             <span id="manual-cal-month-label" class="text-xs font-extrabold text-slate-800"></span>
-                            <button type="button" id="manual-cal-next" onclick="changeManualMonth(1)" class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">›</button>
+                            <button type="button" id="manual-cal-next" onclick="changeManualMonth(1)" aria-label="Next month" class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer">›</button>
                         </div>
                         <div class="grid grid-cols-7 gap-1 text-center">
                             @foreach(['S','M','T','W','T','F','S'] as $d)
@@ -1888,7 +1887,7 @@
                     <button type="button" onclick="closeManualRequestModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="button" onclick="showManualConfirmModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer">
+                    <button type="button" id="manual-create-approve-btn" onclick="showManualConfirmModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"/>
                         </svg>
@@ -1903,7 +1902,7 @@
     <div id="manual-confirm-modal"
          class="fixed inset-0 flex items-center justify-center p-4"
          style="display:none!important; z-index:999999; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
-        <div class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+        <div role="dialog" aria-modal="true" aria-labelledby="manual-confirm-title" class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
 
             {{-- Header --}}
             <div class="flex items-center gap-3 bg-amber-50 border-b border-amber-100 px-5 py-4">
@@ -1915,7 +1914,7 @@
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Confirm Trip Ticket Creation</h3>
+                    <h3 id="manual-confirm-title" class="text-sm font-black text-slate-900 tracking-tight">Confirm Trip Ticket Creation</h3>
                     <p class="text-[11px] text-amber-700 font-medium mt-0.5">This action will immediately create and approve an official trip ticket.</p>
                 </div>
             </div>
@@ -1962,8 +1961,8 @@
                     class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
                     Go Back &amp; Review
                 </button>
-                <button type="button" onclick="confirmAndSubmitManual()"
-                    class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer">
+                <button type="button" onclick="confirmAndSubmitManual(this)"
+                    class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 px-5 py-2 text-xs font-extrabold text-white shadow-sm transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
                     </svg>
@@ -2262,7 +2261,8 @@
             const startInput = document.getElementById('manual-req-travel-date');
             const endInput = document.getElementById('manual-req-travel-date-end');
             if (startInput && !startInput.value) {
-                const todayStr = new Date().toISOString().split('T')[0];
+                const now = new Date();
+                const todayStr = toKey(now.getFullYear(), now.getMonth(), now.getDate());
                 startInput.value = todayStr;
                 if (endInput && !endInput.value) {
                     endInput.value = todayStr;
@@ -2309,7 +2309,8 @@
             updateAdminDestFormState();
 
             // Reset travel dates to today
-            const todayStr = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const todayStr = toKey(now.getFullYear(), now.getMonth(), now.getDate());
             const startInput = document.getElementById('manual-req-travel-date');
             const endInput   = document.getElementById('manual-req-travel-date-end');
             if (startInput) startInput.value = todayStr;
@@ -2342,8 +2343,8 @@
             const row = document.createElement('div');
             row.className = 'flex items-center gap-2';
             row.innerHTML = `
-                <input type="text" name="passengers[]" value="${value}" placeholder="Passenger Full Name" class="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                <button type="button" onclick="this.parentElement.remove()" class="rounded-lg p-1.5 text-red-500 hover:bg-red-50 transition cursor-pointer" title="Remove">
+                <input type="text" name="passengers[]" value="${esc(value)}" placeholder="Passenger Full Name" class="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                <button type="button" onclick="this.parentElement.remove()" class="rounded-lg p-1.5 text-red-500 hover:bg-red-50 transition cursor-pointer" title="Remove" aria-label="Remove passenger">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                 </button>
             `;
@@ -2572,10 +2573,61 @@
             document.getElementById('confirm-approval-modal').classList.add('hidden');
         }
 
-        function submitApprovalForm() {
+        function submitApprovalForm(btn) {
+            lockSubmitButton(btn);
             document.getElementById('modal-status-input').value = 'approved';
             document.getElementById('review-form').submit();
         }
+
+        // Prevent double submits: disable the clicked button (and swap its text span to "Processing…").
+        function lockSubmitButton(btn, label = 'Processing…') {
+            if (!btn) return;
+            btn.disabled = true;
+            btn.dataset.submitLocked = '1';
+            const span = btn.querySelector('span');
+            if (span && span.dataset.origLabel === undefined) {
+                span.dataset.origLabel = span.textContent;
+                span.textContent = label;
+            }
+        }
+
+        // Undo submit locks when the page is restored from the back/forward cache
+        window.addEventListener('pageshow', (e) => {
+            if (!e.persisted) return;
+            document.querySelectorAll('[data-submit-locked]').forEach((btn) => {
+                btn.disabled = false;
+                delete btn.dataset.submitLocked;
+                const span = btn.querySelector('span[data-orig-label]');
+                if (span) {
+                    span.textContent = span.dataset.origLabel;
+                    delete span.dataset.origLabel;
+                }
+            });
+        });
+
+        // Escape closes the top-most open modal (one per key press)
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const isOpen = (id) => {
+                const el = document.getElementById(id);
+                return !!el && !el.classList.contains('hidden') && el.style.display !== 'none';
+            };
+
+            const manualConfirm = document.getElementById('manual-confirm-modal');
+            if (manualConfirm && manualConfirm.style.display === 'flex') { closeManualConfirmModal(); return; }
+            if (isOpen('confirm-approval-modal')) { closeApprovalConfirm(); return; }
+            if (isOpen('review-modal')) { closeReviewModal(); return; }
+            if (isOpen('trip-completion-modal')) { closeTripCompletionModal(); return; }
+            if (isOpen('trip-search-modal')) { closeTripCompletionSearchModal(); return; }
+            if (isOpen('manual-request-modal')) {
+                // Close an open in-form dropdown first so Escape doesn't wipe the whole form
+                const officePanel = document.getElementById('admin-office-dropdown-panel');
+                const destPanel = document.getElementById('admin-dest-dropdown-panel');
+                if (destPanel && !destPanel.classList.contains('hidden')) { closeAdminDestDropdown(); return; }
+                if (officePanel && !officePanel.classList.contains('hidden')) { closeAdminOfficeDropdown(); return; }
+                closeManualRequestModal();
+            }
+        });
 
         function copyModalCode() {
             if (!currentModalCode) return;
@@ -2714,19 +2766,19 @@
 
             let html = '';
             destinations.forEach(d => {
-                const escapedName = (d.name || '').replace(/'/g, "\\'");
+                const nameArg = esc(JSON.stringify(d.name || ''));
                 const isPicked = selectedAdminDestinations.some(item => item.name.toLowerCase() === d.name.toLowerCase());
-                
+
                 html += `
-                    <div onclick="toggleAdminSelectedDest('${escapedName}', ${d.distance_km})" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-emerald-100 text-emerald-900 font-bold border border-emerald-300' : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800'}" data-label="${(d.name + ' ' + d.distance_km + 'km').toLowerCase()}">
+                    <div onclick="toggleAdminSelectedDest(${nameArg}, ${Number(d.distance_km) || 0})" class="admin-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-emerald-100 text-emerald-900 font-bold border border-emerald-300' : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800'}" data-label="${esc((d.name + ' ' + d.distance_km + 'km').toLowerCase())}">
                         <div class="flex items-center gap-2">
                             <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isPicked ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-300 bg-white'}">
                                 ${isPicked ? '✓' : ''}
                             </span>
-                            <span>${d.name}</span>
+                            <span>${esc(d.name)}</span>
                         </div>
                         <span class="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shrink-0">
-                            ${d.distance_km} kms
+                            ${esc(d.distance_km)} kms
                         </span>
                     </div>
                 `;
@@ -2799,8 +2851,8 @@
                     selectedAdminDestinations.forEach((item, index) => {
                         pillsHtml += `
                             <span class="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-xs font-bold text-emerald-900 shadow-2xs">
-                                <span>${item.name}</span>
-                                <button type="button" onclick="removeAdminSelectedDest(${index}, event)" class="hover:text-red-700 text-emerald-700 font-extrabold ml-1 cursor-pointer">✕</button>
+                                <span>${esc(item.name)}</span>
+                                <button type="button" onclick="removeAdminSelectedDest(${index}, event)" aria-label="Remove ${esc(item.name)}" class="hover:text-red-700 text-emerald-700 font-extrabold ml-1 cursor-pointer">✕</button>
                             </span>
                         `;
                     });
@@ -2846,10 +2898,10 @@
             const customAddItem = document.getElementById('admin-dest-custom-add-item');
             if (customAddItem) {
                 if (query.length > 0) {
-                    const escapedQuery = query.replace(/'/g, "\\'");
+                    const queryArg = esc(JSON.stringify(query));
                     customAddItem.innerHTML = `
-                        <div onclick="addAdminCustomDest('${escapedQuery}')" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition">
-                            <span class="truncate">➕ Add custom: "${query}"</span>
+                        <div onclick="addAdminCustomDest(${queryArg})" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition">
+                            <span class="truncate">➕ Add custom: "${esc(query)}"</span>
                             <span class="text-[10px] text-emerald-600 font-semibold shrink-0">Press Enter</span>
                         </div>
                     `;
@@ -3037,7 +3089,9 @@
             }
         }
 
-        function confirmAndSubmitManual() {
+        function confirmAndSubmitManual(btn) {
+            lockSubmitButton(btn);
+            lockSubmitButton(document.getElementById('manual-create-approve-btn'));
             // Don't restore blur — we're navigating away
             const confirmModal = document.getElementById('manual-confirm-modal');
             if (confirmModal) confirmModal.style.setProperty('display', 'none', 'important');
@@ -3116,6 +3170,11 @@
             }, 250);
         }
 
+        // Multi-destination values are stored joined with ';;'
+        function formatDestinations(value) {
+            return String(value ?? '').split(';;').map((s) => s.trim()).filter(Boolean).join(', ');
+        }
+
         async function fetchLookupSuggestions(query) {
             const box = document.getElementById('lookup-suggestions-box');
             try {
@@ -3126,24 +3185,28 @@
                 const list = data.suggestions || [];
 
                 if (list.length === 0) {
-                    box.innerHTML = `<div class="p-2.5 text-center text-[11px] text-slate-400 font-medium">No approved trip tickets found matching "${query}"</div>`;
+                    box.innerHTML = `<div class="p-2.5 text-center text-[11px] text-slate-400 font-medium">No approved trip tickets found matching "${esc(query)}"</div>`;
                     box.classList.remove('hidden');
                     return;
                 }
 
-                box.innerHTML = list.map(item => `
+                window.__lookupSuggestions = list;
+                box.innerHTML = list.map((item, i) => `
                     <div
-                        onclick='selectTripSuggestion(${JSON.stringify(item).replace(/'/g, "&apos;")})'
-                        class="flex items-center justify-between p-2 rounded-lg hover:bg-emerald-50 cursor-pointer transition border border-transparent hover:border-emerald-200"
+                        role="button"
+                        tabindex="0"
+                        onclick="selectTripSuggestion(window.__lookupSuggestions[${i}])"
+                        onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTripSuggestion(window.__lookupSuggestions[${i}]); }"
+                        class="flex items-center justify-between p-2 rounded-lg hover:bg-emerald-50 cursor-pointer transition border border-transparent hover:border-emerald-200 focus:outline-none focus-visible:border-emerald-300 focus-visible:bg-emerald-50"
                     >
                         <div class="min-w-0 pr-2">
                             <div class="flex items-center gap-1.5">
-                                <span class="font-mono text-xs font-black text-emerald-900 bg-emerald-100 px-1.5 py-0.2 rounded">${item.trip_ticket_number || item.reference_code}</span>
-                                <span class="text-[11px] font-bold text-slate-800 truncate">${item.requester_name}</span>
+                                <span class="font-mono text-xs font-black text-emerald-900 bg-emerald-100 px-1.5 py-px rounded">${esc(item.trip_ticket_number || item.reference_code)}</span>
+                                <span class="text-[11px] font-bold text-slate-800 truncate">${esc(item.requester_name)}</span>
                             </div>
                             <p class="text-[10px] text-slate-500 mt-0.5 truncate">
-                                ${item.vehicle_plate ? `🚗 ${item.vehicle_plate}` : ''}
-                                ${item.destination ? ` &bull; 📍 ${item.destination}` : ''}
+                                ${item.vehicle_plate ? `🚗 ${esc(item.vehicle_plate)}` : ''}
+                                ${item.destination ? ` &bull; 📍 ${esc(formatDestinations(item.destination))}` : ''}
                             </p>
                         </div>
                         <div class="shrink-0 text-right">
@@ -3191,7 +3254,7 @@
             document.getElementById('preview-vehicle-plate').textContent = trip.vehicle_plate || 'No Plate';
             document.getElementById('preview-vehicle-name').textContent = trip.vehicle_name ? `(${trip.vehicle_name})` : '';
             document.getElementById('preview-driver').textContent = trip.driver_name;
-            document.getElementById('preview-destination').textContent = trip.destination;
+            document.getElementById('preview-destination').textContent = formatDestinations(trip.destination);
             document.getElementById('preview-travel-date').textContent = trip.travel_date;
 
             document.getElementById('lookup-preview-box').classList.remove('hidden');

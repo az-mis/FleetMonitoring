@@ -101,15 +101,9 @@
     </div>
 </div>
 
-{{-- ── Flash messages ───────────────────────────────────────────────── --}}
-@if(session('success'))
-    <div id="flash-success" class="mb-3 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-        {{ session('success') }}
-    </div>
-@endif
+{{-- ── Flash messages (session success/error toasts are rendered by the layout) ── --}}
 @if($errors->any())
-    <div class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div role="alert" class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         <ul class="list-disc list-inside space-y-1">
             @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
         </ul>
@@ -180,7 +174,7 @@
                         <th class="px-4 py-3 text-left">Status</th>
                         <th class="px-4 py-3 text-left">Driver</th>
                         <th class="px-4 py-3 text-left">Cost / Vendor</th>
-                        <th class="px-4 py-3 text-right"></th>
+                        <th class="relative px-4 py-3 text-right"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -197,7 +191,7 @@
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2.5">
                                 @if($record->vehicle?->photo_url)
-                                    <img src="{{ $record->vehicle->photo_url }}" alt="vehicle" class="h-8 w-8 rounded-lg object-cover ring-1 ring-gray-100">
+                                    <img src="{{ $record->vehicle->photo_url }}" alt="{{ $record->plate_number }}" class="h-8 w-8 rounded-lg object-cover ring-1 ring-gray-100">
                                 @else
                                     <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
@@ -228,9 +222,9 @@
                                 <div class="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold">
                                     <span class="text-slate-500">At {{ number_format($record->trigger_km) }} km</span>
                                     @if($trig === 'overdue')
-                                        <span class="rounded bg-red-100 px-1 py-0.2 text-[10px] font-bold text-red-700">KM Overdue</span>
+                                        <span class="rounded bg-red-100 px-1 py-px text-[10px] font-bold text-red-700">KM Overdue</span>
                                     @elseif($trig === 'due_soon')
-                                        <span class="rounded bg-amber-100 px-1 py-0.2 text-[10px] font-bold text-amber-700">KM Due Soon</span>
+                                        <span class="rounded bg-amber-100 px-1 py-px text-[10px] font-bold text-amber-700">KM Due Soon</span>
                                     @endif
                                 </div>
                             @endif
@@ -300,13 +294,13 @@
 
         {{-- Pagination --}}
         @if($records->hasPages())
-        <div class="flex items-center justify-between border-t border-gray-100 px-4 py-3">
+        <div class="flex flex-col gap-2 border-t border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-xs text-gray-500">
                 Showing {{ $records->firstItem() }}–{{ $records->lastItem() }} of {{ $records->total() }} maintenance records
             </p>
-            <div class="flex items-center gap-1">
+            <div class="flex flex-wrap items-center gap-1">
                 {{-- Per page --}}
-                <select onchange="changePerPage(this.value)"
+                <select onchange="changePerPage(this.value)" aria-label="Rows per page"
                     class="mr-2 rounded-lg border border-gray-200 py-1 pl-2 pr-6 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-emerald-400">
                     @foreach([10,25,50] as $pp)
                         <option value="{{ $pp }}" {{ request('per_page',10) == $pp ? 'selected' : '' }}>{{ $pp }} / page</option>
@@ -339,11 +333,11 @@
      ADD / EDIT MODAL
 ══════════════════════════════════════════════════════════════════ --}}
 <div id="maintenance-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
-    <div class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+    <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
         {{-- Header --}}
         <div class="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-gray-100 bg-white px-5 py-4">
             <h3 id="modal-title" class="text-base font-bold text-gray-900">Add Maintenance</h3>
-            <button type="button" onclick="closeMaintenanceModal()" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
+            <button type="button" onclick="closeMaintenanceModal()" aria-label="Close" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
             </button>
         </div>
@@ -432,7 +426,7 @@
             </div>
 
             {{-- Type & Priority --}}
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-xs font-bold text-gray-600">Type <span class="text-red-500">*</span></label>
                     <select name="type" id="field-type" required
@@ -468,7 +462,7 @@
             </div>
 
             {{-- Scheduled dates --}}
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-xs font-bold text-gray-600">Start Date <span class="text-red-500">*</span></label>
                     <input type="date" name="scheduled_date" id="field-scheduled-date" required
@@ -486,12 +480,12 @@
             {{-- Mini calendar --}}
             <div id="schedule-calendar-wrap" class="hidden rounded-xl border border-blue-100 bg-blue-50/50 p-3">
                 <div class="mb-2 flex items-center justify-between">
-                    <button type="button" onclick="calendarPrev()" class="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 text-base">‹</button>
+                    <button type="button" onclick="calendarPrev()" aria-label="Previous month" class="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 text-base">‹</button>
                     <div class="text-center">
                         <p class="text-xs font-extrabold text-slate-700">Maintenance Schedule</p>
                         <p id="calendar-month-label" class="text-[11px] text-gray-400"></p>
                     </div>
-                    <button type="button" onclick="calendarNext()" class="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 text-base">›</button>
+                    <button type="button" onclick="calendarNext()" aria-label="Next month" class="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 text-base">›</button>
                 </div>
                 <div id="calendar-grid" class="grid grid-cols-7 gap-0.5 text-center text-[10px]"></div>
                 <div id="calendar-overlap-warning" class="hidden mt-2 rounded-lg bg-red-50 px-3 py-2 text-[11px] font-bold text-red-700">
@@ -504,7 +498,7 @@
             </div>
 
             {{-- Status & Completed Date --}}
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-xs font-bold text-gray-600">Status <span class="text-red-500">*</span></label>
                     <select name="status" id="field-status" required
@@ -523,7 +517,7 @@
             </div>
 
             {{-- Odometer & Cost --}}
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-xs font-bold text-gray-600">Odometer at Service (km)</label>
                     <div class="relative flex items-center rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-emerald-400">
@@ -550,7 +544,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-xs font-bold text-gray-600">Cost (₱)</label>
                     <input type="number" name="cost" id="field-cost" min="0" step="0.01" placeholder="0.00"
@@ -584,11 +578,11 @@
      DELETE CONFIRM MODAL
 ══════════════════════════════════════════════════════════════════ --}}
 <div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
-    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+    <div role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
         <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         </div>
-        <h3 class="mb-1 text-base font-bold text-gray-900">Delete Maintenance Record?</h3>
+        <h3 id="delete-modal-title" class="mb-1 text-base font-bold text-gray-900">Delete Maintenance Record?</h3>
         <p id="delete-modal-message" class="mb-5 text-sm text-gray-500"></p>
         <div class="flex gap-2">
             <button type="button" onclick="closeDeleteConfirm()"
@@ -823,13 +817,19 @@ document.addEventListener('click', (e) => {
     if (!e.target.closest('#vehicle-picker')) toggleVehiclePicker(false);
 });
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') toggleVehiclePicker(false);
+    if (e.key !== 'Escape') return;
+    // Close the innermost open layer first: vehicle picker → delete modal → add/edit modal.
+    const picker = document.getElementById('vehicle-picker-panel');
+    if (picker && !picker.classList.contains('hidden')) { toggleVehiclePicker(false); return; }
+    document.getElementById('location-dropdown')?.classList.add('hidden');
+    if (!document.getElementById('delete-modal').classList.contains('hidden')) closeDeleteConfirm();
+    else if (!document.getElementById('maintenance-modal').classList.contains('hidden')) closeMaintenanceModal();
 });
 document.addEventListener('change', (e) => {
     if (e.target && e.target.id === 'field-status' && e.target.value === 'completed') {
         const completedInput = document.getElementById('field-completed-date');
         if (completedInput && !completedInput.value) {
-            completedInput.value = new Date().toISOString().split('T')[0];
+            completedInput.value = localKey(new Date());
         }
     }
 });
@@ -875,6 +875,10 @@ function updateCalendar() {
     const endDate    = document.getElementById('field-scheduled-date_end')?.value
                     || document.getElementById('field-scheduled-date-end')?.value;
     const wrap       = document.getElementById('schedule-calendar-wrap');
+
+    // End date can't precede the start date (mirrors after_or_equal:scheduled_date)
+    const endInput = document.getElementById('field-scheduled-date-end');
+    if (endInput) endInput.min = startDate || '';
 
     if (!vehicleId) { wrap?.classList.add('hidden'); return; }
     wrap?.classList.remove('hidden');
@@ -968,7 +972,8 @@ function renderCalendar(vehicleId, startDate, endDate) {
         } else {
             cls += 'bg-white text-slate-600 ring-1 ring-gray-200 hover:bg-teal-50 hover:text-teal-700 hover:ring-2 hover:ring-teal-400 ';
         }
-        return `<div class="${cls}" title="${escHtml(title)}" onclick="onCalendarDayClick('${k}')">${day}</div>`;
+        const aria = formatDate(k) + (ex ? ', existing maintenance' : '') + (sel ? ', selected' : '');
+        return `<button type="button" class="${cls}" title="${escHtml(title)}" aria-label="${escHtml(aria)}" onclick="onCalendarDayClick('${k}')">${day}</button>`;
     }).join('');
 
     if (grid) grid.innerHTML = dayHeaders + blanks + cells;
@@ -1096,13 +1101,9 @@ document.addEventListener('DOMContentLoaded', function () {
         pickVehicle(vehicleId);
         if (type) setField('type', type);
         setField('title', type ? `${type} Service` : 'Routine Maintenance');
-        const today = new Date().toISOString().split('T')[0];
+        const today = localKey(new Date());
         setField('scheduled_date', today);
     }
 });
-
-// ── Auto-dismiss flash ────────────────────────────────────────────────────
-const flash = document.getElementById('flash-success');
-if (flash) setTimeout(() => flash.style.display = 'none', 4000);
 </script>
 @endsection

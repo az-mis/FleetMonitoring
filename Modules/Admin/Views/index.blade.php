@@ -135,10 +135,10 @@
 
     {{-- Add Admin modal --}}
     <div id="add-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto bg-black/45 px-4 py-6 backdrop-blur-sm">
-        <div class="my-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div class="my-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="add-admin-modal-title">
             <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-                <h2 class="text-base font-extrabold text-emerald-900">Add Admin</h2>
-                <button type="button" onclick="closeAddAdminModal()" class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                <h2 id="add-admin-modal-title" class="text-base font-extrabold text-emerald-900">Add Admin</h2>
+                <button type="button" onclick="closeAddAdminModal()" aria-label="Close" class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                     </svg>
@@ -155,11 +155,11 @@
                             <img id="add-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
                             <span id="add-avatar-preview-initial" class="flex h-full w-full items-center justify-center">?</span>
                         </div>
-                        <input type="file" name="avatar" id="add-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewAddAvatarFile(this)">
                     </div>
 
                     <div class="mt-2.5 flex items-center justify-center gap-2">
-                        <label for="add-avatar" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 shadow-2xs">
+                        <input type="file" name="avatar" id="add-avatar" accept="image/png,image/jpeg,image/webp" class="peer sr-only" onchange="previewAddAvatarFile(this)">
+                        <label for="add-avatar" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 shadow-2xs peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-1">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
                                 <circle cx="12" cy="13" r="3"/>
@@ -170,7 +170,7 @@
                             type="button"
                             id="add-avatar-remove-btn"
                             onclick="removeAddAvatar()"
-                            class="hidden inline-flex cursor-pointer items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 shadow-2xs"
+                            class="hidden cursor-pointer items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 shadow-2xs"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 6h18"/>
@@ -183,35 +183,43 @@
 
                     <p class="mt-1 text-[11px] text-slate-500">Photo (optional, max 5MB)</p>
                     <p id="add-avatar-warning" class="mt-1 hidden text-xs font-semibold text-red-600"></p>
-                    @error('avatar')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
+                    @if (old('_admin_form') !== 'edit')
+                        @error('avatar')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    @endif
                 </div>
 
                 <div class="space-y-3">
                     <div>
                         <label for="add-name" class="text-xs font-extrabold text-slate-700">Full Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="add-name" value="{{ old('_admin_form') === 'create' ? old('name') : '' }}" placeholder="Enter Full Name" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror" required>
-                        @error('name')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="name" id="add-name" value="{{ old('_admin_form') === 'create' ? old('name') : '' }}" placeholder="Enter Full Name" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') !== 'edit' && $errors->has('name') ? 'border-red-300' : '' }}" required>
+                        @if (old('_admin_form') !== 'edit')
+                            @error('name')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     <div>
                         <label for="add-email" class="text-xs font-extrabold text-slate-700">Email <span class="text-red-500">*</span></label>
-                        <input type="email" name="email" id="add-email" value="{{ old('_admin_form') === 'create' ? old('email') : '' }}" placeholder="Enter email" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('email') border-red-300 @enderror" required>
-                        @error('email')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
+                        <input type="email" name="email" id="add-email" value="{{ old('_admin_form') === 'create' ? old('email') : '' }}" placeholder="Enter email" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') !== 'edit' && $errors->has('email') ? 'border-red-300' : '' }}" required>
+                        @if (old('_admin_form') !== 'edit')
+                            @error('email')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     <div>
                         <label for="add-password" class="text-xs font-extrabold text-slate-700">Temporary Password <span class="text-red-500">*</span></label>
-                        <input type="password" name="password" id="add-password" placeholder="Set temporary password" oninput="document.getElementById('add-password_confirmation').value = this.value" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror" required>
+                        <input type="password" name="password" id="add-password" placeholder="Set temporary password" oninput="document.getElementById('add-password_confirmation').value = this.value" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') !== 'edit' && $errors->has('password') ? 'border-red-300' : '' }}" required>
                         <input type="hidden" name="password_confirmation" id="add-password_confirmation">
-                        @error('password')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
+                        @if (old('_admin_form') !== 'edit')
+                            @error('password')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     <div>
@@ -235,10 +243,12 @@
 
                     <div>
                         <label for="add-phone-number" class="text-xs font-extrabold text-slate-700">Phone Number <span class="text-red-500">*</span></label>
-                        <input type="text" name="phone_number" id="add-phone-number" value="{{ old('_admin_form') === 'create' ? old('phone_number') : '' }}" placeholder="e.g. 09171234567" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('phone_number') border-red-300 @enderror" required>
-                        @error('phone_number')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="phone_number" id="add-phone-number" value="{{ old('_admin_form') === 'create' ? old('phone_number') : '' }}" placeholder="e.g. 09171234567" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') !== 'edit' && $errors->has('phone_number') ? 'border-red-300' : '' }}" required>
+                        @if (old('_admin_form') !== 'edit')
+                            @error('phone_number')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
                 </div>
 
@@ -277,10 +287,10 @@
 
     {{-- Edit Admin modal --}}
     <div id="edit-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto bg-black/45 px-4 py-6 backdrop-blur-sm">
-        <div class="my-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div class="my-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="edit-admin-modal-title">
             <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-                <h2 class="text-base font-extrabold text-emerald-900">Edit Admin</h2>
-                <button type="button" onclick="closeEditAdminModal()" class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                <h2 id="edit-admin-modal-title" class="text-base font-extrabold text-emerald-900">Edit Admin</h2>
+                <button type="button" onclick="closeEditAdminModal()" aria-label="Close" class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                     </svg>
@@ -300,11 +310,11 @@
                             <img id="edit-avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover">
                             <span id="edit-avatar-preview-initial" class="flex h-full w-full items-center justify-center"></span>
                         </div>
-                        <input type="file" name="avatar" id="edit-avatar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewEditAvatarFile(this)">
                     </div>
 
                     <div class="mt-2.5 flex items-center justify-center gap-2">
-                        <label for="edit-avatar" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 shadow-2xs">
+                        <input type="file" name="avatar" id="edit-avatar" accept="image/png,image/jpeg,image/webp" class="peer sr-only" onchange="previewEditAvatarFile(this)">
+                        <label for="edit-avatar" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 shadow-2xs peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-1">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
                                 <circle cx="12" cy="13" r="3"/>
@@ -315,7 +325,7 @@
                             type="button"
                             id="edit-avatar-remove-btn"
                             onclick="removeEditAvatar()"
-                            class="hidden inline-flex cursor-pointer items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 shadow-2xs"
+                            class="hidden cursor-pointer items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 shadow-2xs"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 6h18"/>
@@ -326,29 +336,35 @@
                         </button>
                     </div>
 
-                    <p class="mt-1 text-[11px] text-slate-500">Photo (optional, max 5MB)</p>
+                    <p class="mt-1 text-[11px] text-slate-500">Photo (optional, max 2MB)</p>
                     <p id="edit-avatar-warning" class="mt-1 hidden text-xs font-semibold text-red-600"></p>
-                    @error('avatar')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
+                    @if (old('_admin_form') === 'edit')
+                        @error('avatar')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    @endif
                 </div>
 
                 <div class="space-y-3">
                     <div>
                         <label for="edit-name" class="text-xs font-extrabold text-slate-700">Full Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="edit-name" value="{{ old('_admin_form') === 'edit' ? old('name') : '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('name') border-red-300 @enderror" required>
-                        @error('name')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
+                        <input type="text" name="name" id="edit-name" value="{{ old('_admin_form') === 'edit' ? old('name') : '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') === 'edit' && $errors->has('name') ? 'border-red-300' : '' }}" required>
+                        @if (old('_admin_form') === 'edit')
+                            @error('name')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     <div>
                         <label for="edit-email" class="text-xs font-extrabold text-slate-700">Email <span class="text-red-500">*</span></label>
-                        <input type="email" name="email" id="edit-email" value="{{ old('_admin_form') === 'edit' ? old('email') : '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('email') border-red-300 @enderror" required>
+                        <input type="email" name="email" id="edit-email" value="{{ old('_admin_form') === 'edit' ? old('email') : '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') === 'edit' && $errors->has('email') ? 'border-red-300' : '' }}" required>
                         <p class="mt-1 text-xs text-slate-500">Email changes require a backend admin action.</p>
-                        @error('email')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
+                        @if (old('_admin_form') === 'edit')
+                            @error('email')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
 
                     <div>
@@ -411,10 +427,10 @@
 
     {{-- View details modal --}}
     <div id="view-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="view-admin-modal-title">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-gray-900">Admin details</h2>
-                <button type="button" onclick="closeViewModal()" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <h2 id="view-admin-modal-title" class="text-lg font-semibold text-gray-900">Admin details</h2>
+                <button type="button" onclick="closeViewModal()" aria-label="Close" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                     </svg>
@@ -461,7 +477,7 @@
 
     {{-- Delete confirmation modal --}}
     <div id="delete-admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-admin-modal-title">
             <div class="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 9v4M12 17h.01"/>
@@ -469,7 +485,7 @@
                 </svg>
             </div>
 
-            <h2 class="mt-4 text-lg font-semibold text-gray-900">Delete admin?</h2>
+            <h2 id="delete-admin-modal-title" class="mt-4 text-lg font-semibold text-gray-900">Delete admin?</h2>
             <p id="delete-admin-warning" class="mt-1 text-sm text-gray-500">
                 This will permanently remove <span id="delete-admin-name" class="font-medium text-gray-700"></span>'s account. This action cannot be undone.
             </p>
@@ -788,12 +804,12 @@
             const file = input.files && input.files[0];
             if (!file) return;
 
-            if (file.size > 5 * 1024 * 1024) {
+            if (file.size > 2 * 1024 * 1024) {
                 if (warning) {
-                    warning.textContent = 'Warning: Image size exceeds 5MB limit. Please select a smaller file.';
+                    warning.textContent = 'Warning: Image size exceeds 2MB limit. Please select a smaller file.';
                     warning.classList.remove('hidden');
                 } else {
-                    alert('Warning: Image size exceeds 5MB limit.');
+                    alert('Warning: Image size exceeds 2MB limit.');
                 }
                 input.value = '';
                 removeEditAvatar();
@@ -847,6 +863,18 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            const isOpen = (id) => {
+                const el = document.getElementById(id);
+                return el && !el.classList.contains('hidden');
+            };
+            if (isOpen('delete-admin-modal')) closeDeleteModal();
+            else if (isOpen('view-admin-modal')) closeViewModal();
+            else if (isOpen('edit-admin-modal')) closeEditAdminModal();
+            else if (isOpen('add-admin-modal')) closeAddAdminModal();
+        });
 
         function handleEditAdminSubmit(event) {
             event.preventDefault();
@@ -915,6 +943,7 @@
             } else {
                 url.searchParams.delete('search');
             }
+            url.searchParams.delete('page');
 
             const spinner = document.getElementById('admin-search-spinner');
             spinner.classList.remove('hidden');

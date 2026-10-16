@@ -5,12 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <title>@hasSection('title')@yield('title') · @endif Fleet Management System</title>
+
     <script>
         window.notificationBellData = function(allNotifIds) {
+            var storedReadNotifs = [];
+            try {
+                storedReadNotifs = JSON.parse(localStorage.getItem('fleet_read_notifs') || '[]');
+            } catch (e) {
+                storedReadNotifs = [];
+            }
             return {
                 open: false,
                 activeOpt: null,
-                readNotifs: JSON.parse(localStorage.getItem('fleet_read_notifs') || '[]'),
+                readNotifs: Array.isArray(storedReadNotifs) ? storedReadNotifs : [],
                 allNotifIds: allNotifIds || [],
                 isRead(id) {
                     return this.readNotifs.includes(id);
@@ -287,7 +295,7 @@
         $totalNotifCount = count($allNotifIds);
     @endphp
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen supports-[height:100dvh]:h-dvh overflow-hidden">
         {{-- Sidebar overlay (for expanded drawer mode) --}}
         <div
             id="sidebar-overlay"
@@ -312,6 +320,7 @@
                     onclick="closeSidebar()"
                     class="ml-auto rounded-md p-1.5 text-emerald-200 hover:bg-white/10 hover:text-white transition md:hidden"
                     title="Close sidebar"
+                    aria-label="Close navigation"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18"/>
@@ -320,7 +329,7 @@
                 </button>
             </div>
 
-            <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+            <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
                 <a
                     href="{{ route('dashboard') }}"
                     title="Dashboard"
@@ -353,7 +362,7 @@
                                     {{ $pendingTravelCount }}
                                 </span>
                             @elseif(!$isSuperAdmin && !($moduleFlags['vehicleRequests'] ?? true))
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
                                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                 </svg>
@@ -390,7 +399,7 @@
                         <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
                             <span>Drivers</span>
                             @if(!$isSuperAdmin && !($moduleFlags['drivers'] ?? true))
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
                                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                 </svg>
@@ -413,8 +422,11 @@
                     <div id="vehicles-menu-container" class="{{ $vehiclesOpen ? 'rounded-lg bg-white/10' : '' }}">
                         <button
                             type="button"
+                            id="vehicles-menu-toggle"
                             onclick="toggleVehiclesMenu(event)"
                             title="Vehicles"
+                            aria-controls="vehicles-submenu"
+                            aria-expanded="{{ $vehiclesOpen ? 'true' : 'false' }}"
                             class="sidebar-item w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ $vehiclesOpen ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -426,7 +438,7 @@
                             <span class="sidebar-label flex flex-1 items-center justify-between min-w-0 pr-1">
                                 <span>Vehicles</span>
                                 @if(!$isSuperAdmin && (!($moduleFlags['vehicles'] ?? true) && !($moduleFlags['vehicleAssigning'] ?? true)))
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
                                         <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
@@ -443,7 +455,7 @@
                                     Vehicles List
                                 </span>
                                 @if(!$isSuperAdmin && !($moduleFlags['vehicles'] ?? true))
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
                                         <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
@@ -459,7 +471,7 @@
                                     Vehicle Assigning
                                 </span>
                                 @if(!$isSuperAdmin && !($moduleFlags['vehicleAssigning'] ?? true))
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" title="Disabled by Super Admin">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
                                         <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
@@ -517,14 +529,14 @@
                     @endif
                     <div class="sidebar-label-block min-w-0 leading-tight">
                         <p class="truncate text-xs font-bold text-white">{{ $user?->name }}</p>
-                        <p class="truncate text-[11px] text-emerald-200/80">{{ $user?->role?->value === 'super_admin' ? 'Super Admin' : ($user?->role?->name ?? 'Admin') }}</p>
+                        <p class="truncate text-[11px] text-emerald-200/80">{{ $user?->role?->label() ?? 'Admin' }}</p>
                     </div>
                 </div>
 
                 <div class="logout-btn-container">
                     <button
                         type="button"
-                        onclick="document.getElementById('logout-modal').classList.remove('hidden'); document.getElementById('logout-modal').classList.add('flex')"
+                        onclick="openLogoutModal(this)"
                         class="flex w-full items-center justify-center gap-2.5 rounded-lg bg-red-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-red-700"
                         title="Log out"
                     >
@@ -552,7 +564,11 @@
                 <div class="flex min-w-0 items-center gap-3">
                     <button
                         type="button"
+                        id="sidebar-toggle-btn"
                         onclick="toggleSidebar()"
+                        aria-label="Toggle navigation"
+                        aria-controls="sidebar"
+                        aria-expanded="false"
                         class="shrink-0 rounded-md p-2 text-white hover:bg-white/10 sm:text-gray-500 sm:hover:bg-gray-100 sm:hover:text-gray-700"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -571,13 +587,15 @@
                             @click="open = !open"
                             class="relative rounded-full p-2 text-white hover:bg-white/10 sm:text-slate-500 sm:hover:bg-slate-100 sm:hover:text-slate-700 transition cursor-pointer"
                             title="Notifications"
+                            aria-label="Notifications"
+                            :aria-expanded="open.toString()"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
                                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                             </svg>
                             {{-- Notification badge dot (if unread notifications exist) --}}
-                            <span x-show="unreadCount > 0" class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                            <span x-show="unreadCount > 0" x-cloak class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                             </span>
@@ -816,6 +834,8 @@
                             @click="open = !open"
                             class="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
                             title="{{ $user?->name }}"
+                            aria-label="Account menu for {{ $user?->name }}"
+                            :aria-expanded="open.toString()"
                         >
                             @if ($hasPhoto)
                                 <img
@@ -850,7 +870,7 @@
                             {{-- User info header --}}
                             <div class="mb-1 px-3 py-2 border-b border-slate-100">
                                 <p class="text-xs font-bold text-slate-800 truncate">{{ $user?->name }}</p>
-                                <p class="text-[11px] text-slate-500 truncate">{{ $user?->role?->value === 'super_admin' ? 'Super Admin' : ($user?->role?->name ?? 'Admin') }}</p>
+                                <p class="text-[11px] text-slate-500 truncate">{{ $user?->role?->label() ?? 'Admin' }}</p>
                             </div>
 
                             <a
@@ -872,11 +892,12 @@
                             </a>
                         </div>
                     </div>
+                </div>
             </header>
 
             <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
                 @if (session('success'))
-                    <div id="flash-success" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 md:left-[calc(50%+8rem)] z-[9999] flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white p-3.5 shadow-2xl shadow-gray-900/15 w-[90vw] max-w-md transition-all duration-300">
+                    <div id="flash-success" role="status" aria-live="polite" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 md:left-[calc(50%+2.25rem)] lg:left-[calc(50%+8rem)] z-[9999] flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white p-3.5 shadow-2xl shadow-gray-900/15 w-[90vw] max-w-md transition-all duration-300">
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 6 9 17l-5-5"/>
@@ -886,7 +907,7 @@
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">SUCCESS</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('success') }}</p>
                         </div>
-                        <button type="button" onclick="(function(){ var el=document.getElementById('flash-success'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <button type="button" aria-label="Dismiss message" onclick="(function(){ var el=document.getElementById('flash-success'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
@@ -904,7 +925,7 @@
                 @endif
 
                 @if (session('error'))
-                    <div id="flash-error" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 md:left-[calc(50%+8rem)] z-[9999] flex items-start gap-3 rounded-2xl border border-red-100 bg-white p-3.5 shadow-2xl shadow-gray-900/15 w-[90vw] max-w-md transition-all duration-300">
+                    <div id="flash-error" role="alert" class="toast-animate-in fixed top-4 left-1/2 -translate-x-1/2 md:left-[calc(50%+2.25rem)] lg:left-[calc(50%+8rem)] z-[9999] flex items-start gap-3 rounded-2xl border border-red-100 bg-white p-3.5 shadow-2xl shadow-gray-900/15 w-[90vw] max-w-md transition-all duration-300">
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -914,7 +935,7 @@
                             <p class="text-[11px] font-extrabold uppercase tracking-wider text-red-800">ERROR</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('error') }}</p>
                         </div>
-                        <button type="button" onclick="(function(){ var el=document.getElementById('flash-error'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <button type="button" aria-label="Dismiss message" onclick="(function(){ var el=document.getElementById('flash-error'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
                             </svg>
@@ -968,8 +989,8 @@
     </div>
 
     {{-- Logout confirmation modal --}}
-    <div id="logout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+    <div id="logout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4" onclick="if (event.target === this) closeLogoutModal()">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="logout-modal-title" aria-describedby="logout-modal-desc">
             <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -978,13 +999,14 @@
                 </svg>
             </div>
 
-            <h2 class="mt-4 text-lg font-semibold text-gray-900">Log out?</h2>
-            <p class="mt-1 text-sm text-gray-500">You'll need to log in again to access your dashboard.</p>
+            <h2 id="logout-modal-title" class="mt-4 text-lg font-semibold text-gray-900">Log out?</h2>
+            <p id="logout-modal-desc" class="mt-1 text-sm text-gray-500">You'll need to log in again to access your dashboard.</p>
 
             <div class="mt-6 flex justify-end gap-3">
                 <button
                     type="button"
-                    onclick="document.getElementById('logout-modal').classList.add('hidden'); document.getElementById('logout-modal').classList.remove('flex')"
+                    id="logout-cancel-btn"
+                    onclick="closeLogoutModal()"
                     class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
                 >
                     Cancel
@@ -1008,16 +1030,23 @@
             const sidebar = document.getElementById('sidebar');
             if (!sidebar) return;
 
+            let lastBreakpoint = null;
+
             function applyResponsiveSidebar() {
                 const w = window.innerWidth;
-                if (w < 768) {
+                const breakpoint = w < 768 ? 'mobile' : (w < 1024 ? 'medium' : 'large');
+                // Only reset on breakpoint changes so the user's own toggle survives minor resizes
+                if (breakpoint === lastBreakpoint) return;
+                lastBreakpoint = breakpoint;
+
+                if (breakpoint === 'mobile') {
                     // Mobile: ensure off-canvas, remove collapsed class
                     sidebar.classList.remove('sidebar-collapsed');
                     if (!sidebar.classList.contains('-translate-x-full')) {
                         sidebar.classList.add('-translate-x-full');
                     }
                     document.getElementById('sidebar-overlay')?.classList.add('hidden');
-                } else if (w < 1024) {
+                } else if (breakpoint === 'medium') {
                     // Medium (md–lg): auto-collapse to icon rail
                     sidebar.classList.remove('-translate-x-full');
                     sidebar.classList.add('sidebar-collapsed');
@@ -1028,14 +1057,47 @@
                     sidebar.classList.remove('sidebar-collapsed');
                     document.getElementById('sidebar-overlay')?.classList.add('hidden');
                 }
+                syncSidebarA11y();
             }
+
+            // Mark the current page link for assistive technology
+            sidebar.querySelectorAll('a.sidebar-active, #vehicles-submenu a.font-bold').forEach(function(link) {
+                link.setAttribute('aria-current', 'page');
+            });
 
             // Apply on initial load
             applyResponsiveSidebar();
 
             // Re-apply on resize
             window.addEventListener('resize', applyResponsiveSidebar);
+
+            // Escape closes the mobile drawer and the logout dialog
+            document.addEventListener('keydown', function(event) {
+                if (event.key !== 'Escape') return;
+                const logoutModal = document.getElementById('logout-modal');
+                if (logoutModal && !logoutModal.classList.contains('hidden')) {
+                    closeLogoutModal();
+                    return;
+                }
+                if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                    closeSidebar();
+                    document.getElementById('sidebar-toggle-btn')?.focus();
+                }
+            });
         })();
+
+        function syncSidebarA11y() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle-btn');
+            if (!sidebar) return;
+            const isMobile = window.innerWidth < 768;
+            const expanded = isMobile
+                ? !sidebar.classList.contains('-translate-x-full')
+                : !sidebar.classList.contains('sidebar-collapsed');
+            toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            // Keep the off-canvas drawer out of the tab order while it is closed on mobile
+            sidebar.inert = isMobile && !expanded;
+        }
 
         function expandSidebarForVehicles() {
             const sidebar = document.getElementById('sidebar');
@@ -1048,14 +1110,21 @@
         function toggleVehiclesMenu(event) {
             if (event) event.preventDefault();
             const sidebar = document.getElementById('sidebar');
+            const submenu = document.getElementById('vehicles-submenu');
+            const chevron = document.getElementById('vehicles-chevron');
+            const toggleBtn = document.getElementById('vehicles-menu-toggle');
             // On desktop, expand sidebar if it is collapsed so the submenu is visible
             if (sidebar && window.innerWidth >= 768 && sidebar.classList.contains('sidebar-collapsed')) {
                 openSidebar();
+                // Expanding from the icon rail should always reveal the submenu, not toggle it shut again
+                submenu?.classList.remove('hidden');
+                chevron?.classList.add('rotate-180');
+                toggleBtn?.setAttribute('aria-expanded', 'true');
+                return;
             }
-            const submenu = document.getElementById('vehicles-submenu');
-            const chevron = document.getElementById('vehicles-chevron');
             if (submenu) {
                 submenu.classList.toggle('hidden');
+                toggleBtn?.setAttribute('aria-expanded', submenu.classList.contains('hidden') ? 'false' : 'true');
             }
             if (chevron) {
                 chevron.classList.toggle('rotate-180');
@@ -1082,6 +1151,13 @@
                 const chevron = document.getElementById('vehicles-chevron');
                 submenu?.classList.remove('hidden');
                 chevron?.classList.add('rotate-180');
+                document.getElementById('vehicles-menu-toggle')?.setAttribute('aria-expanded', 'true');
+            }
+
+            syncSidebarA11y();
+            if (window.innerWidth < 768) {
+                // Move keyboard focus into the drawer so it can be navigated immediately
+                document.getElementById('sidebar-close-btn')?.focus();
             }
         }
 
@@ -1097,6 +1173,27 @@
                 sidebar.classList.add('-translate-x-full');
                 if (overlay) overlay.classList.add('hidden');
             }
+            syncSidebarA11y();
+        }
+
+        let logoutModalTrigger = null;
+
+        function openLogoutModal(trigger) {
+            const modal = document.getElementById('logout-modal');
+            if (!modal) return;
+            logoutModalTrigger = trigger || document.activeElement;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('logout-cancel-btn')?.focus();
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            logoutModalTrigger?.focus?.();
+            logoutModalTrigger = null;
         }
 
         function toggleSidebar() {

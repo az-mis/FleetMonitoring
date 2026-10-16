@@ -39,11 +39,12 @@
     @endunless
 </div>
 
-@if(session('success'))
-    <div class="mb-3 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-xs font-semibold text-green-700">{{ session('success') }}</div>
-@endif
-@if(session('error'))
-    <div class="mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700">{{ session('error') }}</div>
+{{-- session('success') / session('error') are shown as toasts by the layout --}}
+@if($isAdmin && $errors->any())
+    {{-- The review modal is closed after a redirect, so surface validation errors on the page --}}
+    <div role="alert" class="mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700">
+        @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+    </div>
 @endif
 
 {{-- ── Stat cards ──────────────────────────────────────────────────── --}}
@@ -92,7 +93,7 @@
                     </div>
                     <span class="rounded-full {{ $status['bg'] }} {{ $status['text'] }} px-2.5 py-1 text-[11px] font-extrabold">{{ $status['label'] }}</span>
                 </div>
-                <p class="my-2 text-[13px] leading-relaxed text-gray-600">{{ $report->description }}</p>
+                <p class="my-2 whitespace-pre-line break-words text-[13px] leading-relaxed text-gray-600">{{ $report->description }}</p>
                 <div class="text-xs text-gray-400">
                     Reported by <b class="text-gray-600">{{ $report->driver_name }}</b>
                     @if($report->related_maintenance_title)
@@ -100,7 +101,7 @@
                     @endif
                 </div>
                 @if($report->admin_notes)
-                    <div class="mt-2 border-l-2 border-emerald-500 bg-gray-50 px-2.5 py-2 text-xs text-gray-700"><b>Admin update:</b> {{ $report->admin_notes }}</div>
+                    <div class="mt-2 whitespace-pre-line break-words border-l-2 border-emerald-500 bg-gray-50 px-2.5 py-2 text-xs text-gray-700"><b>Admin update:</b> {{ $report->admin_notes }}</div>
                 @endif
                 @if($isAdmin)
                     <button type="button"
@@ -118,14 +119,14 @@
 {{-- ── Report-issue modal (driver) ─────────────────────────────────── --}}
 @unless($isAdmin)
 <div id="report-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
-    <div class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl">
+    <div role="dialog" aria-modal="true" aria-labelledby="report-modal-title" class="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div class="flex items-center justify-between rounded-t-2xl border-b border-gray-100 px-5 py-4">
-            <h3 class="text-base font-bold text-gray-900">Report Vehicle Issue</h3>
-            <button type="button" onclick="closeReportModal()" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
+            <h3 id="report-modal-title" class="text-base font-bold text-gray-900">Report Vehicle Issue</h3>
+            <button type="button" onclick="closeReportModal()" aria-label="Close" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
             </button>
         </div>
-        <form method="POST" action="{{ route('vehicle-reports.store') }}" class="space-y-4 px-5 py-5">
+        <form method="POST" action="{{ route('vehicle-reports.store') }}" class="space-y-4 px-5 py-5" onsubmit="document.getElementById('report-submit-btn').disabled = true;">
             @csrf
             @if($errors->any())
                 <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[13px] text-rose-700">{{ $errors->first() }}</div>
@@ -144,7 +145,7 @@
                         'type' => $v->vehicle_type ?? '',
                         'photo' => $v->photo_url,
                     ])) }}
-                }" class="relative">
+                }" @keydown.escape="if (open) { open = false; $event.stopPropagation(); }" class="relative">
                     <label class="mb-1 block text-xs font-bold text-gray-600">Assigned Vehicle <span class="text-red-500">*</span></label>
                     
                     {{-- Hidden input for form submission --}}
@@ -180,8 +181,8 @@
                     <div x-show="open" x-transition.origin.top.duration.150ms style="display: none;"
                         class="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl space-y-1">
                         <template x-for="v in vehicles" :key="v.id">
-                            <div @click="selectedId = v.id; open = false"
-                                class="flex cursor-pointer items-center justify-between rounded-lg p-2 transition hover:bg-emerald-50"
+                            <button type="button" @click="selectedId = v.id; open = false"
+                                class="flex w-full cursor-pointer items-center justify-between rounded-lg p-2 text-left transition hover:bg-emerald-50"
                                 :class="selectedId == v.id ? 'bg-emerald-50/70 border border-emerald-200/60' : 'border border-transparent'">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <div class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 border border-slate-200 overflow-hidden">
@@ -204,7 +205,7 @@
                                         <polyline points="20 6 9 17 4 12"/>
                                     </svg>
                                 </div>
-                            </div>
+                            </button>
                         </template>
                     </div>
                 </div>
@@ -227,27 +228,27 @@
                 </div>
             @endif
             <div>
-                <label class="mb-1 block text-xs font-bold text-gray-600">Issue Type <span class="text-red-500">*</span></label>
-                <select name="issue_type" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                <label for="report-issue-type" class="mb-1 block text-xs font-bold text-gray-600">Issue Type <span class="text-red-500">*</span></label>
+                <select name="issue_type" id="report-issue-type" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                     @foreach($issueTypes as $type)
                         <option value="{{ $type }}" @selected(old('issue_type') === $type)>{{ $type }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label class="mb-1 block text-xs font-bold text-gray-600">Priority <span class="text-red-500">*</span></label>
-                <select name="priority" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                <label for="report-priority" class="mb-1 block text-xs font-bold text-gray-600">Priority <span class="text-red-500">*</span></label>
+                <select name="priority" id="report-priority" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                     <option value="normal" @selected(old('priority', 'normal') === 'normal')>Normal</option>
                     <option value="high" @selected(old('priority') === 'high')>High</option>
                     <option value="urgent" @selected(old('priority') === 'urgent')>Urgent — unsafe to use</option>
                 </select>
             </div>
             <div>
-                <label class="mb-1 block text-xs font-bold text-gray-600">What did you observe? <span class="text-red-500">*</span></label>
-                <textarea name="description" required placeholder="Example: Front-left tire is visibly worn and losing air."
+                <label for="report-description" class="mb-1 block text-xs font-bold text-gray-600">What did you observe? <span class="text-red-500">*</span></label>
+                <textarea name="description" id="report-description" required placeholder="Example: Front-left tire is visibly worn and losing air."
                     class="min-h-[105px] w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">{{ old('description') }}</textarea>
             </div>
-            <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">
+            <button type="submit" id="report-submit-btn" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                 Submit Report
             </button>
@@ -259,22 +260,25 @@
 {{-- ── Review modal (admin) ────────────────────────────────────────── --}}
 @if($isAdmin)
 <div id="review-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
-    <div class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl">
+    <div role="dialog" aria-modal="true" aria-labelledby="review-modal-title" class="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div class="flex items-center justify-between rounded-t-2xl border-b border-gray-100 px-5 py-4">
-            <h3 class="text-base font-bold text-gray-900">Review Driver Report</h3>
-            <button type="button" onclick="closeReviewModal()" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
+            <h3 id="review-modal-title" class="text-base font-bold text-gray-900">Review Driver Report</h3>
+            <button type="button" onclick="closeReviewModal()" aria-label="Close" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
             </button>
         </div>
-        <form id="review-form" method="POST" class="space-y-4 px-5 py-5">
+        <form id="review-form" method="POST" class="space-y-4 px-5 py-5" onsubmit="document.getElementById('review-submit-btn').disabled = true;">
             @csrf
             @method('PUT')
+            @if($errors->any())
+                <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[13px] text-rose-700">{{ $errors->first() }}</div>
+            @endif
             <div class="grid gap-0.5 rounded-lg bg-green-50 px-3 py-2.5 text-[13px] text-green-800">
                 <b id="review-title"></b>
                 <span id="review-subtitle"></span>
             </div>
             <div>
-                <label class="mb-1 block text-xs font-bold text-gray-600">Progress status <span class="text-red-500">*</span></label>
+                <label for="review-status" class="mb-1 block text-xs font-bold text-gray-600">Progress status <span class="text-red-500">*</span></label>
                 <select name="status" id="review-status" required class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                     @foreach($statusStyles as $value => $meta)
                         <option value="{{ $value }}">{{ $meta['label'] }}</option>
@@ -284,7 +288,7 @@
             {{-- Not linked yet: pick an existing record, or create one from this report --}}
             <div id="review-link-picker" class="space-y-4">
                 <div>
-                    <label class="mb-1 block text-xs font-bold text-gray-600">Link an existing maintenance record</label>
+                    <label for="review-maintenance" class="mb-1 block text-xs font-bold text-gray-600">Link an existing maintenance record</label>
                     <select name="related_maintenance_id" id="review-maintenance" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                         <option value="">No maintenance linked yet</option>
                     </select>
@@ -309,11 +313,11 @@
                 </div>
             </div>
             <div>
-                <label class="mb-1 block text-xs font-bold text-gray-600">Update for the driver</label>
+                <label for="review-admin-notes" class="mb-1 block text-xs font-bold text-gray-600">Update for the driver</label>
                 <textarea name="admin_notes" id="review-admin-notes" placeholder="Example: Tire replacement has been scheduled for tomorrow."
                     class="min-h-[90px] w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"></textarea>
             </div>
-            <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">Save Update</button>
+            <button type="submit" id="review-submit-btn" class="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">Save Update</button>
         </form>
     </div>
 </div>
@@ -379,6 +383,7 @@
             picker.classList.remove('hidden');
         }
 
+        document.getElementById('review-submit-btn').disabled = false;
         document.getElementById('review-modal').classList.remove('hidden');
         document.getElementById('review-modal').classList.add('flex');
     }
@@ -387,6 +392,10 @@
         document.getElementById('review-modal').classList.add('hidden');
         document.getElementById('review-modal').classList.remove('flex');
     }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !document.getElementById('review-modal').classList.contains('hidden')) closeReviewModal();
+    });
 
     function createMaintenanceFromReport() {
         if (! currentReportId) return;
@@ -403,6 +412,7 @@
 @push('scripts')
 <script>
     function openReportModal() {
+        document.getElementById('report-submit-btn').disabled = false;
         document.getElementById('report-modal').classList.remove('hidden');
         document.getElementById('report-modal').classList.add('flex');
     }
@@ -410,6 +420,10 @@
         document.getElementById('report-modal').classList.add('hidden');
         document.getElementById('report-modal').classList.remove('flex');
     }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !document.getElementById('report-modal').classList.contains('hidden')) closeReportModal();
+    });
 
     @if($errors->any())
         // Validation failed on submit — reopen the modal so the error and

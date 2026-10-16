@@ -1,8 +1,9 @@
 <div class="flex items-center justify-end gap-1.5">
     <button
         type="button"
-        onclick="openVehiclePmsModal({{ $vehicle->id }}, '{{ $vehicle->plate_number }}', '{{ trim($vehicle->brand . ' ' . $vehicle->model) }}', {{ $vehicle->odometer }})"
+        onclick="openVehiclePmsModal({{ $vehicle->id }}, @js($vehicle->plate_number), @js(trim($vehicle->brand . ' ' . $vehicle->model)), {{ $vehicle->odometer }})"
         title="PMS Schedule & Checklist"
+        aria-label="PMS Schedule & Checklist"
         class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50/70 text-blue-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition shadow-2xs cursor-pointer"
     >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,6 +33,7 @@
         data-created-by="{{ $vehicle->creator ? $vehicle->creator->name . ($vehicle->creator->role ? ' (' . $vehicle->creator->role->label() . ')' : '') : '' }}"
         data-updated-by="{{ $vehicle->updater ? $vehicle->updater->name . ($vehicle->updater->role ? ' (' . $vehicle->updater->role->label() . ')' : '') : '' }}"
         title="Edit Vehicle"
+        aria-label="Edit Vehicle"
         class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50/70 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition shadow-2xs cursor-pointer"
     >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -46,6 +48,7 @@
         data-plate_number="{{ $vehicle->plate_number }}"
         data-delete-url="{{ route('vehicles.destroy', $vehicle) }}"
         title="Delete Vehicle"
+        aria-label="Delete Vehicle"
         class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50/70 text-rose-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-2xs cursor-pointer"
     >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

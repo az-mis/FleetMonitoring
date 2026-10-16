@@ -209,7 +209,7 @@
                                       :class="`bg-${kpi.color}-100 text-${kpi.color}-700`"
                                       x-html="kpiIcon(kpi.icon)"></span>
                                 <div class="min-w-0">
-                                    <p class="text-[9px] font-bold uppercase tracking-wider text-gray-400 truncate" x-text="kpi.label"></p>
+                                    <p class="text-[9px] font-bold uppercase tracking-wider text-gray-500 leading-tight line-clamp-2" x-text="kpi.label" :title="kpi.label"></p>
                                     <p class="flex items-baseline gap-1">
                                         <span class="text-base font-black text-gray-900 leading-tight" x-text="kpi.value"></span>
                                         <span class="text-[9px] text-gray-400" x-text="kpi.sub" x-show="kpi.sub"></span>
@@ -250,30 +250,30 @@
                     </div>
 
                     {{-- 3 metric cards --}}
-                    <div class="grid grid-cols-3 gap-2 mb-2">
+                    <div class="grid grid-cols-1 gap-2 mb-2 min-[400px]:grid-cols-3">
                         {{-- Total Allocated --}}
-                        <div class="rounded-lg border border-slate-100 bg-slate-50/70 p-2">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Allocated</p>
-                            <p class="text-xs font-black text-slate-900 leading-tight truncate">
+                        <div class="min-w-0 rounded-lg border border-slate-100 bg-slate-50/70 p-2">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500">Allocated</p>
+                            <p class="text-xs font-black text-slate-900 leading-tight break-words tabular-nums" title="₱{{ number_format((float)$fb['total_allocated'], 2) }}">
                                 ₱{{ number_format((float)$fb['total_allocated'], 2) }}
                             </p>
-                            <p class="text-[9px] text-slate-400 font-medium">Initial budget</p>
+                            <p class="text-[9px] text-slate-500 font-medium">Initial budget</p>
                         </div>
                         {{-- Consumed --}}
-                        <div class="rounded-lg border border-red-100 bg-red-50/70 p-2">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-red-400">Consumed</p>
-                            <p class="text-xs font-black text-red-700 leading-tight truncate">
+                        <div class="min-w-0 rounded-lg border border-red-100 bg-red-50/70 p-2">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-red-700">Consumed</p>
+                            <p class="text-xs font-black text-red-700 leading-tight break-words tabular-nums" title="₱{{ number_format((float)$fb['total_consumed'], 2) }}">
                                 ₱{{ number_format((float)$fb['total_consumed'], 2) }}
                             </p>
-                            <p class="text-[9px] text-red-400 font-medium">{{ $fbConsumedPct }}% used</p>
+                            <p class="text-[9px] text-red-700/80 font-medium">{{ $fbConsumedPct }}% used</p>
                         </div>
                         {{-- Remaining --}}
-                        <div class="rounded-lg border border-emerald-100 bg-emerald-50/70 p-2">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-500">Remaining</p>
-                            <p class="text-xs font-black text-emerald-700 leading-tight truncate">
+                        <div class="min-w-0 rounded-lg border border-emerald-100 bg-emerald-50/70 p-2">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700">Remaining</p>
+                            <p class="text-xs font-black text-emerald-700 leading-tight break-words tabular-nums" title="₱{{ number_format((float)$fb['total_remaining'], 2) }}">
                                 ₱{{ number_format((float)$fb['total_remaining'], 2) }}
                             </p>
-                            <p class="text-[9px] text-emerald-500 font-medium">{{ $fbRemainingPct }}% available</p>
+                            <p class="text-[9px] text-emerald-700/80 font-medium">{{ $fbRemainingPct }}% available</p>
                         </div>
                     </div>
 
@@ -311,24 +311,24 @@
                         <div class="flex items-center gap-2.5">
                             {{-- Status Badges Legend --}}
                             <div class="hidden sm:flex items-center gap-2 text-[10px] font-bold">
-                                <span class="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                                <span class="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-1.5 py-px rounded border border-emerald-200">
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span> Approved
                                 </span>
-                                <span class="flex items-center gap-1 text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                                <span class="flex items-center gap-1 text-amber-800 bg-amber-50 px-1.5 py-px rounded border border-amber-200">
                                     <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Pending
                                 </span>
-                                <span class="flex items-center gap-1 text-red-800 bg-red-50 px-1.5 py-0.2 rounded border border-red-200">
+                                <span class="flex items-center gap-1 text-red-800 bg-red-50 px-1.5 py-px rounded border border-red-200">
                                     <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span> Maintenance
                                 </span>
                             </div>
 
                             <div class="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg">
-                                <button type="button" @click="prevMonth()" class="rounded p-1 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                                <button type="button" @click="prevMonth()" aria-label="Previous month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
                                 </button>
-                                <span class="px-1.5 text-[11px] font-black text-slate-800 min-w-[90px] text-center" x-text="monthYearTitle"></span>
-                                <button type="button" @click="nextMonth()" class="rounded p-1 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                                <span class="px-1.5 text-[11px] font-black text-slate-800 min-w-[90px] text-center" x-text="monthYearTitle" aria-live="polite"></span>
+                                <button type="button" @click="nextMonth()" aria-label="Next month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                                 </button>
                             </div>
                         </div>
@@ -362,7 +362,7 @@
                                         <div class="mt-0.5 space-y-0.5 overflow-y-auto max-h-[46px] scrollbar-thin">
                                             <template x-for="ev in day.events" :key="ev.title + ev.start">
                                                 <a :href="ev.url"
-                                                   class="block text-[9px] font-bold px-1 py-0.2 rounded truncate transition border leading-tight"
+                                                   class="block text-[9px] font-bold px-1 py-px rounded truncate transition border leading-tight"
                                                    :class="{
                                                        'bg-emerald-100 border-emerald-300 text-emerald-900 hover:bg-emerald-200': ev.type === 'approved',
                                                        'bg-amber-100 border-amber-300 text-amber-900 hover:bg-amber-200': ev.type === 'pending',
@@ -418,7 +418,7 @@
                                     </span>
                                     <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Fleet Health Overview</h3>
                                 </div>
-                                <span class="rounded-full px-2 py-0.2 text-[10px] font-extrabold
+                                <span class="rounded-full px-2 py-px text-[10px] font-extrabold
                                     {{ $fh['color'] === 'emerald' ? 'bg-emerald-100 text-emerald-800' : ($fh['color'] === 'amber' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800') }}">
                                     {{ $fh['score'] }}% {{ $fh['label'] }}
                                 </span>
@@ -467,7 +467,7 @@
                                     $totalTripsCount = $todaysTrips->count() + $upcomingTrips->count();
                                 @endphp
                                 @if($totalTripsCount > 0)
-                                    <span class="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-black text-emerald-800">{{ $totalTripsCount }}</span>
+                                    <span class="rounded-full bg-emerald-100 px-1.5 py-px text-[10px] font-black text-emerald-800">{{ $totalTripsCount }}</span>
                                 @endif
                             </div>
                             <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'approved']) }}" class="text-[10px] font-bold text-emerald-700 hover:underline">View all →</a>
@@ -479,7 +479,7 @@
                                         <div class="flex items-center justify-between gap-2">
                                             <div class="flex items-center gap-1.5 min-w-0 truncate">
                                                 <span class="rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white shrink-0">Today</span>
-                                                <p class="text-xs font-bold text-emerald-950 truncate">{{ $trip->destination }}</p>
+                                                <p class="text-xs font-bold text-emerald-950 truncate">{{ str_replace(";;", ", ", (string) $trip->destination) }}</p>
                                             </div>
                                             <span class="shrink-0 text-[10px] font-extrabold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
                                         </div>
@@ -504,7 +504,7 @@
                                                 <span class="rounded bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide shrink-0">
                                                     {{ $trip->travel_date->isTomorrow() ? 'Tomorrow' : $trip->travel_date->format('M j') }}
                                                 </span>
-                                                <p class="text-xs font-bold text-slate-900 truncate">{{ $trip->destination }}</p>
+                                                <p class="text-xs font-bold text-slate-900 truncate">{{ str_replace(";;", ", ", (string) $trip->destination) }}</p>
                                             </div>
                                             <span class="shrink-0 text-[10px] font-extrabold text-slate-700 bg-white border border-slate-200 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
                                         </div>
@@ -620,14 +620,16 @@
                             const lastDay = new Date(this.viewYear, this.viewMonth + 1, 0);
                             const startDayOfWeek = firstDay.getDay();
                             const totalDays = lastDay.getDate();
-                            const todayStr = new Date().toISOString().split('T')[0];
+                            // Build YYYY-MM-DD from local date parts; toISOString() is UTC and shifts dates in UTC+8
+                            const localDateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                            const todayStr = localDateKey(new Date());
 
                             // Prev month padding
                             const prevMonthLastDay = new Date(this.viewYear, this.viewMonth, 0).getDate();
                             for (let i = startDayOfWeek - 1; i >= 0; i--) {
                                 const d = prevMonthLastDay - i;
                                 const dateObj = new Date(this.viewYear, this.viewMonth - 1, d);
-                                const dateStr = dateObj.toISOString().split('T')[0];
+                                const dateStr = localDateKey(dateObj);
                                 days.push({
                                     dayNum: d,
                                     inMonth: false,
@@ -658,7 +660,7 @@
                             const nextPadding = (7 - (totalCells % 7)) % 7;
                             for (let d = 1; d <= nextPadding; d++) {
                                 const dateObj = new Date(this.viewYear, this.viewMonth + 1, d);
-                                const dateStr = dateObj.toISOString().split('T')[0];
+                                const dateStr = localDateKey(dateObj);
                                 days.push({
                                     dayNum: d,
                                     inMonth: false,
@@ -785,7 +787,7 @@
                         </div>
                         <a href="{{ route('my-profile') }}" class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-amber-700 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 20h9"/><path d="16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                             </svg>
                             Complete Profile
                         </a>
@@ -945,7 +947,7 @@
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-1.5">
                                                 <span class="text-red-500 text-xs shrink-0">📍</span>
-                                                <h4 class="text-xs font-extrabold text-slate-900 truncate">{{ $trip->destination }}</h4>
+                                                <h4 class="text-xs font-extrabold text-slate-900 truncate">{{ str_replace(";;", ", ", (string) $trip->destination) }}</h4>
                                             </div>
                                             <p class="mt-1 text-xs text-slate-700">
                                                 Requester: <span class="font-extrabold text-slate-950">{{ $trip->requester_name }}</span>
@@ -974,7 +976,7 @@
                                 <div class="py-8 text-center text-[11px] text-slate-400 font-medium">
                                     No future assigned travels yet.
                                 </div>
-                            @endif
+                            @endforelse
                         </div>
                     </div>
                 </div>
@@ -989,18 +991,18 @@
                                 </svg>
                                 <h3 class="text-xs font-extrabold text-slate-900">Travels Already Made ({{ $completedTravelsCount }})</h3>
                             </div>
-                            <span class="text-[11px] font-bold text-emerald-700 cursor-pointer">View full history &rsaquo;</span>
+                            <a href="{{ route('travel-history') }}" class="text-[11px] font-bold text-emerald-700 hover:underline">View full history &rsaquo;</a>
                         </div>
 
                         <div class="space-y-2">
                             @forelse($driverCompletedTrips as $trip)
                                 <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3 shadow-2xs">
                                     <div class="flex items-start justify-between gap-2">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-slate-400 text-xs">📍</span>
-                                            <h4 class="text-xs font-bold text-slate-800">{{ $trip->destination }}</h4>
+                                        <div class="flex min-w-0 items-center gap-1.5">
+                                            <span class="text-slate-400 text-xs" aria-hidden="true">📍</span>
+                                            <h4 class="text-xs font-bold text-slate-800 break-words">{{ str_replace(";;", ", ", (string) $trip->destination) }}</h4>
                                         </div>
-                                        <span class="text-[11px] text-slate-500 font-medium">
+                                        <span class="shrink-0 text-[11px] text-slate-500 font-medium">
                                             {{ $trip->travel_date?->format('M j, Y') }}
                                         </span>
                                     </div>
@@ -1012,7 +1014,7 @@
                                 <div class="py-8 text-center text-[11px] text-slate-400 font-medium">
                                     No completed trips yet.
                                 </div>
-                            @endif
+                            @endforelse
                         </div>
                     </div>
                 </div>

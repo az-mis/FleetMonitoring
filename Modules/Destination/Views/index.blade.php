@@ -34,6 +34,7 @@
                         type="text"
                         name="search"
                         value="{{ request('search') }}"
+                        aria-label="Search destination"
                         placeholder="Search destination..."
                         class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     >
@@ -52,7 +53,11 @@
                     <div class="relative" id="dest-location-dropdown">
                         <button
                             type="button"
+                            id="dest-location-button"
                             onclick="toggleDestLocationMenu()"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="dest-location-menu"
                             class="inline-flex h-10 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 cursor-pointer"
                         >
                             <span class="flex items-center gap-1.5 truncate">
@@ -94,15 +99,14 @@
         </div>
     </div>
 
-    {{-- Flash Message --}}
-    @if(session('success'))
-        <div class="mb-4 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-800 shadow-sm">
-            <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
+    {{-- Flash messages: session('success') is shown as a toast by the layout --}}
+    @if($errors->any())
+        <div role="alert" class="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <ul class="list-disc space-y-0.5 pl-5">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -143,12 +147,12 @@
                             </td>
                             <td class="py-3 px-4 text-center">
                                 <span class="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-lg px-2.5 py-1 text-xs">
-                                    {{ $dest->distance_km }} kms
+                                    {{ $dest->distance_km !== null ? $dest->distance_km . ' kms' : '—' }}
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-center">
                                 <span class="inline-flex items-center gap-1 font-semibold text-slate-600 bg-slate-100 rounded-lg px-2.5 py-1 text-xs">
-                                    {{ $dest->distance_km * 2 }} kms
+                                    {{ $dest->distance_km !== null ? ($dest->distance_km * 2) . ' kms' : '—' }}
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-center">
@@ -241,7 +245,7 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <span>Rows per page:</span>
+                        <label for="destination-per-page-select">Rows per page:</label>
                         <select id="destination-per-page-select" onchange="changeDestinationPerPage(this.value)" class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
                             @foreach ([10, 15, 20, 25, 50, 75, 100] as $size)
                                 <option value="{{ $size }}" @selected((int) request('per_page', $perPage ?? 10) === $size)>{{ $size }}</option>
@@ -261,7 +265,7 @@
 
     {{-- Add Destination Modal --}}
     <div id="add-destination-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+        <div role="dialog" aria-modal="true" aria-labelledby="add-destination-modal-title" class="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
             <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -269,20 +273,20 @@
                             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                         </svg>
                     </span>
-                    <h3 class="text-base font-black text-slate-900">Add Destination</h3>
+                    <h3 id="add-destination-modal-title" class="text-base font-black text-slate-900">Add Destination</h3>
                 </div>
-                <button type="button" onclick="closeAddDestinationModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
+                <button type="button" onclick="closeAddDestinationModal()" aria-label="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                 </button>
             </div>
 
-            <form method="POST" action="{{ route('destinations.store') }}" class="space-y-4">
+            <form method="POST" action="{{ route('destinations.store') }}" class="space-y-4" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Place Name <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" required placeholder="e.g. Aborlan, Palawan" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <input type="text" name="name" required maxlength="255" placeholder="e.g. Aborlan, Palawan" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
@@ -307,14 +311,14 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Notes / Route Remarks</label>
-                    <textarea name="notes" rows="2" placeholder="Optional notes, highway info, etc." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
+                    <textarea name="notes" rows="2" maxlength="1000" placeholder="Optional notes, highway info, etc." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeAddDestinationModal()" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" class="rounded-xl bg-[#005a36] px-5 py-2 text-xs font-bold text-white hover:bg-[#00432a] transition cursor-pointer">
+                    <button type="submit" class="rounded-xl bg-[#005a36] px-5 py-2 text-xs font-bold text-white hover:bg-[#00432a] transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
                         Save Destination
                     </button>
                 </div>
@@ -324,7 +328,7 @@
 
     {{-- Edit Destination Modal --}}
     <div id="edit-destination-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+        <div role="dialog" aria-modal="true" aria-labelledby="edit-destination-modal-title" class="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
             <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -332,21 +336,21 @@
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                     </span>
-                    <h3 class="text-base font-black text-slate-900">Edit Destination</h3>
+                    <h3 id="edit-destination-modal-title" class="text-base font-black text-slate-900">Edit Destination</h3>
                 </div>
-                <button type="button" onclick="closeEditDestinationModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
+                <button type="button" onclick="closeEditDestinationModal()" aria-label="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                 </button>
             </div>
 
-            <form id="edit-destination-form" method="POST" class="space-y-4">
+            <form id="edit-destination-form" method="POST" class="space-y-4" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
                 @csrf
                 @method('PUT')
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Place Name <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="edit-dest-name" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <input type="text" name="name" id="edit-dest-name" required maxlength="255" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
@@ -370,14 +374,14 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Notes / Route Remarks</label>
-                    <textarea name="notes" id="edit-dest-notes" rows="2" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
+                    <textarea name="notes" id="edit-dest-notes" rows="2" maxlength="1000" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeEditDestinationModal()" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" class="rounded-xl bg-[#005a36] px-5 py-2 text-xs font-bold text-white hover:bg-[#00432a] transition cursor-pointer">
+                    <button type="submit" class="rounded-xl bg-[#005a36] px-5 py-2 text-xs font-bold text-white hover:bg-[#00432a] transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
                         Update Destination
                     </button>
                 </div>
@@ -386,12 +390,31 @@
     </div>
 
     <script>
-        function toggleDestLocationMenu() {
+        function toggleDestLocationMenu(force) {
             const menu = document.getElementById('dest-location-menu');
-            if (menu) menu.classList.toggle('hidden');
+            if (!menu) return;
+            const open = typeof force === 'boolean' ? force : menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !open);
+            document.getElementById('dest-location-button')?.setAttribute('aria-expanded', open ? 'true' : 'false');
         }
 
+        // Close the location menu on outside click
+        document.addEventListener('click', function (e) {
+            const wrap = document.getElementById('dest-location-dropdown');
+            if (wrap && !wrap.contains(e.target)) toggleDestLocationMenu(false);
+        });
+
+        // Escape closes the location menu, then any open modal
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            const menu = document.getElementById('dest-location-menu');
+            if (menu && !menu.classList.contains('hidden')) { toggleDestLocationMenu(false); return; }
+            if (!document.getElementById('edit-destination-modal').classList.contains('hidden')) closeEditDestinationModal();
+            if (!document.getElementById('add-destination-modal').classList.contains('hidden')) closeAddDestinationModal();
+        });
+
         function openAddDestinationModal() {
+            document.querySelector('#add-destination-modal button[type=submit]').disabled = false;
             document.getElementById('add-destination-modal').classList.remove('hidden');
             document.getElementById('add-destination-modal').classList.add('flex');
         }
@@ -404,6 +427,7 @@
         function openEditDestinationModal(dest) {
             const form = document.getElementById('edit-destination-form');
             form.action = `/destinations/${dest.id}`;
+            form.querySelector('button[type=submit]').disabled = false;
             document.getElementById('edit-dest-name').value = dest.name;
             document.getElementById('edit-dest-distance').value = dest.distance_km;
             document.getElementById('edit-dest-notes').value = dest.notes || '';

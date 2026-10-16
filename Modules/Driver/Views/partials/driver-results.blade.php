@@ -79,6 +79,7 @@
                                         data-name="{{ $driver->name }}"
                                         data-email="{{ $driver->email }}"
                                         data-avatar="{{ $driver->avatar_url }}"
+                                        data-initial="{{ $initial }}"
                                         data-address="{{ $driver->address }}"
                                         data-birth-date="{{ optional($driver->birth_date)->format('Y-m-d') }}"
                                         data-license-number="{{ $driver->license_number }}"
@@ -89,7 +90,8 @@
                                         data-location="{{ $driver->location }}"
                                         data-update-url="{{ route('driver.update', $driver) }}"
                                         title="Edit"
-                                        class="text-blue-500 hover:text-blue-700 p-1"
+                                        aria-label="Edit {{ $driver->name }}"
+                                        class="inline-flex h-8 w-8 items-center justify-center rounded-md text-blue-500 hover:text-blue-700"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -102,7 +104,8 @@
                                         data-name="{{ $driver->name }}"
                                         data-delete-url="{{ route('driver.destroy', $driver) }}"
                                         title="Delete"
-                                        class="text-red-500 hover:text-red-700 p-1"
+                                        aria-label="Delete {{ $driver->name }}"
+                                        class="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-500 hover:text-red-700"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M3 6h18"/>
@@ -155,6 +158,7 @@
                                 data-location="{{ $driver->location }}"
                                 data-update-url="{{ route('driver.update', $driver) }}"
                                 title="Edit driver"
+                                aria-label="Edit {{ $driver->name }}"
                                 class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition shadow-xs"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -168,6 +172,7 @@
                                 data-name="{{ $driver->name }}"
                                 data-delete-url="{{ route('driver.destroy', $driver) }}"
                                 title="Delete driver"
+                                aria-label="Delete {{ $driver->name }}"
                                 class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition shadow-xs"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -255,6 +260,7 @@
                                     <div
                                         @if ($assignedVehicles->count() > 1)
                                             x-show="activeIndex === {{ $index }}"
+                                            @if ($index > 0) x-cloak @endif
                                             x-transition:enter="transition ease-out duration-150"
                                             x-transition:enter-start="opacity-0 translate-x-1"
                                             x-transition:enter-end="opacity-100 translate-x-0"
@@ -387,23 +393,23 @@
         </div>
 
         <div class="flex items-center gap-1">
-            <button type="button" onclick="goToDriverPage(1)" @disabled($drivers->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToDriverPage(1)" aria-label="First page" @disabled($drivers->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &laquo;
             </button>
-            <button type="button" onclick="goToDriverPage({{ max(1, $drivers->currentPage() - 1) }})" @disabled($drivers->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToDriverPage({{ max(1, $drivers->currentPage() - 1) }})" aria-label="Previous page" @disabled($drivers->onFirstPage()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &lt;
             </button>
 
             @foreach ($drivers->getUrlRange(max(1, $drivers->currentPage() - 1), min($drivers->lastPage(), $drivers->currentPage() + 1)) as $page => $url)
-                <button type="button" onclick="goToDriverPage({{ $page }})" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $drivers->currentPage() ? 'bg-emerald-700 text-white border-emerald-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+                <button type="button" onclick="goToDriverPage({{ $page }})" aria-label="Page {{ $page }}" @if ($page == $drivers->currentPage()) aria-current="page" @endif class="inline-flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $drivers->currentPage() ? 'bg-emerald-700 text-white border-emerald-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
                     {{ $page }}
                 </button>
             @endforeach
 
-            <button type="button" onclick="goToDriverPage({{ min($drivers->lastPage(), $drivers->currentPage() + 1) }})" @disabled(!$drivers->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToDriverPage({{ min($drivers->lastPage(), $drivers->currentPage() + 1) }})" aria-label="Next page" @disabled(!$drivers->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &gt;
             </button>
-            <button type="button" onclick="goToDriverPage({{ $drivers->lastPage() }})" @disabled(!$drivers->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToDriverPage({{ $drivers->lastPage() }})" aria-label="Last page" @disabled(!$drivers->hasMorePages()) class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &raquo;
             </button>
         </div>

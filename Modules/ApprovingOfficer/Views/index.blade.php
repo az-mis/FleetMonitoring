@@ -23,6 +23,7 @@
                         name="search"
                         value="{{ request('search') }}"
                         autocomplete="off"
+                        aria-label="Search location or officer"
                         placeholder="Search location or officer..."
                         class="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     >
@@ -46,8 +47,11 @@
         </div>
     </div>
 
-    @if($errors->has('ticket'))
-        <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700">{{ $errors->first('ticket') }}</div>
+    {{-- Page-level error summary (the modal is closed after a redirect, so its own summary is not visible) --}}
+    @if($errors->any())
+        <div role="alert" class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700">
+            @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+        </div>
     @endif
 
     {{-- Cards Grid --}}
@@ -89,8 +93,9 @@
                                 <button
                                     type="button"
                                     onclick="editOfficer({{ \Illuminate\Support\Js::from($editPayload) }})"
-                                    class="flex h-6 w-6 items-center justify-center rounded-lg text-sky-600 transition hover:bg-sky-50 cursor-pointer"
+                                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sky-600 transition hover:bg-sky-50 cursor-pointer"
                                     title="Edit"
+                                    aria-label="Edit {{ $officer->location }}"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -104,8 +109,9 @@
                                         @method('DELETE')
                                         <button
                                             type="submit"
-                                            class="flex h-6 w-6 items-center justify-center rounded-lg text-rose-500 transition hover:bg-rose-50 cursor-pointer"
+                                            class="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition hover:bg-rose-50 cursor-pointer"
                                             title="Delete"
+                                            aria-label="Delete {{ $officer->location }}"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M3 6h18"/>
@@ -134,7 +140,7 @@
                                     @foreach($officer->signatories as $sig)
                                         <label class="sig-card flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition {{ $sig->show_on_ticket ? 'border-emerald-300 bg-emerald-50/60' : 'border-slate-200 bg-white hover:border-emerald-200' }}">
                                             <input type="checkbox" value="{{ $sig->id }}" data-order="{{ $sig->show_on_ticket ? ($sig->ticket_order ?? 99) : '' }}" {{ $sig->show_on_ticket ? 'checked' : '' }}
-                                                   class="ticket-check mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                                   class="ticket-check mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-emerald-600 accent-emerald-600 focus:ring-emerald-500 cursor-pointer">
                                             <span class="min-w-0">
                                                 <span data-sig-name class="block truncate text-xs font-bold text-slate-800">{{ $sig->name }}</span>
                                                 <span class="block text-[11px] text-slate-500">{{ $sig->title ?: '—' }}</span>
@@ -173,10 +179,10 @@
 
     {{-- Add/Edit Officer Modal --}}
     <div id="officer-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div role="dialog" aria-modal="true" aria-labelledby="officer-modal-title" class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
                 <h3 id="officer-modal-title" class="text-sm font-bold text-slate-900">Add Approving Officers</h3>
-                <button type="button" onclick="closeOfficerModal()" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer">
+                <button type="button" onclick="closeOfficerModal()" aria-label="Close" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18"/>
                         <path d="m6 6 12 12"/>
@@ -240,7 +246,7 @@
                     <button
                         type="submit"
                         id="modal-submit-btn"
-                        class="w-full rounded-xl bg-[#008751] hover:bg-[#007345] py-2.5 text-xs font-bold text-white transition shadow-sm cursor-pointer"
+                        class="w-full rounded-xl bg-[#008751] hover:bg-[#007345] py-2.5 text-xs font-bold text-white transition shadow-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Save Approving Officers
                     </button>
@@ -369,12 +375,12 @@
             div.className = 'rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 space-y-2';
             div.innerHTML = `
                 <div class="flex items-center gap-2">
-                    <input type="text" data-f="name" required maxlength="150" placeholder="Full name" value="${esc(data.name)}" class="${inputCls}">
-                    <button type="button" title="Remove" onclick="this.closest('[data-sig-row]').remove(); reindexRows();" class="shrink-0 rounded-lg p-1.5 text-rose-500 hover:bg-rose-50 cursor-pointer">&#10005;</button>
+                    <input type="text" data-f="name" required maxlength="150" aria-label="Signatory full name" placeholder="Full name" value="${esc(data.name)}" class="${inputCls}">
+                    <button type="button" title="Remove" aria-label="Remove signatory" onclick="this.closest('[data-sig-row]').remove(); reindexRows();" class="shrink-0 rounded-lg p-1.5 text-rose-500 hover:bg-rose-50 cursor-pointer">&#10005;</button>
                 </div>
-                <input type="text" data-f="title" maxlength="150" placeholder="Title / Office designation" value="${esc(data.title)}" class="${inputCls}">
+                <input type="text" data-f="title" maxlength="150" aria-label="Signatory title or office designation" placeholder="Title / Office designation" value="${esc(data.title)}" class="${inputCls}">
                 <label class="flex items-center gap-2 text-[11px] font-semibold text-slate-700 cursor-pointer">
-                    <input type="checkbox" data-f="show" value="1" ${data.show_on_ticket ? 'checked' : ''} onchange="enforceTicketLimit(this)" class="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                    <input type="checkbox" data-f="show" value="1" ${data.show_on_ticket ? 'checked' : ''} onchange="enforceTicketLimit(this)" class="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 accent-emerald-600 focus:ring-emerald-500">
                     Show on approved Trip Ticket
                 </label>`;
             wrap.appendChild(div);
@@ -389,6 +395,7 @@
                 showSigError(`Select at least 1 and at most ${MAX_TICKET} signatories for the Trip Ticket.`);
                 return false;
             }
+            document.getElementById('modal-submit-btn').disabled = true; // prevent double submit
             return true;
         }
 
@@ -399,6 +406,7 @@
         }
 
         function showModal() {
+            document.getElementById('modal-submit-btn').disabled = false;
             document.getElementById('officer-modal').classList.remove('hidden');
             document.getElementById('officer-modal').classList.add('flex');
         }
@@ -433,5 +441,9 @@
             document.getElementById('officer-modal').classList.add('hidden');
             document.getElementById('officer-modal').classList.remove('flex');
         }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('officer-modal').classList.contains('hidden')) closeOfficerModal();
+        });
     </script>
 @endsection

@@ -19,7 +19,7 @@
     <div id="vehicle-view-list" class="overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-xs">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-100 text-left text-xs">
-                <thead class="bg-slate-50/80 text-[11px] font-black uppercase tracking-wider text-slate-400">
+                <thead class="bg-slate-50/80 text-[11px] font-black uppercase tracking-wider text-slate-500">
                     <tr>
                         <th class="px-5 py-3.5 font-bold">Plate</th>
                         <th class="px-4 py-3.5 font-bold">Vehicle</th>
@@ -31,12 +31,12 @@
                         <th class="px-3 py-3.5 font-bold">Type</th>
                         <th class="px-3 py-3.5 font-bold">Fuel</th>
                         <th class="px-4 py-3.5 font-bold">Location</th>
-                        <th class="px-5 py-3.5 text-right font-bold">Actions</th>
+                        <th class="sticky right-0 bg-slate-50 px-5 py-3.5 text-right font-bold shadow-[-6px_0_8px_-6px_rgba(15,23,42,0.15)]">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-slate-700">
                     @foreach ($vehicles as $vehicle)
-                        <tr class="vehicle-row hover:bg-slate-50/80 transition duration-150" data-category="{{ $vehicleCategory($vehicle->vehicle_type) }}">
+                        <tr class="vehicle-row group hover:bg-slate-50/80 transition duration-150" data-category="{{ $vehicleCategory($vehicle->vehicle_type) }}">
                             {{-- Plate Number with vehicle thumbnail --}}
                             <td class="whitespace-nowrap px-5 py-3.5">
                                 <div class="flex items-center gap-3">
@@ -93,7 +93,7 @@
                                         <span class="text-slate-900 font-extrabold text-xs tracking-tight" id="odo-display-{{ $vehicle->id }}">{{ number_format($vehicle->odometer) }} km</span>
                                         <button
                                             type="button"
-                                            onclick="openQuickOdometerModal({{ $vehicle->id }}, '{{ $vehicle->plate_number }}', {{ $vehicle->odometer }})"
+                                            onclick="openQuickOdometerModal({{ $vehicle->id }}, @js($vehicle->plate_number), {{ $vehicle->odometer }})"
                                             class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-900 transition border border-emerald-200/60 cursor-pointer shadow-2xs"
                                             title="Quick update odometer reading"
                                         >
@@ -130,7 +130,7 @@
                                             {{ $health['color'] === 'emerald' ? 'text-emerald-700' : ($health['color'] === 'amber' ? 'text-amber-700' : 'text-red-700') }}">
                                             {{ $health['score'] }}%
                                         </span>
-                                        <span class="rounded px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wide
+                                        <span class="rounded px-1.5 py-px text-[9px] font-extrabold uppercase tracking-wide
                                             {{ $health['color'] === 'emerald' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80' : ($health['color'] === 'amber' ? 'bg-amber-50 text-amber-800 border border-amber-200/80' : 'bg-red-50 text-red-800 border border-red-200/80') }}">
                                             {{ $health['label'] }}
                                         </span>
@@ -155,7 +155,7 @@
                                 </span>
                             </td>
 
-                            <td class="whitespace-nowrap px-5 py-3.5 text-right">
+                            <td class="sticky right-0 whitespace-nowrap bg-white px-5 py-3.5 text-right shadow-[-6px_0_8px_-6px_rgba(15,23,42,0.15)] transition duration-150 group-hover:bg-slate-50">
                                 <x-vehicle::row-actions :vehicle="$vehicle" />
                             </td>
                         </tr>
@@ -166,7 +166,7 @@
     </div>
 
     {{-- GRID VIEW --}}
-    <div id="vehicle-view-grid" class="hidden grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div id="vehicle-view-grid" class="hidden grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         @foreach ($vehicles as $vehicle)
             <div class="vehicle-card overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm" data-category="{{ $vehicleCategory($vehicle->vehicle_type) }}">
                 {{-- Photo + status badge + kebab menu --}}
@@ -231,7 +231,7 @@
                             </div>
                             <button
                                 type="button"
-                                onclick="openQuickOdometerModal({{ $vehicle->id }}, '{{ $vehicle->plate_number }}', {{ $vehicle->odometer }})"
+                                onclick="openQuickOdometerModal({{ $vehicle->id }}, @js($vehicle->plate_number), {{ $vehicle->odometer }})"
                                 class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-2xs"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
@@ -277,7 +277,7 @@
                                 {{ $health['color'] === 'emerald' ? 'bg-emerald-500' : ($health['color'] === 'amber' ? 'bg-amber-400' : 'bg-red-500') }}"
                                 style="width: {{ $health['score'] }}%"></div>
                         </div>
-                        <div class="flex items-center gap-2 text-[10px] font-semibold">
+                        <div class="flex flex-wrap items-center gap-2 text-[10px] font-semibold">
                             @if($health['overdue'] > 0)
                                 <span class="flex items-center gap-0.5 text-red-600">
                                     <span class="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
@@ -329,23 +329,23 @@
         </div>
 
         <div class="flex items-center gap-1">
-            <button type="button" onclick="goToVehiclePage(1)" @disabled($vehicles->onFirstPage()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToVehiclePage(1)" aria-label="First page" @disabled($vehicles->onFirstPage()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &laquo;
             </button>
-            <button type="button" onclick="goToVehiclePage({{ max(1, $vehicles->currentPage() - 1) }})" @disabled($vehicles->onFirstPage()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToVehiclePage({{ max(1, $vehicles->currentPage() - 1) }})" aria-label="Previous page" @disabled($vehicles->onFirstPage()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &lt;
             </button>
 
             @foreach ($vehicles->getUrlRange(max(1, $vehicles->currentPage() - 1), min($vehicles->lastPage(), $vehicles->currentPage() + 1)) as $page => $url)
-                <button type="button" onclick="goToVehiclePage({{ $page }})" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $vehicles->currentPage() ? 'bg-[#005a36] text-white border-[#005a36]' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+                <button type="button" onclick="goToVehiclePage({{ $page }})" @if ($page == $vehicles->currentPage()) aria-current="page" @endif class="inline-flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-bold transition {{ $page == $vehicles->currentPage() ? 'bg-[#005a36] text-white border-[#005a36]' : 'border-slate-200 text-slate-700 hover:bg-slate-50' }}">
                     {{ $page }}
                 </button>
             @endforeach
 
-            <button type="button" onclick="goToVehiclePage({{ min($vehicles->lastPage(), $vehicles->currentPage() + 1) }})" @disabled(!$vehicles->hasMorePages()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToVehiclePage({{ min($vehicles->lastPage(), $vehicles->currentPage() + 1) }})" aria-label="Next page" @disabled(!$vehicles->hasMorePages()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &gt;
             </button>
-            <button type="button" onclick="goToVehiclePage({{ $vehicles->lastPage() }})" @disabled(!$vehicles->hasMorePages()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
+            <button type="button" onclick="goToVehiclePage({{ $vehicles->lastPage() }})" aria-label="Last page" @disabled(!$vehicles->hasMorePages()) class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none">
                 &raquo;
             </button>
         </div>

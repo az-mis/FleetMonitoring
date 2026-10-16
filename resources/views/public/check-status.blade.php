@@ -10,12 +10,12 @@
     {{-- Fixed Full-screen Background --}}
     <div class="fixed inset-0 -z-10 bg-cover bg-center bg-fixed" style="background-image:linear-gradient(rgba(5,38,18,.68),rgba(5,38,18,.78)),url('{{ asset('FleetMS-bg.jpg') }}');"></div>
 
-<main class="flex min-h-screen items-start justify-center px-4 pb-10 sm:px-8" style="padding-top:112px;">
+<main class="flex min-h-screen items-start justify-center px-4 pb-10 pt-8 sm:px-8 sm:pt-28">
     <div class="w-full max-w-xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm">
-        <nav class="mb-4 flex items-center justify-between border-b border-emerald-200/15 pb-3 text-[11px] text-emerald-100/75">
-            <a href="{{ route('request-vehicle') }}" class="hover:text-white">← Request Form</a>
-            <span class="rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 font-semibold uppercase tracking-wide text-emerald-300">⌕ Status Portal</span>
-            <a href="{{ route('login') }}" class="hover:text-white">Staff Login →</a>
+        <nav class="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/15 pb-3 text-[11px] text-emerald-100/75">
+            <a href="{{ route('request-vehicle') }}" class="inline-flex min-h-8 items-center hover:text-white">← Request Form</a>
+            <span class="hidden rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 font-semibold uppercase tracking-wide text-emerald-300 sm:inline-block"><span aria-hidden="true">⌕</span> Status Portal</span>
+            <a href="{{ route('login') }}" class="inline-flex min-h-8 items-center hover:text-white">Staff Login →</a>
         </nav>
         <div class="mb-5">
             <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="mb-4 h-11 w-11 rounded-full bg-white object-contain p-1">
@@ -30,11 +30,12 @@
                 </svg>
                 <input
                     name="code"
+                    aria-label="Reference code"
                     value="{{ request('code') }}"
                     maxlength="7"
                     minlength="7"
                     required
-                    class="w-full rounded-xl border border-emerald-200/25 bg-[#03150a]/90 py-3 pl-10 pr-4 text-xs font-mono font-bold uppercase tracking-widest text-white placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none"
+                    class="w-full rounded-xl border border-emerald-200/25 bg-[#03150a]/90 py-3 pl-10 pr-4 text-xs font-mono font-bold uppercase tracking-widest text-white placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
                     placeholder="WUF8CEW"
                 >
             </div>
@@ -124,8 +125,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/60">VEHICLE</p>
-                            <p class="text-xs font-bold text-white mt-0.5 truncate">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">VEHICLE</p>
+                            <p class="text-xs font-bold text-white mt-0.5 break-words">
                                 {{ $requestRecord->vehicle?->plate_number ? $requestRecord->vehicle->plate_number . ' · ' . $requestRecord->vehicle->brand . ' ' . $requestRecord->vehicle->model : 'Pending Assignment' }}
                             </p>
                         </div>
@@ -140,8 +141,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/60">DESTINATION</p>
-                            <p class="text-xs font-bold text-white mt-0.5 truncate">{{ $requestRecord->destination }}</p>
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">DESTINATION</p>
+                            <p class="text-xs font-bold text-white mt-0.5 break-words">{{ str_replace(';;', ', ', (string) $requestRecord->destination) }}</p>
                         </div>
                     </div>
 
@@ -156,7 +157,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/60">TRAVEL DATE</p>
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">TRAVEL DATE</p>
                             <p class="text-xs font-bold text-white mt-0.5 truncate">
                                 {{ $requestRecord->travel_date->format('M j, Y') }}
                                 {{ $requestRecord->travel_date_end ? ' – ' . $requestRecord->travel_date_end->format('M j, Y') : '' }}
@@ -178,8 +179,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/60">OFFICE / SECTION</p>
-                            <p class="text-xs font-bold text-white mt-0.5 truncate" title="{{ $requestRecord->requester_office ?: $requestRecord->location }}">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">OFFICE / SECTION</p>
+                            <p class="text-xs font-bold text-white mt-0.5 break-words">
                                 {{ $requestRecord->requester_office ?: $requestRecord->location }}
                             </p>
                         </div>
@@ -194,8 +195,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/60">REQUESTER</p>
-                            <p class="text-xs font-bold text-white mt-0.5 truncate">{{ $requestRecord->requester_name }}</p>
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">REQUESTER</p>
+                            <p class="text-xs font-bold text-white mt-0.5 break-words">{{ $requestRecord->requester_name }}</p>
                         </div>
                     </div>
                 </div>
@@ -203,7 +204,7 @@
                 {{-- Printable Trip Ticket Button --}}
                 @if ($requestRecord->status === 'approved')
                     <div class="pt-1">
-                        <a href="{{ route('trip-ticket', $requestRecord) }}" target="_blank" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-xs font-bold text-white shadow-lg hover:from-emerald-500 hover:to-green-500 transition cursor-pointer">
+                        <a href="{{ \Illuminate\Support\Facades\URL::signedRoute('trip-ticket', $requestRecord) }}" target="_blank" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-xs font-bold text-white shadow-lg hover:from-emerald-500 hover:to-green-500 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="6 9 6 2 18 2 18 9"/>
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
