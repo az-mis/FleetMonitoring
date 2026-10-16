@@ -467,9 +467,9 @@
                 @endif
             </nav>
 
-            {{-- Signed-in user; Log out lives in the account menu at the top right --}}
+            {{-- Signed-in user, display only. My Profile and Log out are in the account menu at the top right --}}
             <div class="border-t border-white/10 p-3">
-                <a href="{{ route('my-profile') }}" title="My Profile" class="user-profile-link group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-150 hover:bg-white/[0.07] {{ request()->routeIs('my-profile') ? 'bg-white/[0.07]' : '' }}">
+                <div title="{{ $user?->name }}" class="user-profile-link flex cursor-default select-none items-center gap-3 rounded-xl px-2 py-2">
                     @if ($hasPhoto)
                         <img src="{{ $user->avatar_url }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/15">
                     @else
@@ -481,8 +481,7 @@
                         <span class="block truncate text-[0.8125rem] font-semibold text-white">{{ $user?->name }}</span>
                         <span class="block truncate text-[0.6875rem] text-emerald-200/70">{{ $user?->role?->label() }}{{ filled($user?->location) ? ' · '.$user->location : '' }}</span>
                     </span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-label h-4 w-4 shrink-0 text-emerald-200/50 transition group-hover:translate-x-0.5 group-hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                </a>
+                </div>
             </div>
         </aside>
 

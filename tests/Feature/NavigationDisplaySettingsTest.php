@@ -21,6 +21,7 @@ class NavigationDisplaySettingsTest extends TestCase
             $this->assertStringContainsString($label, $sidebar);
         }
         $this->assertStringNotContainsString('openLogoutModal', $sidebar, 'Log out belongs to the account menu only');
+        $this->assertStringNotContainsString(route('my-profile'), $sidebar, 'The signed-in user card is display only');
         $this->assertStringNotContainsString('Admins', $sidebar, 'Only Super Admins manage admin accounts');
         $this->assertStringContainsString('openLogoutModal', $html);
     }
