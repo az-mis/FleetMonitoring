@@ -1,17 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Content Settings')
-@section('page-title', 'Content Settings')
+@section('title', 'System Settings')
+@section('page-title', 'System Settings')
 
 @section('content')
-    {{-- Page header --}}
+    {{-- Page header: named like the account menu item that opens it --}}
     <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div class="min-w-0">
-            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">
-                {{ $isSuperAdmin ? 'System Content & Branding Settings' : 'Content Settings' }}
-            </h1>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">System Settings</h1>
             <p class="text-sm text-slate-500">
-                {{ $isSuperAdmin ? 'Super Admin Portal — Manage application logo, navigation visibility, and targeted system announcements' : 'Control what content is shown to Drivers on their Dashboard' }}
+                {{ $isSuperAdmin ? 'Text size on this device, application logo, module access, and announcements' : 'Text size on this device and what Drivers see on their Dashboard' }}
             </p>
         </div>
 
@@ -40,6 +38,9 @@
     @endif
 
     <div class="space-y-6">
+        {{-- Personal, per-device preference shown first so it is easy to find --}}
+        @include('partials.text-size-picker')
+
         @if($isSuperAdmin)
             {{-- Row 1: App Logo & Admin Modules --}}
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">

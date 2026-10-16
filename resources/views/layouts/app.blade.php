@@ -768,13 +768,13 @@
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 scale-100"
                             x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl"
+                            class="absolute right-0 top-full z-50 mt-2 w-60 rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl"
                             style="display: none;"
                         >
-                            {{-- User info header --}}
+                            {{-- User info header: name and sign-in email (role and province are shown in the sidebar) --}}
                             <div class="mb-1 px-3 py-2 border-b border-slate-100">
                                 <p class="text-xs font-bold text-slate-800 truncate">{{ $user?->name }}</p>
-                                <p class="text-[0.6875rem] text-slate-500 truncate">{{ $user?->role?->label() ?? 'Admin' }}</p>
+                                <p class="text-[0.6875rem] text-slate-500 truncate" title="{{ $user?->email }}">{{ $user?->email }}</p>
                             </div>
 
                             <a
@@ -786,17 +786,8 @@
                                 My Profile
                             </a>
 
-                            {{-- Per-device display preferences (text size) for every role --}}
-                            <a
-                                href="{{ route('settings') }}"
-                                @click="open = false"
-                                class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('settings') ? 'bg-emerald-50 text-emerald-800' : '' }}"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
-                                Display &amp; Text Size
-                            </a>
-
-                            {{-- System (content) settings are for Admins and Super Admins only --}}
+                            {{-- One settings entry per role: System Settings (which includes Display & Text Size) for
+                                 Admins and Super Admins; drivers, who cannot open System Settings, get the text size page --}}
                             @if (auth()->user()?->role !== \Modules\Admin\Enums\UserRole::DRIVER)
                                 <a
                                     href="{{ route('content-settings') }}"
@@ -805,6 +796,15 @@
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>
                                     System Settings
+                                </a>
+                            @else
+                                <a
+                                    href="{{ route('settings') }}"
+                                    @click="open = false"
+                                    class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('settings') ? 'bg-emerald-50 text-emerald-800' : '' }}"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                                    Display &amp; Text Size
                                 </a>
                             @endif
 

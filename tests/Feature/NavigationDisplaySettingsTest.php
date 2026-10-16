@@ -36,21 +36,44 @@ class NavigationDisplaySettingsTest extends TestCase
         $this->assertStringNotContainsString('Travel Requests', $sidebar);
     }
 
-    public function test_every_role_can_choose_a_text_size(): void
+    public function test_admins_choose_text_size_in_system_settings_and_drivers_on_their_own_page(): void
     {
-        foreach ([$this->driver(), $this->admin(), $this->superAdmin()] as $user) {
-            $this->actingAs($user)->get('/my-profile')->assertOk()
-                ->assertSee(route('settings'), false)
-                ->assertSee('Display &amp; Text Size', false)
-                ->assertSee("localStorage.getItem('fleet_text_size')", false);
+        foreach ([$this->admin(), $this->superAdmin()] as $user) {
+            $menu = $this->accountMenu($this->actingAs($user)->get('/my-profile')->assertOk()->getContent());
+            $this->assertStringContainsString(route('content-settings'), $menu);
+            $this->assertStringNotContainsString('href="'.route('settings').'"', $menu, 'Text size now lives inside System Settings');
 
-            $this->actingAs($user)->get('/settings')->assertOk()
+            $this->actingAs($user)->get('/content-settings')->assertOk()
+                ->assertSee('Display &amp; Text Size', false)
                 ->assertSeeInOrder(['Standard', 'Large', 'Larger', 'Largest']);
         }
+
+        $driver = $this->driver();
+        $menu = $this->accountMenu($this->actingAs($driver)->get('/my-profile')->assertOk()->getContent());
+        $this->assertStringContainsString('href="'.route('settings').'"', $menu);
+        $this->assertStringNotContainsString(route('content-settings'), $menu);
+        $this->actingAs($driver)->get('/settings')->assertOk()
+            ->assertSeeInOrder(['Standard', 'Large', 'Larger', 'Largest'])
+            ->assertSee("localStorage.getItem('fleet_text_size')", false);
+    }
+
+    public function test_account_menu_shows_the_users_email_instead_of_the_role(): void
+    {
+        $admin = $this->admin();
+        $menu = $this->accountMenu($this->actingAs($admin)->get('/my-profile')->getContent());
+
+        $this->assertStringContainsString(e($admin->email), $menu);
+        $this->assertStringContainsString(e($admin->name), $menu);
     }
 
     public function test_sign_in_page_applies_the_saved_text_size(): void
     {
         $this->get('/login')->assertOk()->assertSee("localStorage.getItem('fleet_text_size')", false);
+    }
+
+    /** The account dropdown (top right): from its Alpine root to the Log out button. */
+    private function accountMenu(string $html): string
+    {
+        return Str::before(Str::after($html, 'x-data="{ open: false }"'), 'Log out');
     }
 }
