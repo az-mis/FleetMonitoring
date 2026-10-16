@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Vehicle\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,15 +14,17 @@ use Modules\Vehicle\Models\Vehicle;
 
 class VehicleAssigningController
 {
+    use AuthorizesFleetAccess;
+
     public function index(Request $request): View
     {
-        abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
+        $this->authorizeFleetAdmin();
 
         $isSuperAdmin = $request->user()?->role === UserRole::SUPER_ADMIN;
         $userLocation = $request->user()?->role === UserRole::ADMIN ? $request->user()->location : null;
         $location = $isSuperAdmin ? $request->input('location') : $userLocation;
         $search = $request->input('search');
-        $perPage = (int) $request->input('per_page', 10);
+        $perPage = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $query = Vehicle::with('assignedDriver')
             ->when($location, fn ($builder) => $builder->where('location', $location))
@@ -60,8 +63,7 @@ class VehicleAssigningController
 
     public function update(Request $request, Vehicle $vehicle): RedirectResponse
     {
-        abort_unless(in_array($request->user()?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true), 403);
-        abort_unless($request->user()?->role !== UserRole::ADMIN || $vehicle->location === $request->user()->location, 403);
+        $this->authorizeFleetLocation($vehicle->location);
 
         $data = $request->validate([
             'assigned_driver_id' => ['nullable', 'integer', 'exists:users,id'],

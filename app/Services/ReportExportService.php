@@ -282,7 +282,13 @@ class ReportExportService
 
         foreach ($rows as $n => $row) {
             foreach (array_values($row) as $i => $value) {
-                $sheet->setCellValue([$i + 1, $r], $value);
+                // Text such as requester names or purposes comes from the public form. Writing it
+                // explicitly as a string stops values like "=HYPERLINK(...)" becoming live formulas.
+                if (is_string($value)) {
+                    $sheet->setCellValueExplicit([$i + 1, $r], $value, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                } else {
+                    $sheet->setCellValue([$i + 1, $r], $value);
+                }
             }
             if ($n % 2 === 1) {
                 $sheet->getStyle("A{$r}:{$lastCol}{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');

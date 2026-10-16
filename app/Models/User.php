@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['name', 'email', 'password', 'role', 'avatar', 'phone_number', 'location', 'birth_date', 'address', 'license_number', 'license_front', 'license_back', 'license_expiration_date'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */

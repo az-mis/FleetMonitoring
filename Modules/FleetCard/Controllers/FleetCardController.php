@@ -2,10 +2,12 @@
 
 namespace Modules\FleetCard\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Modules\Destination\Models\Destination;
 use Modules\FleetCard\Models\FleetCard;
 use Modules\FleetCard\Models\FleetCardLog;
@@ -15,13 +17,15 @@ use Modules\VehicleRequest\Models\VehicleRequest;
 
 class FleetCardController extends Controller
 {
+    use AuthorizesFleetAccess;
+
     public function __construct(
         protected FleetCardService $fleetCardService
     ) {}
 
     public function index(Request $request)
     {
-        $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
+        $userLoc = $this->fleetLocationScope();
 
         $query = FleetCard::with(['vehicle', 'creator', 'logs.logger', 'logs.vehicleRequest'])
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc));
@@ -83,10 +87,16 @@ class FleetCardController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $adminLocation = $this->fleetLocationScope();
+        if ($adminLocation) {
+            // Admins can only register cards for their own location
+            $request->merge(['location' => $adminLocation]);
+        }
+
         $validated = $request->validate([
             'card_number' => 'required|string|max:100|unique:fleet_cards,card_number',
             'card_name' => 'required|string|max:150',
-            'vehicle_id' => 'nullable|exists:vehicles,id',
+            'vehicle_id' => ['nullable', Rule::exists('vehicles', 'id')->where('location', (string) $request->input('location'))],
             'location' => 'required|string|max:100',
             'initial_budget' => 'required|numeric|min:0',
             'rate_peso' => 'required|numeric|min:0.01',
@@ -105,10 +115,16 @@ class FleetCardController extends Controller
 
     public function update(Request $request, FleetCard $fleetCard): RedirectResponse
     {
+        $adminLocation = $this->fleetLocationScope();
+        $this->authorizeFleetLocation($fleetCard->location);
+        if ($adminLocation) {
+            $request->merge(['location' => $adminLocation]);
+        }
+
         $validated = $request->validate([
             'card_number' => 'required|string|max:100|unique:fleet_cards,card_number,' . $fleetCard->id,
             'card_name' => 'required|string|max:150',
-            'vehicle_id' => 'nullable|exists:vehicles,id',
+            'vehicle_id' => ['nullable', Rule::exists('vehicles', 'id')->where('location', (string) $request->input('location'))],
             'location' => 'required|string|max:100',
             'initial_budget' => 'required|numeric|min:0',
             'rate_peso' => 'required|numeric|min:0.01',
@@ -133,6 +149,8 @@ class FleetCardController extends Controller
 
     public function logExpense(Request $request, FleetCard $fleetCard): RedirectResponse
     {
+        $this->authorizeFleetLocation($fleetCard->location);
+
         $validated = $request->validate([
             'category' => 'nullable|string|in:fuel,service,parking,toll,other',
             'distance_source' => 'nullable|string|in:odometer,destination_master,manual',
@@ -140,8 +158,16 @@ class FleetCardController extends Controller
             'end_odometer' => 'nullable|integer|gt:start_odometer',
             'distance_km' => 'nullable|numeric|min:0',
             'fuel_price_per_liter' => 'nullable|numeric|min:0',
-            'vehicle_request_id' => 'nullable|exists:vehicle_requests,id',
+            'vehicle_request_id' => [
+                'nullable',
+                Rule::exists('vehicle_requests', 'id')->where('location', $fleetCard->location),
+                // A trip ticket can only be charged to a fleet card once
+                Rule::unique('fleet_card_logs', 'vehicle_request_id'),
+            ],
             'remarks' => 'nullable|string|max:255',
+        ], [
+            'vehicle_request_id.unique' => 'This trip ticket has already been charged to a fleet card.',
+            'vehicle_request_id.exists' => 'The selected trip ticket does not belong to this card\'s location.',
         ]);
 
         $this->fleetCardService->recordExpense($fleetCard, $validated);
@@ -151,6 +177,8 @@ class FleetCardController extends Controller
 
     public function recharge(Request $request, FleetCard $fleetCard): RedirectResponse
     {
+        $this->authorizeFleetLocation($fleetCard->location);
+
         $validated = $request->validate([
             'amount' => 'required|numeric|min:1',
             'remarks' => 'nullable|string|max:255',
@@ -163,6 +191,8 @@ class FleetCardController extends Controller
 
     public function destroyRecharge(Request $request, FleetCard $fleetCard, FleetCardLog $log): JsonResponse|RedirectResponse
     {
+        $this->authorizeFleetLocation($fleetCard->location);
+
         $this->fleetCardService->deleteRecharge($fleetCard, $log);
 
         if ($request->wantsJson()) {
@@ -174,6 +204,8 @@ class FleetCardController extends Controller
 
     public function destroy(FleetCard $fleetCard): RedirectResponse
     {
+        $this->authorizeFleetLocation($fleetCard->location);
+
         $fleetCard->delete();
         return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card deleted successfully!');
     }
@@ -183,12 +215,16 @@ class FleetCardController extends Controller
      */
     public function destroyLog(Request $request, FleetCard $fleetCard, FleetCardLog $log): JsonResponse|RedirectResponse
     {
+        $this->authorizeFleetLocation($fleetCard->location);
         abort_unless($log->fleet_card_id === $fleetCard->id, 403);
         abort_if($log->distance_source === 'recharge', 400, 'Use destroy-recharge for top-up entries.');
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($fleetCard, $log) {
-            // Restore balance to what it was BEFORE the expense (recorded in the log)
-            $restoredBalance = (float) $log->balance_before;
+            $fleetCard = FleetCard::whereKey($fleetCard->id)->lockForUpdate()->firstOrFail();
+
+            // Refund only this expense. Resetting to the log's balance_before would also wipe out
+            // every transaction recorded after it.
+            $restoredBalance = (float) $fleetCard->current_balance + (float) $log->consumed_amount;
 
             // If initial_budget is somehow less than balance_before (data corruption),
             // restore initial_budget as well so the card reflects the correct ceiling
@@ -212,6 +248,7 @@ class FleetCardController extends Controller
      */
     public function updateLog(Request $request, FleetCard $fleetCard, FleetCardLog $log): RedirectResponse
     {
+        $this->authorizeFleetLocation($fleetCard->location);
         abort_unless($log->fleet_card_id === $fleetCard->id, 403);
 
         $validated = $request->validate([
@@ -225,6 +262,8 @@ class FleetCardController extends Controller
 
     public function previewCalc(Request $request, FleetCard $fleetCard): JsonResponse
     {
+        $this->authorizeFleetLocation($fleetCard->location);
+
         $distanceKm = $request->filled('distance_km') ? (float) $request->distance_km : null;
         $startOdo = $request->filled('start_odometer') ? (int) $request->start_odometer : null;
         $endOdo = $request->filled('end_odometer') ? (int) $request->end_odometer : null;

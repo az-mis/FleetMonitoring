@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Modules\Driver\Controllers\DriverController;
 
-Route::middleware(['web', 'auth', 'verified'])
+Route::middleware(['web', 'auth', 'verified', 'module:drivers'])
     ->prefix('driver')
     ->name('driver.')
     ->group(function () {

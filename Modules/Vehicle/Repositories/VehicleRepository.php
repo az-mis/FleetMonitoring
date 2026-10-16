@@ -100,9 +100,15 @@ class VehicleRepository implements VehicleRepositoryInterface
 
     public function delete(Vehicle $vehicle): bool
     {
-        $this->deletePhotoFile($vehicle->photo);
+        $photo = $vehicle->photo;
+        $deleted = (bool) $vehicle->delete();
 
-        return (bool) $vehicle->delete();
+        // Remove the file only once the row is gone, so a failed delete keeps the photo
+        if ($deleted) {
+            $this->deletePhotoFile($photo);
+        }
+
+        return $deleted;
     }
 
     private function storePhoto(mixed $file): ?string

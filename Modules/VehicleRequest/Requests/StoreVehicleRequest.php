@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\VehicleRequest\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Modules\Maintenance\Models\VehicleMaintenance;
 use Modules\VehicleRequest\Support\PersonName;
@@ -31,6 +32,9 @@ class StoreVehicleRequest extends FormRequest
             'travelDateEnd.required' => 'Please select the Travel Date (To). For a one-day trip, choose the same date as Travel Date (From).',
             'travelDateEnd.after_or_equal' => 'Travel Date (To) cannot be earlier than Travel Date (From).',
             'requesterContact.regex' => 'Contact number must start with 09 and be exactly 11 digits (e.g. 09171234567).',
+            'vehicleId.exists' => 'The selected vehicle is not available at the selected station. Please choose a vehicle from the list.',
+            'travelDate.after_or_equal' => 'Travel Date (From) cannot be in the past.',
+            'previousTripTicketDate.before_or_equal' => 'Previous Trip Ticket Date cannot be in the future.',
         ];
     }
 
@@ -42,15 +46,16 @@ class StoreVehicleRequest extends FormRequest
             'requesterOffice' => ['nullable', 'string', 'max:150'],
             'requesterContact' => ['required', 'string', 'regex:/^09\d{9}$/'],
             'requesterIsPassenger' => ['nullable', 'boolean'],
-            'vehicleId' => ['required', 'integer', 'exists:vehicles,id'],
+            // The vehicle must be stationed at the selected location, so the request reaches that office's admins
+            'vehicleId' => ['required', 'integer', Rule::exists('vehicles', 'id')->where('location', (string) $this->input('location'))],
             'destination' => ['required', 'string', 'max:250'],
             'distance_km' => ['nullable', 'integer', 'min:0'],
-            'travelDate' => ['required', 'date'],
+            'travelDate' => ['required', 'date', 'after_or_equal:today'],
             'travelDateEnd' => ['required', 'date', 'after_or_equal:travelDate'],
             'purpose' => ['required', 'string', 'max:500'],
             'passengers' => ['nullable', 'array', 'max:20'],
             'passengers.*' => ['string', 'max:120'],
-            'previousTripTicketDate' => ['nullable', 'date'],
+            'previousTripTicketDate' => ['nullable', 'date', 'before_or_equal:today'],
         ];
     }
 

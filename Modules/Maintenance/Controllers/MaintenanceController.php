@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Maintenance\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -19,6 +20,8 @@ use Modules\VehicleReport\Services\VehicleReportService;
 
 class MaintenanceController extends Controller
 {
+    use AuthorizesFleetAccess;
+
     public function __construct(
         private readonly MaintenanceService $maintenanceService,
         private readonly VehicleReportService $vehicleReportService,
@@ -35,7 +38,7 @@ class MaintenanceController extends Controller
         $isSuperAdmin = $user?->role === UserRole::SUPER_ADMIN;
         $location    = $isSuperAdmin ? request('location') : $user?->location;
         $status      = request('status', 'active');
-        $perPage     = (int) request('per_page', 10);
+        $perPage     = min(max((int) request('per_page', 10), 1), 100);
 
         $records = $this->maintenanceService->list(
             search: request('search'),
@@ -54,7 +57,10 @@ class MaintenanceController extends Controller
         // Vehicle Reports opens this page with a reportId to prefill the "Add Maintenance" modal.
         $sourceReport = null;
         if ($reportId = request('reportId')) {
-            $sourceReport = VehicleIssueReport::find($reportId);
+            $adminLocation = $this->fleetLocationScope();
+            $sourceReport = VehicleIssueReport::query()
+                ->when($adminLocation, fn ($q) => $q->where('location', $adminLocation))
+                ->find($reportId);
         }
 
         return view('maintenance::index', [
@@ -76,12 +82,14 @@ class MaintenanceController extends Controller
         $this->authorizeAdminAccess();
 
         $vehicle = Vehicle::findOrFail($request->validated('vehicle_id'));
+        $this->authorizeFleetLocation($vehicle->location);
         $maintenance = $this->maintenanceService->create($request->validated(), $vehicle);
 
         // If this record was created from a driver's Vehicle Report, link the two
         // together and move the report forward, mirroring the React behaviour.
         if ($reportId = $request->validated('source_report_id')) {
-            if ($report = VehicleIssueReport::find($reportId)) {
+            // Only a report for the same vehicle can be linked
+            if ($report = VehicleIssueReport::where('vehicle_id', $vehicle->id)->find($reportId)) {
                 $report->update([
                     'status'                    => 'maintenance_scheduled',
                     'related_maintenance_id'    => $maintenance->id,
@@ -106,8 +114,10 @@ class MaintenanceController extends Controller
     public function update(UpdateMaintenanceRequest $request, VehicleMaintenance $maintenance): RedirectResponse
     {
         $this->authorizeAdminAccess();
+        $this->authorizeFleetLocation($maintenance->vehicle?->location ?? $maintenance->location);
 
         $vehicle = Vehicle::findOrFail($request->validated('vehicle_id'));
+        $this->authorizeFleetLocation($vehicle->location);
         $record = $this->maintenanceService->update($maintenance, $request->validated(), $vehicle);
 
         // Reflect the change on the driver's report (e.g. completed maintenance -> resolved report).

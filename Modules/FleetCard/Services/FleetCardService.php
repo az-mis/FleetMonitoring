@@ -46,6 +46,8 @@ class FleetCardService
     public function recordExpense(FleetCard $card, array $data): FleetCardLog
     {
         return DB::transaction(function () use ($card, $data) {
+            // Lock the card row so concurrent deductions cannot overwrite each other's balance
+            $card = FleetCard::whereKey($card->id)->lockForUpdate()->firstOrFail();
             $distanceSource = $data['distance_source'] ?? 'manual';
             $finalDistance = (float) ($data['distance_km'] ?? 0);
             $startOdo = isset($data['start_odometer']) ? (int) $data['start_odometer'] : null;
@@ -62,7 +64,11 @@ class FleetCardService
                     $finalDistance = (float) $vReq->distance_km;
                     $distanceSource = 'destination_master';
                 } elseif ($vReq && $vReq->destination) {
-                    $dest = Destination::where('name', 'LIKE', '%' . $vReq->destination . '%')->first();
+                    // The destination is free text from the public form; escape LIKE wildcards
+                    $escapedDestination = addcslashes((string) $vReq->destination, '\\%_');
+                    $dest = Destination::where('location', $card->location)
+                        ->where('name', 'LIKE', '%' . $escapedDestination . '%')
+                        ->first();
                     if ($dest && $dest->distance_km > 0) {
                         $finalDistance = (float) $dest->distance_km;
                         $distanceSource = 'destination_master';
@@ -135,6 +141,7 @@ class FleetCardService
     public function rechargeCard(FleetCard $card, float $amount, ?string $remarks = null): FleetCardLog
     {
         return DB::transaction(function () use ($card, $amount, $remarks) {
+            $card = FleetCard::whereKey($card->id)->lockForUpdate()->firstOrFail();
             $balanceBefore = (float) $card->current_balance;
             $balanceAfter = $balanceBefore + $amount;
 
@@ -165,6 +172,7 @@ class FleetCardService
     {
         DB::transaction(function () use ($card, $log) {
             abort_unless($log->fleet_card_id === $card->id && $log->distance_source === 'recharge', 400);
+            $card = FleetCard::whereKey($card->id)->lockForUpdate()->firstOrFail();
 
             $topUpAmount = abs((float) $log->consumed_amount);
             $newBalance = max(0, (float) $card->current_balance - $topUpAmount);

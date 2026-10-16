@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Vehicle\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,8 @@ use Modules\Vehicle\Services\VehicleService;
 
 class VehicleController extends Controller
 {
+    use AuthorizesFleetAccess;
+
     public function __construct(
         private readonly VehicleService $vehicleService,
     ) {
@@ -34,7 +37,7 @@ class VehicleController extends Controller
         $isSuperAdmin = $user?->role === UserRole::SUPER_ADMIN;
         $location = $isSuperAdmin ? request('location') : $user?->location;
 
-        $perPage = (int) request('per_page', 10);
+        $perPage = min(max((int) request('per_page', 10), 1), 100);
         $vehicles = $this->vehicleService->list(
             search: request('search'),
             location: $location,
@@ -83,7 +86,7 @@ class VehicleController extends Controller
             });
         }
 
-        $inspections = $query->paginate((int) request('per_page', 10))->withQueryString();
+        $inspections = $query->paginate(min(max((int) request('per_page', 10), 1), 100))->withQueryString();
 
         $allVehicles = Vehicle::query()
             ->when($location, fn ($q) => $q->where('location', $location))
@@ -142,6 +145,7 @@ class VehicleController extends Controller
     public function update(UpdateVehicleRequest $request, Vehicle $vehicle): RedirectResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
 
         $this->vehicleService->updateVehicle($vehicle, $request->validated());
 
@@ -154,6 +158,12 @@ class VehicleController extends Controller
     public function destroy(Vehicle $vehicle): RedirectResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
+
+        if (\Modules\VehicleRequest\Models\VehicleRequest::where('vehicle_id', $vehicle->id)->exists()) {
+            return redirect()->route('vehicles.index')
+                ->with('error', "{$vehicle->plate_number} has trip requests on record and cannot be deleted.");
+        }
 
         $this->vehicleService->deleteVehicle($vehicle);
 
@@ -166,6 +176,7 @@ class VehicleController extends Controller
     public function storeInspection(\Illuminate\Http\Request $request, Vehicle $vehicle): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
 
         $validated = $request->validate([
             'odometer_km'      => 'required|integer|min:0',
@@ -279,6 +290,7 @@ class VehicleController extends Controller
     public function indexInspections(Vehicle $vehicle): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
 
         $inspections = $vehicle->inspections()
             ->with(['items', 'inspector:id,name'])
@@ -304,6 +316,7 @@ class VehicleController extends Controller
     public function indexPmsItems(Vehicle $vehicle): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
 
         // Ensure global templates that apply to this vehicle's type are synced
         $vehicle->syncPmsWithTemplates();
@@ -329,6 +342,7 @@ class VehicleController extends Controller
     public function storePmsItem(\Illuminate\Http\Request $request, Vehicle $vehicle): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
 
         $validated = $request->validate([
             'item_name'       => 'required|string|max:255',
@@ -359,6 +373,8 @@ class VehicleController extends Controller
     public function updatePmsItem(\Illuminate\Http\Request $request, Vehicle $vehicle, \Modules\Vehicle\Models\VehiclePmsItem $item): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
+        abort_unless((int) $item->vehicle_id === (int) $vehicle->id, 404);
 
         $validated = $request->validate([
             'item_name'       => 'required|string|max:255',
@@ -386,6 +402,8 @@ class VehicleController extends Controller
     public function logPmsItemDone(\Illuminate\Http\Request $request, Vehicle $vehicle, \Modules\Vehicle\Models\VehiclePmsItem $item): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
+        abort_unless((int) $item->vehicle_id === (int) $vehicle->id, 404);
 
         $validated = $request->validate([
             'odometer_km' => 'nullable|integer|min:0',
@@ -418,6 +436,8 @@ class VehicleController extends Controller
     public function destroyPmsItem(Vehicle $vehicle, \Modules\Vehicle\Models\VehiclePmsItem $item): \Illuminate\Http\JsonResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
+        abort_unless((int) $item->vehicle_id === (int) $vehicle->id, 404);
 
         $item->delete();
 
@@ -485,9 +505,7 @@ class VehicleController extends Controller
         $this->authorizeSuperAdmin();
 
         // Remove any vehicle PMS items spawned from this template
-        \Modules\Vehicle\Models\VehiclePmsItem::where('template_id', $template->id)
-            ->orWhere('item_name', $template->item_name)
-            ->delete();
+        \Modules\Vehicle\Models\VehiclePmsItem::where('template_id', $template->id)->delete();
 
         $template->delete();
 
@@ -503,6 +521,7 @@ class VehicleController extends Controller
     public function updateOdometer(\Illuminate\Http\Request $request, Vehicle $vehicle): \Illuminate\Http\JsonResponse|RedirectResponse
     {
         $this->authorizeSuperAdmin();
+        $this->authorizeFleetLocation($vehicle->location);
 
         $validated = $request->validate([
             'odometer' => 'required|integer|min:0',

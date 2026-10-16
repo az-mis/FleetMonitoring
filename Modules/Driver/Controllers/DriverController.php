@@ -25,7 +25,7 @@ class DriverController extends Controller
     {
         Gate::authorize('manage-drivers');
 
-        $perPage = (int) request('per_page', 10);
+        $perPage = min(max((int) request('per_page', 10), 1), 100);
         $search = request('search');
         $location = auth()->user()?->role === UserRole::ADMIN ? auth()->user()->location : request('location');
 
@@ -94,6 +94,8 @@ class DriverController extends Controller
 
     private function authorizeLocation(User $driver): void
     {
+        abort_unless($driver->role === UserRole::DRIVER, 404);
+        abort_if(auth()->user()?->role === UserRole::ADMIN && blank(auth()->user()->location), 403);
         abort_unless(auth()->user()?->role !== UserRole::ADMIN || $driver->location === auth()->user()->location, 403);
     }
 }

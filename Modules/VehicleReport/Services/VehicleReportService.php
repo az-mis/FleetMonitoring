@@ -80,7 +80,7 @@ class VehicleReportService
 
         $report->update([
             'status'                     => $data['status'],
-            'admin_notes'                => $data['admin_notes'] ?: null,
+            'admin_notes'                => ($data['admin_notes'] ?? null) ?: null,
             'related_maintenance_id'     => $linked?->id,
             'related_maintenance_title'  => $linked?->title,
             'reviewed_by'                => $reviewer->id,

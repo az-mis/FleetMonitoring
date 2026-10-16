@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\VehicleReport\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -17,6 +18,8 @@ use Modules\VehicleReport\Services\VehicleReportService;
 
 class VehicleReportController extends Controller
 {
+    use AuthorizesFleetAccess;
+
     public function __construct(
         private readonly VehicleReportService $vehicleReportService,
     ) {}
@@ -88,6 +91,7 @@ class VehicleReportController extends Controller
         if (! in_array($user?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true)) {
             throw new AuthorizationException('This action is unauthorized.');
         }
+        $this->authorizeFleetLocation($vehicleReport->vehicle?->location ?? $vehicleReport->location);
 
         $this->vehicleReportService->review($vehicleReport, $request->validated(), $user);
 
@@ -105,6 +109,7 @@ class VehicleReportController extends Controller
         if (! in_array($user?->role, [UserRole::ADMIN, UserRole::SUPER_ADMIN], true)) {
             throw new AuthorizationException('This action is unauthorized.');
         }
+        $this->authorizeFleetLocation($vehicleReport->vehicle?->location ?? $vehicleReport->location);
 
         return redirect()->route('maintenance.index', ['reportId' => $vehicleReport->id]);
     }

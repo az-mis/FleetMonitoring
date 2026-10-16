@@ -25,7 +25,7 @@ class AdminController extends Controller
         $this->authorize('viewAny', User::class);
 
         return view('admin::index', [
-            'admins' => $this->adminService->list(search: request('search'), location: request('location'), perPage: (int) request('per_page', 10)),
+            'admins' => $this->adminService->list(search: request('search'), location: request('location'), perPage: min(max((int) request('per_page', 10), 1), 100)),
             'approvingOfficers' => ApprovingOfficer::query()->get()->keyBy('location'),
         ]);
     }

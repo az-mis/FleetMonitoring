@@ -30,7 +30,8 @@ class UpdateAdminRequest extends FormRequest
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'remove_avatar' => ['nullable', 'boolean'],
             'phone_number' => ['nullable', 'string', 'max:40'],
-            'location' => ['nullable', 'string', 'max:120'],
+            // An admin without a location would bypass every per-location restriction
+            'location' => ['nullable', 'required_if:role,admin', 'string', 'max:120'],
             'signee1_name' => ['nullable', 'string', 'max:255'],
             'signee1_title' => ['nullable', 'string', 'max:255'],
             'signee2_name' => ['nullable', 'string', 'max:255'],

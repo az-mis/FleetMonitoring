@@ -22,8 +22,13 @@ return new class extends Migration
             $table->text('description');
             $table->string('status')->default('submitted'); // submitted, reviewed, maintenance_scheduled, ongoing, resolved, dismissed
             $table->text('admin_notes')->nullable();
-            $table->foreignId('related_maintenance_id')->nullable()
-                ->constrained('vehicle_maintenances')->nullOnDelete();
+            // This migration sorts before create_vehicle_maintenances_table (same timestamp), so on a
+            // fresh database the referenced table does not exist yet. The foreign key is added by
+            // 2026_10_16_000000_add_related_maintenance_foreign_key_to_vehicle_issue_reports_table.
+            $relatedMaintenance = $table->foreignId('related_maintenance_id')->nullable();
+            if (Schema::hasTable('vehicle_maintenances')) {
+                $relatedMaintenance->constrained('vehicle_maintenances')->nullOnDelete();
+            }
             $table->string('related_maintenance_title')->nullable();
             $table->string('location')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();

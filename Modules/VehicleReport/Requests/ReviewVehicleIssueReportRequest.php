@@ -10,7 +10,7 @@ class ReviewVehicleIssueReportRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return in_array($this->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true);
     }
 
     public function rules(): array
@@ -18,7 +18,11 @@ class ReviewVehicleIssueReportRequest extends FormRequest
         return [
             'status'                  => ['required', 'in:submitted,reviewed,maintenance_scheduled,ongoing,resolved,dismissed'],
             'admin_notes'             => ['nullable', 'string'],
-            'related_maintenance_id'  => ['nullable', 'exists:vehicle_maintenances,id'],
+            'related_maintenance_id'  => [
+                'nullable',
+                \Illuminate\Validation\Rule::exists('vehicle_maintenances', 'id')
+                    ->where('vehicle_id', $this->route('vehicleReport')?->vehicle_id),
+            ],
         ];
     }
 }

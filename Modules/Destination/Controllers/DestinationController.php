@@ -2,15 +2,18 @@
 
 namespace Modules\Destination\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Destination\Models\Destination;
 
 class DestinationController extends Controller
 {
+    use AuthorizesFleetAccess;
+
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = $this->authorizeFleetAdmin();
         $isSuperAdmin = $user?->role?->value === 'super_admin';
 
         $query = Destination::query();
@@ -32,7 +35,7 @@ class DestinationController extends Controller
             });
         }
 
-        $perPage = (int) $request->input('per_page', 10);
+        $perPage = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $destinations = $query->orderBy('name', 'asc')->paginate($perPage)->withQueryString();
 
@@ -41,7 +44,7 @@ class DestinationController extends Controller
 
     public function store(Request $request)
     {
-        $user = auth()->user();
+        $user = $this->authorizeFleetAdmin();
         $isSuperAdmin = $user?->role?->value === 'super_admin';
 
         $validated = $request->validate([
@@ -73,7 +76,7 @@ class DestinationController extends Controller
 
     public function update(Request $request, Destination $destination)
     {
-        $user = auth()->user();
+        $user = $this->authorizeFleetAdmin();
         $isSuperAdmin = $user?->role?->value === 'super_admin';
 
         if (!$isSuperAdmin && $destination->location !== $user->location) {
@@ -99,7 +102,7 @@ class DestinationController extends Controller
 
     public function toggle(Destination $destination)
     {
-        $user = auth()->user();
+        $user = $this->authorizeFleetAdmin();
         $isSuperAdmin = $user?->role?->value === 'super_admin';
 
         if (!$isSuperAdmin && $destination->location !== $user->location) {
@@ -116,7 +119,7 @@ class DestinationController extends Controller
 
     public function destroy(Destination $destination)
     {
-        $user = auth()->user();
+        $user = $this->authorizeFleetAdmin();
         $isSuperAdmin = $user?->role?->value === 'super_admin';
 
         if (!$isSuperAdmin && $destination->location !== $user->location) {

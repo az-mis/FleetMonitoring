@@ -10,7 +10,7 @@ class UpdateMaintenanceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return in_array($this->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true);
     }
 
     public function rules(): array

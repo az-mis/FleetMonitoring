@@ -22,17 +22,33 @@ class ReportService
             'week' => [now()->startOfWeek(), now()->endOfWeek()],
             'quarter' => [now()->startOfQuarter(), now()->endOfQuarter()],
             'year' => [now()->startOfYear(), now()->endOfYear()],
-            'custom' => [
-                $from ? Carbon::parse($from)->startOfDay() : now()->subMonths(3)->startOfDay(),
-                $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay(),
-            ],
+            'custom' => $this->customRange($from, $to),
             default => [now()->startOfMonth(), now()->endOfMonth()],
         };
     }
 
+    private function customRange(?string $from, ?string $to): array
+    {
+        $parse = function (?string $value): ?Carbon {
+            if (! $value) {
+                return null;
+            }
+            try {
+                return Carbon::createFromFormat('Y-m-d', $value) ?: null;
+            } catch (\Throwable) {
+                return null;
+            }
+        };
+
+        $start = ($parse($from) ?? now()->subMonthsNoOverflow(3))->startOfDay();
+        $end = ($parse($to) ?? now())->endOfDay();
+
+        return $start->lessThanOrEqualTo($end) ? [$start, $end] : [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
+    }
+
     public function requestsPerMonth(?string $location, int $months = 6): array
     {
-        $start = now()->subMonths($months - 1)->startOfMonth();
+        $start = now()->subMonthsNoOverflow($months - 1)->startOfMonth();
 
         $rows = VehicleRequest::query()
             ->when($location, fn ($q) => $q->where('location', $location))
@@ -44,7 +60,7 @@ class ReportService
         $labels = [];
         $data = [];
         for ($i = $months - 1; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
+            $month = now()->subMonthsNoOverflow($i);
             $key = $month->format('Y-m');
             $labels[] = $month->format('M Y');
             $data[] = (int) ($rows[$key] ?? 0);
@@ -101,7 +117,7 @@ class ReportService
 
     public function maintenanceCostPerMonth(?string $location, int $months = 6): array
     {
-        $start = now()->subMonths($months - 1)->startOfMonth();
+        $start = now()->subMonthsNoOverflow($months - 1)->startOfMonth();
 
         $rows = VehicleMaintenance::query()
             ->when($location, fn ($q) => $q->where('location', $location))
@@ -114,7 +130,7 @@ class ReportService
         $labels = [];
         $data = [];
         for ($i = $months - 1; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
+            $month = now()->subMonthsNoOverflow($i);
             $key = $month->format('Y-m');
             $labels[] = $month->format('M Y');
             $data[] = round((float) ($rows[$key] ?? 0), 2);
@@ -282,6 +298,7 @@ class ReportService
         $cardLogsQuery = \Modules\FleetCard\Models\FleetCardLog::query()
             ->when($vehicleFilterId, fn ($q) => $q->where('vehicle_id', $vehicleFilterId))
             ->when($location, fn ($q) => $q->whereHas('vehicle', fn ($vq) => $vq->where('location', $location)))
+            ->where('distance_source', '!=', 'recharge')
             ->whereBetween('created_at', [$start, $end]);
 
         $fuelCost = (float) (clone $cardLogsQuery)->sum('consumed_amount');
@@ -333,6 +350,7 @@ class ReportService
         $breakdown = [];
         foreach ($vehicles as $v) {
             $fuel = (float) \Modules\FleetCard\Models\FleetCardLog::where('vehicle_id', $v->id)
+                ->where('distance_source', '!=', 'recharge')
                 ->whereBetween('created_at', [$start, $end])
                 ->sum('consumed_amount');
 

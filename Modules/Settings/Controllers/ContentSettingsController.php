@@ -71,7 +71,10 @@ class ContentSettingsController
         $this->authorizeAdmin($request);
         $data = $request->validate([
             'group' => ['required', 'string', 'in:admin_modules,driver_modules'],
-            'key' => ['required', 'string'],
+            // Only known switches may be written into the settings JSON
+            'key' => ['required', 'string', $request->input('group') === 'admin_modules'
+                ? 'in:vehicles,vehicleAssigning,vehicleRequests,drivers'
+                : 'in:showAssignedVehicle'],
             'value' => ['required', 'boolean'],
         ]);
 
@@ -190,16 +193,17 @@ class ContentSettingsController
 
     public function updateLogo(Request $request): RedirectResponse
     {
-        $this->authorize($request);
+        // authorize() does not exist on this controller (it does not extend the base Controller),
+        // which made every logo upload fail with a 500. The logo is global branding: super admin only.
+        $this->authorizeSuperAdmin($request);
         $request->validate([
-            'logo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'],
+            // SVG is rejected by the image rule anyway (scriptable format), so it is not offered
+            'logo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
         ]);
 
         $existing = FleetSetting::where('setting_key', 'app_logo')->value('setting_value');
-        if (!empty($existing['path']) && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing['path'])) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($existing['path']);
-        }
 
+        // Store the new file first so a failed upload never leaves the app without its current logo
         $path = $request->file('logo')->store('branding', 'public');
         FleetSetting::updateOrCreate(
             ['setting_key' => 'app_logo'],
@@ -209,12 +213,16 @@ class ContentSettingsController
             ]
         );
 
+        if (!empty($existing['path']) && $existing['path'] !== $path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing['path'])) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($existing['path']);
+        }
+
         return back()->with('success', 'App logo updated successfully.');
     }
 
     public function removeLogo(Request $request): RedirectResponse
     {
-        $this->authorize($request);
+        $this->authorizeSuperAdmin($request);
         $existing = FleetSetting::where('setting_key', 'app_logo')->value('setting_value');
         if (!empty($existing['path']) && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing['path'])) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($existing['path']);

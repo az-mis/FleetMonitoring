@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\VehicleRequest\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Modules\FleetCard\Models\FleetCardLog;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleRequest\Models\VehicleRequest;
 use Modules\VehicleRequest\Models\TripTicketCompletion;
@@ -22,16 +28,25 @@ use Modules\ApprovingOfficer\Models\ApprovingOfficer;
 
 class VehicleRequestController
 {
+    use AuthorizesFleetAccess;
+
+    private const LOCATION_ABBREVIATIONS = [
+        'Oriental Mindoro'             => 'OR-MIN',
+        'Occidental Mindoro'           => 'OC-MIN',
+        'Marinduque'                   => 'MAR',
+        'Palawan'                      => 'PAL',
+        'Romblon'                      => 'ROM',
+        'Quezon City Satellite Office' => 'QC',
+    ];
+
     public function index(Request $request): View
     {
-        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
-
-        $user = $request->user();
-        $userLocation = $user?->role === UserRole::ADMIN ? $user->location : null;
-        $location = $request->input('location', $userLocation);
+        // Admins are pinned to their own location; only super admins may choose one via ?location=
+        $userLocation = $this->fleetLocationScope();
+        $location = $userLocation ?? $request->input('location');
         $search = trim($request->string('search')->toString());
         $status = $request->string('status', 'pending')->toString();
-        $perPage = (int) $request->input('per_page', 10);
+        $perPage = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $baseQuery = VehicleRequest::query()
             ->with(['vehicle', 'confirmedDriver', 'approvedBy', 'completion'])
@@ -68,9 +83,119 @@ class VehicleRequestController
             'counts' => $counts,
             'selectedLocation' => $location,
             'currentStatus' => $status,
-            'allVehicles' => Vehicle::query()->with('assignedDriver')->orderBy('plate_number')->get(),
-            'allDrivers' => User::where('role', UserRole::DRIVER)->orderBy('name')->get(),
+            'allVehicles' => Vehicle::query()
+                ->with('assignedDriver')
+                ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
+                ->orderBy('plate_number')
+                ->get(),
+            // Only what the manual-request driver picker needs; full user records carry personal data
+            'allDrivers' => User::where('role', UserRole::DRIVER)
+                ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
+                ->orderBy('name')
+                ->get(['id', 'name', 'location'])
+                ->map(fn (User $driver) => ['id' => $driver->id, 'name' => $driver->name, 'location' => $driver->location])
+                ->values(),
         ]);
+    }
+
+    /**
+     * Next trip ticket number for a location. Sequences continue from the highest number
+     * already issued (not a count of approvals, which drops when a request is declined and
+     * then collides with the unique index). Must run inside a transaction.
+     */
+    private function nextTripTicketNumber(string $location): string
+    {
+        $month = now()->format('m');
+
+        if ($location === 'Palawan') {
+            // Palawan's own scheme: {yy}-{mm}-{3-digit yearly sequence}, e.g. 26-09-868.
+            $yearSuffix = now()->format('y');
+            $sequence = str_pad((string) $this->nextPalawanSequence($yearSuffix), 3, '0', STR_PAD_LEFT);
+
+            return "{$yearSuffix}-{$month}-{$sequence}";
+        }
+
+        $abbr = self::LOCATION_ABBREVIATIONS[$location] ?? strtoupper(Str::limit(Str::slug($location, ''), 6, ''));
+        $prefix = "FMS-{$abbr}-" . now()->format('Y') . "-{$month}-";
+
+        $highest = VehicleRequest::where('trip_ticket_number', 'like', $prefix . '%')
+            ->lockForUpdate()
+            ->pluck('trip_ticket_number')
+            ->map(fn (string $number) => (int) substr($number, strlen($prefix)))
+            ->max() ?? 0;
+
+        return $prefix . str_pad((string) ($highest + 1), 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Server-side double-booking guard used when a trip is approved or created.
+     * Returns a user-facing message for the first conflict found, or null.
+     */
+    private function findSchedulingConflict(?int $ignoreRequestId, int $vehicleId, ?int $driverId, string $start, string $end): ?string
+    {
+        $overlapping = function ($query) use ($start, $end): void {
+            $query->whereDate('travel_date', '<=', $end)
+                ->where(function ($q) use ($start): void {
+                    $q->whereDate('travel_date_end', '>=', $start)
+                        ->orWhere(fn ($q2) => $q2->whereNull('travel_date_end')->whereDate('travel_date', '>=', $start));
+                });
+        };
+
+        $vehicleTrip = VehicleRequest::where('vehicle_id', $vehicleId)
+            ->where('status', 'approved')
+            ->when($ignoreRequestId, fn ($q) => $q->whereKeyNot($ignoreRequestId))
+            ->where($overlapping)
+            ->first();
+        if ($vehicleTrip) {
+            return "This vehicle is already booked for an approved trip ({$vehicleTrip->trip_ticket_number}) on "
+                . $vehicleTrip->travel_date->format('M j, Y') . '. Please choose another vehicle or decline this request.';
+        }
+
+        $maintenance = VehicleMaintenance::where('vehicle_id', $vehicleId)
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->whereDate('scheduled_date', '<=', $end)
+            ->where(function ($q) use ($start): void {
+                $q->whereDate('scheduled_date_end', '>=', $start)
+                    ->orWhere(fn ($q2) => $q2->whereNull('scheduled_date_end')->whereDate('scheduled_date', '>=', $start));
+            })
+            ->first();
+        if ($maintenance) {
+            return "This vehicle is scheduled for maintenance ({$maintenance->title}) on the selected date(s).";
+        }
+
+        if ($driverId) {
+            $driverTrip = VehicleRequest::where('status', 'approved')
+                ->when($ignoreRequestId, fn ($q) => $q->whereKeyNot($ignoreRequestId))
+                ->where(function ($q) use ($driverId): void {
+                    $q->where('confirmed_driver_id', $driverId)
+                        ->orWhere(fn ($q2) => $q2->whereNull('confirmed_driver_id')
+                            ->whereHas('vehicle', fn ($vq) => $vq->where('assigned_driver_id', $driverId)));
+                })
+                ->where($overlapping)
+                ->first();
+            if ($driverTrip) {
+                return "The selected driver is already assigned to another approved trip ({$driverTrip->trip_ticket_number}) on "
+                    . $driverTrip->travel_date->format('M j, Y') . '. Please choose a different driver.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Runs a ticket-issuing transaction, retrying if another approval took the same number first.
+     */
+    private function withTicketRetry(callable $callback): mixed
+    {
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                return DB::transaction($callback);
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt >= 3) {
+                    throw $e;
+                }
+            }
+        }
     }
 
     /**
@@ -93,6 +218,7 @@ class VehicleRequestController
 
         VehicleRequest::where('location', 'Palawan')
             ->where('trip_ticket_number', 'like', $yearSuffix.'-%')
+            ->lockForUpdate()
             ->pluck('trip_ticket_number')
             ->each(function (string $number) use (&$highest, $yearSuffix): void {
                 if (preg_match('/^'.$yearSuffix.'-\d{2}-(\d+)$/', $number, $m)) {
@@ -105,84 +231,88 @@ class VehicleRequestController
 
     public function updateStatus(Request $request, VehicleRequest $vehicleRequest): RedirectResponse
     {
-        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
-        abort_unless($request->user()?->role !== UserRole::ADMIN || $vehicleRequest->location === $request->user()->location, 403);
+        $this->authorizeFleetLocation($vehicleRequest->location);
         $data = $request->validate([
             'status' => ['required', 'in:approved,declined'],
             'decline_reason' => ['nullable', 'string', 'max:500'],
-            'confirmed_driver_id' => ['nullable', 'integer', 'exists:users,id'],
+            'confirmed_driver_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', UserRole::DRIVER->value)],
         ]);
-        $updates = [
-            'status' => $data['status'],
-            'decline_reason' => $data['status'] === 'declined' ? ($data['decline_reason'] ?? null) : null,
-        ];
-        if ($data['status'] === 'approved') {
-            abort_unless(!$data['confirmed_driver_id'] || User::whereKey($data['confirmed_driver_id'])->where('role', UserRole::DRIVER)->exists(), 422);
 
-            // Never approve a trip nobody will drive: if the vehicle has no default driver,
-            // the reviewer has to pick one for this trip.
-            if (empty($data['confirmed_driver_id']) && ! $vehicleRequest->vehicle?->assigned_driver_id) {
-                return back()->with('error', 'Please select a driver for this trip. This vehicle has no default driver assigned.');
-            }
-
-            if (!$vehicleRequest->trip_ticket_number) {
-                // Location abbreviation map
-                $locationAbbreviations = [
-                    'Oriental Mindoro'           => 'OR-MIN',
-                    'Occidental Mindoro'          => 'OC-MIN',
-                    'Marinduque'                  => 'MAR',
-                    'Palawan'                     => 'PAL',
-                    'Romblon'                     => 'ROM',
-                    'Quezon City Satellite Office' => 'QC',
-                ];
-
-                $locationKey = $vehicleRequest->location ?? 'N/A';
-
-                $year  = now()->format('Y');
-                $month = now()->format('m');
-
-                if ($locationKey === 'Palawan') {
-                    // Palawan uses its own numbering scheme, per client request:
-                    // {2-digit year}-{2-digit month}-{3-digit sequence}, e.g. 26-09-868.
-                    // The sequence runs for the whole calendar year (not per month) and
-                    // resets to 001 every January. It continues from the highest number
-                    // already issued this year, and never starts below the last number
-                    // Palawan used before this system (see PALAWAN_SEQUENCE_START).
-                    $yearSuffix = now()->format('y');
-                    $sequence = str_pad((string) $this->nextPalawanSequence($yearSuffix), 3, '0', STR_PAD_LEFT);
-
-                    $updates['trip_ticket_number'] = "{$yearSuffix}-{$month}-{$sequence}";
-                } else {
-                    $abbr = $locationAbbreviations[$locationKey] ?? strtoupper(Str::limit(Str::slug($locationKey, ''), 6, ''));
-
-                    // Count approved requests for the same location in the same year-month
-                    $count = VehicleRequest::where('status', 'approved')
-                        ->where('location', $locationKey)
-                        ->whereYear('approved_at', $year)
-                        ->whereMonth('approved_at', $month)
-                        ->count();
-
-                    $sequence = str_pad((string) ($count + 1), 4, '0', STR_PAD_LEFT);
-
-                    $updates['trip_ticket_number'] = "FMS-{$abbr}-{$year}-{$month}-{$sequence}";
-                }
-            } else {
-                $updates['trip_ticket_number'] = $vehicleRequest->trip_ticket_number;
-            }
-
-            $updates['approved_by'] = $request->user()->id;
-            $updates['approved_at'] = now();
-            $updates['confirmed_driver_id'] = $data['confirmed_driver_id'] ?? null;
+        // Status workflow: pending -> approved/declined; an approved trip may change driver or be
+        // declined (cancelled) until it has completion/fleet-card records; declined is final.
+        if ($vehicleRequest->status === 'declined') {
+            return back()->with('error', 'This request has already been declined and can no longer be changed.');
         }
-        $vehicleRequest->update($updates);
 
-        $actionText = $data['status'] === 'approved' ? 'approved.' : 'declined.';
-        return back()->with('success', "Request from {$vehicleRequest->requester_name} {$actionText}");
+        if ($data['status'] === 'declined') {
+            $hasTripRecords = $vehicleRequest->completion()->exists()
+                || FleetCardLog::where('vehicle_request_id', $vehicleRequest->id)->exists();
+            if ($vehicleRequest->status === 'approved' && $hasTripRecords) {
+                return back()->with('error', 'This trip already has a completion or fleet card record, so it can no longer be declined.');
+            }
+
+            $vehicleRequest->update([
+                'status' => 'declined',
+                'decline_reason' => $data['decline_reason'] ?? null,
+            ]);
+
+            return back()->with('success', "Request from {$vehicleRequest->requester_name} declined.");
+        }
+
+        // Never approve a trip nobody will drive: use the chosen driver, else the vehicle's default driver,
+        // and store it so the trip ticket always names the driver.
+        $driverId = ($data['confirmed_driver_id'] ?? null) ?: $vehicleRequest->vehicle?->assigned_driver_id;
+        if (! $driverId) {
+            return back()->with('error', 'Please select a driver for this trip. This vehicle has no default driver assigned.');
+        }
+        $driver = User::find($driverId);
+        if (! $driver || $driver->role !== UserRole::DRIVER || (filled($driver->location) && $driver->location !== $vehicleRequest->location)) {
+            return back()->with('error', 'The selected driver is not a driver assigned to ' . $vehicleRequest->location . '.');
+        }
+
+        $error = $this->withTicketRetry(function () use ($request, $vehicleRequest, $driverId): ?string {
+            // Serialise approvals for the same vehicle so two admins cannot double-book it
+            Vehicle::whereKey($vehicleRequest->vehicle_id)->lockForUpdate()->first();
+            $fresh = VehicleRequest::whereKey($vehicleRequest->id)->lockForUpdate()->firstOrFail();
+
+            if ($fresh->status === 'declined') {
+                return 'This request has already been declined and can no longer be changed.';
+            }
+
+            $start = $fresh->travel_date->toDateString();
+            $end = ($fresh->travel_date_end ?? $fresh->travel_date)->toDateString();
+            if ($conflict = $this->findSchedulingConflict($fresh->id, (int) $fresh->vehicle_id, (int) $driverId, $start, $end)) {
+                return $conflict;
+            }
+
+            $updates = [
+                'status' => 'approved',
+                'decline_reason' => null,
+                'confirmed_driver_id' => $driverId,
+            ];
+            // Changing the driver of an already approved trip keeps the original approver and approval date
+            if ($fresh->status !== 'approved') {
+                $updates['approved_by'] = $request->user()->id;
+                $updates['approved_at'] = now();
+            }
+            if (! $fresh->trip_ticket_number) {
+                $updates['trip_ticket_number'] = $this->nextTripTicketNumber((string) $fresh->location);
+            }
+            $fresh->update($updates);
+
+            return null;
+        });
+
+        if ($error) {
+            return back()->with('error', $error);
+        }
+
+        return back()->with('success', "Request from {$vehicleRequest->requester_name} approved.");
     }
 
     public function adminStore(Request $request): RedirectResponse
     {
-        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
+        $this->authorizeFleetAdmin();
 
         $isSuperAdmin = $request->user()?->role?->value === 'super_admin';
         $adminLocation = $request->user()->location;
@@ -194,14 +324,14 @@ class VehicleRequestController
             'requester_is_passenger'=> ['nullable', 'boolean'],
             'location'              => ['required', 'string', 'max:120'],
             'vehicle_id'            => ['required', 'integer', 'exists:vehicles,id'],
-            'confirmed_driver_id'   => ['nullable', 'integer', 'exists:users,id'],
+            'confirmed_driver_id'   => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', UserRole::DRIVER->value)],
             'destination'           => ['required', 'string', 'max:250'],
             'distance_km'           => ['nullable', 'integer', 'min:0'],
             'travel_date'           => ['required', 'date'],
             'travel_date_end'       => ['required', 'date', 'after_or_equal:travel_date'],
             'purpose'               => ['required', 'string', 'max:500'],
             'passengers'            => ['nullable', 'array', 'max:20'],
-            'passengers.*'          => ['string', 'max:120'],
+            'passengers.*'          => ['nullable', 'string', 'max:120'],
             'override_conflict'     => ['nullable', 'boolean'],
         ], [
             'requester_contact.regex' => 'Contact number must start with 09 and be exactly 11 digits (e.g. 09171234567).',
@@ -210,6 +340,11 @@ class VehicleRequestController
         // Location guard for regular admins
         if (!$isSuperAdmin && $data['location'] !== $adminLocation) {
             return back()->withErrors(['location' => 'You can only create requests for your assigned location.'])->withInput();
+        }
+
+        // The vehicle must be stationed at the request's location
+        if (! Vehicle::whereKey($data['vehicle_id'])->where('location', $data['location'])->exists()) {
+            return back()->withErrors(['vehicle_id' => 'The selected vehicle is not stationed at ' . $data['location'] . '.'])->withInput();
         }
 
         // Vehicle conflict check (booking overlap with existing approved/pending requests)
@@ -247,86 +382,96 @@ class VehicleRequestController
         if (!$driverId) {
             return back()->withErrors(['confirmed_driver_id' => 'Please select a driver. This vehicle has no default driver assigned.'])->withInput();
         }
+        $driverLocation = User::whereKey($driverId)->value('location');
+        if (filled($driverLocation) && $driverLocation !== $data['location']) {
+            return back()->withErrors(['confirmed_driver_id' => 'The selected driver is not assigned to ' . $data['location'] . '.'])->withInput();
+        }
 
         // Generate unique reference code
         do {
             $code = Str::upper(Str::random(7));
         } while (VehicleRequest::where('reference_code', $code)->exists());
 
-        // Generate trip ticket number
-        $locationAbbreviations = [
-            'Oriental Mindoro'            => 'OR-MIN',
-            'Occidental Mindoro'          => 'OC-MIN',
-            'Marinduque'                  => 'MAR',
-            'Palawan'                     => 'PAL',
-            'Romblon'                     => 'ROM',
-            'Quezon City Satellite Office' => 'QC',
-        ];
-
-        $locationKey = $data['location'];
-        $year  = now()->format('Y');
-        $month = now()->format('m');
-
-        if ($locationKey === 'Palawan') {
-            $yearSuffix = now()->format('y');
-            $sequence   = str_pad((string) $this->nextPalawanSequence($yearSuffix), 3, '0', STR_PAD_LEFT);
-            $ticketNumber = "{$yearSuffix}-{$month}-{$sequence}";
-        } else {
-            $abbr  = $locationAbbreviations[$locationKey] ?? strtoupper(Str::limit(Str::slug($locationKey, ''), 6, ''));
-            $count = VehicleRequest::where('status', 'approved')
-                ->where('location', $locationKey)
-                ->whereYear('approved_at', $year)
-                ->whereMonth('approved_at', $month)
-                ->count();
-            $sequence     = str_pad((string) ($count + 1), 4, '0', STR_PAD_LEFT);
-            $ticketNumber = "FMS-{$abbr}-{$year}-{$month}-{$sequence}";
-        }
-
         // Normalize passenger names to Title Case
         $passengers = array_filter(array_map(
-            fn (string $p) => \Modules\VehicleRequest\Support\PersonName::titleCase($p),
+            fn (?string $p) => \Modules\VehicleRequest\Support\PersonName::titleCase((string) $p),
             (array) ($data['passengers'] ?? [])
         ));
 
         try {
-            $vehicleRequest = VehicleRequest::create([
-                'reference_code'         => $code,
-                'requester_name'         => \Modules\VehicleRequest\Support\PersonName::titleCase($data['requester_name']),
-                'location'               => $data['location'],
-                'requester_office'       => $data['requester_office'] ?? null,
-                'requester_contact'      => $data['requester_contact'],
-                'requester_is_passenger' => (bool) ($data['requester_is_passenger'] ?? false),
-                'vehicle_id'             => $data['vehicle_id'],
-                'confirmed_driver_id'    => $driverId,
-                'destination'            => $data['destination'],
-                'distance_km'            => $data['distance_km'] ?? null,
-                'travel_date'            => $data['travel_date'],
-                'travel_date_end'        => $data['travel_date_end'],
-                'purpose'                => $data['purpose'],
-                'passengers'             => array_values($passengers) ?: null,
-                'status'                 => 'approved',
-                'trip_ticket_number'     => $ticketNumber,
-                'approved_by'            => $request->user()->id,
-                'approved_at'            => now(),
-            ]);
+            $result = $this->withTicketRetry(function () use ($data, $driverId, $code, $passengers, $overrideConflict, $request) {
+                Vehicle::whereKey($data['vehicle_id'])->lockForUpdate()->first();
+
+                // Re-check inside the lock: approved trips, maintenance and the driver's other trips
+                if (! $overrideConflict) {
+                    $conflict = $this->findSchedulingConflict(null, (int) $data['vehicle_id'], (int) $driverId, $data['travel_date'], $data['travel_date_end']);
+                    if ($conflict) {
+                        return ['error' => $conflict];
+                    }
+                }
+
+                $ticketNumber = $this->nextTripTicketNumber($data['location']);
+
+                return ['request' => VehicleRequest::create([
+                    'reference_code'         => $code,
+                    'requester_name'         => \Modules\VehicleRequest\Support\PersonName::titleCase($data['requester_name']),
+                    'location'               => $data['location'],
+                    'requester_office'       => $data['requester_office'] ?? null,
+                    'requester_contact'      => $data['requester_contact'],
+                    'requester_is_passenger' => (bool) ($data['requester_is_passenger'] ?? false),
+                    'vehicle_id'             => $data['vehicle_id'],
+                    'confirmed_driver_id'    => $driverId,
+                    'destination'            => $data['destination'],
+                    'distance_km'            => $data['distance_km'] ?? null,
+                    'travel_date'            => $data['travel_date'],
+                    'travel_date_end'        => $data['travel_date_end'],
+                    'purpose'                => $data['purpose'],
+                    'passengers'             => array_values($passengers) ?: null,
+                    'status'                 => 'approved',
+                    'trip_ticket_number'     => $ticketNumber,
+                    'approved_by'            => $request->user()->id,
+                    'approved_at'            => now(),
+                ])];
+            });
+
+            if (isset($result['error'])) {
+                return back()->withErrors(['vehicle_id' => $result['error']])->withInput();
+            }
+
+            $vehicleRequest = $result['request'];
 
             return redirect()
                 ->route('vehicle-requests.index', array_filter(['status' => 'approved', 'location' => request('location')]))
                 ->with('manual_request_created', [
                     'requester'   => $vehicleRequest->requester_name,
-                    'ticket'      => $ticketNumber,
+                    'ticket'      => $vehicleRequest->trip_ticket_number,
                     'ticket_url'  => route('trip-ticket', $vehicleRequest),
                 ]);
 
         } catch (\Throwable $e) {
+            // Log the details for administrators; never show database errors to the user
+            Log::error('Manual trip ticket creation failed', ['exception' => $e]);
+
             return redirect()
                 ->route('vehicle-requests.index', array_filter(['location' => request('location')]))
-                ->with('manual_request_error', 'An unexpected error occurred while creating the trip ticket. Please try again. (' . $e->getMessage() . ')');
+                ->with('manual_request_error', 'An unexpected error occurred while creating the trip ticket. Please try again.');
         }
     }
 
-    public function tripTicket(VehicleRequest $vehicleRequest): View
+    public function tripTicket(Request $request, VehicleRequest $vehicleRequest): View
     {
+        // Trip tickets list staff movements, so the sequential ID alone is not enough: guests need the
+        // signed link shown on the Check Status page, and staff can only open tickets they manage or drive.
+        $user = $request->user();
+        $canView = match (true) {
+            $user === null => false,
+            $user->role === UserRole::SUPER_ADMIN => true,
+            $user->role === UserRole::ADMIN => filled($user->location) && $user->location === $vehicleRequest->location,
+            $user->role === UserRole::DRIVER => (int) $vehicleRequest->confirmed_driver_id === (int) $user->id
+                || ($vehicleRequest->confirmed_driver_id === null && (int) $vehicleRequest->vehicle?->assigned_driver_id === (int) $user->id),
+            default => false,
+        };
+        abort_unless($canView || $request->hasValidSignature(), 403);
         abort_unless($vehicleRequest->status === 'approved', 404);
         $vehicleRequest->load(['vehicle', 'confirmedDriver', 'approvedBy']);
 
@@ -528,7 +673,7 @@ class VehicleRequestController
 
     public function lookupTripByTicketNumber(Request $request): JsonResponse
     {
-        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
+        $this->authorizeFleetAdmin();
 
         $queryStr = trim($request->string('ticket_number')->toString());
         $user = $request->user();
@@ -585,16 +730,25 @@ class VehicleRequestController
             return response()->json(['error' => 'Please provide a Trip Ticket Number.'], 422);
         }
 
-        $trip = VehicleRequest::query()
+        $approvedTrips = fn () => VehicleRequest::query()
             ->with(['vehicle', 'confirmedDriver', 'completion'])
             ->where('status', 'approved')
-            ->where(function ($q) use ($queryStr) {
-                $q->where('trip_ticket_number', $queryStr)
-                  ->orWhere('trip_ticket_number', 'like', "%{$queryStr}%")
-                  ->orWhere('reference_code', $queryStr);
-            })
-            ->when(!$isSuperAdmin, fn ($q) => $q->where('location', $user->location))
+            ->when(!$isSuperAdmin, fn ($q) => $q->where('location', $user->location));
+
+        // Exact ticket/reference matches win; a partial match is only used when it is unambiguous
+        $trip = $approvedTrips()
+            ->where(fn ($q) => $q->where('trip_ticket_number', $queryStr)->orWhere('reference_code', $queryStr))
             ->first();
+        if (! $trip) {
+            $partialMatches = $approvedTrips()
+                ->where('trip_ticket_number', 'like', '%' . addcslashes($queryStr, '\\%_') . '%')
+                ->limit(2)
+                ->get();
+            if ($partialMatches->count() > 1) {
+                return response()->json(['error' => "More than one trip matches '{$queryStr}'. Please enter the full Trip Ticket Number."], 409);
+            }
+            $trip = $partialMatches->first();
+        }
 
         if (!$trip) {
             return response()->json(['error' => "No approved trip found matching '{$queryStr}'." . (!$isSuperAdmin ? " (Filtered by your location: {$user->location})" : "")], 404);
@@ -630,9 +784,14 @@ class VehicleRequestController
 
     public function storeTripCompletion(Request $request, VehicleRequest $vehicleRequest): JsonResponse|RedirectResponse
     {
-        abort_unless(in_array($request->user()?->role?->value, ['admin', 'super_admin'], true), 403);
-        if ($request->user()->role === UserRole::ADMIN && $vehicleRequest->location !== $request->user()->location) {
-            abort(403, 'Unauthorized location access.');
+        $this->authorizeFleetLocation($vehicleRequest->location);
+
+        if ($vehicleRequest->status !== 'approved') {
+            $msg = 'Only approved trips can be logged as completed.';
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $msg], 422);
+            }
+            return back()->with('error', $msg);
         }
 
         if ($vehicleRequest->travel_date->isFuture() && !$vehicleRequest->travel_date->isToday()) {
@@ -682,40 +841,48 @@ class VehicleRequestController
         $totalLiters = $balTank + $issuedOffice + $purchasedTrip;
         $endingBal = round($totalLiters - $fuelUsed, 2);
 
-        $completion = TripTicketCompletion::updateOrCreate(
-            ['vehicle_request_id' => $vehicleRequest->id],
-            [
-                'trip_ticket_number'        => $vehicleRequest->trip_ticket_number ?? ('TRIP-' . $vehicleRequest->id),
-                'vehicle_id'                => $vehicleRequest->vehicle_id,
-                'driver_id'                 => $vehicleRequest->confirmed_driver_id ?: $vehicleRequest->vehicle?->assigned_driver_id,
-                'departure_garage_time'     => $data['departure_garage_time'] ?? null,
-                'arrival_destination_time'  => $data['arrival_destination_time'] ?? null,
-                'departure_destination_time'=> $data['departure_destination_time'] ?? null,
-                'arrival_garage_time'       => $data['arrival_garage_time'] ?? null,
-                'odo_beginning'             => $odoBeg,
-                'odo_ending'                => $odoEnd,
-                'distance_travelled'        => $distance,
-                'fuel_divisor'              => $divisor,
-                'fuel_used_liters'          => $fuelUsed,
-                'fuel_balance_in_tank'      => $balTank,
-                'fuel_issued_office'        => $issuedOffice,
-                'fuel_purchased_trip'       => $purchasedTrip,
-                'fuel_total_liters'         => $totalLiters,
-                'fuel_ending_balance'       => $endingBal,
-                'gear_oil_issued'           => $data['gear_oil_issued'] ?? null,
-                'lub_oil_issued'            => $data['lub_oil_issued'] ?? null,
-                'grease_issued'             => $data['grease_issued'] ?? null,
-                'remarks'                   => $data['remarks'] ?? null,
-                'completed_by'              => $request->user()->id,
-            ]
-        );
+        $completion = DB::transaction(function () use ($vehicleRequest, $data, $request, $odoBeg, $odoEnd, $distance, $divisor, $fuelUsed, $balTank, $issuedOffice, $purchasedTrip, $totalLiters, $endingBal) {
+            // Lock the request so a double submit updates the same completion instead of creating two
+            VehicleRequest::whereKey($vehicleRequest->id)->lockForUpdate()->first();
 
-        // Auto-update the vehicle's current odometer if the trip end odometer is higher
-        if ($vehicleRequest->vehicle && $odoEnd > $vehicleRequest->vehicle->odometer) {
-            $vehicleRequest->vehicle->update([
-                'odometer' => (int) round($odoEnd),
-            ]);
-        }
+            $completion = TripTicketCompletion::updateOrCreate(
+                ['vehicle_request_id' => $vehicleRequest->id],
+                [
+                    'trip_ticket_number'        => $vehicleRequest->trip_ticket_number ?? ('TRIP-' . $vehicleRequest->id),
+                    'vehicle_id'                => $vehicleRequest->vehicle_id,
+                    'driver_id'                 => $vehicleRequest->confirmed_driver_id ?: $vehicleRequest->vehicle?->assigned_driver_id,
+                    'departure_garage_time'     => $data['departure_garage_time'] ?? null,
+                    'arrival_destination_time'  => $data['arrival_destination_time'] ?? null,
+                    'departure_destination_time'=> $data['departure_destination_time'] ?? null,
+                    'arrival_garage_time'       => $data['arrival_garage_time'] ?? null,
+                    'odo_beginning'             => $odoBeg,
+                    'odo_ending'                => $odoEnd,
+                    'distance_travelled'        => $distance,
+                    'fuel_divisor'              => $divisor,
+                    'fuel_used_liters'          => $fuelUsed,
+                    'fuel_balance_in_tank'      => $balTank,
+                    'fuel_issued_office'        => $issuedOffice,
+                    'fuel_purchased_trip'       => $purchasedTrip,
+                    'fuel_total_liters'         => $totalLiters,
+                    'fuel_ending_balance'       => $endingBal,
+                    'gear_oil_issued'           => $data['gear_oil_issued'] ?? null,
+                    'lub_oil_issued'            => $data['lub_oil_issued'] ?? null,
+                    'grease_issued'             => $data['grease_issued'] ?? null,
+                    'remarks'                   => $data['remarks'] ?? null,
+                    'completed_by'              => $request->user()->id,
+                ]
+            );
+
+            // Auto-update the vehicle's current odometer if the trip end odometer is higher
+            $vehicle = Vehicle::whereKey($vehicleRequest->vehicle_id)->lockForUpdate()->first();
+            if ($vehicle && $odoEnd > $vehicle->odometer) {
+                $vehicle->update([
+                    'odometer' => (int) round($odoEnd),
+                ]);
+            }
+
+            return $completion;
+        });
 
         if ($request->wantsJson()) {
             return response()->json([

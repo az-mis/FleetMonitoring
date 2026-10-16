@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Vehicle\Controllers\VehicleController;
 use Modules\Vehicle\Controllers\VehicleAssigningController;
 
-Route::middleware(['web', 'auth', 'verified'])
+Route::middleware(['web', 'auth', 'verified', 'module:vehicles'])
     ->prefix('vehicles')
     ->name('vehicles.')
     ->group(function () {
@@ -29,7 +29,7 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::delete('/{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
     });
 
-Route::middleware(['web', 'auth', 'verified'])
+Route::middleware(['web', 'auth', 'verified', 'module:vehicleAssigning'])
     ->prefix('vehicle-assigning')
     ->name('vehicle-assigning.')
     ->group(function () {
