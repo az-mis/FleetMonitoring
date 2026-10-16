@@ -47,6 +47,9 @@
         <div>
             <div class="flex items-center justify-between">
                 <label for="password" class="block text-xs font-semibold text-white">Password</label>
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="text-[11px] font-semibold text-emerald-200 hover:text-white hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
+                @endif
             </div>
             <div class="relative mt-1.5">
                 <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">

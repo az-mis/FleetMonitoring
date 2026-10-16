@@ -9,14 +9,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Fortify;
 use Modules\Authentication\Actions\CreateNewUser;
+use Modules\Authentication\Responses\PasswordResetLinkRequestResponse;
 use Modules\Authentication\Actions\ResetUserPassword;
 use Modules\Authentication\Actions\UpdateUserPassword;
 use Modules\Authentication\Actions\UpdateUserProfileInformation;
 
 class FortifyServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        // Same response for known and unknown emails (prevents account enumeration)
+        $this->app->bind(SuccessfulPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestResponse::class);
+        $this->app->bind(FailedPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestResponse::class);
+    }
+
     public function boot(): void
     {
         Fortify::createUsersUsing(CreateNewUser::class);
