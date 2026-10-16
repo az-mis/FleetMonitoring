@@ -181,7 +181,7 @@
                         </button>
                     </div>
 
-                    <p class="mt-1 text-[11px] text-slate-500">Photo (optional, max 5MB)</p>
+                    <p class="mt-1 text-[0.6875rem] text-slate-500">Photo (optional, max 5MB)</p>
                     <p id="add-avatar-warning" class="mt-1 hidden text-xs font-semibold text-red-600"></p>
                     @if (old('_admin_form') !== 'edit')
                         @error('avatar')
@@ -341,7 +341,7 @@
                         </button>
                     </div>
 
-                    <p class="mt-1 text-[11px] text-slate-500">Photo (optional, max 2MB)</p>
+                    <p class="mt-1 text-[0.6875rem] text-slate-500">Photo (optional, max 2MB)</p>
                     <p id="edit-avatar-warning" class="mt-1 hidden text-xs font-semibold text-red-600"></p>
                     @if (old('_admin_form') === 'edit')
                         @error('avatar')

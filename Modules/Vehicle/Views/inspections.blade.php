@@ -60,7 +60,7 @@
                             <td class="whitespace-nowrap px-4 py-3">
                                 <div>
                                     <span class="font-black text-slate-900 block">{{ $insp->vehicle?->plate_number }}</span>
-                                    <span class="text-[11px] text-slate-500 block">{{ $insp->vehicle?->brand }} {{ $insp->vehicle?->model }}</span>
+                                    <span class="text-[0.6875rem] text-slate-500 block">{{ $insp->vehicle?->brand }} {{ $insp->vehicle?->model }}</span>
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-600 font-medium">
@@ -71,7 +71,7 @@
                             </td>
                             <td class="whitespace-nowrap px-4 py-3">
                                 @if ($insp->change_oil_done)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-extrabold text-blue-700">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[0.625rem] font-extrabold text-blue-700">
                                         🛢️ Change Oil Performed
                                     </span>
                                 @else
@@ -80,15 +80,15 @@
                             </td>
                             <td class="whitespace-nowrap px-4 py-3">
                                 @if ($insp->overall_status === 'failed')
-                                    <span class="rounded-full bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 text-[10px] font-extrabold">✕ Failed</span>
+                                    <span class="rounded-full bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 text-[0.625rem] font-extrabold">✕ Failed</span>
                                 @elseif ($insp->overall_status === 'needs_attention')
-                                    <span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 text-[10px] font-extrabold">⚠️ Needs Attention</span>
+                                    <span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 text-[0.625rem] font-extrabold">⚠️ Needs Attention</span>
                                 @else
-                                    <span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-extrabold">✓ Passed</span>
+                                    <span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[0.625rem] font-extrabold">✓ Passed</span>
                                 @endif
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-right">
-                                <button type="button" onclick="viewInspectionDetail({{ json_encode($insp->load('items')) }})" class="rounded-lg border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                                <button type="button" onclick="viewInspectionDetail({{ json_encode($insp->load('items')) }})" class="rounded-lg border border-slate-200 bg-white px-3 py-1 text-[0.6875rem] font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
                                     View Breakdown
                                 </button>
                             </td>
@@ -101,7 +101,7 @@
                                         <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                                     </svg>
                                     <p class="text-xs font-semibold">No inspection records found</p>
-                                    <p class="text-[11px] text-slate-400">Click "+ Conduct Inspection" to log your first checklist inspection.</p>
+                                    <p class="text-[0.6875rem] text-slate-400">Click "+ Conduct Inspection" to log your first checklist inspection.</p>
                                 </div>
                             </td>
                         </tr>
@@ -133,7 +133,7 @@
                     </span>
                     <div>
                         <h3 id="new-inspection-modal-title" class="text-base font-black text-slate-900">Conduct Vehicle Inspection</h3>
-                        <p class="text-[11px] text-slate-500">Select a vehicle and fill out the inspection checklist</p>
+                        <p class="text-[0.6875rem] text-slate-500">Select a vehicle and fill out the inspection checklist</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeNewInspectionModal()" aria-label="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
@@ -148,7 +148,7 @@
                     <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
                         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-start">
                             <div class="relative" id="insp-vehicle-picker">
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Vehicle <span class="text-red-500">*</span></label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Select Vehicle <span class="text-red-500">*</span></label>
                                 <select id="insp-vehicle-select" onchange="onVehicleSelected(this)" required tabindex="-1" aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 h-px w-full opacity-0">
                                     <option value="">— Choose Vehicle —</option>
                                     @foreach ($allVehicles as $v)
@@ -188,7 +188,7 @@
                                                 </span>
                                                 <span class="min-w-0">
                                                     <span class="block text-xs font-bold text-slate-900">{{ $v->plate_number }}</span>
-                                                    <span class="block truncate text-[11px] text-slate-500">{{ trim($v->brand.' '.$v->model) }} @if($v->location) &middot; {{ $v->location }} @endif</span>
+                                                    <span class="block truncate text-[0.6875rem] text-slate-500">{{ trim($v->brand.' '.$v->model) }} @if($v->location) &middot; {{ $v->location }} @endif</span>
                                                 </span>
                                             </button>
                                         @endforeach
@@ -198,19 +198,19 @@
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Current Odometer Reading (KM) <span class="text-red-500">*</span></label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Current Odometer Reading (KM) <span class="text-red-500">*</span></label>
                                 <div class="flex h-[46px] items-center">
                                     <input type="number" name="odometer_km" id="new-insp-odometer" min="0" required placeholder="0" class="h-full w-full rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">&nbsp;</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">&nbsp;</label>
                                 <label class="flex h-[46px] items-center gap-2.5 cursor-pointer bg-white border border-slate-200 rounded-lg px-3 hover:border-emerald-300 transition">
                                     <input type="checkbox" name="change_oil_done" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
                                     <div class="min-w-0 leading-tight">
                                         <span class="text-xs font-bold text-slate-800 block">🛢️ Mark Change Oil Done</span>
-                                        <span class="text-[10px] text-slate-400 block truncate">Resets change oil counter to current odometer</span>
+                                        <span class="text-[0.625rem] text-slate-400 block truncate">Resets change oil counter to current odometer</span>
                                     </div>
                                 </label>
                             </div>
@@ -258,7 +258,7 @@
 
                     @foreach ($checklistCategories as $catName => $catItems)
                         <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
-                            <h4 class="text-[11px] font-black uppercase tracking-wider text-slate-700 pb-1.5 border-b border-slate-100 mb-2">{{ $catName }}</h4>
+                            <h4 class="text-[0.6875rem] font-black uppercase tracking-wider text-slate-700 pb-1.5 border-b border-slate-100 mb-2">{{ $catName }}</h4>
                             <div class="space-y-1.5">
                                 @foreach ($catItems as $itemName)
                                     @php $idx = $itemIndex++; @endphp
@@ -269,21 +269,21 @@
 
                                         <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
                                             <div class="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg">
-                                                <label class="relative inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 text-slate-600">
+                                                <label class="relative inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[0.6875rem] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="pass" checked class="sr-only">
                                                     <span>✓ Pass</span>
                                                 </label>
-                                                <label class="relative inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 text-slate-600">
+                                                <label class="relative inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[0.6875rem] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="attention" class="sr-only">
                                                     <span>⚠️ Attention</span>
                                                 </label>
-                                                <label class="relative inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 text-slate-600">
+                                                <label class="relative inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[0.6875rem] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="fail" class="sr-only">
                                                     <span>✕ Fail</span>
                                                 </label>
                                             </div>
 
-                                            <input type="text" name="items[{{ $idx }}][remarks]" aria-label="Remarks for {{ $itemName }}" placeholder="Remarks (opt)" class="w-full sm:w-32 rounded-md border border-slate-200 px-2 py-0.5 text-[11px] text-slate-700 focus:border-blue-500 focus:outline-none">
+                                            <input type="text" name="items[{{ $idx }}][remarks]" aria-label="Remarks for {{ $itemName }}" placeholder="Remarks (opt)" class="w-full sm:w-32 rounded-md border border-slate-200 px-2 py-0.5 text-[0.6875rem] text-slate-700 focus:border-blue-500 focus:outline-none">
                                         </div>
                                     </div>
                                 @endforeach
@@ -498,7 +498,7 @@
                 const color = it.status === 'pass' ? 'text-emerald-600' : (it.status === 'attention' ? 'text-amber-600 font-bold' : 'text-red-600 font-bold');
                 itemsHtml += `
                     <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs">
-                        <span class="font-semibold text-slate-800">${escHtml(it.item_name)} <span class="text-[10px] text-slate-400">(${escHtml(it.category)})</span></span>
+                        <span class="font-semibold text-slate-800">${escHtml(it.item_name)} <span class="text-[0.625rem] text-slate-400">(${escHtml(it.category)})</span></span>
                         <span class="${color}">${icon} ${escHtml(String(it.status ?? '').toUpperCase())} ${it.remarks ? '— ' + escHtml(it.remarks) : ''}</span>
                     </div>
                 `;
@@ -512,7 +512,7 @@
                             <span class="font-extrabold text-slate-900">${Number(insp.odometer_km).toLocaleString()} km</span>
                         </div>
                         <div>
-                            ${insp.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold">🛢️ Oil Changed</span>' : ''}
+                            ${insp.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[0.625rem] font-bold">🛢️ Oil Changed</span>' : ''}
                         </div>
                     </div>
                     ${insp.notes ? `<div class="text-slate-600 italic pt-1 border-t border-slate-200/60">"${escHtml(insp.notes)}"</div>` : ''}

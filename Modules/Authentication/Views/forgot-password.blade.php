@@ -10,7 +10,7 @@
 
 @section('content')
     <div class="mb-5">
-        <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-950/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300 md:hidden">
+        <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-950/60 px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-300 md:hidden">
             <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Fleet Management System
         </p>
         <h1 class="text-xl font-bold text-white">Forgot Password</h1>

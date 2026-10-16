@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-5">
-        <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-950/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300 md:hidden">
+        <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-950/60 px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-300 md:hidden">
             <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Fleet Management System
         </p>
         <h1 class="text-xl font-bold text-white">Sign In</h1>
@@ -48,7 +48,7 @@
             <div class="flex items-center justify-between">
                 <label for="password" class="block text-xs font-semibold text-white">Password</label>
                 @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-[11px] font-semibold text-emerald-200 hover:text-white hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
+                    <a href="{{ route('password.request') }}" class="text-[0.6875rem] font-semibold text-emerald-200 hover:text-white hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
                 @endif
             </div>
             <div class="relative mt-1.5">
@@ -99,12 +99,12 @@
     </script>
 
     <div class="mt-5 border-t border-emerald-200/15 pt-4">
-        <p class="mb-2 text-center text-[10px] font-semibold uppercase tracking-[.18em] text-emerald-100/65">Public Staff Portals</p>
+        <p class="mb-2 text-center text-[0.625rem] font-semibold uppercase tracking-[.18em] text-emerald-100/65">Public Staff Portals</p>
         <div class="grid grid-cols-2 gap-2">
             <a href="{{ route('request-vehicle') }}" class="rounded-lg border border-emerald-200/20 bg-[#062512]/65 px-2 py-2 text-center text-xs text-emerald-100/80 transition hover:border-emerald-300/50 hover:bg-emerald-900/50"><span aria-hidden="true">♧</span> &nbsp;Request a Vehicle</a>
             <a href="{{ route('check-status') }}" class="rounded-lg border border-emerald-200/20 bg-[#062512]/65 px-2 py-2 text-center text-xs text-emerald-100/80 transition hover:border-emerald-300/50 hover:bg-emerald-900/50"><span aria-hidden="true">⌕</span> &nbsp;Check Request Status</a>
         </div>
-        <div class="mt-4 border-t border-emerald-200/15 pt-3 text-center text-[10px] text-emerald-100/65"><span aria-hidden="true">♧</span> Encrypted &amp; Protected Session<br><span class="mt-1 inline-block">© {{ date('Y') }} {{ config('app.name', 'Vehicle Monitoring & Management System') }}</span></div>
+        <div class="mt-4 border-t border-emerald-200/15 pt-3 text-center text-[0.625rem] text-emerald-100/65"><span aria-hidden="true">♧</span> Encrypted &amp; Protected Session<br><span class="mt-1 inline-block">© {{ date('Y') }} {{ config('app.name', 'Vehicle Monitoring & Management System') }}</span></div>
     </div>
 
 @endsection

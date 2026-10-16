@@ -197,7 +197,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">TOTAL REQUESTS</p>
+                <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">TOTAL REQUESTS</p>
                 <p class="text-lg font-black text-slate-800 leading-none mt-0.5">{{ $counts['total'] }}</p>
             </div>
         </div>
@@ -211,7 +211,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">PENDING</p>
+                <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">PENDING</p>
                 <p class="text-lg font-black text-amber-500 leading-none mt-0.5">{{ $counts['pending'] }}</p>
             </div>
         </div>
@@ -224,7 +224,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">APPROVED</p>
+                <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">APPROVED</p>
                 <p class="text-lg font-black text-emerald-600 leading-none mt-0.5">{{ $counts['approved'] }}</p>
             </div>
         </div>
@@ -239,7 +239,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">DECLINED</p>
+                <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">DECLINED</p>
                 <p class="text-lg font-black text-red-500 leading-none mt-0.5">{{ $counts['declined'] }}</p>
             </div>
         </div>
@@ -254,7 +254,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'pending' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>Pending</span>
-            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[0.625rem] {{ $statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['pending'] }}
             </span>
         </button>
@@ -266,7 +266,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'approved' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>Approved</span>
-            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[0.625rem] {{ $statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['approved'] }}
             </span>
         </button>
@@ -278,7 +278,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'declined' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>Declined</span>
-            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'declined' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[0.625rem] {{ $statusTab === 'declined' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['declined'] }}
             </span>
         </button>
@@ -290,7 +290,7 @@
             class="travel-tab-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-xs cursor-pointer {{ $statusTab === 'all' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}"
         >
             <span>All</span>
-            <span class="rounded-full px-1.5 py-px text-[10px] {{ $statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+            <span class="rounded-full px-1.5 py-px text-[0.625rem] {{ $statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
                 {{ $counts['total'] }}
             </span>
         </button>
@@ -352,15 +352,15 @@
                                 {{-- Reference / Trip No. --}}
                                 <td class="whitespace-nowrap px-3 py-3">
                                     @if ($item->trip_ticket_number)
-                                        <span class="inline-block rounded bg-emerald-50 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-800 ring-1 ring-emerald-200">
+                                        <span class="inline-block rounded bg-emerald-50 px-2 py-0.5 font-mono text-[0.6875rem] font-bold text-emerald-800 ring-1 ring-emerald-200">
                                             {{ $item->trip_ticket_number }}
                                         </span>
                                     @else
                                         <div>
-                                            <span class="inline-block rounded bg-indigo-50 px-2 py-0.5 font-mono text-[11px] font-bold text-indigo-700 ring-1 ring-indigo-200">
+                                            <span class="inline-block rounded bg-indigo-50 px-2 py-0.5 font-mono text-[0.6875rem] font-bold text-indigo-700 ring-1 ring-indigo-200">
                                                 {{ $item->reference_code }}
                                             </span>
-                                            <p class="text-[10px] text-slate-400 mt-0.5 font-medium">Pending approval</p>
+                                            <p class="text-[0.625rem] text-slate-400 mt-0.5 font-medium">Pending approval</p>
                                         </div>
                                     @endif
                                 </td>
@@ -368,7 +368,7 @@
                                 {{-- Plate & Travel Date --}}
                                 <td class="whitespace-nowrap px-3 py-3">
                                     <p class="font-extrabold text-slate-900">{{ $item->vehicle?->plate_number ?? '—' }}</p>
-                                    <p class="text-[11px] text-slate-500 font-medium">
+                                    <p class="text-[0.6875rem] text-slate-500 font-medium">
                                         {{ $item->travel_date->format('M d') }}
                                         @if($item->travel_date_end && $item->travel_date_end != $item->travel_date)
                                             - {{ $item->travel_date_end->format('d, Y') }}
@@ -400,14 +400,14 @@
                                             <span class="text-xs font-bold text-slate-900">{{ $assignedDriver->name }}</span>
                                         </div>
                                     @else
-                                        <span class="text-slate-400 italic text-[11px]">Unassigned</span>
+                                        <span class="text-slate-400 italic text-[0.6875rem]">Unassigned</span>
                                     @endif
                                 </td>
 
                                 {{-- Requester --}}
                                 <td class="whitespace-nowrap px-3 py-3">
                                     <p class="font-bold text-slate-900">{{ $item->requester_name }}</p>
-                                    <p class="text-[11px] text-slate-500">{{ $item->requester_office ?: $item->location }}</p>
+                                    <p class="text-[0.6875rem] text-slate-500">{{ $item->requester_office ?: $item->location }}</p>
                                 </td>
 
                                 {{-- Passengers --}}
@@ -428,19 +428,19 @@
                                                     <button
                                                         type="button"
                                                         onclick="document.getElementById('passengers-collapsed-{{ $item->id }}').classList.add('hidden'); document.getElementById('passengers-expanded-{{ $item->id }}').classList.remove('hidden');"
-                                                        class="font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer underline text-[11px] block mt-0.5"
+                                                        class="font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer underline text-[0.6875rem] block mt-0.5"
                                                     >
                                                         +{{ $pCount }} more
                                                     </button>
                                                 </div>
                                                 <div id="passengers-expanded-{{ $item->id }}" class="hidden mt-0.5 space-y-0.5">
                                                     @foreach ($passengerList as $pName)
-                                                        <p class="text-[11px] font-medium text-slate-700">&bull; {{ $pName }}</p>
+                                                        <p class="text-[0.6875rem] font-medium text-slate-700">&bull; {{ $pName }}</p>
                                                     @endforeach
                                                     <button
                                                         type="button"
                                                         onclick="document.getElementById('passengers-expanded-{{ $item->id }}').classList.add('hidden'); document.getElementById('passengers-collapsed-{{ $item->id }}').classList.remove('hidden');"
-                                                        class="font-bold text-slate-500 hover:text-slate-700 cursor-pointer underline text-[10px] block pt-0.5"
+                                                        class="font-bold text-slate-500 hover:text-slate-700 cursor-pointer underline text-[0.625rem] block pt-0.5"
                                                     >
                                                         Show less
                                                     </button>
@@ -448,7 +448,7 @@
                                             @endif
                                         </div>
                                     @else
-                                        <span class="text-slate-400 italic text-[11px]">None</span>
+                                        <span class="text-slate-400 italic text-[0.6875rem]">None</span>
                                     @endif
                                 </td>
 
@@ -473,19 +473,19 @@
                                                 <button
                                                     type="button"
                                                     onclick="document.getElementById('dest-collapsed-{{ $item->id }}').classList.add('hidden'); document.getElementById('dest-expanded-{{ $item->id }}').classList.remove('hidden');"
-                                                    class="font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer underline text-[11px] block mt-0.5"
+                                                    class="font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer underline text-[0.6875rem] block mt-0.5"
                                                 >
                                                     +{{ count($destRest) }} more
                                                 </button>
                                             </div>
                                             <div id="dest-expanded-{{ $item->id }}" class="hidden mt-0.5 space-y-0.5">
                                                 @foreach($destRest as $d)
-                                                    <p class="text-[11px] font-medium text-slate-700">&bull; {{ $d }}</p>
+                                                    <p class="text-[0.6875rem] font-medium text-slate-700">&bull; {{ $d }}</p>
                                                 @endforeach
                                                 <button
                                                     type="button"
                                                     onclick="document.getElementById('dest-expanded-{{ $item->id }}').classList.add('hidden'); document.getElementById('dest-collapsed-{{ $item->id }}').classList.remove('hidden');"
-                                                    class="font-bold text-slate-500 hover:text-slate-700 cursor-pointer underline text-[10px] block pt-0.5"
+                                                    class="font-bold text-slate-500 hover:text-slate-700 cursor-pointer underline text-[0.625rem] block pt-0.5"
                                                 >
                                                     Show less
                                                 </button>
@@ -502,15 +502,15 @@
                                 {{-- Status --}}
                                 <td class="whitespace-nowrap px-3 py-3">
                                     @if($item->status === 'approved')
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-800 uppercase tracking-wide">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-[0.625rem] font-extrabold text-emerald-800 uppercase tracking-wide">
                                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span> APPROVED
                                         </span>
                                     @elseif($item->status === 'declined')
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-red-100/80 px-2.5 py-0.5 text-[10px] font-extrabold text-red-800 uppercase tracking-wide">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-red-100/80 px-2.5 py-0.5 text-[0.625rem] font-extrabold text-red-800 uppercase tracking-wide">
                                             <span class="h-1.5 w-1.5 rounded-full bg-red-600"></span> DECLINED
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-100/90 px-2.5 py-0.5 text-[10px] font-extrabold text-amber-800 uppercase tracking-wide ring-1 ring-amber-300/50">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-100/90 px-2.5 py-0.5 text-[0.625rem] font-extrabold text-amber-800 uppercase tracking-wide ring-1 ring-amber-300/50">
                                             <span class="h-1.5 w-1.5 rounded-full bg-amber-600 animate-pulse"></span> PENDING
                                         </span>
                                     @endif
@@ -520,7 +520,7 @@
                                 <td class="whitespace-nowrap px-3 py-3 text-slate-600 font-medium">
                                     @if($item->approvedBy)
                                         <div class="flex items-center gap-1.5">
-                                            <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-[10px] font-bold text-white shadow-xs">
+                                            <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-[0.625rem] font-bold text-white shadow-xs">
                                                 {{ strtoupper(substr($item->approvedBy->name, 0, 1)) }}
                                             </div>
                                             <span class="text-xs font-bold text-slate-900">{{ $item->approvedBy->name }}</span>
@@ -573,7 +573,7 @@
                                             <button
                                                 type="button"
                                                 onclick='openReviewModal(@json($modalData))'
-                                                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                                                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.6875rem] font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
                                             >
                                                 View
                                             </button>
@@ -582,7 +582,7 @@
                                                     $isFutureTrip = $item->travel_date->isFuture() && !$item->travel_date->isToday();
                                                 @endphp
                                                 @if($isFutureTrip && !$item->completion)
-                                                    <span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-400 cursor-not-allowed" title="Trip scheduled on {{ $item->travel_date->format('M d, Y') }}. Part B can only be logged once trip starts or finishes.">
+                                                    <span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[0.6875rem] font-bold text-slate-400 cursor-not-allowed" title="Trip scheduled on {{ $item->travel_date->format('M d, Y') }}. Part B can only be logged once trip starts or finishes.">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                             <circle cx="12" cy="12" r="10"/>
                                                             <polyline points="12 6 12 12 16 14"/>
@@ -593,7 +593,7 @@
                                                     <button
                                                         type="button"
                                                         onclick='openTripCompletionModalFromRow(@json($modalData))'
-                                                        class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+                                                        class="inline-flex items-center gap-1 rounded-lg border {{ $item->completion ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100' }} px-2.5 py-1 text-[0.6875rem] font-bold transition cursor-pointer"
                                                         title="{{ $item->completion ? 'View or edit Part B Completion Log' : 'Log Trip Completion & Fuel Calculation (Part B)' }}"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -606,7 +606,7 @@
                                                 <a
                                                     href="{{ route('trip-ticket', $item) }}"
                                                     target="_blank"
-                                                    class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer"
+                                                    class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.6875rem] font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <polyline points="6 9 6 2 18 2 18 9"/>
@@ -680,7 +680,7 @@
                     </div>
                     <div>
                         <h3 id="trip-search-title" class="text-sm font-black text-slate-900">Post-Trip Log Lookup</h3>
-                        <p class="text-[11px] text-slate-500">Find an approved trip to log Part B</p>
+                        <p class="text-[0.6875rem] text-slate-500">Find an approved trip to log Part B</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeTripCompletionSearchModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none cursor-pointer">&times;</button>
@@ -721,7 +721,7 @@
                 <div id="lookup-preview-box" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 space-y-2">
                     <div class="flex items-center justify-between">
                         <span id="preview-ticket-badge" class="font-mono text-xs font-extrabold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded-md"></span>
-                        <span id="preview-status-badge" class="text-[10px] font-bold text-emerald-800"></span>
+                        <span id="preview-status-badge" class="text-[0.625rem] font-bold text-emerald-800"></span>
                     </div>
                     <div class="text-xs text-slate-700 space-y-0.5">
                         <p><span class="text-slate-500 font-medium">Vehicle:</span> <strong id="preview-vehicle-plate" class="text-slate-900"></strong> <span id="preview-vehicle-name" class="text-slate-500"></span></p>
@@ -729,7 +729,7 @@
                         <p><span class="text-slate-500 font-medium">Destination:</span> <span id="preview-destination" class="font-semibold text-slate-800"></span></p>
                         <p><span class="text-slate-500 font-medium">Travel Date:</span> <span id="preview-travel-date" class="text-slate-600"></span></p>
                     </div>
-                    <div id="preview-future-notice" class="hidden rounded-lg border border-amber-300 bg-amber-50 p-2 text-amber-900 text-[11px] font-semibold flex items-center gap-2">
+                    <div id="preview-future-notice" class="hidden rounded-lg border border-amber-300 bg-amber-50 p-2 text-amber-900 text-[0.6875rem] font-semibold flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 6 12 12 16 14"/>
@@ -766,7 +766,7 @@
                     </div>
                     <div>
                         <h3 id="trip-completion-title" class="text-sm font-black text-slate-900">Trip Ticket Completion (Part B: Driver's Record)</h3>
-                        <p class="text-[11px] text-slate-500">Auto-calculate distance, fuel used, and tank balances</p>
+                        <p class="text-[0.6875rem] text-slate-500">Auto-calculate distance, fuel used, and tank balances</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeTripCompletionModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
@@ -781,7 +781,7 @@
                 <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-3 flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">TRIP TICKET</span>
+                            <span class="text-[0.625rem] font-extrabold uppercase text-slate-400 tracking-wider">TRIP TICKET</span>
                             <span id="tc-ticket-number-badge" class="font-mono font-extrabold text-xs text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded"></span>
                         </div>
                         <p class="mt-1 text-xs text-slate-600">
@@ -790,7 +790,7 @@
                         </p>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Destination</span>
+                        <span class="text-[0.625rem] text-slate-400 uppercase font-bold block">Destination</span>
                         <span id="tc-destination-display" class="font-bold text-slate-800 truncate max-w-[200px] block"></span>
                     </div>
                 </div>
@@ -798,24 +798,24 @@
                 {{-- Section 1: Times --}}
                 <div class="rounded-xl border border-slate-200 p-3 space-y-2">
                     <h4 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
-                        <span class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-600">1</span>
+                        <span class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[0.625rem] font-black text-slate-600">1</span>
                         Trip Departure & Arrival Times
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">1. Time Departure for Office/Garage</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-600 mb-0.5">1. Time Departure for Office/Garage</label>
                             <input type="text" id="tc-dep-garage" name="departure_garage_time" placeholder="e.g. 5:15 am" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">2. Time Arrival at Destination</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-600 mb-0.5">2. Time Arrival at Destination</label>
                             <input type="text" id="tc-arr-dest" name="arrival_destination_time" placeholder="e.g. 9:35 am" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">3. Time Departure from Destination</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-600 mb-0.5">3. Time Departure from Destination</label>
                             <input type="text" id="tc-dep-dest" name="departure_destination_time" placeholder="e.g. 3:55 pm" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">4. Time Arrival Back at Garage</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-600 mb-0.5">4. Time Arrival Back at Garage</label>
                             <input type="text" id="tc-arr-garage" name="arrival_garage_time" placeholder="e.g. 7:40 pm" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                     </div>
@@ -825,15 +825,15 @@
                 <div class="rounded-xl border border-blue-200 bg-blue-50/40 p-3 space-y-2">
                     <div class="flex items-center justify-between">
                         <h4 class="font-extrabold text-blue-950 text-xs flex items-center gap-1.5">
-                            <span class="flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-[10px] font-black text-blue-800">2</span>
+                            <span class="flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-[0.625rem] font-black text-blue-800">2</span>
                             Speedometer Readings (Odometer)
                         </h4>
-                        <span class="text-[10px] font-bold text-blue-700">Auto-computes distance</span>
+                        <span class="text-[0.625rem] font-bold text-blue-700">Auto-computes distance</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">At Beginning of Trip</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">At Beginning of Trip</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
@@ -845,13 +845,13 @@
                                     placeholder="e.g. 267220"
                                     class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                 >
-                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                                     km
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">At End of Trip</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">At End of Trip</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
@@ -863,17 +863,17 @@
                                     placeholder="e.g. 267650"
                                     class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                 >
-                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                                     km
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-extrabold text-blue-900 mb-1">⚡ Distance Travelled</label>
+                            <label class="block text-[0.6875rem] font-extrabold text-blue-900 mb-1">⚡ Distance Travelled</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-emerald-50/40 overflow-hidden shadow-2xs">
                                 <span id="tc-calc-distance-display" class="w-full px-3 py-1.5 text-xs font-black text-emerald-950 truncate">0</span>
                                 <input type="hidden" id="tc-distance" name="distance_travelled" value="0">
-                                <span class="border-l border-emerald-200 bg-emerald-100/70 px-3 py-1.5 text-[11px] font-black text-emerald-800 select-none shrink-0">
+                                <span class="border-l border-emerald-200 bg-emerald-100/70 px-3 py-1.5 text-[0.6875rem] font-black text-emerald-800 select-none shrink-0">
                                     km
                                 </span>
                             </div>
@@ -885,15 +885,15 @@
                 <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-3 space-y-3">
                     <div class="flex items-center justify-between">
                         <h4 class="font-extrabold text-amber-950 text-xs flex items-center gap-1.5">
-                            <span class="flex h-4 w-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-black text-amber-900">3</span>
+                            <span class="flex h-4 w-4 items-center justify-center rounded-full bg-amber-200 text-[0.625rem] font-black text-amber-900">3</span>
                             Fuel Consumption Calculation
                         </h4>
-                        <span class="text-[10px] text-amber-800 font-semibold">(Distance &divide; Divisor = Liters Used)</span>
+                        <span class="text-[0.625rem] text-amber-800 font-semibold">(Distance &divide; Divisor = Liters Used)</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
                         <div>
-                            <label class="block text-[11px] font-bold text-amber-900 mb-1">
+                            <label class="block text-[0.6875rem] font-bold text-amber-900 mb-1">
                                 Fuel Divisor
                                 <span class="font-normal text-amber-700">(Admin input, e.g. 8)</span>
                             </label>
@@ -907,17 +907,17 @@
                                     placeholder="e.g. 8"
                                     class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-amber-950 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                 >
-                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                                     km/L
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-extrabold text-amber-950 mb-1">Deduct: Used During Trip</label>
+                            <label class="block text-[0.6875rem] font-extrabold text-amber-950 mb-1">Deduct: Used During Trip</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-amber-100/60 overflow-hidden shadow-2xs">
                                 <span id="tc-fuel-used-display" class="w-full px-3 py-1.5 text-xs font-black text-amber-950 truncate">0.00</span>
                                 <input type="hidden" id="tc-fuel-used" name="fuel_used_liters" value="0">
-                                <span class="border-l border-amber-200 bg-amber-200/70 px-3 py-1.5 text-[11px] font-black text-amber-900 select-none shrink-0">
+                                <span class="border-l border-amber-200 bg-amber-200/70 px-3 py-1.5 text-[0.6875rem] font-black text-amber-900 select-none shrink-0">
                                     L
                                 </span>
                             </div>
@@ -926,10 +926,10 @@
 
                     {{-- Fuel Tank Ledger --}}
                     <div class="pt-2 border-t border-amber-200/80 space-y-2">
-                        <p class="text-[11px] font-bold text-amber-900">Gasoline Accounting (Liters):</p>
+                        <p class="text-[0.6875rem] font-bold text-amber-900">Gasoline Accounting (Liters):</p>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div>
-                                <label class="block text-[10px] font-semibold text-slate-600 mb-1">a. Balance in tank</label>
+                                <label class="block text-[0.625rem] font-semibold text-slate-600 mb-1">a. Balance in tank</label>
                                 <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                     <input
                                         type="number"
@@ -940,13 +940,13 @@
                                         placeholder="e.g. 20.37"
                                         class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                     >
-                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[0.625rem] font-bold text-slate-500 select-none shrink-0">
                                         L
                                     </span>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-semibold text-slate-600 mb-1">b. Issued from stock</label>
+                                <label class="block text-[0.625rem] font-semibold text-slate-600 mb-1">b. Issued from stock</label>
                                 <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                     <input
                                         type="number"
@@ -957,13 +957,13 @@
                                         placeholder="e.g. 54.11"
                                         class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                     >
-                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[0.625rem] font-bold text-slate-500 select-none shrink-0">
                                         L
                                     </span>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-semibold text-slate-600 mb-1">c. Purchased during trip</label>
+                                <label class="block text-[0.625rem] font-semibold text-slate-600 mb-1">c. Purchased during trip</label>
                                 <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                     <input
                                         type="number"
@@ -974,7 +974,7 @@
                                         placeholder="e.g. 0.00"
                                         class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                     >
-                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                    <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[0.625rem] font-bold text-slate-500 select-none shrink-0">
                                         L
                                     </span>
                                 </div>
@@ -984,21 +984,21 @@
                         {{-- Total and Ending Balance Badges --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-600 mb-1">TOTAL LITERS (a+b+c)</label>
+                                <label class="block text-[0.625rem] font-bold text-slate-600 mb-1">TOTAL LITERS (a+b+c)</label>
                                 <div class="flex items-center rounded-full border border-emerald-500 bg-slate-50 overflow-hidden shadow-2xs">
                                     <span id="tc-fuel-total-display" class="w-full px-3 py-1.5 text-xs font-black text-slate-900 truncate">0.00</span>
                                     <input type="hidden" id="tc-fuel-total" name="fuel_total_liters" value="0">
-                                    <span class="border-l border-slate-200 bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600 select-none shrink-0">
+                                    <span class="border-l border-slate-200 bg-slate-100 px-3 py-1.5 text-[0.625rem] font-black text-slate-600 select-none shrink-0">
                                         L
                                     </span>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-extrabold text-emerald-900 mb-1">e. ENDING BALANCE IN TANK</label>
+                                <label class="block text-[0.625rem] font-extrabold text-emerald-900 mb-1">e. ENDING BALANCE IN TANK</label>
                                 <div class="flex items-center rounded-full border border-emerald-500 bg-emerald-50/70 overflow-hidden shadow-2xs">
                                     <span id="tc-fuel-end-display" class="w-full px-3 py-1.5 text-xs font-black text-emerald-950 truncate">0.00</span>
                                     <input type="hidden" id="tc-fuel-end" name="fuel_ending_balance" value="0">
-                                    <span class="border-l border-emerald-200 bg-emerald-100 px-3 py-1.5 text-[10px] font-black text-emerald-900 select-none shrink-0">
+                                    <span class="border-l border-emerald-200 bg-emerald-100 px-3 py-1.5 text-[0.625rem] font-black text-emerald-900 select-none shrink-0">
                                         L
                                     </span>
                                 </div>
@@ -1010,12 +1010,12 @@
                 {{-- Section 4: Other consumables & Remarks --}}
                 <div class="rounded-xl border border-slate-200 p-3 space-y-2.5">
                     <h4 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
-                        <span class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-600">4</span>
+                        <span class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[0.625rem] font-black text-slate-600">4</span>
                         Other Consumables & Remarks (Optional)
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div>
-                            <label class="block text-[10px] font-semibold text-slate-600 mb-1">7. Gear Oil</label>
+                            <label class="block text-[0.625rem] font-semibold text-slate-600 mb-1">7. Gear Oil</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
@@ -1025,13 +1025,13 @@
                                     placeholder="e.g. 0.00"
                                     class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                 >
-                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[0.625rem] font-bold text-slate-500 select-none shrink-0">
                                     L
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-slate-600 mb-1">8. Lub Oil</label>
+                            <label class="block text-[0.625rem] font-semibold text-slate-600 mb-1">8. Lub Oil</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
@@ -1041,13 +1041,13 @@
                                     placeholder="e.g. 0.00"
                                     class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                 >
-                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[0.625rem] font-bold text-slate-500 select-none shrink-0">
                                     L
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-semibold text-slate-600 mb-1">9. Grease</label>
+                            <label class="block text-[0.625rem] font-semibold text-slate-600 mb-1">9. Grease</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <input
                                     type="number"
@@ -1057,7 +1057,7 @@
                                     placeholder="e.g. 0.00"
                                     class="w-full bg-transparent px-3 py-1 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                                 >
-                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1 text-[0.625rem] font-bold text-slate-500 select-none shrink-0">
                                     L
                                 </span>
                             </div>
@@ -1065,7 +1065,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">11. Remarks</label>
+                        <label class="block text-[0.625rem] font-semibold text-slate-600 mb-0.5">11. Remarks</label>
                         <textarea id="tc-remarks" name="remarks" rows="2" placeholder="Any trip remarks or notes..." class="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"></textarea>
                     </div>
                 </div>
@@ -1110,13 +1110,13 @@
                 <div class="rounded-xl border border-blue-200 bg-blue-50/70 p-2.5">
                     <div class="flex items-center justify-between gap-2">
                         <div>
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-blue-600">REQUEST REFERENCE CODE</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-blue-600">REQUEST REFERENCE CODE</p>
                             <p class="text-sm font-black font-mono tracking-widest text-slate-900 leading-tight mt-0.5" id="modal-ref-code"></p>
                         </div>
                         <button
                             type="button"
                             onclick="copyModalCode()"
-                            class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[0.6875rem] font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
@@ -1125,7 +1125,7 @@
                             <span id="modal-copy-btn-txt">Copy Code</span>
                         </button>
                     </div>
-                    <p class="text-[10px] text-slate-500 mt-1">The requester can use this code to check or ask about this pending request.</p>
+                    <p class="text-[0.625rem] text-slate-500 mt-1">The requester can use this code to check or ask about this pending request.</p>
                 </div>
 
                 {{-- Key-Value Details List with Icons (Compact) --}}
@@ -1137,8 +1137,8 @@
                             <circle cx="12" cy="7" r="4"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">REQUESTER</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-requester"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">REQUESTER</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-requester"></p>
                         </div>
                     </div>
 
@@ -1149,8 +1149,8 @@
                             <path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">TRIP TICKET NO.</p>
-                            <p class="font-bold font-mono text-emerald-700 text-[11px] leading-snug tracking-wide" id="modal-detail-trip-ticket"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">TRIP TICKET NO.</p>
+                            <p class="font-bold font-mono text-emerald-700 text-[0.6875rem] leading-snug tracking-wide" id="modal-detail-trip-ticket"></p>
                         </div>
                     </div>
 
@@ -1163,8 +1163,8 @@
                             <path d="M2 12h20"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">LOCATION</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-location"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">LOCATION</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-location"></p>
                         </div>
                     </div>
 
@@ -1177,8 +1177,8 @@
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">RIDING ALONG</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-riding"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">RIDING ALONG</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-riding"></p>
                         </div>
                     </div>
 
@@ -1194,8 +1194,8 @@
                             <path d="M10 18h4"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">OFFICE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-office"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">OFFICE</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-office"></p>
                         </div>
                     </div>
 
@@ -1205,8 +1205,8 @@
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">CONTACT</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-contact"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">CONTACT</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-contact"></p>
                         </div>
                     </div>
 
@@ -1219,8 +1219,8 @@
                             <circle cx="17" cy="17" r="2"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">VEHICLE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-vehicle"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">VEHICLE</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-vehicle"></p>
                         </div>
                     </div>
 
@@ -1231,8 +1231,8 @@
                             <circle cx="12" cy="10" r="3"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">DESTINATION</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-destination"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">DESTINATION</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-destination"></p>
                         </div>
                     </div>
 
@@ -1245,8 +1245,8 @@
                             <line x1="3" y1="10" x2="21" y2="10"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">TRAVEL DATE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-travel-date"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">TRAVEL DATE</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-travel-date"></p>
                         </div>
                     </div>
 
@@ -1259,8 +1259,8 @@
                             <line x1="16" y1="17" x2="8" y2="17"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">PURPOSE</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-purpose"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">PURPOSE</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-purpose"></p>
                         </div>
                     </div>
 
@@ -1273,8 +1273,8 @@
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">PASSENGERS</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-passengers"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">PASSENGERS</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-passengers"></p>
                         </div>
                         </div>
                     </div>
@@ -1286,8 +1286,8 @@
                             <path d="m9 12 2 2 4-4"/>
                         </svg>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">APPROVED BY</p>
-                            <p class="font-bold text-slate-900 text-[11px] leading-snug break-words whitespace-pre-line" id="modal-detail-approved-by"></p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400">APPROVED BY</p>
+                            <p class="font-bold text-slate-900 text-[0.6875rem] leading-snug break-words whitespace-pre-line" id="modal-detail-approved-by"></p>
                         </div>
                     </div>
                 </div>
@@ -1296,7 +1296,7 @@
                 <div id="modal-action-section" class="pt-2 border-t border-gray-100 space-y-2.5">
 
                     {{-- Status Banner (approved / declined) --}}
-                    <div id="modal-status-banner" class="hidden rounded-xl px-3 py-2 text-[11px] font-semibold">
+                    <div id="modal-status-banner" class="hidden rounded-xl px-3 py-2 text-[0.6875rem] font-semibold">
                         <span id="modal-status-banner-text"></span>
                     </div>
 
@@ -1309,7 +1309,7 @@
 
                             {{-- Driver Availability Selection (only when the vehicle has a default driver) --}}
                             <div id="driver-availability-block">
-                                <p class="text-[11px] font-bold text-slate-800 mb-1.5">
+                                <p class="text-[0.6875rem] font-bold text-slate-800 mb-1.5">
                                     Is <span id="modal-driver-name" class="font-extrabold"></span> available for this trip?
                                 </p>
                                 <div class="grid grid-cols-2 gap-2">
@@ -1317,7 +1317,7 @@
                                         type="button"
                                         id="driver-avail-yes-btn"
                                         onclick="setDriverAvailability(true)"
-                                        class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                        class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[0.6875rem] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
                                     >
                                         Yes, available
                                     </button>
@@ -1325,7 +1325,7 @@
                                         type="button"
                                         id="driver-avail-no-btn"
                                         onclick="setDriverAvailability(false)"
-                                        class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                                        class="rounded-xl border border-gray-200 bg-white py-2 px-2.5 text-[0.6875rem] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
                                     >
                                         Not available
                                     </button>
@@ -1334,19 +1334,19 @@
 
                             {{-- Dropdown for selecting alternative driver when needed --}}
                             <div id="modal-driver-select-container" class="hidden">
-                                <label id="modal-driver-select-label" class="block text-[11px] font-bold text-slate-700 mb-1">Select Driver</label>
+                                <label id="modal-driver-select-label" class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Select Driver</label>
                                 <select name="confirmed_driver_id" id="modal-driver-select" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                     <option value="">Select Driver</option>
                                     @foreach($drivers as $driver)
                                         <option value="{{ $driver->id }}" data-location="{{ $driver->location }}">{{ $driver->name }} ({{ $driver->location ?: 'No location' }})</option>
                                     @endforeach
                                 </select>
-                                <p id="modal-driver-error" class="mt-1 hidden text-[11px] font-semibold text-red-600"></p>
+                                <p id="modal-driver-error" class="mt-1 hidden text-[0.6875rem] font-semibold text-red-600"></p>
                             </div>
 
                             {{-- Decline Reason Container --}}
                             <div id="modal-decline-reason-container" class="hidden">
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Reason for Declining</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Reason for Declining</label>
                                 <textarea name="decline_reason" rows="2" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="State reason..."></textarea>
                             </div>
 
@@ -1405,8 +1405,8 @@
                         {{-- Change Driver Expandable Section --}}
                         <div id="modal-change-driver-section" class="hidden rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-2">
                             <div>
-                                <p class="text-[11px] font-extrabold text-slate-800">Update Assigned Driver</p>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Select driver for this trip</p>
+                                <p class="text-[0.6875rem] font-extrabold text-slate-800">Update Assigned Driver</p>
+                                <p class="text-[0.625rem] text-slate-500 mt-0.5">Select driver for this trip</p>
                             </div>
                             <form id="change-driver-form" method="POST" action="" class="space-y-2">
                                 @csrf
@@ -1451,7 +1451,7 @@
                         <p class="text-xs font-semibold text-slate-800">
                             Are you sure you want to approve this travel request for <strong id="confirm-modal-requester" class="font-extrabold text-slate-900"></strong>?
                         </p>
-                        <div class="mt-2 space-y-0.5 text-[11px] text-slate-600 font-medium">
+                        <div class="mt-2 space-y-0.5 text-[0.6875rem] text-slate-600 font-medium">
                             <p>&bull; Vehicle: <span id="confirm-modal-vehicle" class="font-bold text-slate-800"></span></p>
                             <p>&bull; Destination: <span id="confirm-modal-destination" class="font-bold text-slate-800"></span></p>
                             <p>&bull; Assigned Driver: <span id="confirm-modal-driver" class="font-bold text-slate-800"></span></p>
@@ -1532,13 +1532,13 @@
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Requester Full Name <span class="text-red-500">*</span></label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Requester Full Name <span class="text-red-500">*</span></label>
                             <input type="text" name="requester_name" value="{{ old('requester_name') }}" required placeholder="e.g. Juan Dela Cruz" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
 
                         {{-- Searchable Office / Division / Section Dropdown --}}
                         <div class="relative" id="admin-office-dropdown-container">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Office / Division / Section</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Office / Division / Section</label>
 
                             {{-- Hidden input submitted with form --}}
                             <input type="hidden" name="requester_office" id="admin-requester-office-input" value="{{ old('requester_office') }}">
@@ -1661,7 +1661,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
                             <input type="text" name="requester_contact" value="{{ old('requester_contact') }}" required placeholder="09XXXXXXXXX (11 digits)" pattern="^09\d{9}$" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
 
@@ -1685,7 +1685,7 @@
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Pick-up Location / Station <span class="text-red-500">*</span></label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Pick-up Location / Station <span class="text-red-500">*</span></label>
                             @php
                                 $currentUser = auth()->user();
                                 $isSuperAdmin = $currentUser?->role?->value === 'super_admin';
@@ -1705,7 +1705,7 @@
 
                         {{-- Searchable Destination Dropdown with Distance Badges --}}
                         <div class="relative" id="admin-dest-dropdown-container">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Destination <span class="text-red-500">*</span></label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Destination <span class="text-red-500">*</span></label>
                             
                             {{-- Hidden inputs submitted with form --}}
                             <input type="hidden" name="destination" id="admin-dest-name-input" value="{{ old('destination') }}" required>
@@ -1751,7 +1751,7 @@
                                             class="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
                                         >
                                     </div>
-                                    <p class="text-[10px] text-slate-400 mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
+                                    <p class="text-[0.625rem] text-slate-400 mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
                                 </div>
 
                                 {{-- Custom Add Option (Shown when typing) --}}
@@ -1767,7 +1767,7 @@
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Purpose of Travel <span class="text-red-500">*</span></label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Purpose of Travel <span class="text-red-500">*</span></label>
                             <textarea name="purpose" rows="2" required placeholder="State official purpose or mission of travel..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">{{ old('purpose') }}</textarea>
                         </div>
                     </div>
@@ -1781,16 +1781,16 @@
                         </svg>
                         Travel Dates & Schedule Availability
                     </h4>
-                    <p class="text-[11px] text-slate-500 mb-3">Click on the calendar to select travel dates, then pick an available vehicle below.</p>
+                    <p class="text-[0.6875rem] text-slate-500 mb-3">Click on the calendar to select travel dates, then pick an available vehicle below.</p>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mb-3">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Travel Date (From) <span class="text-red-500">*</span></label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Travel Date (From) <span class="text-red-500">*</span></label>
                             <input type="date" name="travel_date" id="manual-req-travel-date" value="{{ old('travel_date', now()->format('Y-m-d')) }}" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Travel Date (To) <span class="text-red-500">*</span></label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Travel Date (To) <span class="text-red-500">*</span></label>
                             <input type="date" name="travel_date_end" id="manual-req-travel-date-end" value="{{ old('travel_date_end', now()->format('Y-m-d')) }}" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                     </div>
@@ -1804,19 +1804,19 @@
                         </div>
                         <div class="grid grid-cols-7 gap-1 text-center">
                             @foreach(['S','M','T','W','T','F','S'] as $d)
-                                <div class="py-0.5 text-[10px] font-extrabold text-slate-400">{{ $d }}</div>
+                                <div class="py-0.5 text-[0.625rem] font-extrabold text-slate-400">{{ $d }}</div>
                             @endforeach
                         </div>
                         <div id="manual-cal-grid" class="grid grid-cols-7 gap-1 text-center mt-1"></div>
                         
-                        <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2 text-[10px] font-semibold text-slate-600">
+                        <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2 text-[0.625rem] font-semibold text-slate-600">
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                                 <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm border border-slate-300 bg-white"></span> Available</span>
                                 <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm bg-emerald-600"></span> Approved Trip</span>
                                 <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm bg-amber-500"></span> Pending Request</span>
                                 <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm bg-red-600"></span> Maintenance</span>
                             </div>
-                            <span class="text-[10px] text-slate-400">Click same date twice for 1-day trip</span>
+                            <span class="text-[0.625rem] text-slate-400">Click same date twice for 1-day trip</span>
                         </div>
                     </div>
                 </div>
@@ -1839,13 +1839,13 @@
                     {{-- Driver Assignment Dropdown --}}
                     <div class="mt-4 pt-3 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="sm:col-span-2">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                            <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">
                                 Designated Driver <span class="text-red-500">*</span>
                             </label>
                             <select name="confirmed_driver_id" id="manual-req-driver" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                 <option value="">— Select Driver —</option>
                             </select>
-                            <p class="mt-1 text-[10.5px] text-slate-500">
+                            <p class="mt-1 text-[0.65625rem] text-slate-500">
                                 Automatically set to the chosen vehicle's default driver. You can change this if designating a substitute driver.
                             </p>
                         </div>
@@ -1872,12 +1872,12 @@
                             </svg>
                             Other Authorized Passengers
                         </h4>
-                        <button type="button" onclick="addManualPassengerRow()" class="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer">
+                        <button type="button" onclick="addManualPassengerRow()" class="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[0.6875rem] font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                             Add Passenger
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-500 mb-2">List any staff traveling with the team.</p>
+                    <p class="text-[0.6875rem] text-slate-500 mb-2">List any staff traveling with the team.</p>
 
                     <div id="manual-passengers-container" class="space-y-2"></div>
                 </div>
@@ -1915,13 +1915,13 @@
                 </span>
                 <div>
                     <h3 id="manual-confirm-title" class="text-sm font-black text-slate-900 tracking-tight">Confirm Trip Ticket Creation</h3>
-                    <p class="text-[11px] text-amber-700 font-medium mt-0.5">This action will immediately create and approve an official trip ticket.</p>
+                    <p class="text-[0.6875rem] text-amber-700 font-medium mt-0.5">This action will immediately create and approve an official trip ticket.</p>
                 </div>
             </div>
 
             {{-- Summary Body --}}
             <div class="px-5 py-4 space-y-3">
-                <p class="text-[11px] text-slate-500">Please review the details below before proceeding. <strong class="text-slate-700">This action cannot be undone.</strong></p>
+                <p class="text-[0.6875rem] text-slate-500">Please review the details below before proceeding. <strong class="text-slate-700">This action cannot be undone.</strong></p>
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 divide-y divide-slate-100 text-xs overflow-hidden">
                     <div class="flex items-start gap-2 px-3 py-2.5">
@@ -2061,7 +2061,7 @@
                 const title = info ? `${info.busy} request(s) · ${info.worst.toUpperCase()}` : 'No requests yet';
 
                 html += `
-                    <button type="button" onclick="onManualCalDateClick('${key}')" title="${title}" class="h-7 w-full rounded-md text-[11px] flex items-center justify-center transition cursor-pointer hover:opacity-90 ${borderClass}" style="background-color:${bg};color:${color};${outlineStyle}">
+                    <button type="button" onclick="onManualCalDateClick('${key}')" title="${title}" class="h-7 w-full rounded-md text-[0.6875rem] flex items-center justify-center transition cursor-pointer hover:opacity-90 ${borderClass}" style="background-color:${bg};color:${color};${outlineStyle}">
                         ${day}
                     </button>
                 `;
@@ -2135,13 +2135,13 @@
                 
                 let statusBadge = '';
                 if (c.maintenance) {
-                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">⛔ Maintenance: ${fmtRange(c.maintenance.start, c.maintenance.end)}</span>`;
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-red-100 px-1.5 py-0.5 text-[0.625rem] font-bold text-red-700">⛔ Maintenance: ${fmtRange(c.maintenance.start, c.maintenance.end)}</span>`;
                 } else if (c.approved) {
-                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">⚠ Approved Trip: ${fmtRange(c.approved.start, c.approved.end)}</span>`;
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-red-100 px-1.5 py-0.5 text-[0.625rem] font-bold text-red-700">⚠ Approved Trip: ${fmtRange(c.approved.start, c.approved.end)}</span>`;
                 } else if (c.pending) {
-                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">⚠ Pending Request: ${fmtRange(c.pending.start, c.pending.end)}</span>`;
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-[0.625rem] font-bold text-amber-800">⚠ Pending Request: ${fmtRange(c.pending.start, c.pending.end)}</span>`;
                 } else {
-                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">✓ Available</span>`;
+                    statusBadge = `<span class="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[0.625rem] font-bold text-emerald-800">✓ Available</span>`;
                 }
 
                 const borderClass = isSelected 
@@ -2155,7 +2155,7 @@
                 const driverInitial = esc((v.driver || '?').trim().charAt(0).toUpperCase());
                 const avatarHtml = v.driver_photo 
                     ? `<img src="${esc(v.driver_photo)}" alt="${esc(v.driver)}" class="h-5 w-5 rounded-full object-cover">`
-                    : `<span class="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-700">${driverInitial}</span>`;
+                    : `<span class="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[0.625rem] font-bold text-slate-700">${driverInitial}</span>`;
 
                 return `
                     <div onclick="selectManualVehicle(${v.id}, ${v.driver_id || 'null'})" class="relative flex flex-col justify-between rounded-xl border-2 p-3 transition cursor-pointer ${borderClass}">
@@ -2165,7 +2165,7 @@
                                 ${avatarHtml}
                                 <span class="truncate text-xs font-bold text-slate-800" title="${esc(v.driver || 'No assigned driver')}">${esc(v.driver || 'No assigned driver')}</span>
                             </div>
-                            ${isSelected ? '<span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-extrabold text-white shrink-0">✓ Selected</span>' : ''}
+                            ${isSelected ? '<span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[0.625rem] font-extrabold text-white shrink-0">✓ Selected</span>' : ''}
                         </div>
 
                         {{-- Body: Vehicle Photo (left) + Brand/Model & Larger Plate Number (right) --}}
@@ -2175,7 +2175,7 @@
                             </div>
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm font-black tracking-wide text-slate-900">${esc(v.plate)}</p>
-                                <p class="text-[11px] font-semibold text-slate-500 truncate mt-0.5" title="${esc(v.name)}">${esc(v.name)}</p>
+                                <p class="text-[0.6875rem] font-semibold text-slate-500 truncate mt-0.5" title="${esc(v.name)}">${esc(v.name)}</p>
                             </div>
                         </div>
 
@@ -2443,9 +2443,9 @@
                 if (data.approved_by_name) parts.push('Approver: ' + data.approved_by_name);
                 bannerText.textContent = parts.join(' · ');
                 if (data.status === 'approved') {
-                    banner.className = 'rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800';
+                    banner.className = 'rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.6875rem] font-semibold text-emerald-800';
                 } else {
-                    banner.className = 'rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-800';
+                    banner.className = 'rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[0.6875rem] font-semibold text-red-800';
                 }
                 banner.classList.remove('hidden');
             } else {
@@ -2781,7 +2781,7 @@
                             </span>
                             <span>${esc(d.name)}</span>
                         </div>
-                        <span class="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shrink-0">
+                        <span class="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-700 shrink-0">
                             ${esc(d.distance_km)} kms
                         </span>
                     </div>
@@ -2906,7 +2906,7 @@
                     customAddItem.innerHTML = `
                         <div onclick="addAdminCustomDest(${queryArg})" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition">
                             <span class="truncate">➕ Add custom: "${esc(query)}"</span>
-                            <span class="text-[10px] text-emerald-600 font-semibold shrink-0">Press Enter</span>
+                            <span class="text-[0.625rem] text-emerald-600 font-semibold shrink-0">Press Enter</span>
                         </div>
                     `;
                     customAddItem.classList.remove('hidden');
@@ -3189,7 +3189,7 @@
                 const list = data.suggestions || [];
 
                 if (list.length === 0) {
-                    box.innerHTML = `<div class="p-2.5 text-center text-[11px] text-slate-400 font-medium">No approved trip tickets found matching "${esc(query)}"</div>`;
+                    box.innerHTML = `<div class="p-2.5 text-center text-[0.6875rem] text-slate-400 font-medium">No approved trip tickets found matching "${esc(query)}"</div>`;
                     box.classList.remove('hidden');
                     return;
                 }
@@ -3206,15 +3206,15 @@
                         <div class="min-w-0 pr-2">
                             <div class="flex items-center gap-1.5">
                                 <span class="font-mono text-xs font-black text-emerald-900 bg-emerald-100 px-1.5 py-px rounded">${esc(item.trip_ticket_number || item.reference_code)}</span>
-                                <span class="text-[11px] font-bold text-slate-800 truncate">${esc(item.requester_name)}</span>
+                                <span class="text-[0.6875rem] font-bold text-slate-800 truncate">${esc(item.requester_name)}</span>
                             </div>
-                            <p class="text-[10px] text-slate-500 mt-0.5 truncate">
+                            <p class="text-[0.625rem] text-slate-500 mt-0.5 truncate">
                                 ${item.vehicle_plate ? `🚗 ${esc(item.vehicle_plate)}` : ''}
                                 ${item.destination ? ` &bull; 📍 ${esc(formatDestinations(item.destination))}` : ''}
                             </p>
                         </div>
                         <div class="shrink-0 text-right">
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ${item.has_completion ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}">
+                            <span class="text-[0.5625rem] font-bold px-1.5 py-0.5 rounded-full ${item.has_completion ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}">
                                 ${item.has_completion ? 'Logged' : 'Ready'}
                             </span>
                         </div>
@@ -3239,7 +3239,7 @@
 
             if (trip.is_future) {
                 statusBadge.textContent = 'Scheduled / Upcoming';
-                statusBadge.className = 'text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full';
+                statusBadge.className = 'text-[0.625rem] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full';
                 futureNotice.classList.remove('hidden');
                 openBtn.disabled = true;
                 openBtn.classList.remove('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');
@@ -3247,7 +3247,7 @@
                 openBtn.textContent = 'Trip Not Yet Completed';
             } else {
                 statusBadge.textContent = trip.has_completion ? '✓ Part B Already Logged' : 'Ready to Complete';
-                statusBadge.className = 'text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
+                statusBadge.className = 'text-[0.625rem] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full';
                 futureNotice.classList.add('hidden');
                 openBtn.disabled = false;
                 openBtn.classList.add('bg-emerald-800', 'hover:bg-emerald-900', 'cursor-pointer');

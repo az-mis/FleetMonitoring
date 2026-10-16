@@ -409,7 +409,7 @@
 
                         <div class="mt-1.5 flex items-center gap-2">
                             <input type="file" name="avatar" id="edit-driver-avatar" accept="image/png,image/jpeg,image/webp" class="peer sr-only" onchange="previewEditDriverAvatarFile(this)">
-                            <label for="edit-driver-avatar" class="inline-flex cursor-pointer items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-1">
+                            <label for="edit-driver-avatar" class="inline-flex cursor-pointer items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-emerald-700 hover:bg-emerald-100 transition peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 peer-focus-visible:ring-offset-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
                                     <circle cx="12" cy="13" r="3"/>
@@ -420,7 +420,7 @@
                                 type="button"
                                 id="edit-driver-avatar-remove-btn"
                                 onclick="removeEditDriverAvatar()"
-                                class="hidden items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition"
+                                class="hidden items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-red-600 hover:bg-red-100 transition"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M3 6h18"/>
@@ -432,7 +432,7 @@
                         </div>
                         @if (old('_driver_form') === 'edit')
                             @error('avatar')
-                                <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
@@ -440,7 +440,7 @@
                     {{-- Full Name & Email --}}
                     <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                         <div>
-                            <label for="edit-driver-name" class="block text-[11px] font-bold text-gray-700">Full Name <span class="text-red-500">*</span></label>
+                            <label for="edit-driver-name" class="block text-[0.6875rem] font-bold text-gray-700">Full Name <span class="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="name"
@@ -451,13 +451,13 @@
                             >
                             @if (old('_driver_form') === 'edit')
                                 @error('name')
-                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                    <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                                 @enderror
                             @endif
                         </div>
 
                         <div>
-                            <label for="edit-driver-email" class="block text-[11px] font-bold text-gray-700">Email <span class="text-red-500">*</span></label>
+                            <label for="edit-driver-email" class="block text-[0.6875rem] font-bold text-gray-700">Email <span class="text-red-500">*</span></label>
                             <input
                                 type="email"
                                 name="email"
@@ -472,7 +472,7 @@
 
                     {{-- Assigned Location / Office Province --}}
                     <div>
-                        <label for="edit-driver-location" class="block text-[11px] font-bold text-gray-700">Assigned Location / Office Province</label>
+                        <label for="edit-driver-location" class="block text-[0.6875rem] font-bold text-gray-700">Assigned Location / Office Province</label>
                         <select
                             name="location"
                             id="edit-driver-location"
@@ -485,7 +485,7 @@
                         </select>
                         @if (old('_driver_form') === 'edit')
                             @error('location')
-                                <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
@@ -493,7 +493,7 @@
                     {{-- Birth Date & License No. --}}
                     <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                         <div>
-                            <label for="edit-driver-birth-date" class="block text-[11px] font-bold text-gray-700">Birth Date</label>
+                            <label for="edit-driver-birth-date" class="block text-[0.6875rem] font-bold text-gray-700">Birth Date</label>
                             <input
                                 type="date"
                                 name="birth_date"
@@ -503,12 +503,12 @@
                             >
                             @if (old('_driver_form') === 'edit')
                                 @error('birth_date')
-                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                    <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                                 @enderror
                             @endif
                         </div>
                         <div>
-                            <label for="edit-driver-license-no" class="block text-[11px] font-bold text-gray-700">License No. <span class="text-red-500">*</span></label>
+                            <label for="edit-driver-license-no" class="block text-[0.6875rem] font-bold text-gray-700">License No. <span class="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="license_number"
@@ -520,7 +520,7 @@
                             >
                             @if (old('_driver_form') === 'edit')
                                 @error('license_number')
-                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                    <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                                 @enderror
                             @endif
                         </div>
@@ -529,7 +529,7 @@
                     {{-- License Expiration & Phone Number --}}
                     <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                         <div>
-                            <label for="edit-driver-license-expiration" class="block text-[11px] font-bold text-gray-700">License Expiration <span class="text-red-500">*</span></label>
+                            <label for="edit-driver-license-expiration" class="block text-[0.6875rem] font-bold text-gray-700">License Expiration <span class="text-red-500">*</span></label>
                             <input
                                 type="date"
                                 name="license_expiration_date"
@@ -540,12 +540,12 @@
                             >
                             @if (old('_driver_form') === 'edit')
                                 @error('license_expiration_date')
-                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                    <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                                 @enderror
                             @endif
                         </div>
                         <div>
-                            <label for="edit-driver-phone" class="block text-[11px] font-bold text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+                            <label for="edit-driver-phone" class="block text-[0.6875rem] font-bold text-gray-700">Phone Number <span class="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="phone_number"
@@ -561,7 +561,7 @@
                             >
                             @if (old('_driver_form') === 'edit')
                                 @error('phone_number')
-                                    <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                    <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                                 @enderror
                             @endif
                         </div>
@@ -569,7 +569,7 @@
 
                     {{-- Address --}}
                     <div>
-                        <label for="edit-driver-address" class="block text-[11px] font-bold text-gray-700">Address</label>
+                        <label for="edit-driver-address" class="block text-[0.6875rem] font-bold text-gray-700">Address</label>
                         <input
                             type="text"
                             name="address"
@@ -580,14 +580,14 @@
                         >
                         @if (old('_driver_form') === 'edit')
                             @error('address')
-                                <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
 
                     {{-- Change Password (Optional) with Eye Toggle --}}
                     <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 space-y-2">
-                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-[11px]">
+                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-[0.6875rem]">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -596,7 +596,7 @@
                         </div>
                         <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <div>
-                                <label for="edit-driver-password" class="block text-[10px] font-semibold text-gray-600">New Password</label>
+                                <label for="edit-driver-password" class="block text-[0.625rem] font-semibold text-gray-600">New Password</label>
                                 <div class="relative mt-0.5">
                                     <input
                                         type="password"
@@ -619,12 +619,12 @@
                                 </div>
                                 @if (old('_driver_form') === 'edit')
                                     @error('password')
-                                        <p class="mt-0.5 text-[10px] text-red-600">{{ $message }}</p>
+                                        <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
                                     @enderror
                                 @endif
                             </div>
                             <div>
-                                <label for="edit-driver-password-confirm" class="block text-[10px] font-semibold text-gray-600">Confirm New Password</label>
+                                <label for="edit-driver-password-confirm" class="block text-[0.625rem] font-semibold text-gray-600">Confirm New Password</label>
                                 <div class="relative mt-0.5">
                                     <input
                                         type="password"

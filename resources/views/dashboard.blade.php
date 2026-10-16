@@ -98,7 +98,7 @@
                 </div>
                 <div>
                     <p class="font-extrabold text-amber-950 text-xs">Announcement</p>
-                    <p class="text-[11px] text-amber-800 leading-tight">{{ $announcement['message'] }}</p>
+                    <p class="text-[0.6875rem] text-amber-800 leading-tight">{{ $announcement['message'] }}</p>
                 </div>
             </div>
         @endif
@@ -107,7 +107,7 @@
         <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
                 <h1 class="text-lg font-black tracking-tight text-slate-900">Welcome back, {{ $user?->name }}</h1>
-                <p class="text-[11px] text-slate-500">{{ $greeting }}<span class="mx-1.5">•</span>Signed in as <strong class="font-bold text-slate-700">{{ $user?->role?->label() ?? 'User' }}</strong><span class="mx-1.5">•</span>{{ now()->format('l, F j, Y') }}</p>
+                <p class="text-[0.6875rem] text-slate-500">{{ $greeting }}<span class="mx-1.5">•</span>Signed in as <strong class="font-bold text-slate-700">{{ $user?->role?->label() ?? 'User' }}</strong><span class="mx-1.5">•</span>{{ now()->format('l, F j, Y') }}</p>
             </div>
             @if($isSuperAdmin)
                 {{-- Location filter (Super Admin - Compact) --}}
@@ -175,7 +175,7 @@
                 <section x-show="alerts.length > 0" class="rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
                     <div class="mb-2 flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Needs Attention</h3>
-                        <span class="text-[9px] text-gray-400">Updated <span x-text="lastUpdatedLabel"></span></span>
+                        <span class="text-[0.5625rem] text-gray-400">Updated <span x-text="lastUpdatedLabel"></span></span>
                     </div>
                     <div class="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
                         <template x-for="alert in alerts" :key="alert.key">
@@ -193,8 +193,8 @@
                                        'text-gray-700': alert.severity === 'low',
                                    }"
                                    x-text="alert.value"></p>
-                                <p class="text-[10px] font-bold text-gray-800 truncate" x-text="alert.label"></p>
-                                <p class="text-[9px] text-gray-500 truncate" x-text="alert.detail" x-show="alert.detail"></p>
+                                <p class="text-[0.625rem] font-bold text-gray-800 truncate" x-text="alert.label"></p>
+                                <p class="text-[0.5625rem] text-gray-500 truncate" x-text="alert.detail" x-show="alert.detail"></p>
                             </a>
                         </template>
                     </div>
@@ -209,15 +209,15 @@
                                       :class="`bg-${kpi.color}-100 text-${kpi.color}-700`"
                                       x-html="kpiIcon(kpi.icon)"></span>
                                 <div class="min-w-0">
-                                    <p class="text-[9px] font-bold uppercase tracking-wider text-gray-500 leading-tight line-clamp-2" x-text="kpi.label" :title="kpi.label"></p>
+                                    <p class="text-[0.5625rem] font-bold uppercase tracking-wider text-gray-500 leading-tight line-clamp-2" x-text="kpi.label" :title="kpi.label"></p>
                                     <p class="flex items-baseline gap-1">
                                         <span class="text-base font-black text-gray-900 leading-tight" x-text="kpi.value"></span>
-                                        <span class="text-[9px] text-gray-400" x-text="kpi.sub" x-show="kpi.sub"></span>
+                                        <span class="text-[0.5625rem] text-gray-400" x-text="kpi.sub" x-show="kpi.sub"></span>
                                     </p>
-                                    <p class="text-[9px] font-bold leading-none" x-show="kpi.trend"
+                                    <p class="text-[0.5625rem] font-bold leading-none" x-show="kpi.trend"
                                        :class="kpi.trend && kpi.trend.direction === 'up' ? 'text-emerald-600' : 'text-red-500'">
                                         <span x-text="kpi.trend ? (kpi.trend.direction === 'up' ? '▲' : '▼') + ' ' + kpi.trend.percent + '%' : ''"></span>
-                                        <span class="font-normal text-gray-400 text-[8px]">vs last mo</span>
+                                        <span class="font-normal text-gray-400 text-[0.5rem]">vs last mo</span>
                                     </p>
                                 </div>
                             </div>
@@ -240,10 +240,10 @@
                             </span>
                             <div>
                                 <h3 class="text-xs font-black text-slate-900 leading-tight">Fleet Card Budget Summary</h3>
-                                <p class="text-[9px] text-slate-400 font-medium">{{ $fb['card_count'] }} card{{ $fb['card_count'] !== 1 ? 's' : '' }}{{ $dashboardLocation ? ' · '.$dashboardLocation : ' · All Locations' }}</p>
+                                <p class="text-[0.5625rem] text-slate-400 font-medium">{{ $fb['card_count'] }} card{{ $fb['card_count'] !== 1 ? 's' : '' }}{{ $dashboardLocation ? ' · '.$dashboardLocation : ' · All Locations' }}</p>
                             </div>
                         </div>
-                        <a href="{{ route('fleet-cards.index', $locationParam) }}" class="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:underline">
+                        <a href="{{ route('fleet-cards.index', $locationParam) }}" class="inline-flex items-center gap-0.5 text-[0.625rem] font-bold text-emerald-700 hover:underline">
                             View Fleet Cards
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
                         </a>
@@ -253,33 +253,33 @@
                     <div class="grid grid-cols-1 gap-2 mb-2 min-[400px]:grid-cols-3">
                         {{-- Total Allocated --}}
                         <div class="min-w-0 rounded-lg border border-slate-100 bg-slate-50/70 p-2">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500">Allocated</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-500">Allocated</p>
                             <p class="text-xs font-black text-slate-900 leading-tight break-words tabular-nums" title="₱{{ number_format((float)$fb['total_allocated'], 2) }}">
                                 ₱{{ number_format((float)$fb['total_allocated'], 2) }}
                             </p>
-                            <p class="text-[9px] text-slate-500 font-medium">Initial budget</p>
+                            <p class="text-[0.5625rem] text-slate-500 font-medium">Initial budget</p>
                         </div>
                         {{-- Consumed --}}
                         <div class="min-w-0 rounded-lg border border-red-100 bg-red-50/70 p-2">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-red-700">Consumed</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-red-700">Consumed</p>
                             <p class="text-xs font-black text-red-700 leading-tight break-words tabular-nums" title="₱{{ number_format((float)$fb['total_consumed'], 2) }}">
                                 ₱{{ number_format((float)$fb['total_consumed'], 2) }}
                             </p>
-                            <p class="text-[9px] text-red-700/80 font-medium">{{ $fbConsumedPct }}% used</p>
+                            <p class="text-[0.5625rem] text-red-700/80 font-medium">{{ $fbConsumedPct }}% used</p>
                         </div>
                         {{-- Remaining --}}
                         <div class="min-w-0 rounded-lg border border-emerald-100 bg-emerald-50/70 p-2">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700">Remaining</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-emerald-700">Remaining</p>
                             <p class="text-xs font-black text-emerald-700 leading-tight break-words tabular-nums" title="₱{{ number_format((float)$fb['total_remaining'], 2) }}">
                                 ₱{{ number_format((float)$fb['total_remaining'], 2) }}
                             </p>
-                            <p class="text-[9px] text-emerald-700/80 font-medium">{{ $fbRemainingPct }}% available</p>
+                            <p class="text-[0.5625rem] text-emerald-700/80 font-medium">{{ $fbRemainingPct }}% available</p>
                         </div>
                     </div>
 
                     {{-- Consumption progress bar --}}
                     <div>
-                        <div class="flex justify-between mb-0.5 text-[8px] font-bold text-slate-400 uppercase tracking-wide">
+                        <div class="flex justify-between mb-0.5 text-[0.5rem] font-bold text-slate-400 uppercase tracking-wide">
                             <span>Budget Consumption</span>
                             <span class="{{ $fbConsumedPct >= 90 ? 'text-red-600' : ($fbConsumedPct >= 70 ? 'text-amber-600' : 'text-emerald-600') }}">{{ $fbConsumedPct }}% used</span>
                         </div>
@@ -303,14 +303,14 @@
                             </span>
                             <div>
                                 <h3 class="font-black text-slate-900 text-xs leading-tight">Fleet Activity Calendar</h3>
-                                <p class="text-[10px] text-slate-400 font-medium">Approved Trips, Pending Requests, &amp; Maintenance</p>
+                                <p class="text-[0.625rem] text-slate-400 font-medium">Approved Trips, Pending Requests, &amp; Maintenance</p>
                             </div>
                         </div>
 
                         {{-- Month Navigation & Legend --}}
                         <div class="flex items-center gap-2.5">
                             {{-- Status Badges Legend --}}
-                            <div class="hidden sm:flex items-center gap-2 text-[10px] font-bold">
+                            <div class="hidden sm:flex items-center gap-2 text-[0.625rem] font-bold">
                                 <span class="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-1.5 py-px rounded border border-emerald-200">
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span> Approved
                                 </span>
@@ -326,7 +326,7 @@
                                 <button type="button" @click="prevMonth()" aria-label="Previous month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
                                 </button>
-                                <span class="px-1.5 text-[11px] font-black text-slate-800 min-w-[90px] text-center" x-text="monthYearTitle" aria-live="polite"></span>
+                                <span class="px-1.5 text-[0.6875rem] font-black text-slate-800 min-w-[90px] text-center" x-text="monthYearTitle" aria-live="polite"></span>
                                 <button type="button" @click="nextMonth()" aria-label="Next month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                                 </button>
@@ -337,7 +337,7 @@
                     {{-- Calendar Grid (Compact) --}}
                     <div class="w-full overflow-x-auto">
                         <div class="min-w-[550px]">
-                            <div class="grid grid-cols-7 text-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">
+                            <div class="grid grid-cols-7 text-center text-[0.625rem] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">
                                 <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
                             </div>
                             <div class="grid grid-cols-7 gap-1 pt-1">
@@ -349,20 +349,20 @@
                                              'bg-emerald-50/40 border-emerald-400 ring-1 ring-emerald-400': day.isToday
                                          }">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-[11px] font-extrabold"
+                                            <span class="text-[0.6875rem] font-extrabold"
                                                   :class="{
                                                       'text-slate-400': !day.inMonth,
                                                       'text-slate-800': day.inMonth &amp;&amp; !day.isToday,
-                                                      'text-emerald-900 bg-emerald-600 text-white rounded-full h-4 w-4 text-[10px] flex items-center justify-center': day.isToday
+                                                      'text-emerald-900 bg-emerald-600 text-white rounded-full h-4 w-4 text-[0.625rem] flex items-center justify-center': day.isToday
                                                   }"
                                                   x-text="day.dayNum"></span>
-                                            <span x-show="day.events.length > 0" class="text-[8px] font-extrabold px-1 rounded bg-slate-100 text-slate-600" x-text="day.events.length"></span>
+                                            <span x-show="day.events.length > 0" class="text-[0.5rem] font-extrabold px-1 rounded bg-slate-100 text-slate-600" x-text="day.events.length"></span>
                                         </div>
 
                                         <div class="mt-0.5 space-y-0.5 overflow-y-auto max-h-[46px] scrollbar-thin">
                                             <template x-for="ev in day.events" :key="ev.title + ev.start">
                                                 <a :href="ev.url"
-                                                   class="block text-[9px] font-bold px-1 py-px rounded truncate transition border leading-tight"
+                                                   class="block text-[0.5625rem] font-bold px-1 py-px rounded truncate transition border leading-tight"
                                                    :class="{
                                                        'bg-emerald-100 border-emerald-300 text-emerald-900 hover:bg-emerald-200': ev.type === 'approved',
                                                        'bg-amber-100 border-amber-300 text-amber-900 hover:bg-amber-200': ev.type === 'pending',
@@ -385,7 +385,7 @@
                     <section class="min-w-0 rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
                         <div class="mb-2 flex items-center justify-between">
                             <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Fleet Status Today</h3>
-                            <span class="rounded bg-gray-50 px-1.5 py-0.5 text-[9px] font-bold text-gray-600 border border-gray-200" x-text="fleetStatus.total + ' vehicles'"></span>
+                            <span class="rounded bg-gray-50 px-1.5 py-0.5 text-[0.5625rem] font-bold text-gray-600 border border-gray-200" x-text="fleetStatus.total + ' vehicles'"></span>
                         </div>
                         <div class="flex flex-col items-center gap-3 sm:flex-row">
                             <div class="relative h-32 w-32 shrink-0">
@@ -393,7 +393,7 @@
                             </div>
                             <div class="w-full space-y-1">
                                 <template x-for="seg in fleetStatus.segments" :key="seg.label">
-                                    <a :href="seg.url" class="flex items-center justify-between rounded px-2 py-1 text-[11px] hover:bg-gray-50 transition">
+                                    <a :href="seg.url" class="flex items-center justify-between rounded px-2 py-1 text-[0.6875rem] hover:bg-gray-50 transition">
                                         <span class="flex items-center gap-1.5 text-gray-600">
                                             <span class="h-2 w-2 rounded-full" :style="`background:${seg.color}`"></span>
                                             <span x-text="seg.label"></span>
@@ -418,13 +418,13 @@
                                     </span>
                                     <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Fleet Health Overview</h3>
                                 </div>
-                                <span class="rounded-full px-2 py-px text-[10px] font-extrabold
+                                <span class="rounded-full px-2 py-px text-[0.625rem] font-extrabold
                                     {{ $fh['color'] === 'emerald' ? 'bg-emerald-100 text-emerald-800' : ($fh['color'] === 'amber' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800') }}">
                                     {{ $fh['score'] }}% {{ $fh['label'] }}
                                 </span>
                             </div>
 
-                            <p class="text-[10px] text-slate-400 mb-2">Overall health from oil changes, PMS item intervals, &amp; scheduled maintenance.</p>
+                            <p class="text-[0.625rem] text-slate-400 mb-2">Overall health from oil changes, PMS item intervals, &amp; scheduled maintenance.</p>
 
                             {{-- Progress bar --}}
                             <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden mb-2.5">
@@ -437,20 +437,20 @@
                             <div class="grid grid-cols-3 gap-1.5">
                                 <div class="rounded-lg border border-emerald-100 bg-emerald-50/60 p-1.5 text-center">
                                     <p class="text-sm font-black text-emerald-700 leading-tight">{{ $fh['good'] }}</p>
-                                    <p class="text-[8px] font-bold text-emerald-800 uppercase tracking-wide">Good (80%+)</p>
+                                    <p class="text-[0.5rem] font-bold text-emerald-800 uppercase tracking-wide">Good (80%+)</p>
                                 </div>
                                 <div class="rounded-lg border border-amber-100 bg-amber-50/60 p-1.5 text-center">
                                     <p class="text-sm font-black text-amber-700 leading-tight">{{ $fh['fair'] }}</p>
-                                    <p class="text-[8px] font-bold text-amber-800 uppercase tracking-wide">Fair (50–79%)</p>
+                                    <p class="text-[0.5rem] font-bold text-amber-800 uppercase tracking-wide">Fair (50–79%)</p>
                                 </div>
                                 <div class="rounded-lg border border-red-100 bg-red-50/60 p-1.5 text-center">
                                     <p class="text-sm font-black text-red-700 leading-tight">{{ $fh['poor'] }}</p>
-                                    <p class="text-[8px] font-bold text-red-800 uppercase tracking-wide">Needs Action</p>
+                                    <p class="text-[0.5rem] font-bold text-red-800 uppercase tracking-wide">Needs Action</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[0.6875rem]">
                             <span class="text-slate-400 font-medium">{{ $fh['total'] }} vehicles monitored</span>
                             <a href="{{ route('vehicles.index', $locationParam) }}" class="font-bold text-emerald-700 hover:underline">View Vehicles →</a>
                         </div>
@@ -467,10 +467,10 @@
                                     $totalTripsCount = $todaysTrips->count() + $upcomingTrips->count();
                                 @endphp
                                 @if($totalTripsCount > 0)
-                                    <span class="rounded-full bg-emerald-100 px-1.5 py-px text-[10px] font-black text-emerald-800">{{ $totalTripsCount }}</span>
+                                    <span class="rounded-full bg-emerald-100 px-1.5 py-px text-[0.625rem] font-black text-emerald-800">{{ $totalTripsCount }}</span>
                                 @endif
                             </div>
-                            <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'approved']) }}" class="text-[10px] font-bold text-emerald-700 hover:underline">View all →</a>
+                            <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'approved']) }}" class="text-[0.625rem] font-bold text-emerald-700 hover:underline">View all →</a>
                         </div>
                         <div class="space-y-1.5 max-h-48 overflow-y-auto">
                             @if($todaysTrips->isNotEmpty())
@@ -478,12 +478,12 @@
                                     <div class="rounded-lg border border-emerald-200 bg-emerald-50/70 p-2 transition hover:bg-emerald-50">
                                         <div class="flex items-center justify-between gap-2">
                                             <div class="flex items-center gap-1.5 min-w-0 truncate">
-                                                <span class="rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white shrink-0">Today</span>
+                                                <span class="rounded bg-emerald-600 px-1.5 py-0.5 text-[0.5625rem] font-extrabold uppercase tracking-wide text-white shrink-0">Today</span>
                                                 <p class="text-xs font-bold text-emerald-950 truncate">{{ str_replace(";;", ", ", (string) $trip->destination) }}</p>
                                             </div>
-                                            <span class="shrink-0 text-[10px] font-extrabold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
+                                            <span class="shrink-0 text-[0.625rem] font-extrabold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
                                         </div>
-                                        <div class="mt-1 flex items-center justify-between text-[10px] text-emerald-800">
+                                        <div class="mt-1 flex items-center justify-between text-[0.625rem] text-emerald-800">
                                             <span class="truncate">{{ $trip->requester_name }}</span>
                                             <span class="shrink-0 font-medium">{{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</span>
                                         </div>
@@ -494,21 +494,21 @@
                             @if($upcomingTrips->isNotEmpty())
                                 @if($todaysTrips->isNotEmpty())
                                     <div class="pt-1">
-                                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Upcoming</p>
+                                        <p class="text-[0.625rem] font-bold uppercase tracking-wider text-slate-400">Upcoming</p>
                                     </div>
                                 @endif
                                 @foreach($upcomingTrips as $trip)
                                     <div class="rounded-lg border border-slate-200/80 bg-slate-50/70 p-2 transition hover:bg-slate-100/70">
                                         <div class="flex items-center justify-between gap-2">
                                             <div class="flex items-center gap-1.5 min-w-0 truncate">
-                                                <span class="rounded bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide shrink-0">
+                                                <span class="rounded bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 text-[0.5625rem] font-extrabold uppercase tracking-wide shrink-0">
                                                     {{ $trip->travel_date->isTomorrow() ? 'Tomorrow' : $trip->travel_date->format('M j') }}
                                                 </span>
                                                 <p class="text-xs font-bold text-slate-900 truncate">{{ str_replace(";;", ", ", (string) $trip->destination) }}</p>
                                             </div>
-                                            <span class="shrink-0 text-[10px] font-extrabold text-slate-700 bg-white border border-slate-200 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
+                                            <span class="shrink-0 text-[0.625rem] font-extrabold text-slate-700 bg-white border border-slate-200 px-1.5 py-0.5 rounded">{{ $trip->vehicle?->plate_number ?? '—' }}</span>
                                         </div>
-                                        <div class="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                                        <div class="mt-1 flex items-center justify-between text-[0.625rem] text-slate-500">
                                             <span class="truncate">{{ $trip->requester_name }}</span>
                                             <span class="shrink-0 font-medium text-slate-600">{{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</span>
                                         </div>
@@ -527,7 +527,7 @@
                     <section class="min-w-0 rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
                         <div class="mb-2 flex items-center justify-between">
                             <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Requests per Month</h3>
-                            <a href="{{ route('reports.index', $locationParam) }}" class="text-[10px] font-bold text-emerald-700 hover:underline">Full report →</a>
+                            <a href="{{ route('reports.index', $locationParam) }}" class="text-[0.625rem] font-bold text-emerald-700 hover:underline">Full report →</a>
                         </div>
                         <div class="relative w-full"><canvas id="chart-requests-month" height="130"></canvas></div>
                     </section>
@@ -535,7 +535,7 @@
                     <section class="min-w-0 rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
                         <div class="mb-2 flex items-center justify-between">
                             <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Top Destinations</h3>
-                            <a href="{{ route('reports.index', $locationParam) }}" class="text-[10px] font-bold text-emerald-700 hover:underline">Full report →</a>
+                            <a href="{{ route('reports.index', $locationParam) }}" class="text-[0.625rem] font-bold text-emerald-700 hover:underline">Full report →</a>
                         </div>
                         <div class="relative w-full"><canvas id="chart-destinations" height="130"></canvas></div>
                     </section>
@@ -545,11 +545,11 @@
                     <section class="rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
                         <div class="mb-2 flex items-center justify-between">
                             <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Location Comparison</h3>
-                            <a href="{{ route('reports.index') }}" class="text-[10px] font-bold text-emerald-700 hover:underline">Full report →</a>
+                            <a href="{{ route('reports.index') }}" class="text-[0.625rem] font-bold text-emerald-700 hover:underline">Full report →</a>
                         </div>
                         <div class="overflow-x-auto rounded-lg border border-gray-100">
-                            <table class="w-full text-left text-[11px]">
-                                <thead class="bg-gray-50 text-gray-400 font-bold uppercase tracking-wider text-[9px]">
+                            <table class="w-full text-left text-[0.6875rem]">
+                                <thead class="bg-gray-50 text-gray-400 font-bold uppercase tracking-wider text-[0.5625rem]">
                                     <tr class="border-b border-gray-100">
                                         <th class="px-2.5 py-1.5">Location</th>
                                         <th class="px-2.5 py-1.5">Vehicles</th>
@@ -806,8 +806,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Completed Travels</p>
-                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $completedTravelsCount }}</strong> Past trips finished</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Completed Travels</p>
+                            <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $completedTravelsCount }}</strong> Past trips finished</p>
                         </div>
                     </div>
                 </div>
@@ -824,8 +824,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Future Assigned Trips</p>
-                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $futureTripsCount }}</strong> Scheduled ahead</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Future Assigned Trips</p>
+                            <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $futureTripsCount }}</strong> Scheduled ahead</p>
                         </div>
                     </div>
                 </div>
@@ -839,8 +839,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Active Trips Today</p>
-                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $activeTripsTodayCount }}</strong> Happening now</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Active Trips Today</p>
+                            <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $activeTripsTodayCount }}</strong> Happening now</p>
                         </div>
                     </div>
                 </div>
@@ -855,8 +855,8 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Total Dispatches</p>
-                            <p class="text-[11px] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $totalDispatchesCount }}</strong> All time trips</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Total Dispatches</p>
+                            <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $totalDispatchesCount }}</strong> All time trips</p>
                         </div>
                     </div>
                 </div>
@@ -866,7 +866,7 @@
             @if($showAssignedVehicleSetting)
                 <div class="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
                     <div class="flex items-center justify-between mb-2.5">
-                        <p class="text-[9px] font-black uppercase tracking-wider text-emerald-700">
+                        <p class="text-[0.5625rem] font-black uppercase tracking-wider text-emerald-700">
                             My Assigned Vehicle{{ $driverVehicles->count() > 1 ? 's (' . $driverVehicles->count() . ')' : '' }}
                         </p>
                     </div>
@@ -888,19 +888,19 @@
                                             <h3 class="text-xs font-black text-slate-900 truncate">
                                                 {{ $vehicle->brand }} {{ $vehicle->model }} — <span class="font-extrabold text-slate-800">{{ $vehicle->plate_number }}</span>
                                             </h3>
-                                            <p class="mt-0.5 text-[11px] font-medium text-slate-500 truncate">
+                                            <p class="mt-0.5 text-[0.6875rem] font-medium text-slate-500 truncate">
                                                 Color: <span class="font-semibold text-slate-700">{{ $vehicle->color ?: 'N/A' }}</span> ·
                                                 Year: <span class="font-semibold text-slate-700">{{ $vehicle->year ?: 'N/A' }}</span> ·
                                                 Type: <span class="font-semibold text-slate-700">{{ $vehicle->vehicle_type ?: 'N/A' }}</span>
                                             </p>
                                             @if($vehicle->odometer)
-                                                <p class="mt-0.5 text-[10px] text-slate-400">
+                                                <p class="mt-0.5 text-[0.625rem] text-slate-400">
                                                     Odometer: <span class="font-semibold text-slate-600">{{ number_format($vehicle->odometer) }} km</span>
                                                 </p>
                                             @endif
                                         </div>
                                     </div>
-                                    <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/80 shadow-2xs">
+                                    <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-700 border border-emerald-200/80 shadow-2xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="20 6 9 17 4 12"/>
                                         </svg>
@@ -918,7 +918,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-800">No Permanent Vehicle Assigned</p>
-                                <p class="text-[10px] text-slate-500">Refer to your Administrator to assign a permanent vehicle to your profile.</p>
+                                <p class="text-[0.625rem] text-slate-500">Refer to your Administrator to assign a permanent vehicle to your profile.</p>
                             </div>
                         </div>
                     @endif
@@ -965,7 +965,7 @@
                                                 {{ $trip->travel_date?->format('M j') }}{{ $trip->travel_date_end ? ' – ' . $trip->travel_date_end->format('j, Y') : ($trip->travel_date ? ', ' . $trip->travel_date->format('Y') : '') }}
                                             </span>
                                             <div class="mt-1">
-                                                <span class="inline-flex rounded bg-emerald-200/80 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-900 tracking-wider">
+                                                <span class="inline-flex rounded bg-emerald-200/80 px-1.5 py-0.5 text-[0.5625rem] font-extrabold text-emerald-900 tracking-wider">
                                                     APPROVED
                                                 </span>
                                             </div>
@@ -973,7 +973,7 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="py-8 text-center text-[11px] text-slate-400 font-medium">
+                                <div class="py-8 text-center text-[0.6875rem] text-slate-400 font-medium">
                                     No future assigned travels yet.
                                 </div>
                             @endforelse
@@ -991,7 +991,7 @@
                                 </svg>
                                 <h3 class="text-xs font-extrabold text-slate-900">Travels Already Made ({{ $completedTravelsCount }})</h3>
                             </div>
-                            <a href="{{ route('travel-history') }}" class="text-[11px] font-bold text-emerald-700 hover:underline">View full history &rsaquo;</a>
+                            <a href="{{ route('travel-history') }}" class="text-[0.6875rem] font-bold text-emerald-700 hover:underline">View full history &rsaquo;</a>
                         </div>
 
                         <div class="space-y-2">
@@ -1002,16 +1002,16 @@
                                             <span class="text-slate-400 text-xs" aria-hidden="true">📍</span>
                                             <h4 class="text-xs font-bold text-slate-800 break-words">{{ str_replace(";;", ", ", (string) $trip->destination) }}</h4>
                                         </div>
-                                        <span class="shrink-0 text-[11px] text-slate-500 font-medium">
+                                        <span class="shrink-0 text-[0.6875rem] text-slate-500 font-medium">
                                             {{ $trip->travel_date?->format('M j, Y') }}
                                         </span>
                                     </div>
-                                    <p class="mt-1 text-[11px] text-slate-600">
+                                    <p class="mt-1 text-[0.6875rem] text-slate-600">
                                         Requester: <span class="font-semibold text-slate-700">{{ $trip->requester_name }}</span>
                                     </p>
                                 </div>
                             @empty
-                                <div class="py-8 text-center text-[11px] text-slate-400 font-medium">
+                                <div class="py-8 text-center text-[0.6875rem] text-slate-400 font-medium">
                                     No completed trips yet.
                                 </div>
                             @endforelse

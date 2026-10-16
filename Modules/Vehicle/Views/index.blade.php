@@ -202,7 +202,7 @@
         $rvTypeValue    = (string) $rvOld('vehicle_type');
         $rvFuelValue    = (string) $rvOld('fuel_type');
 
-        $rvLabel     = 'mb-1.5 block text-[13px] font-semibold text-slate-700';
+        $rvLabel     = 'mb-1.5 block text-[0.8125rem] font-semibold text-slate-700';
         $rvInputBase = 'h-11 w-full rounded-lg border px-3 text-sm placeholder-slate-400 transition focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600';
         $rvInput     = $rvInputBase . ' bg-white text-slate-800';
         $rvSelect    = $rvInput . ' cursor-pointer appearance-none pr-9 invalid:text-slate-400';
@@ -258,7 +258,7 @@
                                             @include('vehicle::partials.vehicle-type-icon', ['type' => 'car', 'class' => 'h-8 w-8', 'stroke' => '1.5'])
                                         </span>
                                         <span class="text-xs text-slate-500"><span class="font-semibold text-slate-800">Click to upload</span> or drag and drop</span>
-                                        <span class="text-[11px] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
+                                        <span class="text-[0.6875rem] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
                                     </label>
 
                                     <div id="rv-photo-preview" class="hidden shrink-0 sm:w-40">
@@ -270,7 +270,7 @@
                                                 </svg>
                                             </button>
                                         </div>
-                                        <p id="rv-photo-filename" class="mt-1 truncate text-center text-[11px] font-medium text-slate-500"></p>
+                                        <p id="rv-photo-filename" class="mt-1 truncate text-center text-[0.6875rem] font-medium text-slate-500"></p>
                                     </div>
                                 </div>
                                 <p id="rv-photo-error" class="mt-1.5 hidden text-xs text-red-600"></p>
@@ -367,7 +367,7 @@
                                     </div>
                                     <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">km</span>
                                 </div>
-                                <p class="text-[11px] text-slate-400 mt-1">Threshold (default 5,000 km)</p>
+                                <p class="text-[0.6875rem] text-slate-400 mt-1">Threshold (default 5,000 km)</p>
                             </div>
 
                             {{-- Vehicle Type --}}
@@ -426,7 +426,7 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <p id="rv-inline-type-error" class="hidden mt-1 text-[11px] font-semibold text-red-600"></p>
+                                    <p id="rv-inline-type-error" class="hidden mt-1 text-[0.6875rem] font-semibold text-red-600"></p>
                                 </div>
 
                                 @error('vehicle_type')
@@ -569,7 +569,7 @@
 
                 <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
                     <div>
-                        <label for="avt-name" class="mb-1.5 block text-[13px] font-semibold text-slate-700">Type Name <span class="text-red-500">*</span></label>
+                        <label for="avt-name" class="mb-1.5 block text-[0.8125rem] font-semibold text-slate-700">Type Name <span class="text-red-500">*</span></label>
                         <input
                             type="text"
                             name="name"
@@ -589,12 +589,12 @@
                     </div>
 
                     <div>
-                        <span class="mb-1.5 block text-[13px] font-semibold text-slate-700">Icon <span class="text-red-500">*</span></span>
+                        <span class="mb-1.5 block text-[0.8125rem] font-semibold text-slate-700">Icon <span class="text-red-500">*</span></span>
                         <div class="grid grid-cols-3 gap-2">
                             @foreach (\Modules\Vehicle\Models\VehicleType::ICONS as $avtIconKey => $avtIconLabel)
                                 <label class="cursor-pointer">
                                     <input type="radio" name="icon" value="{{ $avtIconKey }}" class="peer sr-only" @checked($avtIcon === $avtIconKey) required>
-                                    <span class="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-3 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 peer-checked:border-[#005a36] peer-checked:bg-emerald-50 peer-checked:text-[#005a36] peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500">
+                                    <span class="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-3 text-[0.6875rem] font-semibold text-slate-600 transition hover:bg-slate-50 peer-checked:border-[#005a36] peer-checked:bg-emerald-50 peer-checked:text-[#005a36] peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500">
                                         @include('vehicle::partials.vehicle-type-icon', ['iconOverride' => $avtIconKey, 'class' => 'h-6 w-6', 'stroke' => '1.75'])
                                         <span>{{ $avtIconLabel }}</span>
                                     </span>
@@ -648,7 +648,7 @@
                     </span>
                     <div class="min-w-0">
                         <h2 id="edit-vehicle-modal-title" class="truncate text-lg font-bold leading-tight tracking-tight sm:text-xl">Update Vehicle Information</h2>
-                        <p id="edit-vehicle-subtitle" class="truncate text-xs text-white/85 sm:text-[13px]">Edit the vehicle details and click Save to apply changes.</p>
+                        <p id="edit-vehicle-subtitle" class="truncate text-xs text-white/85 sm:text-[0.8125rem]">Edit the vehicle details and click Save to apply changes.</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeEditVehicleModal()" aria-label="Close" class="shrink-0 rounded-lg p-1.5 text-white/90 transition hover:bg-white/10 hover:text-white cursor-pointer">
@@ -698,7 +698,7 @@
                                     <span id="ev-photo-cta">Change Photo</span>
                                 </span>
                                 <span class="text-xs text-slate-500">Click to upload or drag and drop</span>
-                                <span class="text-[11px] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
+                                <span class="text-[0.6875rem] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
                             </label>
                             <p id="ev-photo-error" class="mt-1.5 hidden text-xs text-red-600"></p>
                             @if ($evIsOld)
@@ -824,7 +824,7 @@
                                 </div>
                                 <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-600">km</span>
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-1">Threshold (5,000 km)</p>
+                            <p class="text-[0.625rem] text-slate-400 mt-1">Threshold (5,000 km)</p>
                         </div>
 
                         {{-- Vehicle Type --}}
@@ -883,7 +883,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <p id="ev-inline-type-error" class="hidden mt-1 text-[11px] font-semibold text-red-600"></p>
+                                <p id="ev-inline-type-error" class="hidden mt-1 text-[0.6875rem] font-semibold text-red-600"></p>
                             </div>
 
                             @if ($evIsOld)
@@ -946,15 +946,15 @@
                                     <div class="flex items-start gap-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-5 w-5 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
                                         <div class="min-w-0">
-                                            <dt class="text-[11px] text-slate-500">Date Added</dt>
-                                            <dd id="ev-info-created" class="text-[13px] font-medium text-slate-800">—</dd>
+                                            <dt class="text-[0.6875rem] text-slate-500">Date Added</dt>
+                                            <dd id="ev-info-created" class="text-[0.8125rem] font-medium text-slate-800">—</dd>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-5 w-5 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                         <div class="min-w-0">
-                                            <dt class="text-[11px] text-slate-500">Added By</dt>
-                                            <dd id="ev-info-created-by" class="text-[13px] font-medium text-slate-800">—</dd>
+                                            <dt class="text-[0.6875rem] text-slate-500">Added By</dt>
+                                            <dd id="ev-info-created-by" class="text-[0.8125rem] font-medium text-slate-800">—</dd>
                                         </div>
                                     </div>
                                 </div>
@@ -962,15 +962,15 @@
                                     <div class="flex items-start gap-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-5 w-5 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                         <div class="min-w-0">
-                                            <dt class="text-[11px] text-slate-500">Last Updated</dt>
-                                            <dd id="ev-info-updated" class="text-[13px] font-medium text-slate-800">—</dd>
+                                            <dt class="text-[0.6875rem] text-slate-500">Last Updated</dt>
+                                            <dd id="ev-info-updated" class="text-[0.8125rem] font-medium text-slate-800">—</dd>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-5 w-5 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                         <div class="min-w-0">
-                                            <dt class="text-[11px] text-slate-500">Updated By</dt>
-                                            <dd id="ev-info-updated-by" class="text-[13px] font-medium text-slate-800">—</dd>
+                                            <dt class="text-[0.6875rem] text-slate-500">Updated By</dt>
+                                            <dd id="ev-info-updated-by" class="text-[0.8125rem] font-medium text-slate-800">—</dd>
                                         </div>
                                     </div>
                                 </div>
@@ -1852,7 +1852,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Current Odometer Reading (KM) <span class="text-red-500">*</span></label>
                                 <input type="number" name="odometer_km" id="insp-odometer" min="0" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <p class="text-[11px] text-slate-400 mt-1" id="insp-odometer-hint">Last recorded: — km</p>
+                                <p class="text-[0.6875rem] text-slate-400 mt-1" id="insp-odometer-hint">Last recorded: — km</p>
                             </div>
 
                             <div class="flex items-center pt-2">
@@ -1860,7 +1860,7 @@
                                     <input type="checkbox" name="change_oil_done" id="insp-change-oil" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
                                     <div>
                                         <span class="text-xs font-bold text-slate-800 block">🛢️ Mark Change Oil as Done</span>
-                                        <span class="text-[10px] text-slate-400 block">Resets 5,000 km change oil counter to current odometer</span>
+                                        <span class="text-[0.625rem] text-slate-400 block">Resets 5,000 km change oil counter to current odometer</span>
                                     </div>
                                 </label>
                             </div>
@@ -1919,21 +1919,21 @@
 
                                         <div class="flex items-center gap-3 shrink-0">
                                             <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-slate-600">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[0.6875rem] font-bold cursor-pointer transition has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="pass" checked class="hidden">
                                                     <span>✓ Pass</span>
                                                 </label>
-                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white text-slate-600">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[0.6875rem] font-bold cursor-pointer transition has-[:checked]:bg-amber-500 has-[:checked]:text-white text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="attention" class="hidden">
                                                     <span>⚠️ Attention</span>
                                                 </label>
-                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white text-slate-600">
+                                                <label class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[0.6875rem] font-bold cursor-pointer transition has-[:checked]:bg-red-600 has-[:checked]:text-white text-slate-600">
                                                     <input type="radio" name="items[{{ $idx }}][status]" value="fail" class="hidden">
                                                     <span>✕ Fail</span>
                                                 </label>
                                             </div>
 
-                                            <input type="text" name="items[{{ $idx }}][remarks]" placeholder="Remarks (opt)" class="w-36 rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-700 focus:border-blue-500 focus:outline-none">
+                                            <input type="text" name="items[{{ $idx }}][remarks]" placeholder="Remarks (opt)" class="w-36 rounded-md border border-slate-200 px-2 py-1 text-[0.6875rem] text-slate-700 focus:border-blue-500 focus:outline-none">
                                         </div>
                                     </div>
                                 @endforeach
@@ -2228,7 +2228,7 @@
                     container.innerHTML = `
                         <div class="text-center py-10 text-slate-400">
                             <p class="text-xs font-semibold">No inspection records found</p>
-                            <p class="text-[11px] text-slate-400">Click "Inspect" on the vehicle row to conduct the first inspection.</p>
+                            <p class="text-[0.6875rem] text-slate-400">Click "Inspect" on the vehicle row to conduct the first inspection.</p>
                         </div>
                     `;
                     return;
@@ -2237,10 +2237,10 @@
                 let html = '';
                 list.forEach(item => {
                     const statusBadge = item.overall_status === 'failed'
-                        ? '<span class="rounded-full bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 text-[10px] font-bold">Failed</span>'
+                        ? '<span class="rounded-full bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 text-[0.625rem] font-bold">Failed</span>'
                         : (item.overall_status === 'needs_attention'
-                            ? '<span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[10px] font-bold">Needs Attention</span>'
-                            : '<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold">Passed</span>');
+                            ? '<span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[0.625rem] font-bold">Needs Attention</span>'
+                            : '<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[0.625rem] font-bold">Passed</span>');
 
                     const dateStr = new Date(item.inspected_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                     const inspectorName = item.inspector?.name || 'Admin';
@@ -2250,8 +2250,8 @@
                         const icon = it.status === 'pass' ? '✓' : (it.status === 'attention' ? '⚠️' : '✕');
                         const color = it.status === 'pass' ? 'text-emerald-600' : (it.status === 'attention' ? 'text-amber-600' : 'text-red-600 font-bold');
                         itemsHtml += `
-                            <div class="flex items-center justify-between py-1 border-b border-slate-50 text-[11px]">
-                                <span class="text-slate-700">${it.item_name} <span class="text-[10px] text-slate-400">(${it.category})</span></span>
+                            <div class="flex items-center justify-between py-1 border-b border-slate-50 text-[0.6875rem]">
+                                <span class="text-slate-700">${it.item_name} <span class="text-[0.625rem] text-slate-400">(${it.category})</span></span>
                                 <span class="${color}">${icon} ${it.status.toUpperCase()} ${it.remarks ? '— ' + it.remarks : ''}</span>
                             </div>
                         `;
@@ -2262,20 +2262,20 @@
                             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                                 <div>
                                     <span class="font-bold text-slate-900">${dateStr}</span>
-                                    <span class="text-[11px] text-slate-400 ml-2">by ${inspectorName}</span>
+                                    <span class="text-[0.6875rem] text-slate-400 ml-2">by ${inspectorName}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    ${item.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[10px] font-bold">🛢️ Oil Changed</span>' : ''}
+                                    ${item.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[0.625rem] font-bold">🛢️ Oil Changed</span>' : ''}
                                     ${statusBadge}
                                 </div>
                             </div>
-                            <div class="text-[11px] text-slate-600">
+                            <div class="text-[0.6875rem] text-slate-600">
                                 <strong>Odometer:</strong> ${Number(item.odometer_km).toLocaleString()} km
                                 ${item.notes ? `<div class="mt-1 text-slate-500 italic">"${item.notes}"</div>` : ''}
                             </div>
                             <div class="pt-2">
                                 <details class="cursor-pointer">
-                                    <summary class="text-[11px] font-bold text-blue-600 hover:underline">View Checklist Breakdown (${(item.items || []).length} items)</summary>
+                                    <summary class="text-[0.6875rem] font-bold text-blue-600 hover:underline">View Checklist Breakdown (${(item.items || []).length} items)</summary>
                                     <div class="mt-2 space-y-0.5 max-h-48 overflow-y-auto pr-1">
                                         ${itemsHtml}
                                     </div>
@@ -2359,7 +2359,7 @@
                         listEl.innerHTML = `
                             <div class="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                                 <p class="text-xs font-semibold text-slate-600">No PMS items configured yet.</p>
-                                <p class="text-[11px] text-slate-400 mt-1">Add items like "Engine Oil & Filter", "Air Filter", "Brake Fluid", or "Coolant".</p>
+                                <p class="text-[0.6875rem] text-slate-400 mt-1">Add items like "Engine Oil & Filter", "Air Filter", "Brake Fluid", or "Coolant".</p>
                                 <button type="button" onclick="togglePmsNewItemForm()" class="mt-3 text-xs font-bold text-emerald-700 hover:underline cursor-pointer">+ Add First Item</button>
                             </div>
                         `;
@@ -2419,18 +2419,18 @@
                                     <div class="flex items-start justify-between gap-2">
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-2">
-                                                <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold border ${statusColor}">
+                                                <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.625rem] font-extrabold border ${statusColor}">
                                                     <span class="h-1.5 w-1.5 rounded-full ${statusDot}"></span>
                                                     ${escHtml(it.status_label)}
                                                 </span>
                                                 <h4 class="text-xs font-bold text-slate-900 truncate">${escHtml(it.item_name)}</h4>
                                             </div>
-                                            <p class="text-[11px] text-slate-500 mt-1">
+                                            <p class="text-[0.6875rem] text-slate-500 mt-1">
                                                 Rule: <strong class="text-slate-700">${ruleText}</strong>
                                                 ${nextDueText ? ` • <span class="text-slate-700 font-semibold">${nextDueText}</span>` : ''}
                                             </p>
                                             ${it.last_done_km || it.last_done_date ? `
-                                                <p class="text-[10px] text-slate-400 mt-0.5">
+                                                <p class="text-[0.625rem] text-slate-400 mt-0.5">
                                                     Last done: ${it.last_done_km ? Number(it.last_done_km).toLocaleString() + ' km' : ''} ${it.last_done_date ? 'on ' + it.last_done_date : ''}
                                                 </p>
                                             ` : ''}
@@ -2440,7 +2440,7 @@
                                                 type="button"
                                                 onclick="logPmsDone(${it.id}, this.dataset.itemName)"
                                                 data-item-name="${escHtml(it.item_name)}"
-                                                class="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer"
+                                                class="rounded-lg bg-emerald-600 px-2.5 py-1 text-[0.6875rem] font-bold text-white hover:bg-emerald-700 transition cursor-pointer"
                                                 title="Log this service as done now"
                                             >
                                                 ✓ Done
@@ -2605,7 +2605,7 @@
                         listEl.innerHTML = `
                             <div class="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                                 <p class="text-xs font-semibold text-slate-600">No global PMS rules defined yet.</p>
-                                <p class="text-[11px] text-slate-400 mt-1">Create rules like "Engine Oil Change every 5,000 km" above to auto-apply to vehicles.</p>
+                                <p class="text-[0.6875rem] text-slate-400 mt-1">Create rules like "Engine Oil Change every 5,000 km" above to auto-apply to vehicles.</p>
                             </div>
                         `;
                         return;
@@ -2627,9 +2627,9 @@
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <h5 class="text-xs font-bold text-slate-900">${escHtml(tpl.item_name)}</h5>
-                                        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 uppercase">${escHtml(tpl.category)}</span>
+                                        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[0.625rem] font-semibold text-slate-600 uppercase">${escHtml(tpl.category)}</span>
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">
+                                    <p class="text-[0.6875rem] text-slate-500 mt-0.5">
                                         <strong>Interval:</strong> <span class="text-amber-800 font-bold">${intervalStr}</span> •
                                         <strong>Applies to:</strong> <span class="text-slate-700">${escHtml(typesStr)}</span>
                                     </p>
@@ -2854,11 +2854,11 @@
                     <form onsubmit="handleCreatePmsItem(event)" class="space-y-3">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Item Name</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Item Name</label>
                                 <input type="text" id="pms-item-name" placeholder="e.g. Engine Oil & Filter, Brake Pads" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Category</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Category</label>
                                 <select id="pms-item-category" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                     <option value="replace">Replace</option>
                                     <option value="inspect">Inspect & Check</option>
@@ -2870,11 +2870,11 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (km)</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Interval (km)</label>
                                 <input type="number" id="pms-item-interval-km" min="100" placeholder="e.g. 7500" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (months)</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Interval (months)</label>
                                 <input type="number" id="pms-item-interval-months" min="1" placeholder="e.g. 6" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                             </div>
                         </div>
@@ -2941,11 +2941,11 @@
                     <form onsubmit="handleCreatePmsTemplate(event)" class="space-y-3">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Service Item Name <span class="text-red-500">*</span></label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Service Item Name <span class="text-red-500">*</span></label>
                                 <input type="text" id="tpl-item-name" placeholder="e.g. Engine Oil & Filter Change" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Category <span class="text-red-500">*</span></label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Category <span class="text-red-500">*</span></label>
                                 <select id="tpl-category" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
                                     <option value="replace">Replace</option>
                                     <option value="inspect">Inspect & Check</option>
@@ -2957,17 +2957,17 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (km)</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Interval (km)</label>
                                 <input type="number" id="tpl-interval-km" min="100" placeholder="e.g. 5000" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Interval (months)</label>
+                                <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1">Interval (months)</label>
                                 <input type="number" id="tpl-interval-months" min="1" placeholder="e.g. 6" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500">
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1.5">Apply to Vehicle Types (leave unchecked to apply to ALL)</label>
+                            <label class="block text-[0.6875rem] font-bold text-slate-600 mb-1.5">Apply to Vehicle Types (leave unchecked to apply to ALL)</label>
                             <div class="flex flex-wrap gap-2 text-xs">
                                 @foreach($vehicleTypes as $vt)
                                     <label class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700 cursor-pointer hover:bg-slate-100">
@@ -3013,7 +3013,7 @@
                     </span>
                     <div>
                         <h3 id="quick-odometer-modal-title" class="text-sm font-extrabold text-slate-900">Update Odometer</h3>
-                        <p class="text-[11px] text-slate-400" id="quick-odo-plate">Vehicle</p>
+                        <p class="text-[0.6875rem] text-slate-400" id="quick-odo-plate">Vehicle</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeQuickOdometerModal()" aria-label="Close" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer">
@@ -3042,7 +3042,7 @@
                             km
                         </span>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-1">Updates oil change countdown, PMS intervals &amp; health score in real time.</p>
+                    <p class="text-[0.625rem] text-slate-400 mt-1">Updates oil change countdown, PMS intervals &amp; health score in real time.</p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">

@@ -56,7 +56,7 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-extrabold text-slate-900">App Logo</h3>
-                                <p class="text-[11px] text-slate-400">Logo shown across sidebar, top bar, and public screens.</p>
+                                <p class="text-[0.6875rem] text-slate-400">Logo shown across sidebar, top bar, and public screens.</p>
                             </div>
                         </div>
                     </div>
@@ -71,30 +71,30 @@
                                     <p class="text-xs font-extrabold text-slate-800">System Brand Identifier</p>
                                     {{-- Status tag (not a button): shows which logo is live --}}
                                     @if($customLogoUrl)
-                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-700 ring-1 ring-emerald-200">
                                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Custom logo
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 ring-1 ring-slate-200">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-[0.625rem] font-bold text-slate-600 ring-1 ring-slate-200">
                                             <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Default logo
                                         </span>
                                     @endif
                                 </div>
-                                <p class="mt-0.5 text-[11px] text-slate-400">Recommended size: Square PNG, JPG or WebP (Max 4MB)</p>
+                                <p class="mt-0.5 text-[0.6875rem] text-slate-400">Recommended size: Square PNG, JPG or WebP (Max 4MB)</p>
                             </div>
 
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
                                 {{-- Main action --}}
                                 <label for="logoInput" tabindex="0" role="button"
                                     onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); document.getElementById('logoInput').click(); }"
-                                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-1.5 text-[11px] font-bold text-white shadow-xs transition hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-1.5 text-[0.6875rem] font-bold text-white shadow-xs transition hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                     {{ $customLogoUrl ? 'Replace Logo' : 'Upload Custom Logo' }}
                                 </label>
 
                                 {{-- Secondary action: quiet text link, only when a custom logo exists --}}
                                 @if($customLogoUrl)
-                                    <button type="button" id="openRemoveModalBtn" class="inline-flex cursor-pointer items-center gap-1 text-[11px] font-bold text-red-600 transition hover:text-red-700 hover:underline">
+                                    <button type="button" id="openRemoveModalBtn" class="inline-flex cursor-pointer items-center gap-1 text-[0.6875rem] font-bold text-red-600 transition hover:text-red-700 hover:underline">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                                         Remove custom logo
                                     </button>
@@ -115,7 +115,7 @@
                         </div>
                         <div>
                             <h3 class="text-sm font-extrabold text-slate-900">Driver Dashboard Content</h3>
-                            <p class="text-[11px] text-slate-400">Control feature visibility for signed-in drivers.</p>
+                            <p class="text-[0.6875rem] text-slate-400">Control feature visibility for signed-in drivers.</p>
                         </div>
                     </div>
 
@@ -126,7 +126,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-800">Assigned Vehicle Card</p>
-                                <p class="text-[10px] text-slate-400">Display permanently assigned vehicle on driver dashboard.</p>
+                                <p class="text-[0.625rem] text-slate-400">Display permanently assigned vehicle on driver dashboard.</p>
                             </div>
                         </div>
                         
@@ -155,7 +155,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-extrabold text-slate-900">Admin Modules Access Control</h3>
-                        <p class="text-[11px] text-slate-400">Toggle sidebar navigation entries for standard administrator accounts.</p>
+                        <p class="text-[0.6875rem] text-slate-400">Toggle sidebar navigation entries for standard administrator accounts.</p>
                     </div>
                 </div>
 
@@ -169,7 +169,7 @@
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-slate-800">Vehicles List</p>
-                                <p class="text-[10px] text-slate-400">Vehicle fleet records.</p>
+                                <p class="text-[0.625rem] text-slate-400">Vehicle fleet records.</p>
                             </div>
                         </div>
                         <button type="button" role="switch" aria-checked="{{ $vActive ? 'true' : 'false' }}" aria-label="Vehicles List"
@@ -190,7 +190,7 @@
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-slate-800">Vehicle Assigning</p>
-                                <p class="text-[10px] text-slate-400">Driver assignments.</p>
+                                <p class="text-[0.625rem] text-slate-400">Driver assignments.</p>
                             </div>
                         </div>
                         <button type="button" role="switch" aria-checked="{{ $vaActive ? 'true' : 'false' }}" aria-label="Vehicle Assigning"
@@ -211,7 +211,7 @@
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-slate-800">Travel Requests</p>
-                                <p class="text-[10px] text-slate-400">Review trip requests.</p>
+                                <p class="text-[0.625rem] text-slate-400">Review trip requests.</p>
                             </div>
                         </div>
                         <button type="button" role="switch" aria-checked="{{ $vrActive ? 'true' : 'false' }}" aria-label="Travel Requests"
@@ -232,7 +232,7 @@
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-slate-800">Drivers</p>
-                                <p class="text-[10px] text-slate-400">Driver profiles list.</p>
+                                <p class="text-[0.625rem] text-slate-400">Driver profiles list.</p>
                             </div>
                         </div>
                         <button type="button" role="switch" aria-checked="{{ $dActive ? 'true' : 'false' }}" aria-label="Drivers"
@@ -262,13 +262,13 @@
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-extrabold text-slate-900">Driver Broadcast Announcement</h3>
-                                    <p class="text-[11px] text-slate-400">Displays an alert banner across Driver Portal pages.</p>
+                                    <p class="text-[0.6875rem] text-slate-400">Displays an alert banner across Driver Portal pages.</p>
                                 </div>
                             </div>
 
                             @php $driverAnnActive = $settings['driver_announcement']['enabled'] ?? false; @endphp
                             <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-bold text-slate-600">Active</span>
+                                <span class="text-[0.625rem] font-bold text-slate-600">Active</span>
                                 <button type="button" role="switch" aria-checked="{{ $driverAnnActive ? 'true' : 'false' }}" aria-label="Driver Announcement active"
                                     onclick="promptAnnouncementToggleConfirmation('driver', 'Driver Announcement', {{ $driverAnnActive ? 'false' : 'true' }})"
                                     class="relative inline-flex items-center cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
@@ -319,13 +319,13 @@
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-extrabold text-slate-900">Admin Broadcast Announcement</h3>
-                                    <p class="text-[11px] text-slate-400">Displays an alert banner across Admin Portal pages.</p>
+                                    <p class="text-[0.6875rem] text-slate-400">Displays an alert banner across Admin Portal pages.</p>
                                 </div>
                             </div>
 
                             @php $adminAnnActive = $settings['admin_announcement']['enabled'] ?? false; @endphp
                             <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-bold text-slate-600">Active</span>
+                                <span class="text-[0.625rem] font-bold text-slate-600">Active</span>
                                 <button type="button" role="switch" aria-checked="{{ $adminAnnActive ? 'true' : 'false' }}" aria-label="Admin Announcement active"
                                     onclick="promptAnnouncementToggleConfirmation('admin', 'Admin Announcement', {{ $adminAnnActive ? 'false' : 'true' }})"
                                     class="relative inline-flex items-center cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
@@ -376,7 +376,7 @@
                         </div>
                         <div>
                             <h3 class="text-sm font-extrabold text-slate-900">Driver Dashboard Content</h3>
-                            <p class="text-[11px] text-slate-400">Controls what signed-in drivers see on dashboard.</p>
+                            <p class="text-[0.6875rem] text-slate-400">Controls what signed-in drivers see on dashboard.</p>
                         </div>
                     </div>
 
@@ -387,7 +387,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-800">Assigned Vehicle Card</p>
-                                <p class="text-[10px] text-slate-400">Vehicle assigned to the signed-in driver.</p>
+                                <p class="text-[0.625rem] text-slate-400">Vehicle assigned to the signed-in driver.</p>
                             </div>
                         </div>
                         
@@ -416,13 +416,13 @@
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-extrabold text-slate-900">Driver Announcement</h3>
-                                    <p class="text-[11px] text-slate-400">Broadcast alert banner for driver accounts.</p>
+                                    <p class="text-[0.6875rem] text-slate-400">Broadcast alert banner for driver accounts.</p>
                                 </div>
                             </div>
 
                             @php $driverAnnActive = $settings['driver_announcement']['enabled'] ?? false; @endphp
                             <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-bold text-slate-600">Show banner</span>
+                                <span class="text-[0.625rem] font-bold text-slate-600">Show banner</span>
                                 <button type="button" role="switch" aria-checked="{{ $driverAnnActive ? 'true' : 'false' }}" aria-label="Driver Announcement active"
                                     onclick="promptAnnouncementToggleConfirmation('driver', 'Driver Announcement', {{ $driverAnnActive ? 'false' : 'true' }})"
                                     class="relative inline-flex items-center cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
@@ -573,15 +573,15 @@
                 @forelse($settings['driver_announcement']['history'] ?? [] as $entry)
                     <div class="py-3 space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center gap-1 rounded-md {{ ($entry['enabled'] ?? false) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600' }} px-2 py-0.5 text-[10px] font-bold">
+                            <span class="inline-flex items-center gap-1 rounded-md {{ ($entry['enabled'] ?? false) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600' }} px-2 py-0.5 text-[0.625rem] font-bold">
                                 {{ ($entry['enabled'] ?? false) ? 'Active Broadcast' : 'Disabled' }}
                             </span>
-                            <span class="text-[10px] text-slate-400 font-medium">
+                            <span class="text-[0.625rem] text-slate-400 font-medium">
                                 {{ \Carbon\Carbon::parse($entry['updated_at'] ?? now())->format('M d, Y • h:i A') }}
                             </span>
                         </div>
                         <p class="text-xs text-slate-800 font-semibold">{{ $entry['message'] }}</p>
-                        <p class="text-[10px] text-slate-400">Published by <span class="font-bold text-slate-600">{{ $entry['updated_by_name'] ?? 'Super Admin' }}</span></p>
+                        <p class="text-[0.625rem] text-slate-400">Published by <span class="font-bold text-slate-600">{{ $entry['updated_by_name'] ?? 'Super Admin' }}</span></p>
                     </div>
                 @empty
                     <div class="py-8 text-center text-xs text-slate-400 font-medium">
@@ -617,15 +617,15 @@
                 @forelse($settings['admin_announcement']['history'] ?? [] as $entry)
                     <div class="py-3 space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center gap-1 rounded-md {{ ($entry['enabled'] ?? false) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600' }} px-2 py-0.5 text-[10px] font-bold">
+                            <span class="inline-flex items-center gap-1 rounded-md {{ ($entry['enabled'] ?? false) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600' }} px-2 py-0.5 text-[0.625rem] font-bold">
                                 {{ ($entry['enabled'] ?? false) ? 'Active Broadcast' : 'Disabled' }}
                             </span>
-                            <span class="text-[10px] text-slate-400 font-medium">
+                            <span class="text-[0.625rem] text-slate-400 font-medium">
                                 {{ \Carbon\Carbon::parse($entry['updated_at'] ?? now())->format('M d, Y • h:i A') }}
                             </span>
                         </div>
                         <p class="text-xs text-slate-800 font-semibold">{{ $entry['message'] }}</p>
-                        <p class="text-[10px] text-slate-400">Published by <span class="font-bold text-slate-600">{{ $entry['updated_by_name'] ?? 'Super Admin' }}</span></p>
+                        <p class="text-[0.625rem] text-slate-400">Published by <span class="font-bold text-slate-600">{{ $entry['updated_by_name'] ?? 'Super Admin' }}</span></p>
                     </div>
                 @empty
                     <div class="py-8 text-center text-xs text-slate-400 font-medium">

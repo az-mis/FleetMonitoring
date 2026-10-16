@@ -27,7 +27,7 @@
             </span>
             <div>
                 <h1 class="text-lg font-black text-gray-900 tracking-tight sm:text-xl">Fleet Cards &amp; Fuel Budget</h1>
-                <p class="text-[11px] text-gray-500">Track fuel cards, consumption rates, and trip deductions.</p>
+                <p class="text-[0.6875rem] text-gray-500">Track fuel cards, consumption rates, and trip deductions.</p>
             </div>
         </div>
 
@@ -108,35 +108,35 @@
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div class="rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-2xs hover:shadow-xs transition">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Allocated Budget</span>
+                <span class="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-500">Total Allocated Budget</span>
                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 text-xs shadow-2xs">
                     💳
                 </span>
             </div>
             <p class="mt-1.5 text-lg font-black text-gray-900">₱{{ number_format($totalInitialBudget, 2) }}</p>
-            <p class="text-[10px] text-gray-400">Total registered cards budget</p>
+            <p class="text-[0.625rem] text-gray-400">Total registered cards budget</p>
         </div>
 
         <div class="rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-2xs hover:shadow-xs transition">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Expense Consumed</span>
+                <span class="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-500">Total Expense Consumed</span>
                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 text-xs shadow-2xs">
                     ⛽
                 </span>
             </div>
             <p class="mt-1.5 text-lg font-black text-amber-700">₱{{ number_format($totalConsumed, 2) }}</p>
-            <p class="text-[10px] text-gray-400">Total fuel &amp; service deductions</p>
+            <p class="text-[0.625rem] text-gray-400">Total fuel &amp; service deductions</p>
         </div>
 
         <div class="rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-2xs hover:shadow-xs transition">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Remaining Balance</span>
+                <span class="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-500">Total Remaining Balance</span>
                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 text-xs shadow-2xs">
                     ✅
                 </span>
             </div>
             <p class="mt-1.5 text-lg font-black text-emerald-700">₱{{ number_format($totalCurrentBalance, 2) }}</p>
-            <p class="text-[10px] text-gray-400">Total active funds available</p>
+            <p class="text-[0.625rem] text-gray-400">Total active funds available</p>
         </div>
     </div>
 
@@ -145,7 +145,7 @@
         <div class="flex items-center justify-between">
             <h2 class="text-xs font-black uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
                 <span>Active Fleet Cards</span>
-                <span class="rounded-full bg-emerald-100 px-2 py-px text-[10px] font-bold text-emerald-800">{{ $cards->count() }}</span>
+                <span class="rounded-full bg-emerald-100 px-2 py-px text-[0.625rem] font-bold text-emerald-800">{{ $cards->count() }}</span>
             </h2>
         </div>
 
@@ -155,7 +155,7 @@
                     💳
                 </div>
                 <h3 class="text-xs font-bold text-gray-800">No Fleet Cards Registered Yet</h3>
-                <p class="mt-0.5 text-[11px] text-gray-500 max-w-sm mx-auto">Add a fleet card assigned to a vehicle with budget and price per liter.</p>
+                <p class="mt-0.5 text-[0.6875rem] text-gray-500 max-w-sm mx-auto">Add a fleet card assigned to a vehicle with budget and price per liter.</p>
                 <button type="button" onclick="openAddCardModal()" class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0f5d33] px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-[#0b4726]">
                     + Add First Fleet Card
                 </button>
@@ -174,9 +174,9 @@
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1.5 truncate">
                                     <span class="font-extrabold text-gray-900 text-sm truncate">{{ $card->card_name }}</span>
-                                    <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-mono font-bold text-slate-600 border border-slate-200 shrink-0">{{ $card->card_number }}</span>
+                                    <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[0.5625rem] font-mono font-bold text-slate-600 border border-slate-200 shrink-0">{{ $card->card_number }}</span>
                                 </div>
-                                <p class="text-[11px] text-gray-500 mt-0.5 truncate">
+                                <p class="text-[0.6875rem] text-gray-500 mt-0.5 truncate">
                                     Assigned: 
                                     @if($card->vehicle)
                                         <span class="font-bold text-emerald-800">{{ $card->vehicle->plate_number }}</span> <span class="text-gray-400">({{ $card->vehicle->brand }} {{ $card->vehicle->model }})</span>
@@ -186,14 +186,14 @@
                                     • <span class="font-semibold text-gray-600">📍 {{ $card->location }}</span>
                                 </p>
                             </div>
-                            <span class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold {{ $badgeColor }}">
+                            <span class="shrink-0 rounded-full border px-2 py-0.5 text-[0.625rem] font-bold {{ $badgeColor }}">
                                 {{ $pct }}% Balance
                             </span>
                         </div>
 
                         {{-- Budget Progress --}}
                         <div class="space-y-1">
-                            <div class="flex items-center justify-between text-[11px]">
+                            <div class="flex items-center justify-between text-[0.6875rem]">
                                 <span class="font-bold text-gray-700">Remaining: <span class="text-emerald-700 font-extrabold text-xs">₱{{ number_format($card->current_balance, 2) }}</span></span>
                                 <span class="text-gray-400 font-medium">Budget: ₱{{ number_format($card->initial_budget, 2) }}</span>
                             </div>
@@ -203,19 +203,19 @@
                         </div>
 
                         {{-- Rate & Capacity Info Box (Compact Grid) --}}
-                        <div class="grid grid-cols-2 gap-2 rounded-lg bg-gray-50/80 p-2 text-[11px] border border-gray-100">
+                        <div class="grid grid-cols-2 gap-2 rounded-lg bg-gray-50/80 p-2 text-[0.6875rem] border border-gray-100">
                             <div>
-                                <span class="text-gray-400 text-[10px] block">Fuel Price:</span>
+                                <span class="text-gray-400 text-[0.625rem] block">Fuel Price:</span>
                                 <p class="font-extrabold text-gray-800 text-xs">
                                     ₱{{ number_format($card->rate_peso, 2) }}
-                                    <span class="text-[10px] font-semibold text-emerald-700 font-normal">/ Liter</span>
+                                    <span class="text-[0.625rem] font-semibold text-emerald-700 font-normal">/ Liter</span>
                                 </p>
                             </div>
                             <div>
-                                <span class="text-gray-400 text-[10px] block">Est. Fuel Capacity:</span>
+                                <span class="text-gray-400 text-[0.625rem] block">Est. Fuel Capacity:</span>
                                 <p class="font-extrabold text-gray-800 text-xs">
                                     ~{{ $card->rate_peso > 0 ? number_format((float)$card->current_balance / (float)$card->rate_peso, 1) : 0 }} L
-                                    <span class="text-[10px] text-gray-400 font-normal block truncate">Available capacity</span>
+                                    <span class="text-[0.625rem] text-gray-400 font-normal block truncate">Available capacity</span>
                                 </p>
                             </div>
                         </div>
@@ -223,13 +223,13 @@
                         {{-- Actions (Compact) --}}
                         <div class="flex flex-wrap items-center justify-between gap-1.5 pt-2 border-t border-gray-100">
                             <div class="flex flex-wrap items-center gap-1.5">
-                                <button type="button" onclick="openExpenseModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-2xs">
+                                <button type="button" onclick="openExpenseModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[0.6875rem] font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-2xs">
                                     ⛽ Compute
                                 </button>
-                                <button type="button" onclick="openRechargeModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200 cursor-pointer">
+                                <button type="button" onclick="openRechargeModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[0.6875rem] font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200 cursor-pointer">
                                     💳 Top Up
                                 </button>
-                                <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', @js($card->card_name))" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition border border-slate-200 cursor-pointer" title="View transaction history for this card">
+                                <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', @js($card->card_name))" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[0.6875rem] font-bold text-slate-700 hover:bg-slate-200 transition border border-slate-200 cursor-pointer" title="View transaction history for this card">
                                     📋 History
                                 </button>
                             </div>
@@ -262,34 +262,34 @@
             <div>
                 <h3 class="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
                     <span>Expenses &amp; Transaction History</span>
-                    <span class="rounded-full bg-slate-100 px-2 py-px text-[10px] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
+                    <span class="rounded-full bg-slate-100 px-2 py-px text-[0.625rem] font-bold text-slate-600">{{ $recentLogs->count() }} entries</span>
                 </h3>
-                <p class="text-[10px] text-gray-400">Track fuel and service deductions grouped by month.</p>
+                <p class="text-[0.625rem] text-gray-400">Track fuel and service deductions grouped by month.</p>
                 {{-- Active card filter badge --}}
                 <div id="history-card-filter-badge" class="hidden mt-1 flex items-center gap-1.5">
-                    <span class="text-[10px] text-emerald-700 font-bold" id="history-card-filter-label"></span>
-                    <button type="button" onclick="clearHistoryCardFilter()" class="text-[9px] text-red-500 hover:text-red-700 font-bold underline cursor-pointer">✕ Clear filter</button>
+                    <span class="text-[0.625rem] text-emerald-700 font-bold" id="history-card-filter-label"></span>
+                    <button type="button" onclick="clearHistoryCardFilter()" class="text-[0.5625rem] text-red-500 hover:text-red-700 font-bold underline cursor-pointer">✕ Clear filter</button>
                 </div>
             </div>
 
             {{-- Category Filter Pills (Compact) --}}
             <div class="flex flex-wrap items-center gap-1">
-                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
                     All
                 </button>
-                <button type="button" @click="activeCategory = 'fuel'" :class="activeCategory === 'fuel' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'fuel'" :class="activeCategory === 'fuel' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
                     ⛽ Fuel
                 </button>
-                <button type="button" @click="activeCategory = 'service'" :class="activeCategory === 'service' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'service'" :class="activeCategory === 'service' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
                     🛠️ Service
                 </button>
-                <button type="button" @click="activeCategory = 'parking'" :class="activeCategory === 'parking' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'parking'" :class="activeCategory === 'parking' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
                     🅿️ Parking
                 </button>
-                <button type="button" @click="activeCategory = 'toll'" :class="activeCategory === 'toll' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'toll'" :class="activeCategory === 'toll' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
                     🛣️ Toll
                 </button>
-                <button type="button" @click="activeCategory = 'topup'" :class="activeCategory === 'topup' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold transition cursor-pointer">
+                <button type="button" @click="activeCategory = 'topup'" :class="activeCategory === 'topup' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
                     💳 Top-ups
                 </button>
             </div>
@@ -306,16 +306,16 @@
                     <div class="space-y-1.5">
                         {{-- Monthly Header & Running Total --}}
                         <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 border border-slate-200/80">
-                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-700">{{ $monthYear }}</span>
-                            <span class="text-[11px] font-extrabold text-slate-900">
+                            <span class="text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">{{ $monthYear }}</span>
+                            <span class="text-[0.6875rem] font-extrabold text-slate-900">
                                 Total: <strong class="text-amber-800">₱{{ number_format($monthExpenses, 2) }}</strong>
                             </span>
                         </div>
 
                         {{-- Month Transactions Table --}}
                         <div class="overflow-x-auto rounded-lg border border-gray-100">
-                            <table class="w-full text-left text-[11px] text-gray-600">
-                                <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[9px]">
+                            <table class="w-full text-left text-[0.6875rem] text-gray-600">
+                                <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[0.5625rem]">
                                     <tr>
                                         <th class="px-2.5 py-1.5">Date</th>
                                         <th class="px-2.5 py-1.5">Category</th>
@@ -357,25 +357,25 @@
                                             x-show="activeCategory === 'all' || activeCategory === '{{ $cat }}'">
                                             <td class="px-2.5 py-1.5 text-gray-400 whitespace-nowrap">{{ $log->created_at->format('M d, g:i A') }}</td>
                                             <td class="px-2.5 py-1.5 whitespace-nowrap">
-                                                <span class="rounded-full px-2 py-px text-[9px] font-bold border {{ $catBadge }}">
+                                                <span class="rounded-full px-2 py-px text-[0.5625rem] font-bold border {{ $catBadge }}">
                                                     {{ $catLabel }}
                                                 </span>
                                             </td>
                                             <td class="px-2.5 py-1.5 font-bold text-gray-900">
                                                 {{ $log->fleetCard?->card_name ?? 'N/A' }}
                                                 @if($log->vehicle)
-                                                    <span class="text-emerald-700 font-semibold block text-[10px]">({{ $log->vehicle->plate_number }})</span>
+                                                    <span class="text-emerald-700 font-semibold block text-[0.625rem]">({{ $log->vehicle->plate_number }})</span>
                                                 @endif
                                             </td>
                                             <td class="px-2.5 py-1.5">
                                                 @if($log->distance_source === 'odometer')
-                                                    <span class="rounded bg-blue-50 px-1 py-px text-[9px] font-bold text-blue-700 border border-blue-100">Odometer</span>
+                                                    <span class="rounded bg-blue-50 px-1 py-px text-[0.5625rem] font-bold text-blue-700 border border-blue-100">Odometer</span>
                                                 @elseif($log->distance_source === 'destination_master')
-                                                    <span class="rounded bg-purple-50 px-1 py-px text-[9px] font-bold text-purple-700 border border-purple-100">Trip Ticket</span>
+                                                    <span class="rounded bg-purple-50 px-1 py-px text-[0.5625rem] font-bold text-purple-700 border border-purple-100">Trip Ticket</span>
                                                 @elseif($log->distance_source === 'recharge')
-                                                    <span class="rounded bg-emerald-50 px-1 py-px text-[9px] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
+                                                    <span class="rounded bg-emerald-50 px-1 py-px text-[0.5625rem] font-bold text-emerald-700 border border-emerald-100">Top-up</span>
                                                 @else
-                                                    <span class="rounded bg-gray-100 px-1 py-px text-[9px] font-bold text-gray-700 border border-gray-200">Manual</span>
+                                                    <span class="rounded bg-gray-100 px-1 py-px text-[0.5625rem] font-bold text-gray-700 border border-gray-200">Manual</span>
                                                 @endif
                                             </td>
                                             {{-- Distance column --}}
@@ -389,7 +389,7 @@
                                             {{-- Liters Used column --}}
                                             <td class="px-2.5 py-1.5 whitespace-nowrap">
                                                 @if($log->liters_used)
-                                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-px text-[9px] font-black text-amber-800">
+                                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-px text-[0.5625rem] font-black text-amber-800">
                                                         ⛽ {{ number_format($log->liters_used, 2) }} L
                                                     </span>
                                                 @else
@@ -558,7 +558,7 @@
                                 </span>
                                 <span class="min-w-0">
                                     <span class="block text-xs font-bold text-gray-900">{{ $v->plate_number }}</span>
-                                    <span class="block truncate text-[11px] text-gray-500">{{ trim($v->brand.' '.$v->model) }} @if($v->location) &middot; {{ $v->location }} @endif</span>
+                                    <span class="block truncate text-[0.6875rem] text-gray-500">{{ trim($v->brand.' '.$v->model) }} @if($v->location) &middot; {{ $v->location }} @endif</span>
                                 </span>
                             </button>
                         @endforeach
@@ -575,11 +575,11 @@
             <div class="rounded-xl bg-amber-50/60 p-3 border border-amber-200/60 space-y-2">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-amber-900">Fuel Price Rule</label>
-                    <span class="text-[10px] text-amber-700 font-semibold">(Default fuel price per liter)</span>
+                    <span class="text-[0.625rem] text-amber-700 font-semibold">(Default fuel price per liter)</span>
                 </div>
-                <p class="text-[11px] text-amber-700">Specify the default price per liter for this fleet card (used to auto-calculate trip fuel costs).</p>
+                <p class="text-[0.6875rem] text-amber-700">Specify the default price per liter for this fleet card (used to auto-calculate trip fuel costs).</p>
                 <div>
-                    <span class="text-[10px] font-bold text-gray-500 block mb-1">Price per Liter</span>
+                    <span class="text-[0.625rem] font-bold text-gray-500 block mb-1">Price per Liter</span>
                     <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20 max-w-sm">
                         <span class="border-r border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs font-bold text-slate-600 select-none shrink-0">
                             ₱
@@ -592,7 +592,7 @@
                             required
                             class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
                         >
-                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                             / Liter
                         </span>
                     </div>
@@ -653,7 +653,7 @@
             {{-- Fields for Option 1: Odometer --}}
             <div id="field-group-odometer" class="hidden grid grid-cols-1 gap-3 sm:grid-cols-2 rounded-xl bg-blue-50/60 p-3 border border-blue-200/60">
                 <div>
-                    <label class="block text-[11px] font-bold text-blue-900 mb-1">Start Odometer</label>
+                    <label class="block text-[0.6875rem] font-bold text-blue-900 mb-1">Start Odometer</label>
                     <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                         <input
                             type="number"
@@ -663,13 +663,13 @@
                             oninput="updateLiveCalc()"
                             class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                         >
-                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                             km
                         </span>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-blue-900 mb-1">End Odometer</label>
+                    <label class="block text-[0.6875rem] font-bold text-blue-900 mb-1">End Odometer</label>
                     <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20">
                         <input
                             type="number"
@@ -679,7 +679,7 @@
                             oninput="updateLiveCalc()"
                             class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                         >
-                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                             km
                         </span>
                     </div>
@@ -753,7 +753,7 @@
                                     <div class="flex items-center justify-between gap-2">
                                         <div class="flex items-center gap-1.5 truncate">
                                             @if($r->trip_ticket_number)
-                                                <span class="font-mono font-extrabold text-[11px] text-emerald-900 bg-emerald-100 px-1.5 py-px rounded">{{ $r->trip_ticket_number }}</span>
+                                                <span class="font-mono font-extrabold text-[0.6875rem] text-emerald-900 bg-emerald-100 px-1.5 py-px rounded">{{ $r->trip_ticket_number }}</span>
                                             @endif
                                             <span class="font-bold text-xs text-slate-900 truncate">{{ $r->reference_code }}</span>
                                         </div>
@@ -765,7 +765,7 @@
                                             <span class="font-black text-xs text-emerald-700 shrink-0">{{ number_format($dist, 1) }} km</span>
                                         @endif
                                     </div>
-                                    <div class="flex items-center justify-between gap-2 text-[10px] text-slate-500">
+                                    <div class="flex items-center justify-between gap-2 text-[0.625rem] text-slate-500">
                                         <span class="truncate">{{ $destDisplay }}</span>
                                         @if($r->completion)
                                             <span class="text-blue-600 font-semibold shrink-0">✓ Completed Log ({{ number_format($dist, 1) }} km)</span>
@@ -778,7 +778,7 @@
                     </div>
                 </div>
 
-                <p class="text-[11px] text-purple-700 italic">Fetches the actual Liters used from Part B completed trip log.</p>
+                <p class="text-[0.6875rem] text-purple-700 italic">Fetches the actual Liters used from Part B completed trip log.</p>
             </div>
 
             {{-- Fields for Option 3: Manual Distance --}}
@@ -794,7 +794,7 @@
                         oninput="updateLiveCalc()"
                         class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                     >
-                    <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                    <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                         km
                     </span>
                 </div>
@@ -804,7 +804,7 @@
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-3">
                 <div class="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-emerald-900 border-b border-emerald-200/80 pb-1.5">
                     <span>⚡ Live Computation Summary</span>
-                    <span id="live-rate-badge" class="rounded bg-white px-2 py-0.5 text-[10px] text-emerald-800 shadow-2xs">₱0/km</span>
+                    <span id="live-rate-badge" class="rounded bg-white px-2 py-0.5 text-[0.625rem] text-emerald-800 shadow-2xs">₱0/km</span>
                 </div>
 
                 {{-- Option 2 View: Liters Used + Price/Liter Input -> Fuel Expense Consumed --}}
@@ -834,7 +834,7 @@
                                     oninput="updateLiveCalc()"
                                     class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
                                 >
-                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1.5 text-[10px] font-bold text-slate-500 select-none shrink-0">
+                                <span class="border-l border-slate-200 bg-slate-50/80 px-2.5 py-1.5 text-[0.625rem] font-bold text-slate-500 select-none shrink-0">
                                     price/liter
                                 </span>
                             </div>
@@ -853,15 +853,15 @@
                 {{-- Fuel Consumed and Balances Grid --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-emerald-200/70 text-xs">
                     <div class="rounded-xl bg-white/80 border border-emerald-200/70 p-2.5">
-                        <span class="text-emerald-700 font-bold block text-[11px]">Fuel Expense Consumed:</span>
+                        <span class="text-emerald-700 font-bold block text-[0.6875rem]">Fuel Expense Consumed:</span>
                         <p class="font-black text-amber-800 text-base" id="live-consumed">₱0.00</p>
                     </div>
                     <div class="rounded-xl bg-white/80 border border-emerald-200/70 p-2.5">
-                        <span class="text-emerald-700 font-bold block text-[11px]">Current Balance:</span>
+                        <span class="text-emerald-700 font-bold block text-[0.6875rem]">Current Balance:</span>
                         <p class="font-bold text-emerald-900 text-sm" id="live-current-balance">₱0.00</p>
                     </div>
                     <div class="rounded-xl bg-emerald-100/70 border border-emerald-300 p-2.5">
-                        <span class="text-emerald-800 font-bold block text-[11px]">Balance After Expense:</span>
+                        <span class="text-emerald-800 font-bold block text-[0.6875rem]">Balance After Expense:</span>
                         <p class="font-extrabold text-emerald-950 text-base" id="live-new-balance">₱0.00</p>
                     </div>
                 </div>
@@ -920,7 +920,7 @@
             <div id="edit-vehicle-picker">
                 <label class="block text-xs font-bold text-gray-700 mb-1">
                     Assigned Vehicle
-                    <span class="ml-1 text-[10px] font-normal text-gray-400">(cannot be changed)</span>
+                    <span class="ml-1 text-[0.625rem] font-normal text-gray-400">(cannot be changed)</span>
                 </label>
 
                 {{-- Hidden input so vehicle_id is still submitted with the form --}}
@@ -945,7 +945,7 @@
                     <span class="text-xs font-bold text-blue-950 flex items-center gap-1.5">
                         <span>💳 Top-Up Entries</span>
                     </span>
-                    <span id="edit-topup-count" class="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">0 entries</span>
+                    <span id="edit-topup-count" class="text-[0.625rem] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">0 entries</span>
                 </div>
 
                 {{-- List of Top-ups with Delete Button --}}
@@ -963,11 +963,11 @@
             <div class="rounded-xl bg-amber-50/60 p-3 border border-amber-200/60 space-y-2">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-amber-900">Fuel Price Rule</label>
-                    <span class="text-[10px] text-amber-700 font-semibold">(Default fuel price per liter)</span>
+                    <span class="text-[0.625rem] text-amber-700 font-semibold">(Default fuel price per liter)</span>
                 </div>
-                <p class="text-[11px] text-amber-700">Specify the default price per liter for this fleet card (used to auto-calculate trip fuel costs).</p>
+                <p class="text-[0.6875rem] text-amber-700">Specify the default price per liter for this fleet card (used to auto-calculate trip fuel costs).</p>
                 <div>
-                    <span class="text-[10px] font-bold text-gray-500 block mb-1">Price per Liter</span>
+                    <span class="text-[0.625rem] font-bold text-gray-500 block mb-1">Price per Liter</span>
                     <div class="flex items-center rounded-full border border-emerald-500 bg-white overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-emerald-500/20 max-w-sm">
                         <span class="border-r border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs font-bold text-slate-600 select-none shrink-0">
                             ₱
@@ -980,7 +980,7 @@
                             required
                             class="w-full bg-transparent px-3 py-1.5 text-xs font-black text-slate-900 placeholder:text-slate-400 focus:outline-none"
                         >
-                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 select-none shrink-0">
+                        <span class="border-l border-slate-200 bg-slate-50/80 px-3 py-1.5 text-[0.6875rem] font-bold text-slate-500 select-none shrink-0">
                             / Liter
                         </span>
                     </div>
@@ -1263,7 +1263,7 @@ function openEditCardModal(card) {
     topupCount.textContent = `${recharges.length} ${recharges.length === 1 ? 'entry' : 'entries'}`;
 
     if (recharges.length === 0) {
-        topupList.innerHTML = `<p class="text-[11px] text-gray-400 italic py-1">No top-ups recorded yet for this card.</p>`;
+        topupList.innerHTML = `<p class="text-[0.6875rem] text-gray-400 italic py-1">No top-ups recorded yet for this card.</p>`;
     } else {
         topupList.innerHTML = recharges.map(r => {
             const amount = Math.abs(parseFloat(r.consumed_amount) || 0);
@@ -1273,9 +1273,9 @@ function openEditCardModal(card) {
                     <div>
                         <div class="flex items-center gap-1.5">
                             <span class="font-extrabold text-xs text-blue-900">+₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            <span class="text-[10px] text-gray-400">${dateStr}</span>
+                            <span class="text-[0.625rem] text-gray-400">${dateStr}</span>
                         </div>
-                        <p class="text-[10px] text-gray-500 truncate max-w-[200px]">${escHtml(r.remarks || 'Budget Top-up')}</p>
+                        <p class="text-[0.625rem] text-gray-500 truncate max-w-[200px]">${escHtml(r.remarks || 'Budget Top-up')}</p>
                     </div>
                     <button type="button" onclick="deleteTopUpEntry(${card.id}, ${r.id}, ${amount})" class="rounded-md p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 transition cursor-pointer" title="Delete wrong top-up" aria-label="Delete top-up">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

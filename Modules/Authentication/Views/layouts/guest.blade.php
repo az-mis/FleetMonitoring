@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', config('app.name', 'Fleet Monitoring'))</title>
+    @include('partials.text-size')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -18,7 +19,7 @@
             <div class="grid md:grid-cols-[1.05fr_.95fr]">
                 <section class="hidden border-r border-emerald-200/15 bg-[#092f18]/75 p-6 sm:p-8 md:flex md:flex-col md:justify-between lg:p-9">
                     <div>
-                        <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                        <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-300">
                             <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></span>
                             Fleet Management System
                         </div>
@@ -32,12 +33,12 @@
                             @foreach ([['♢', 'Role-Based Security', 'Super admin, admin & driver workflows'], ['▣', 'Real-Time Allocation', 'Permanent assignments & calendar availability'], ['▤', 'Trip Ticket Generation', 'Instant printable travel authorizations']] as $feature)
                                 <div class="flex items-center gap-2 rounded-xl border border-emerald-300/10 bg-[#062512]/75 px-2.5 py-2">
                                     <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-base text-emerald-300" aria-hidden="true">{{ $feature[0] }}</span>
-                                    <div><p class="text-xs font-semibold text-white">{{ $feature[1] }}</p><p class="text-[10px] text-emerald-100/60">{{ $feature[2] }}</p></div>
+                                    <div><p class="text-xs font-semibold text-white">{{ $feature[1] }}</p><p class="text-[0.625rem] text-emerald-100/60">{{ $feature[2] }}</p></div>
                                 </div>
                             @endforeach
                         </div>
                     </div>
-                    <div class="border-t border-emerald-200/15 pt-4 text-[10px] text-emerald-100/55">Authorized Agency Personnel Only &nbsp;•&nbsp; All activities logged</div>
+                    <div class="border-t border-emerald-200/15 pt-4 text-[0.625rem] text-emerald-100/55">Authorized Agency Personnel Only &nbsp;•&nbsp; All activities logged</div>
                 </section>
 
                 <section class="p-6 sm:p-8 lg:p-9">

@@ -53,17 +53,17 @@
                                 @if (!$expDate)
                                     <span class="text-slate-400">—</span>
                                 @elseif ($daysLeft < 0)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[0.6875rem] font-bold text-red-700">
                                         <span class="h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse"></span>
                                         EXPIRED · {{ $expDate->format('M d, Y') }}
                                     </span>
                                 @elseif ($daysLeft <= 7)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-600 ring-1 ring-red-200">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[0.6875rem] font-bold text-red-600 ring-1 ring-red-200">
                                         <span class="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
                                         {{ $expDate->format('M d, Y') }} · {{ $daysLeft }}d left
                                     </span>
                                 @elseif ($daysLeft <= 30)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-200">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-bold text-amber-700 ring-1 ring-amber-200">
                                         <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                         {{ $expDate->format('M d, Y') }} · {{ $daysLeft }}d left
                                     </span>
@@ -188,7 +188,7 @@
                     <div class="px-4 pb-3 space-y-1.5">
                         <div class="flex items-center justify-between gap-2">
                             <p class="truncate text-base font-bold text-slate-900">{{ $driver->name }}</p>
-                            <span class="inline-flex items-center gap-1 shrink-0 rounded-full bg-emerald-100/70 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                            <span class="inline-flex items-center gap-1 shrink-0 rounded-full bg-emerald-100/70 px-2 py-0.5 text-[0.625rem] font-semibold text-emerald-800">
                                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
                                 Active
                             </span>
@@ -220,10 +220,10 @@
                         @endif
                     >
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                            <p class="text-[0.625rem] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                                 <span>🚗</span> ASSIGNED VEHICLES
                                 @if ($assignedVehicles->isNotEmpty())
-                                    <span class="inline-flex items-center justify-center rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-700">
+                                    <span class="inline-flex items-center justify-center rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[0.5625rem] font-extrabold text-slate-700">
                                         {{ $assignedVehicles->count() }}
                                     </span>
                                 @endif
@@ -231,7 +231,7 @@
 
                             @if ($assignedVehicles->count() > 1)
                                 <div class="flex items-center gap-1.5">
-                                    <span class="text-[10px] font-bold text-slate-500 tabular-nums" x-text="`${activeIndex + 1}/${total}`"></span>
+                                    <span class="text-[0.625rem] font-bold text-slate-500 tabular-nums" x-text="`${activeIndex + 1}/${total}`"></span>
                                     <div class="flex items-center gap-0.5">
                                         <button
                                             type="button"
@@ -283,7 +283,7 @@
                                         @endif
                                         <div class="min-w-0 flex-1">
                                             <p class="truncate text-xs font-bold text-slate-900 leading-tight">{{ $v->brand }} {{ $v->model }}</p>
-                                            <span class="inline-block rounded bg-slate-200/80 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wide text-slate-700 mt-0.5">
+                                            <span class="inline-block rounded bg-slate-200/80 px-1.5 py-0.5 text-[0.5625rem] font-extrabold tracking-wide text-slate-700 mt-0.5">
                                                 {{ $v->plate_number }}
                                             </span>
                                         </div>
@@ -322,7 +322,7 @@
                                 elseif ($daysLeft <= 30) $licenseStatus = 'warn30';
                             }
                         @endphp
-                        <div class="mt-3 rounded-lg border text-[10px] shadow-2xs overflow-hidden
+                        <div class="mt-3 rounded-lg border text-[0.625rem] shadow-2xs overflow-hidden
                             {{ $licenseStatus === 'expired' ? 'border-red-300 bg-red-50' :
                                ($licenseStatus === 'warn7'  ? 'border-red-200 bg-red-50/60' :
                                ($licenseStatus === 'warn30' ? 'border-amber-200 bg-amber-50/60' :
@@ -355,17 +355,17 @@
                             @if ($licenseStatus === 'expired')
                                 <div class="flex items-center gap-1.5 bg-red-600 px-2 py-1 text-white">
                                     <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse shrink-0"></span>
-                                    <span class="font-bold text-[10px] uppercase tracking-wide">License Expired</span>
+                                    <span class="font-bold text-[0.625rem] uppercase tracking-wide">License Expired</span>
                                 </div>
                             @elseif ($licenseStatus === 'warn7')
                                 <div class="flex items-center gap-1.5 bg-red-500 px-2 py-1 text-white">
                                     <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse shrink-0"></span>
-                                    <span class="font-bold text-[10px] uppercase tracking-wide">Expires in {{ $daysLeft }} day{{ $daysLeft == 1 ? '' : 's' }}!</span>
+                                    <span class="font-bold text-[0.625rem] uppercase tracking-wide">Expires in {{ $daysLeft }} day{{ $daysLeft == 1 ? '' : 's' }}!</span>
                                 </div>
                             @elseif ($licenseStatus === 'warn30')
                                 <div class="flex items-center gap-1.5 bg-amber-500 px-2 py-1 text-white">
                                     <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse shrink-0"></span>
-                                    <span class="font-bold text-[10px] uppercase tracking-wide">Expires in {{ $daysLeft }} days</span>
+                                    <span class="font-bold text-[0.625rem] uppercase tracking-wide">Expires in {{ $daysLeft }} days</span>
                                 </div>
                             @endif
                         </div>

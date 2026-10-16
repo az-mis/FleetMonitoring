@@ -35,7 +35,7 @@
         <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
                 <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Reports</h1>
-                <span class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ring-1 {{ $isSuperAdmin ? 'bg-violet-50 text-violet-700 ring-violet-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200' }}">
+                <span class="rounded-full px-2.5 py-1 text-[0.625rem] font-black uppercase tracking-wide ring-1 {{ $isSuperAdmin ? 'bg-violet-50 text-violet-700 ring-violet-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200' }}">
                     {{ $isSuperAdmin ? 'Super Admin' : 'Admin' }} &middot; {{ $scopeLabel }}
                 </span>
             </div>
@@ -70,7 +70,7 @@
     <form method="GET" action="{{ route('reports.index') }}" id="filter-form" class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center">
         @if($isSuperAdmin)
             <div class="flex items-center gap-2">
-                <label for="f-location" class="text-[11px] font-bold uppercase tracking-wide text-slate-500">Office</label>
+                <label for="f-location" class="text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500">Office</label>
                 <select id="f-location" name="location" onchange="this.form.submit()" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                     <option value="">All Offices</option>
                     @foreach($locationOptions as $opt)
@@ -95,16 +95,16 @@
             <button type="submit" class="rounded-lg bg-slate-800 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-slate-900 cursor-pointer">Apply</button>
         </div>
 
-        <p class="text-[11px] text-slate-400 lg:ml-auto">Monthly trend charts always show the last 6 months.</p>
+        <p class="text-[0.6875rem] text-slate-400 lg:ml-auto">Monthly trend charts always show the last 6 months.</p>
     </form>
 
     {{-- KPI cards --}}
     <div class="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
         @foreach($kpis as $kpi)
             <div class="min-w-0 rounded-2xl border bg-white p-4 shadow-sm {{ explode(' ', $tones[$kpi['tone']])[0] }}">
-                <p class="text-[10px] font-black uppercase tracking-wider text-slate-500">{{ $kpi['label'] }}</p>
+                <p class="text-[0.625rem] font-black uppercase tracking-wider text-slate-500">{{ $kpi['label'] }}</p>
                 <p class="mt-1 break-words text-xl font-black leading-tight tabular-nums sm:text-2xl {{ explode(' ', $tones[$kpi['tone']])[1] }}">{{ $kpi['value'] }}</p>
-                <p class="mt-0.5 truncate text-[11px] text-slate-500" title="{{ $kpi['hint'] }}">{{ $kpi['hint'] }}</p>
+                <p class="mt-0.5 truncate text-[0.6875rem] text-slate-500" title="{{ $kpi['hint'] }}">{{ $kpi['hint'] }}</p>
             </div>
         @endforeach
     </div>
@@ -120,13 +120,13 @@
         ];
     @endphp
 
-    <div class="grid gap-4 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {{-- Hero Cost Card --}}
-        <section class="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-900 to-[#004d2e] p-5 text-white shadow-md xl:col-span-1 flex flex-col justify-between">
+        <section class="min-w-0 rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-900 to-[#004d2e] p-5 text-white shadow-md xl:col-span-1 flex flex-col justify-between">
             <div>
-                <div class="flex items-center justify-between border-b border-emerald-700/60 pb-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-700/60 pb-3">
                     <span class="text-xs font-bold uppercase tracking-wider text-emerald-200">Total Spent &middot; {{ $rangeLabels[$range] ?? 'Period' }}</span>
-                    <span class="rounded-full bg-emerald-800/80 px-2 py-0.5 text-[10px] font-extrabold text-emerald-100 ring-1 ring-emerald-500/30">
+                    <span class="rounded-full bg-emerald-800/80 px-2 py-0.5 text-[0.625rem] font-extrabold text-emerald-100 ring-1 ring-emerald-500/30">
                         {{ $ca['entry_count'] }} entries
                     </span>
                 </div>
@@ -146,22 +146,22 @@
                     @endif
                 </div>
 
-                {{-- Cost per km & Distance boxes --}}
-                <div class="mt-6 grid grid-cols-2 gap-3">
-                    <div class="rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Cost per km</p>
+                {{-- Cost per km & Distance boxes: side by side, stacking when large text no longer fits --}}
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <div class="min-w-[8.5rem] flex-1 rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
+                        <p class="text-[0.625rem] font-bold uppercase tracking-wider text-emerald-200">Cost per km</p>
                         <p class="mt-1 break-words text-lg font-black text-white tabular-nums sm:text-xl">₱{{ number_format($ca['cost_per_km'], 2) }}</p>
-                        <p class="text-[10px] text-emerald-200/80">Fuel &amp; service rate</p>
+                        <p class="text-[0.625rem] text-emerald-200/80">Fuel &amp; service rate</p>
                     </div>
-                    <div class="rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Distance</p>
+                    <div class="min-w-[8.5rem] flex-1 rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
+                        <p class="text-[0.625rem] font-bold uppercase tracking-wider text-emerald-200">Distance</p>
                         <p class="mt-1 break-words text-lg font-black text-white tabular-nums sm:text-xl">{{ number_format($ca['total_km'], 1) }} km</p>
-                        <p class="text-[10px] text-emerald-200/80">Logged trips</p>
+                        <p class="text-[0.625rem] text-emerald-200/80">Logged trips</p>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-5 pt-3 border-t border-emerald-700/60 flex items-center justify-between text-[11px] text-emerald-200/80">
+            <div class="mt-5 pt-3 border-t border-emerald-700/60 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[0.6875rem] text-emerald-200/80">
                 <span>Fuel: <strong>₱{{ number_format($ca['fuel_spent'], 2) }}</strong></span>
                 <span>Maintenance: <strong>₱{{ number_format($ca['maint_spent'], 2) }}</strong></span>
             </div>
@@ -177,7 +177,7 @@
                         </span>
                         <h3 class="text-sm font-extrabold text-slate-900">Period Insights</h3>
                     </div>
-                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-extrabold text-slate-600 uppercase tracking-wide">Worth a Look</span>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[0.625rem] font-extrabold text-slate-600 uppercase tracking-wide">Worth a Look</span>
                 </div>
 
                 {{-- Smart Insight Cards --}}
@@ -198,9 +198,9 @@
                             };
                         @endphp
                         <div class="rounded-xl border p-3 {{ $toneClass }}">
-                            <p class="text-[9px] font-black uppercase tracking-wider {{ $tagClass }}">{{ $ins['tag'] }}</p>
+                            <p class="text-[0.5625rem] font-black uppercase tracking-wider {{ $tagClass }}">{{ $ins['tag'] }}</p>
                             <p class="mt-1 text-xs font-bold">{{ $ins['title'] }}</p>
-                            <p class="mt-0.5 text-[11px] opacity-80 leading-snug">{{ $ins['desc'] }}</p>
+                            <p class="mt-0.5 text-[0.6875rem] opacity-80 leading-snug">{{ $ins['desc'] }}</p>
                         </div>
                     @empty
                         <div class="col-span-full py-6 text-center text-xs text-slate-500">
@@ -214,12 +214,12 @@
                     <div class="mt-4 pt-4 border-t border-slate-100">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs font-bold text-slate-800">Top Vehicles by Spend</span>
-                            <span class="text-[11px] text-slate-400">Showing top {{ min(4, count($ca['vehicles'])) }} vehicles</span>
+                            <span class="text-[0.6875rem] text-slate-400">Showing top {{ min(4, count($ca['vehicles'])) }} vehicles</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs">
                                 <thead>
-                                    <tr class="text-[10px] font-extrabold uppercase text-slate-400 border-b border-slate-100">
+                                    <tr class="text-[0.625rem] font-extrabold uppercase text-slate-400 border-b border-slate-100">
                                         <th class="py-1.5 pr-2">Plate</th>
                                         <th class="py-1.5 pr-2">Model</th>
                                         <th class="py-1.5 pr-2 text-right">Distance</th>
@@ -244,7 +244,7 @@
                 @endif
             </div>
 
-            <div class="mt-3 pt-2 text-right text-[11px] text-slate-400">
+            <div class="mt-3 pt-2 text-right text-[0.6875rem] text-slate-400">
                 Formula: Total Spent (Fuel + Maintenance) &divide; Total Distance (km)
             </div>
         </section>
@@ -257,14 +257,14 @@
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <h3 class="font-bold text-gray-900">Office Comparison</h3>
-                    <p class="text-[11px] text-slate-400">Visible to Super Admin only. Click an office to drill in.</p>
+                    <p class="text-[0.6875rem] text-slate-400">Visible to Super Admin only. Click an office to drill in.</p>
                 </div>
-                <span class="rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700 ring-1 ring-violet-200">Super Admin</span>
+                <span class="rounded-full bg-violet-50 px-2.5 py-1 text-[0.625rem] font-black uppercase tracking-wide text-violet-700 ring-1 ring-violet-200">Super Admin</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[760px] text-left text-xs">
                     <thead>
-                        <tr class="border-b border-gray-100 text-[11px] uppercase tracking-wide text-gray-400">
+                        <tr class="border-b border-gray-100 text-[0.6875rem] uppercase tracking-wide text-gray-400">
                             <th class="py-2 pr-4 font-bold">Office</th>
                             <th class="py-2 pr-4 font-bold text-right">Vehicles</th>
                             <th class="py-2 pr-4 font-bold text-right">Requests</th>
@@ -302,7 +302,7 @@
     @endif
 
     {{-- Charts --}}
-    <div class="grid gap-4 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <section class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm xl:col-span-2">
             <h3 class="mb-3 text-sm font-bold text-gray-900">Requests per Month</h3>
             <div class="relative h-64"><canvas id="chart-requests-month"></canvas></div>
@@ -350,13 +350,13 @@
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-3">
             <div>
                 <h3 class="font-bold text-gray-900">Trip Log</h3>
-                <p class="text-[11px] text-slate-400">Showing {{ $tripLogPreview->count() }} of {{ $tripLog->count() }} requests in this period. Export for the full list.</p>
+                <p class="text-[0.6875rem] text-slate-400">Showing {{ $tripLogPreview->count() }} of {{ $tripLog->count() }} requests in this period. Export for the full list.</p>
             </div>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full min-w-[820px] text-left text-xs">
                 <thead>
-                    <tr class="bg-slate-50 text-[11px] uppercase tracking-wide text-gray-400">
+                    <tr class="bg-slate-50 text-[0.6875rem] uppercase tracking-wide text-gray-400">
                         <th class="px-4 py-2.5 font-bold">Ticket No.</th>
                         <th class="px-4 py-2.5 font-bold">Travel Date</th>
                         <th class="px-4 py-2.5 font-bold">Requester</th>
@@ -370,13 +370,13 @@
                 <tbody>
                     @forelse($tripLogPreview as $r)
                         <tr class="border-t border-gray-100 hover:bg-slate-50/60">
-                            <td class="px-4 py-2.5 font-mono text-[11px] text-gray-600">{{ $r->trip_ticket_number ?: '—' }}</td>
+                            <td class="px-4 py-2.5 font-mono text-[0.6875rem] text-gray-600">{{ $r->trip_ticket_number ?: '—' }}</td>
                             <td class="px-4 py-2.5 text-gray-700">{{ $r->travel_date?->format('M j, Y') }}{{ $r->travel_date_end && $r->travel_date_end->ne($r->travel_date) ? ' – ' . $r->travel_date_end->format('M j') : '' }}</td>
                             <td class="px-4 py-2.5 font-semibold text-gray-800">{{ $r->requester_name }}</td>
                             @if($isSuperAdmin)<td class="px-4 py-2.5 text-gray-600">{{ $r->location }}</td>@endif
                             <td class="px-4 py-2.5 text-gray-600">{{ $r->vehicle?->plate_number ?: '—' }}</td>
                             <td class="max-w-[220px] truncate px-4 py-2.5 text-gray-600" title="{{ str_replace(';;', ', ', (string) $r->destination) }}">{{ str_replace(';;', ', ', (string) $r->destination) }}</td>
-                            <td class="px-4 py-2.5"><span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold capitalize ring-1 {{ $statusStyles[$r->status] ?? 'bg-slate-50 text-slate-600 ring-slate-200' }}">{{ $r->status }}</span></td>
+                            <td class="px-4 py-2.5"><span class="rounded-full px-2.5 py-0.5 text-[0.625rem] font-bold capitalize ring-1 {{ $statusStyles[$r->status] ?? 'bg-slate-50 text-slate-600 ring-slate-200' }}">{{ $r->status }}</span></td>
                             <td class="px-4 py-2.5 text-right">
                                 @if($r->status === 'approved')
                                     <a href="{{ route('trip-ticket', $r) }}" target="_blank" class="font-bold text-emerald-700 hover:underline">Ticket</a>

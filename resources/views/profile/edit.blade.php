@@ -33,7 +33,7 @@
                     <input id="profile-avatar" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" class="sr-only" onchange="previewProfileAvatar(this)">
                     <input id="remove-avatar" type="checkbox" name="remove_avatar" value="1" class="hidden">
                     <p class="mt-1.5 text-xs text-gray-500">Photo: JPG, PNG or WebP (max 5MB)</p>
-                    @error('avatar')<p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>@enderror
+                    @error('avatar')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
 
                     <h3 class="mt-1 text-lg font-extrabold text-gray-900">{{ $user->name }}</h3>
                     <p class="mt-0.5 text-sm text-gray-500">
@@ -77,23 +77,23 @@
 
                         <div class="space-y-3">
                             <div>
-                                <label for="profile-name" class="mb-1 flex items-center gap-1 text-[11px] font-bold text-gray-700">
+                                <label for="profile-name" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
                                     Full Name <span class="text-red-500">*</span>
                                 </label>
                                 <input id="profile-name" name="name" value="{{ old('name', $user->name) }}" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('name')<p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>@enderror
+                                @error('name')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
-                                <label for="profile-phone" class="mb-1 flex items-center gap-1 text-[11px] font-bold text-gray-700">
+                                <label for="profile-phone" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
                                     Phone Number <span class="text-red-500">*</span>
                                 </label>
                                 <input id="profile-phone" type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required @if ($user->role === \Modules\Admin\Enums\UserRole::DRIVER) pattern="09[0-9]{9}" maxlength="11" inputmode="numeric" placeholder="09171234567" title="Must start with 09 and be exactly 11 digits (e.g. 09171234567)" @endif class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('phone_number')<p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>@enderror
+                                @error('phone_number')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
-                                <label for="profile-email" class="mb-1 flex items-center gap-1 text-[11px] font-bold text-gray-700">
+                                <label for="profile-email" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
                                     Email Address
                                 </label>
                                 <div class="relative">
@@ -103,11 +103,11 @@
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
                                 </div>
-                                <p class="mt-1 text-[10px] text-gray-500">Account email is managed by your administrator.</p>
+                                <p class="mt-1 text-[0.625rem] text-gray-500">Account email is managed by your administrator.</p>
                             </div>
 
                             <div>
-                                <label for="profile-location" class="mb-1 flex items-center gap-1 text-[11px] font-bold text-gray-700">
+                                <label for="profile-location" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
                                     Assigned Location / Office Province
                                 </label>
                                 <div class="relative">
@@ -117,7 +117,7 @@
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                     </svg>
                                 </div>
-                                <p class="mt-1 text-[10px] text-gray-500">Office assignment is managed by your administrator.</p>
+                                <p class="mt-1 text-[0.625rem] text-gray-500">Office assignment is managed by your administrator.</p>
                             </div>
                         </div>
                     </section>
@@ -136,19 +136,19 @@
 
                         <div class="space-y-3">
                             <div>
-                                <label for="profile-birth-date" class="mb-1 block text-[11px] font-bold text-gray-700">Birth Date</label>
+                                <label for="profile-birth-date" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Birth Date</label>
                                 <input id="profile-birth-date" type="date" name="birth_date" value="{{ old('birth_date', optional($user->birth_date)->format('Y-m-d')) }}" max="{{ now()->subDay()->toDateString() }}" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('birth_date')<p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>@enderror
+                                @error('birth_date')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
-                                <label for="profile-address" class="mb-1 block text-[11px] font-bold text-gray-700">Residential Address</label>
+                                <label for="profile-address" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Residential Address</label>
                                 <input id="profile-address" name="address" maxlength="255" value="{{ old('address', $user->address) }}" placeholder="e.g. Calapan City, Oriental Mindoro" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('address')<p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>@enderror
+                                @error('address')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
-                                <label for="profile-license-number" class="mb-1 block text-[11px] font-bold text-gray-700">Driver's License Number</label>
+                                <label for="profile-license-number" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Driver's License Number</label>
                                 <div class="relative">
                                     <input id="profile-license-number" value="{{ $user->license_number ?: 'Not set' }}" disabled class="w-full rounded-lg border border-gray-200 bg-gray-100/70 px-3 py-2 pr-8 text-xs text-gray-600 font-medium">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -159,7 +159,7 @@
                             </div>
 
                             <div>
-                                <label for="profile-license-expiration" class="mb-1 block text-[11px] font-bold text-gray-700">Driver's License Expiration</label>
+                                <label for="profile-license-expiration" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Driver's License Expiration</label>
                                 <div class="relative">
                                     @php
                                         $expDate = $user->license_expiration_date;
@@ -170,7 +170,7 @@
                                     @endphp
                                     <input id="profile-license-expiration" value="{{ optional($expDate)->format('Y-m-d') ?: 'Not set' }}" disabled class="w-full rounded-lg border {{ $isExp || $isUrgent ? 'border-red-300 bg-red-50/50' : ($isWarning ? 'border-amber-300 bg-amber-50/50' : 'border-gray-200 bg-gray-100/70') }} px-3 py-2 pr-32 text-xs text-gray-700 font-semibold">
                                     @if($expDate)
-                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-0.5 text-[9px] font-extrabold uppercase {{ $isExp ? 'bg-red-600 text-white' : ($isUrgent ? 'bg-red-600 text-white animate-pulse' : ($isWarning ? 'bg-amber-500 text-white' : 'bg-emerald-100 text-emerald-800')) }}">
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase {{ $isExp ? 'bg-red-600 text-white' : ($isUrgent ? 'bg-red-600 text-white animate-pulse' : ($isWarning ? 'bg-amber-500 text-white' : 'bg-emerald-100 text-emerald-800')) }}">
                                             @if($isExp)
                                                 EXPIRED
                                             @elseif($isUrgent || $isWarning)
@@ -182,22 +182,22 @@
                                     @endif
                                 </div>
                                 @if($isExp)
-                                    <p class="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-red-600">
+                                    <p class="mt-1.5 flex items-center gap-1.5 text-[0.6875rem] font-bold text-red-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                         License expired on {{ $expDate->format('M d, Y') }}! Please submit your renewed license to your administrator.
                                     </p>
                                 @elseif($isUrgent)
-                                    <p class="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-red-600">
+                                    <p class="mt-1.5 flex items-center gap-1.5 text-[0.6875rem] font-bold text-red-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                         Urgent: Your license expires in {{ $daysLeft }} {{ Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }})!
                                     </p>
                                 @elseif($isWarning)
-                                    <p class="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-amber-700">
+                                    <p class="mt-1.5 flex items-center gap-1.5 text-[0.6875rem] font-bold text-amber-700">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                         Notice: License expires in {{ $daysLeft }} {{ Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }}).
                                     </p>
                                 @else
-                                    <p class="mt-1 text-[10px] text-gray-500">Managed and verified by your fleet administrator.</p>
+                                    <p class="mt-1 text-[0.625rem] text-gray-500">Managed and verified by your fleet administrator.</p>
                                 @endif
                             </div>
                         </div>

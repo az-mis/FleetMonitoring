@@ -80,7 +80,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">UPCOMING / ACTIVE</p>
+                        <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">UPCOMING / ACTIVE</p>
                         <p class="text-xl font-black text-slate-900">{{ $upcomingCount }}</p>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">COMPLETED TRAVELS</p>
+                        <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">COMPLETED TRAVELS</p>
                         <p class="text-xl font-black text-slate-900">{{ $completedCount }}</p>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">TOTAL DISPATCHES</p>
+                        <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">TOTAL DISPATCHES</p>
                         <p class="text-xl font-black text-slate-900">{{ $totalCount }}</p>
                     </div>
                 </div>
@@ -149,7 +149,7 @@
             <div class="overflow-x-auto rounded-lg border border-slate-100">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        <tr class="border-b border-slate-100 bg-slate-50/70 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-500">
                             <th class="py-2.5 px-3">Destination & Purpose</th>
                             <th class="py-2.5 px-3">Travel Date</th>
                             <th class="py-2.5 px-3">Vehicle</th>
@@ -168,10 +168,10 @@
                                         <span class="font-extrabold text-slate-900">{{ $trip['destination'] }}</span>
                                     </div>
                                     @if($trip['purpose'])
-                                        <p class="mt-0.5 text-[11px] text-slate-600 font-medium">{{ $trip['purpose'] }}</p>
+                                        <p class="mt-0.5 text-[0.6875rem] text-slate-600 font-medium">{{ $trip['purpose'] }}</p>
                                     @endif
                                     @if($trip['requester_office'])
-                                        <p class="text-[10px] text-slate-500">Office: {{ $trip['requester_office'] }}</p>
+                                        <p class="text-[0.625rem] text-slate-500">Office: {{ $trip['requester_office'] }}</p>
                                     @endif
                                 </td>
 
@@ -192,7 +192,7 @@
                                 <td class="py-3 px-3">
                                     <div class="font-semibold text-slate-800">{{ $trip['requester_name'] }} (Requester)</div>
                                     @if($trip['more_passengers_count'] > 0)
-                                        <button type="button" @click="openModal({{ json_encode($trip) }})" class="text-[10px] font-bold text-emerald-700 hover:underline cursor-pointer">
+                                        <button type="button" @click="openModal({{ json_encode($trip) }})" class="text-[0.625rem] font-bold text-emerald-700 hover:underline cursor-pointer">
                                             +{{ $trip['more_passengers_count'] }} more
                                         </button>
                                     @endif
@@ -201,12 +201,12 @@
                                 {{-- Status --}}
                                 <td class="py-3 px-3 whitespace-nowrap">
                                     @if($trip['is_upcoming'])
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[0.625rem] font-bold text-blue-700 border border-blue-200">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                             Scheduled
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-700 border border-emerald-200">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                             Completed
                                         </span>
@@ -216,11 +216,11 @@
                                 {{-- Action --}}
                                 <td class="py-3 px-3 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        <button type="button" @click="openModal({{ json_encode($trip) }})" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition cursor-pointer">
+                                        <button type="button" @click="openModal({{ json_encode($trip) }})" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[0.6875rem] font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                                             View Details
                                         </button>
-                                        <a href="{{ $trip['ticket_url'] }}" target="_blank" class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 transition">
+                                        <a href="{{ $trip['ticket_url'] }}" target="_blank" class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.6875rem] font-bold text-emerald-700 hover:bg-emerald-100 transition">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                                             Ticket
                                         </a>
@@ -288,7 +288,7 @@
                         {{-- Destination Green Header Box --}}
                         <div class="flex items-center justify-between rounded-xl bg-emerald-50/70 border border-emerald-200/80 p-3.5">
                             <div>
-                                <p class="text-[9px] font-black uppercase tracking-wider text-emerald-800">DESTINATION</p>
+                                <p class="text-[0.5625rem] font-black uppercase tracking-wider text-emerald-800">DESTINATION</p>
                                 <div class="mt-0.5 flex items-center gap-1.5">
                                     <span class="text-red-500 text-sm">📍</span>
                                     <h4 class="text-sm font-black text-emerald-950" x-text="selectedTrip.destination"></h4>
@@ -308,7 +308,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">DATE RANGE</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">DATE RANGE</p>
                                     <p class="font-bold text-slate-800 mt-0.5" x-text="selectedTrip.formatted_date"></p>
                                 </div>
                             </div>
@@ -319,7 +319,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">ASSIGNED VEHICLE</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">ASSIGNED VEHICLE</p>
                                     <p class="font-bold text-slate-800 mt-0.5" x-text="selectedTrip.vehicle_full"></p>
                                 </div>
                             </div>
@@ -330,7 +330,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">REQUESTER</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">REQUESTER</p>
                                     <p class="font-bold text-slate-800 mt-0.5">
                                         <span x-text="selectedTrip.requester_name"></span>
                                         <span class="text-slate-500 font-medium" x-text="selectedTrip.requester_office ? '(' + selectedTrip.requester_office + ')' : ''"></span>
@@ -344,7 +344,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">CONTACT</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">CONTACT</p>
                                     <p class="font-bold text-slate-800 mt-0.5" x-text="selectedTrip.requester_contact || 'N/A'"></p>
                                 </div>
                             </div>
@@ -355,7 +355,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">PICK-UP LOCATION</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">PICK-UP LOCATION</p>
                                     <p class="font-bold text-slate-800 mt-0.5" x-text="selectedTrip.location || 'N/A'"></p>
                                 </div>
                             </div>
@@ -366,7 +366,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">APPROVED BY</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">APPROVED BY</p>
                                     <p class="font-bold text-slate-800 mt-0.5" x-text="selectedTrip.approved_by_name || 'Administrator'"></p>
                                 </div>
                             </div>
@@ -377,7 +377,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">TRIP PURPOSE</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">TRIP PURPOSE</p>
                                     <p class="font-bold text-slate-800 mt-0.5" x-text="selectedTrip.purpose || 'N/A'"></p>
                                 </div>
                             </div>
@@ -388,7 +388,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                 </div>
                                 <div class="w-full">
-                                    <p class="text-[10px] font-extrabold uppercase text-slate-400">AUTHORIZED PASSENGERS</p>
+                                    <p class="text-[0.625rem] font-extrabold uppercase text-slate-400">AUTHORIZED PASSENGERS</p>
                                     <ul class="mt-1 space-y-1 list-disc list-inside font-bold text-slate-800">
                                         <template x-for="passenger in selectedTrip.all_passengers" :key="passenger">
                                             <li x-text="passenger"></li>

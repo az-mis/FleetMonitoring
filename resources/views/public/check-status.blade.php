@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Check Request Status</title>
+    @include('partials.text-size')
     @vite(['resources/css/app.css','resources/js/app.js'])
 </head>
 <body class="relative min-h-screen bg-[#082b16] text-white antialiased">
@@ -12,7 +13,7 @@
 
 <main class="flex min-h-screen items-start justify-center px-4 pb-10 pt-8 sm:px-8 sm:pt-28">
     <div class="w-full max-w-xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm">
-        <nav class="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/15 pb-3 text-[11px] text-emerald-100/75">
+        <nav class="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/15 pb-3 text-[0.6875rem] text-emerald-100/75">
             <a href="{{ route('request-vehicle') }}" class="inline-flex min-h-8 items-center hover:text-white">← Request Form</a>
             <span class="hidden rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 font-semibold uppercase tracking-wide text-emerald-300 sm:inline-block"><span aria-hidden="true">⌕</span> Status Portal</span>
             <a href="{{ route('login') }}" class="inline-flex min-h-8 items-center hover:text-white">Staff Login →</a>
@@ -53,7 +54,7 @@
                 <button
                     type="button"
                     onclick="copyCode('{{ session('request_submitted') }}')"
-                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-emerald-500 transition cursor-pointer"
+                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[0.6875rem] font-bold text-white shadow-xs hover:bg-emerald-500 transition cursor-pointer"
                     id="copy-btn-el"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -80,7 +81,7 @@
                         </div>
                         <div>
                             <h3 class="text-xs font-extrabold text-emerald-400 tracking-wide">Request Approved</h3>
-                            <p class="mt-0.5 text-[11px] text-emerald-100/70">Your trip has been approved. You can now view assigned driver details and access your printable Trip Ticket below.</p>
+                            <p class="mt-0.5 text-[0.6875rem] text-emerald-100/70">Your trip has been approved. You can now view assigned driver details and access your printable Trip Ticket below.</p>
                         </div>
                     </div>
                 @elseif ($requestRecord->status === 'declined')
@@ -94,7 +95,7 @@
                         </div>
                         <div>
                             <h3 class="text-xs font-extrabold text-rose-400 tracking-wide">Request Declined</h3>
-                            <p class="mt-0.5 text-[11px] text-rose-100/70">{{ $requestRecord->decline_reason ? 'Reason: ' . $requestRecord->decline_reason : 'This travel request was declined by the administrator.' }}</p>
+                            <p class="mt-0.5 text-[0.6875rem] text-rose-100/70">{{ $requestRecord->decline_reason ? 'Reason: ' . $requestRecord->decline_reason : 'This travel request was declined by the administrator.' }}</p>
                         </div>
                     </div>
                 @else
@@ -107,7 +108,7 @@
                         </div>
                         <div>
                             <h3 class="text-xs font-extrabold text-amber-400 tracking-wide">Pending Review</h3>
-                            <p class="mt-0.5 text-[11px] text-amber-100/70">Your request is in the queue awaiting review and vehicle assignment.</p>
+                            <p class="mt-0.5 text-[0.6875rem] text-amber-100/70">Your request is in the queue awaiting review and vehicle assignment.</p>
                         </div>
                     </div>
                 @endif
@@ -125,7 +126,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">VEHICLE</p>
+                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">VEHICLE</p>
                             <p class="text-xs font-bold text-white mt-0.5 break-words">
                                 {{ $requestRecord->vehicle?->plate_number ? $requestRecord->vehicle->plate_number . ' · ' . $requestRecord->vehicle->brand . ' ' . $requestRecord->vehicle->model : 'Pending Assignment' }}
                             </p>
@@ -141,7 +142,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">DESTINATION</p>
+                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">DESTINATION</p>
                             <p class="text-xs font-bold text-white mt-0.5 break-words">{{ str_replace(';;', ', ', (string) $requestRecord->destination) }}</p>
                         </div>
                     </div>
@@ -157,7 +158,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">TRAVEL DATE</p>
+                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">TRAVEL DATE</p>
                             <p class="text-xs font-bold text-white mt-0.5 truncate">
                                 {{ $requestRecord->travel_date->format('M j, Y') }}
                                 {{ $requestRecord->travel_date_end ? ' – ' . $requestRecord->travel_date_end->format('M j, Y') : '' }}
@@ -179,7 +180,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">OFFICE / SECTION</p>
+                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">OFFICE / SECTION</p>
                             <p class="text-xs font-bold text-white mt-0.5 break-words">
                                 {{ $requestRecord->requester_office ?: $requestRecord->location }}
                             </p>
@@ -195,7 +196,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300/80">REQUESTER</p>
+                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">REQUESTER</p>
                             <p class="text-xs font-bold text-white mt-0.5 break-words">{{ $requestRecord->requester_name }}</p>
                         </div>
                     </div>
@@ -218,9 +219,9 @@
         @endif
         <div class="mt-4 rounded-xl border border-emerald-200/15 bg-[#062512]/70 p-3">
             <h2 class="text-xs font-bold text-white">Where do I find my reference code?</h2>
-            <p class="mt-1 text-[11px] leading-4 text-emerald-100/60">Your 7-character code was generated when you submitted the vehicle request form (e.g. 7K4RXWM).</p>
+            <p class="mt-1 text-[0.6875rem] leading-4 text-emerald-100/60">Your 7-character code was generated when you submitted the vehicle request form (e.g. 7K4RXWM).</p>
         </div>
-        <footer class="mt-4 border-t border-emerald-200/15 pt-3 text-center text-[11px] text-emerald-100/55">♧ Official Government Fleet Management System<br><span class="text-[9px]">© {{ date('Y') }} {{ config('app.name', 'Fleet Monitoring') }}</span></footer>
+        <footer class="mt-4 border-t border-emerald-200/15 pt-3 text-center text-[0.6875rem] text-emerald-100/55">♧ Official Government Fleet Management System<br><span class="text-[0.5625rem]">© {{ date('Y') }} {{ config('app.name', 'Fleet Monitoring') }}</span></footer>
     </div>
 </main>
 <script>

@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@hasSection('title')@yield('title') · @endif Fleet Management System</title>
+    @include('partials.text-size')
 
     <script>
         window.notificationBellData = function(allNotifIds) {
@@ -86,22 +87,34 @@
             cursor: not-allowed;
         }
         #sidebar .sidebar-active {
-            position: relative;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.18);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.12);
         }
 
         #sidebar .sidebar-active::before {
             content: "";
             position: absolute;
             left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            border-radius: 999px;
+            top: 22%;
+            bottom: 22%;
+            width: 3px;
+            border-radius: 0 999px 999px 0;
             background: #f2a51a;
+        }
+
+        #sidebar .sidebar-section-label {
+            margin: 0 0 0.375rem;
+            padding: 0 0.75rem;
+            font-size: 0.65625rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(167, 243, 208, 0.5);
+        }
+
+        #sidebar .sidebar-nav {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
         }
 
         /* Collapsed icon-rail state — applied on desktop via JS */
@@ -119,10 +132,24 @@
             padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
         }
-        #sidebar.sidebar-collapsed .logout-btn-container button {
-            justify-content: center !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
+        /* Section names become thin dividers on the rail; pending counts become a dot on the icon */
+        #sidebar.sidebar-collapsed .sidebar-section-label {
+            height: 1px;
+            margin: 0 0.5rem 0.5rem;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        #sidebar.sidebar-collapsed .sidebar-rail-dot {
+            display: block;
+        }
+        /* Tighter group spacing on the rail so all icons fit on shorter tablet screens */
+        #sidebar.sidebar-collapsed .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        #sidebar.sidebar-collapsed .sidebar-nav > * {
+            margin-block: 0 !important;
         }
         #sidebar.sidebar-collapsed .user-profile-link {
             justify-content: center !important;
@@ -179,7 +206,6 @@
         $user = auth()->user();
         $isSuperAdmin = $user?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN;
         $hasPhoto = filled($user?->avatar_url ?? null);
-        $vehiclesOpen = request()->routeIs('vehicles.*') || request()->routeIs('vehicle-assigning.*') || request()->routeIs('maintenance.*') || request()->routeIs('vehicle-reports.*') || request()->routeIs('fleet-cards.*') || request()->is('vehicles*') || request()->is('vehicle-assigning*') || request()->is('maintenance*') || request()->is('vehicle-reports*') || request()->is('fleet-cards*');
         $moduleFlags = ['vehicles' => true, 'vehicleAssigning' => true, 'vehicleRequests' => true, 'drivers' => true];
         try {
             $storedFlags = \Modules\Settings\Models\FleetSetting::where('setting_key', 'admin_modules')->value('setting_value');
@@ -306,12 +332,13 @@
         {{-- Sidebar — static part of layout on desktop (starts open), off-canvas on mobile --}}
         <aside
             id="sidebar"
-            class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-[#005a36] transition-all duration-200 ease-in-out md:static md:w-64 md:translate-x-0 md:shrink-0"
+            class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-[#004a2c] bg-[linear-gradient(180deg,#005a36_0%,#004a2c_55%,#003b23_100%)] shadow-xl shadow-black/10 transition-all duration-200 ease-in-out md:static md:w-64 md:translate-x-0 md:shrink-0 md:shadow-none"
         >
-            <div class="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-                <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-8 w-8 shrink-0 rounded-full bg-white object-contain p-0.5 shadow">
-                <div class="sidebar-label-block leading-tight">
-                    <p class="text-sm font-extrabold text-white">Fleet Management</p>
+            <div class="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+                <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-9 w-9 shrink-0 rounded-full bg-white object-contain p-0.5 shadow ring-2 ring-white/15">
+                <div class="sidebar-label-block min-w-0 leading-tight">
+                    <p class="truncate text-[0.9375rem] font-extrabold tracking-tight text-white">Fleet Management</p>
+                    <p class="truncate text-[0.65625rem] font-semibold uppercase tracking-[0.12em] text-emerald-200/60">{{ config('app.name') }}</p>
                 </div>
 
                 <button
@@ -329,225 +356,102 @@
                 </button>
             </div>
 
-            <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
-                <a
-                    href="{{ route('dashboard') }}"
-                    title="Dashboard"
-                    class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7" rx="1"/>
-                        <rect x="14" y="3" width="7" height="7" rx="1"/>
-                        <rect x="3" y="14" width="7" height="7" rx="1"/>
-                        <rect x="14" y="14" width="7" height="7" rx="1"/>
-                    </svg>
-                    <span class="sidebar-label">Dashboard</span>
-                </a>
+            @php
+                $isFleetAdmin = in_array($user?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true);
+                $locked = fn (string $module) => ! $isSuperAdmin && ! ($moduleFlags[$module] ?? true);
+            @endphp
 
-                @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
-                    <a
-                        href="{{ route('vehicle-requests.index') }}"
-                        title="Travel Requests"
-                        class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('vehicle-requests.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 3h6v3H9z"/>
-                            <rect width="16" height="16" x="4" y="5" rx="2"/>
-                            <path d="M8 11h8M8 15h5"/>
-                        </svg>
-                        <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
-                            <span class="truncate">Travel Requests</span>
-                            @if ($pendingTravelCount > 0)
-                                <span class="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold text-white shadow-xs">
-                                    {{ $pendingTravelCount }}
-                                </span>
-                            @elseif(!$isSuperAdmin && !($moduleFlags['vehicleRequests'] ?? true))
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
-                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                            @endif
-                        </span>
-                    </a>
-                @endif
+            {{-- Grouped sections instead of a dropdown, so every page is one click away and the list stays short --}}
+            <nav class="sidebar-nav flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Main navigation">
+                <div class="space-y-0.5">
+                    <x-sidebar-link :href="route('dashboard')" label="Dashboard" :active="request()->routeIs('dashboard')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    </x-sidebar-link>
+                </div>
 
-                @can('viewAny', App\Models\User::class)
-                    <a
-                        href="{{ route('admin.index') }}"
-                        title="Admins"
-                        class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                        <span class="sidebar-label">Admins</span>
-                    </a>
-                @endcan
-
-                @can('manage-drivers')
-                    <a
-                        href="{{ route('driver.index') }}"
-                        title="Drivers"
-                        class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('driver.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        <span class="sidebar-label flex flex-1 items-center justify-between min-w-0">
-                            <span>Drivers</span>
-                            @if(!$isSuperAdmin && !($moduleFlags['drivers'] ?? true))
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
-                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                            @endif
-                        </span>
-                    </a>
-                @endcan
-                @if (auth()->user()?->role?->value === 'driver')
-                    <a href="{{ route('travel-history') }}" title="Travel History" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('travel-history') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="8"/></svg>
-                        <span class="sidebar-label">Travel History</span>
-                    </a>
-                    <a href="{{ route('vehicle-reports.index') }}" title="Report Vehicle Issue" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('vehicle-reports.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        <span class="sidebar-label">Report Vehicle Issue</span>
-                    </a>
-                @endif
-
-                @if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true))
-                    <div id="vehicles-menu-container" class="{{ $vehiclesOpen ? 'rounded-lg bg-white/10' : '' }}">
-                        <button
-                            type="button"
-                            id="vehicles-menu-toggle"
-                            onclick="toggleVehiclesMenu(event)"
-                            title="Vehicles"
-                            aria-controls="vehicles-submenu"
-                            aria-expanded="{{ $vehiclesOpen ? 'true' : 'false' }}"
-                            class="sidebar-item w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ $vehiclesOpen ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M10 17h4V5H2v12h3"/>
-                                <path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/>
-                                <circle cx="7" cy="17" r="2"/>
-                                <circle cx="17" cy="17" r="2"/>
-                            </svg>
-                            <span class="sidebar-label flex flex-1 items-center justify-between min-w-0 pr-1">
-                                <span>Vehicles</span>
-                                @if(!$isSuperAdmin && (!($moduleFlags['vehicles'] ?? true) && !($moduleFlags['vehicleAssigning'] ?? true)))
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300 ml-auto shrink-0 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
-                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                @endif
-                            </span>
-                            <svg id="vehicles-chevron" xmlns="http://www.w3.org/2000/svg" class="sidebar-label ml-auto h-4 w-4 transition-transform duration-200 {{ $vehiclesOpen ? 'rotate-180' : '' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m6 9 6 6 6-6"/>
-                            </svg>
-                        </button>
-                        <div id="vehicles-submenu" class="sidebar-label-block {{ $vehiclesOpen ? '' : 'hidden' }} space-y-1 pb-2 pl-8 pr-2">
-                            <a href="{{ route('vehicles.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs font-medium {{ (request()->routeIs('vehicles.index') || request()->is('vehicles')) ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
-                                <span class="flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/></svg>
-                                    Vehicles List
-                                </span>
-                                @if(!$isSuperAdmin && !($moduleFlags['vehicles'] ?? true))
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
-                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                @endif
-                            </a>
-                            <a href="{{ route('vehicles.inspections.page') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('vehicles.inspections.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                                Vehicle Inspections
-                            </a>
-                            <a href="{{ route('vehicle-assigning.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs font-medium {{ (request()->routeIs('vehicle-assigning.*') || request()->is('vehicle-assigning*')) ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
-                                <span class="flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>
-                                    Vehicle Assigning
-                                </span>
-                                @if(!$isSuperAdmin && !($moduleFlags['vehicleAssigning'] ?? true))
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Disabled by Super Admin"><title>Disabled by Super Admin</title>
-                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                @endif
-                            </a>
-                            <a href="{{ route('maintenance.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('maintenance.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                                Maintenance
-                            </a>
-                            <a href="{{ route('vehicle-reports.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('vehicle-reports.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                Vehicle Reports
-                            </a>
-                            <a href="{{ route('fleet-cards.index') }}" onclick="expandSidebarForVehicles()" class="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium {{ request()->routeIs('fleet-cards.*') ? 'text-white font-bold bg-white/10' : 'text-emerald-50/80 hover:bg-white/10 hover:text-white' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-                                Fleet Cards
-                            </a>
-                        </div>
+                @if ($isFleetAdmin)
+                    <div class="space-y-0.5" role="group" aria-labelledby="nav-operations">
+                        <p id="nav-operations" class="sidebar-section-label"><span class="sidebar-label">Operations</span></p>
+                        <x-sidebar-link :href="route('vehicle-requests.index')" label="Travel Requests" :active="request()->routeIs('vehicle-requests.*')" :badge="$pendingTravelCount > 0 ? $pendingTravelCount : null" :locked="$locked('vehicleRequests')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v3H9z"/><rect width="16" height="16" x="4" y="5" rx="2"/><path d="M8 11h8M8 15h5"/></svg>
+                        </x-sidebar-link>
+                        @can('manage-drivers')
+                            <x-sidebar-link :href="route('driver.index')" label="Drivers" :active="request()->routeIs('driver.*')" :locked="$locked('drivers')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </x-sidebar-link>
+                        @endcan
+                        <x-sidebar-link :href="route('vehicle-assigning.index')" label="Vehicle Assigning" :active="request()->routeIs('vehicle-assigning.*')" :locked="$locked('vehicleAssigning')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>
+                        </x-sidebar-link>
                     </div>
 
-                    <a href="{{ route('approving-officers.index') }}" title="Approving Officers" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('approving-officers.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="m16 18 2 2 4-4"/></svg>
-                        <span class="sidebar-label">Approving Officers</span>
-                    </a>
+                    <div class="space-y-0.5" role="group" aria-labelledby="nav-fleet">
+                        <p id="nav-fleet" class="sidebar-section-label"><span class="sidebar-label">Fleet</span></p>
+                        <x-sidebar-link :href="route('vehicles.index')" label="Vehicles" :active="request()->routeIs('vehicles.*') && ! request()->routeIs('vehicles.inspections.*')" :locked="$locked('vehicles')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('vehicles.inspections.page')" label="Vehicle Inspections" :active="request()->routeIs('vehicles.inspections.*')" :locked="$locked('vehicles')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('maintenance.index')" label="Maintenance" :active="request()->routeIs('maintenance.*')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('vehicle-reports.index')" label="Vehicle Reports" :active="request()->routeIs('vehicle-reports.*')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('fleet-cards.index')" label="Fleet Cards" :active="request()->routeIs('fleet-cards.*')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                        </x-sidebar-link>
+                    </div>
 
-                    <a href="{{ route('reports.index') }}" title="Reports" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('reports.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-8"/></svg>
-                        <span class="sidebar-label">Reports</span>
-                    </a>
+                    <div class="space-y-0.5" role="group" aria-labelledby="nav-administration">
+                        <p id="nav-administration" class="sidebar-section-label"><span class="sidebar-label">Administration</span></p>
+                        <x-sidebar-link :href="route('reports.index')" label="Reports" :active="request()->routeIs('reports.*')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-8"/></svg>
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('destinations.index')" label="Destinations" :active="request()->routeIs('destinations.*')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('approving-officers.index')" label="Approving Officers" :active="request()->routeIs('approving-officers.*')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="m16 18 2 2 4-4"/></svg>
+                        </x-sidebar-link>
+                        @can('viewAny', App\Models\User::class)
+                            <x-sidebar-link :href="route('admin.index')" label="Admins" :active="request()->routeIs('admin.*')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </x-sidebar-link>
+                        @endcan
+                    </div>
+                @endif
 
-                    <a href="{{ route('destinations.index') }}" title="Destinations & Distance" class="sidebar-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('destinations.*') ? 'sidebar-active' : 'text-emerald-50/90 hover:bg-white/10 hover:text-white' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                            <circle cx="12" cy="10" r="3"/>
-                        </svg>
-                        <span class="sidebar-label">Destinations</span>
-                    </a>
-
+                @if ($user?->role === \Modules\Admin\Enums\UserRole::DRIVER)
+                    <div class="space-y-0.5" role="group" aria-labelledby="nav-my-work">
+                        <p id="nav-my-work" class="sidebar-section-label"><span class="sidebar-label">My Work</span></p>
+                        <x-sidebar-link :href="route('travel-history')" label="Travel History" :active="request()->routeIs('travel-history')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-6-8-12a8 8 0 0 1 16 0c0 6-8 12-8 12z"/><path d="M12 7v3l2 2"/></svg>
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('vehicle-reports.index')" label="Report Vehicle Issue" :active="request()->routeIs('vehicle-reports.*')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </x-sidebar-link>
+                    </div>
                 @endif
             </nav>
 
-            {{-- Logged-in user + logout --}}
-            <div class="border-t border-white/10 px-3 py-3 space-y-2">
-                <div title="{{ $user?->name }}" class="user-profile-link flex items-center gap-3 rounded-lg px-2 py-1.5 text-gray-300 cursor-default select-none">
+            {{-- Signed-in user; Log out lives in the account menu at the top right --}}
+            <div class="border-t border-white/10 p-3">
+                <a href="{{ route('my-profile') }}" title="My Profile" class="user-profile-link group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-150 hover:bg-white/[0.07] {{ request()->routeIs('my-profile') ? 'bg-white/[0.07]' : '' }}">
                     @if ($hasPhoto)
-                        <img
-                            src="{{ $user->avatar_url }}"
-                            alt="{{ $user->name }}"
-                            class="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white/10"
-                        >
+                        <img src="{{ $user->avatar_url }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/15">
                     @else
-                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-xs font-bold text-white ring-1 ring-white/20">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-[0.8125rem] font-bold text-white ring-2 ring-white/15" aria-hidden="true">
                             {{ Illuminate\Support\Str::upper(Illuminate\Support\Str::substr($user?->name ?? 'A', 0, 1)) }}
-                        </div>
+                        </span>
                     @endif
-                    <div class="sidebar-label-block min-w-0 leading-tight">
-                        <p class="truncate text-xs font-bold text-white">{{ $user?->name }}</p>
-                        <p class="truncate text-[11px] text-emerald-200/80">{{ $user?->role?->label() ?? 'Admin' }}</p>
-                    </div>
-                </div>
-
-                <div class="logout-btn-container">
-                    <button
-                        type="button"
-                        onclick="openLogoutModal(this)"
-                        class="flex w-full items-center justify-center gap-2.5 rounded-lg bg-red-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-red-700"
-                        title="Log out"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                            <path d="M16 17l5-5-5-5"/>
-                            <path d="M21 12H9"/>
-                        </svg>
-                        <span class="sidebar-label">Logout</span>
-                    </button>
-                </div>
+                    <span class="sidebar-label-block min-w-0 flex-1 leading-tight">
+                        <span class="block truncate text-[0.8125rem] font-semibold text-white">{{ $user?->name }}</span>
+                        <span class="block truncate text-[0.6875rem] text-emerald-200/70">{{ $user?->role?->label() }}{{ filled($user?->location) ? ' · '.$user->location : '' }}</span>
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-label h-4 w-4 shrink-0 text-emerald-200/50 transition group-hover:translate-x-0.5 group-hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
             </div>
         </aside>
 
@@ -622,13 +526,13 @@
                                     <button type="button" 
                                             x-show="unreadCount > 0" 
                                             @click="markAllAsRead()" 
-                                            class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-800 hover:underline">
+                                            class="text-[0.625rem] font-semibold text-emerald-600 hover:text-emerald-800 hover:underline">
                                         Mark all read
                                     </button>
-                                    <span x-show="unreadCount > 0" class="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600 border border-red-100">
+                                    <span x-show="unreadCount > 0" class="rounded-full bg-red-50 px-2 py-0.5 text-[0.625rem] font-bold text-red-600 border border-red-100">
                                         <span x-text="unreadCount"></span> New
                                     </span>
-                                    <span x-show="unreadCount === 0" class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                                    <span x-show="unreadCount === 0" class="rounded-full bg-slate-100 px-2 py-0.5 text-[0.625rem] font-medium text-slate-500">
                                         All read
                                     </span>
                                 </div>
@@ -657,8 +561,8 @@
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <p class="text-xs font-bold" :class="isRead('pending_travel') ? 'text-slate-500' : 'text-slate-800'">Pending Travel Requests</p>
-                                                    <p class="text-[11px] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
-                                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
+                                                    <p class="text-[0.6875rem] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
+                                                    <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                 </div>
                                                 <span x-show="!isRead('pending_travel')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
                                             </a>
@@ -694,11 +598,11 @@
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center justify-between gap-1">
                                                         <p class="text-xs font-bold truncate" :class="isRead('{{ $mId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $mIsToday ? 'Maintenance Due Today' : 'Maintenance Scheduled' }}</p>
-                                                        <span class="text-[9px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">{{ $mIsToday ? 'Set Ongoing' : 'Scheduled' }}</span>
+                                                        <span class="text-[0.5625rem] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">{{ $mIsToday ? 'Set Ongoing' : 'Scheduled' }}</span>
                                                     </div>
-                                                    <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $mId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $mItem->vehicle_label ?: $mItem->plate_number }} — {{ $mItem->title }}</p>
-                                                    <p class="text-[10px] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
-                                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
+                                                    <p class="text-[0.6875rem] font-semibold mt-0.5" :class="isRead('{{ $mId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $mItem->vehicle_label ?: $mItem->plate_number }} — {{ $mItem->title }}</p>
+                                                    <p class="text-[0.625rem] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
+                                                    <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                 </div>
                                                 <span x-show="!isRead('{{ $mId }}')" class="h-2 w-2 rounded-full bg-red-500 shrink-0 mt-1"></span>
                                             </a>
@@ -735,11 +639,11 @@
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center justify-between gap-1">
                                                         <p class="text-xs font-bold truncate" :class="isRead('{{ $ongId }}') ? 'text-slate-500' : 'text-slate-800'">Maintenance Due for Completion</p>
-                                                        <span class="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Set Completed</span>
+                                                        <span class="text-[0.5625rem] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Set Completed</span>
                                                     </div>
-                                                    <p class="text-[11px] font-semibold mt-0.5" :class="isRead('{{ $ongId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $ongItem->vehicle_label ?: $ongItem->plate_number }} — {{ $ongItem->title }}</p>
-                                                    <p class="text-[10px] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
-                                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
+                                                    <p class="text-[0.6875rem] font-semibold mt-0.5" :class="isRead('{{ $ongId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $ongItem->vehicle_label ?: $ongItem->plate_number }} — {{ $ongItem->title }}</p>
+                                                    <p class="text-[0.625rem] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
+                                                    <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                 </div>
                                                 <span x-show="!isRead('{{ $ongId }}')" class="h-2 w-2 rounded-full bg-red-500 shrink-0 mt-1"></span>
                                             </a>
@@ -774,11 +678,11 @@
                                                     <div class="min-w-0 flex-1">
                                                         <div class="flex items-center justify-between gap-1">
                                                             <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                            <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Scheduled</span>
+                                                            <span class="text-[0.5625rem] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Scheduled</span>
                                                         </div>
-                                                        <p class="text-[11px] font-semibold text-emerald-700 mt-0.5">Maintenance Created — View in table</p>
-                                                        <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
-                                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
+                                                        <p class="text-[0.6875rem] font-semibold text-emerald-700 mt-0.5">Maintenance Created — View in table</p>
+                                                        <p class="text-[0.625rem] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
+                                                        <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                     </div>
                                                     <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
                                                 </a>
@@ -790,11 +694,11 @@
                                                     <div class="min-w-0 flex-1">
                                                         <div class="flex items-center justify-between gap-1">
                                                             <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                            <span class="text-[9px] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">{{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}</span>
+                                                            <span class="text-[0.5625rem] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">{{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}</span>
                                                         </div>
-                                                        <p class="text-[11px] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
-                                                        <p class="text-[10px] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
-                                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
+                                                        <p class="text-[0.6875rem] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
+                                                        <p class="text-[0.625rem] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
+                                                        <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
                                                     </div>
                                                     <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
                                                 </a>
@@ -820,7 +724,7 @@
                                             <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                                         </svg>
                                         <p class="text-xs font-semibold text-slate-600">No new notifications</p>
-                                        <p class="text-[11px] text-slate-400">You're all caught up!</p>
+                                        <p class="text-[0.6875rem] text-slate-400">You're all caught up!</p>
                                     </div>
                                 @endif
                             </div>
@@ -870,7 +774,7 @@
                             {{-- User info header --}}
                             <div class="mb-1 px-3 py-2 border-b border-slate-100">
                                 <p class="text-xs font-bold text-slate-800 truncate">{{ $user?->name }}</p>
-                                <p class="text-[11px] text-slate-500 truncate">{{ $user?->role?->label() ?? 'Admin' }}</p>
+                                <p class="text-[0.6875rem] text-slate-500 truncate">{{ $user?->role?->label() ?? 'Admin' }}</p>
                             </div>
 
                             <a
@@ -882,7 +786,17 @@
                                 My Profile
                             </a>
 
-                            {{-- Content Settings is for Admins and Super Admins only --}}
+                            {{-- Per-device display preferences (text size) for every role --}}
+                            <a
+                                href="{{ route('settings') }}"
+                                @click="open = false"
+                                class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('settings') ? 'bg-emerald-50 text-emerald-800' : '' }}"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                                Display &amp; Text Size
+                            </a>
+
+                            {{-- System (content) settings are for Admins and Super Admins only --}}
                             @if (auth()->user()?->role !== \Modules\Admin\Enums\UserRole::DRIVER)
                                 <a
                                     href="{{ route('content-settings') }}"
@@ -890,11 +804,11 @@
                                     class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('content-settings*') ? 'bg-emerald-50 text-emerald-800' : '' }}"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>
-                                    Settings
+                                    System Settings
                                 </a>
                             @endif
 
-                            {{-- On phones the sidebar (and its Logout button) is hidden, so offer it here too --}}
+                            {{-- The only Log out entry: the sidebar shows the signed-in user but no logout button --}}
                             <button
                                 type="button"
                                 @click="open = false"
@@ -918,7 +832,7 @@
                             </svg>
                         </div>
                         <div class="flex-1 min-w-0 pt-0.5">
-                            <p class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">SUCCESS</p>
+                            <p class="text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-800">SUCCESS</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('success') }}</p>
                         </div>
                         <button type="button" aria-label="Dismiss message" onclick="(function(){ var el=document.getElementById('flash-success'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
@@ -946,7 +860,7 @@
                             </svg>
                         </div>
                         <div class="flex-1 min-w-0 pt-0.5">
-                            <p class="text-[11px] font-extrabold uppercase tracking-wider text-red-800">ERROR</p>
+                            <p class="text-[0.6875rem] font-extrabold uppercase tracking-wider text-red-800">ERROR</p>
                             <p class="text-xs font-semibold text-gray-800 break-words">{{ session('error') }}</p>
                         </div>
                         <button type="button" aria-label="Dismiss message" onclick="(function(){ var el=document.getElementById('flash-error'); if(!el) return; el.style.opacity='0'; el.style.transform='translateY(-20px)'; setTimeout(function(){ el.remove(); }, 300); })()" class="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
@@ -1074,11 +988,6 @@
                 syncSidebarA11y();
             }
 
-            // Mark the current page link for assistive technology
-            sidebar.querySelectorAll('a.sidebar-active, #vehicles-submenu a.font-bold').forEach(function(link) {
-                link.setAttribute('aria-current', 'page');
-            });
-
             // Apply on initial load
             applyResponsiveSidebar();
 
@@ -1113,38 +1022,6 @@
             sidebar.inert = isMobile && !expanded;
         }
 
-        function expandSidebarForVehicles() {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && window.innerWidth >= 768) {
-                // Expand from icon-rail to full sidebar
-                sidebar.classList.remove('sidebar-collapsed');
-            }
-        }
-
-        function toggleVehiclesMenu(event) {
-            if (event) event.preventDefault();
-            const sidebar = document.getElementById('sidebar');
-            const submenu = document.getElementById('vehicles-submenu');
-            const chevron = document.getElementById('vehicles-chevron');
-            const toggleBtn = document.getElementById('vehicles-menu-toggle');
-            // On desktop, expand sidebar if it is collapsed so the submenu is visible
-            if (sidebar && window.innerWidth >= 768 && sidebar.classList.contains('sidebar-collapsed')) {
-                openSidebar();
-                // Expanding from the icon rail should always reveal the submenu, not toggle it shut again
-                submenu?.classList.remove('hidden');
-                chevron?.classList.add('rotate-180');
-                toggleBtn?.setAttribute('aria-expanded', 'true');
-                return;
-            }
-            if (submenu) {
-                submenu.classList.toggle('hidden');
-                toggleBtn?.setAttribute('aria-expanded', submenu.classList.contains('hidden') ? 'false' : 'true');
-            }
-            if (chevron) {
-                chevron.classList.toggle('rotate-180');
-            }
-        }
-
         function openSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
@@ -1156,16 +1033,6 @@
                 // Mobile: slide in from off-canvas + show backdrop
                 sidebar.classList.remove('-translate-x-full');
                 if (overlay) overlay.classList.remove('hidden');
-            }
-
-            // Ensure active dropdowns (like Vehicles) are open when sidebar is expanded
-            const isVehiclesActive = {{ $vehiclesOpen ? 'true' : 'false' }};
-            if (isVehiclesActive) {
-                const submenu = document.getElementById('vehicles-submenu');
-                const chevron = document.getElementById('vehicles-chevron');
-                submenu?.classList.remove('hidden');
-                chevron?.classList.add('rotate-180');
-                document.getElementById('vehicles-menu-toggle')?.setAttribute('aria-expanded', 'true');
             }
 
             syncSidebarA11y();

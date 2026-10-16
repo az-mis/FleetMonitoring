@@ -147,7 +147,7 @@
                  ? 'bg-emerald-600 text-white shadow-sm'
                  : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50' }}">
         <span>{{ ucfirst($sf) }}</span>
-        <span class="rounded-full px-1.5 text-[10px] {{ $statusFilter === $sf ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
+        <span class="rounded-full px-1.5 text-[0.625rem] {{ $statusFilter === $sf ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
             {{ $counts[$sf] ?? 0 }}
         </span>
     </a>
@@ -219,12 +219,12 @@
                             </p>
                             @if($record->trigger_km)
                                 @php $trig = $record->trigger_status; @endphp
-                                <div class="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold">
+                                <div class="mt-0.5 inline-flex items-center gap-1 text-[0.6875rem] font-semibold">
                                     <span class="text-slate-500">At {{ number_format($record->trigger_km) }} km</span>
                                     @if($trig === 'overdue')
-                                        <span class="rounded bg-red-100 px-1 py-px text-[10px] font-bold text-red-700">KM Overdue</span>
+                                        <span class="rounded bg-red-100 px-1 py-px text-[0.625rem] font-bold text-red-700">KM Overdue</span>
                                     @elseif($trig === 'due_soon')
-                                        <span class="rounded bg-amber-100 px-1 py-px text-[10px] font-bold text-amber-700">KM Due Soon</span>
+                                        <span class="rounded bg-amber-100 px-1 py-px text-[0.625rem] font-bold text-amber-700">KM Due Soon</span>
                                     @endif
                                 </div>
                             @endif
@@ -238,7 +238,7 @@
 
                         {{-- Status badge --}}
                         <td class="px-4 py-3">
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 {{ $ss['bg'] }} {{ $ss['text'] }} {{ $ss['ring'] }}">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold ring-1 {{ $ss['bg'] }} {{ $ss['text'] }} {{ $ss['ring'] }}">
                                 {{ $ss['label'] }}
                             </span>
                         </td>
@@ -250,7 +250,7 @@
                                     @if($driver?->avatar_url)
                                         <img src="{{ $driver->avatar_url }}" alt="{{ $driverName }}" class="h-6 w-6 rounded-full object-cover">
                                     @else
-                                        <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700">{{ $driverInitial }}</div>
+                                        <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[0.625rem] font-bold text-emerald-700">{{ $driverInitial }}</div>
                                     @endif
                                     <span class="text-xs font-medium text-gray-700">{{ $driverName }}</span>
                                 </div>
@@ -362,7 +362,7 @@
                 <div class="flex items-center gap-1.5 font-extrabold text-blue-900">
                     <span>💡 Maintenance Action Required:</span>
                 </div>
-                <p class="text-[11.5px] text-blue-800">This maintenance is scheduled for today. Update the <b>Status</b> below to <span class="font-bold text-blue-950 underline">Ongoing</span> if servicing has started, or <span class="font-bold text-emerald-950 underline">Completed</span> if finished.</p>
+                <p class="text-[0.71875rem] text-blue-800">This maintenance is scheduled for today. Update the <b>Status</b> below to <span class="font-bold text-blue-950 underline">Ongoing</span> if servicing has started, or <span class="font-bold text-emerald-950 underline">Completed</span> if finished.</p>
             </div>
 
             {{-- Vehicle (custom picker so every option can show the vehicle's photo) --}}
@@ -483,15 +483,15 @@
                     <button type="button" onclick="calendarPrev()" aria-label="Previous month" class="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 text-base">‹</button>
                     <div class="text-center">
                         <p class="text-xs font-extrabold text-slate-700">Maintenance Schedule</p>
-                        <p id="calendar-month-label" class="text-[11px] text-gray-400"></p>
+                        <p id="calendar-month-label" class="text-[0.6875rem] text-gray-400"></p>
                     </div>
                     <button type="button" onclick="calendarNext()" aria-label="Next month" class="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 text-base">›</button>
                 </div>
-                <div id="calendar-grid" class="grid grid-cols-7 gap-0.5 text-center text-[10px]"></div>
-                <div id="calendar-overlap-warning" class="hidden mt-2 rounded-lg bg-red-50 px-3 py-2 text-[11px] font-bold text-red-700">
+                <div id="calendar-grid" class="grid grid-cols-7 gap-0.5 text-center text-[0.625rem]"></div>
+                <div id="calendar-overlap-warning" class="hidden mt-2 rounded-lg bg-red-50 px-3 py-2 text-[0.6875rem] font-bold text-red-700">
                     Your selected date(s) overlap existing maintenance. You may still continue if both jobs are intended.
                 </div>
-                <div class="mt-2 flex flex-wrap gap-3 text-[10.5px] text-gray-500">
+                <div class="mt-2 flex flex-wrap gap-3 text-[0.65625rem] text-gray-500">
                     <span class="flex items-center gap-1"><i class="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400"></i> Existing maintenance</span>
                     <span class="flex items-center gap-1"><i class="inline-block h-2.5 w-2.5 rounded-sm border-2 border-teal-500 bg-white"></i> Selected date(s)</span>
                 </div>
@@ -540,7 +540,7 @@
                             km
                         </div>
                     </div>
-                    <p class="mt-0.5 text-[10px] text-slate-400">Due when odometer reaches this km</p>
+                    <p class="mt-0.5 text-[0.625rem] text-slate-400">Due when odometer reaches this km</p>
                 </div>
             </div>
 
@@ -956,7 +956,7 @@ function renderCalendar(vehicleId, startDate, endDate) {
     const hasOverlap = [...selectedDays].some(k => existingDays.has(k));
     if (overlap) overlap.classList.toggle('hidden', !hasOverlap);
 
-    const dayHeaders = ['S','M','T','W','T','F','S'].map(d => `<div class="py-0.5 text-[9px] font-bold text-gray-400">${d}</div>`).join('');
+    const dayHeaders = ['S','M','T','W','T','F','S'].map(d => `<div class="py-0.5 text-[0.5625rem] font-bold text-gray-400">${d}</div>`).join('');
     const blanks = Array(firstOfMonth.getDay()).fill('<div></div>').join('');
     const cells  = Array.from({ length: daysInMonth }, (_, i) => {
         const day = i + 1;
@@ -964,7 +964,7 @@ function renderCalendar(vehicleId, startDate, endDate) {
         const ex  = existingDays.get(k);
         const sel = selectedDays.has(k);
         const title = ex ? `Existing: ${ex.join(', ')}` : 'Click to select date';
-        let cls = 'flex items-center justify-center rounded text-[11px] h-6 cursor-pointer transition transform hover:scale-105 select-none ';
+        let cls = 'flex items-center justify-center rounded text-[0.6875rem] h-6 cursor-pointer transition transform hover:scale-105 select-none ';
         if (ex) {
             cls += 'bg-amber-400 text-white font-bold hover:bg-amber-500 ';
         } else if (sel) {

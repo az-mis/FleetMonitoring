@@ -114,7 +114,7 @@
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-                <thead class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                <thead class="border-b border-slate-200 bg-slate-50/80 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">
                     <tr>
                         <th class="py-3 px-4 w-12 text-center">#</th>
                         <th class="py-3 px-4">Place Name</th>
@@ -134,11 +134,11 @@
                             <td class="py-3 px-4 font-bold text-slate-900">
                                 {{ $dest->name }}
                                 @if($dest->notes)
-                                    <p class="text-[11px] font-normal text-slate-400 mt-0.5">{{ $dest->notes }}</p>
+                                    <p class="text-[0.6875rem] font-normal text-slate-400 mt-0.5">{{ $dest->notes }}</p>
                                 @endif
                             </td>
                             <td class="py-3 px-4">
-                                <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                                <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                                     </svg>
@@ -157,12 +157,12 @@
                             </td>
                             <td class="py-3 px-4 text-center">
                                 @if($dest->is_active)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[0.6875rem] font-bold text-emerald-800">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                                         Active
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-500">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[0.6875rem] font-bold text-slate-500">
                                         <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
                                         Inactive
                                     </span>
@@ -228,7 +228,7 @@
                                         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                                     </svg>
                                     <p class="text-xs font-semibold">No destinations found</p>
-                                    <p class="text-[11px] text-slate-400">Click "+ Add Destination" to add one for your station.</p>
+                                    <p class="text-[0.6875rem] text-slate-400">Click "+ Add Destination" to add one for your station.</p>
                                 </div>
                             </td>
                         </tr>
@@ -306,7 +306,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">One-Way Distance (KMs) <span class="text-slate-400 font-normal">(optional)</span></label>
                     <input type="number" name="distance_km" min="0" placeholder="e.g. 69" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                    <p class="text-[11px] text-slate-400 mt-1">Round-trip will automatically be calculated as 2x of this value.</p>
+                    <p class="text-[0.6875rem] text-slate-400 mt-1">Round-trip will automatically be calculated as 2x of this value.</p>
                 </div>
 
                 <div>

@@ -127,7 +127,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">TOTAL VEHICLES</p>
+                <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">TOTAL VEHICLES</p>
                 <p class="text-lg font-black text-slate-800 leading-none mt-0.5">{{ $totalVehicles }}</p>
             </div>
         </div>
@@ -140,7 +140,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">ASSIGNED</p>
+                <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">ASSIGNED</p>
                 <p class="text-lg font-black text-emerald-600 leading-none mt-0.5">{{ $assignedCount }}</p>
             </div>
         </div>
@@ -155,7 +155,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">UNASSIGNED</p>
+                <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">UNASSIGNED</p>
                 <p class="text-lg font-black text-amber-600 leading-none mt-0.5">{{ $unassignedCount }}</p>
             </div>
         </div>
@@ -200,9 +200,9 @@
                                 @endif
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-xs font-extrabold text-slate-900">{{ $vehicle->plate_number }}</p>
-                                    <p class="truncate text-[11px] font-semibold text-slate-500">{{ $vehicle->brand }} {{ $vehicle->model }}</p>
+                                    <p class="truncate text-[0.6875rem] font-semibold text-slate-500">{{ $vehicle->brand }} {{ $vehicle->model }}</p>
                                     @if ($vehicle->location)
-                                        <p class="truncate text-[10px] font-medium text-emerald-700 flex items-center gap-0.5 mt-0.5">
+                                        <p class="truncate text-[0.625rem] font-medium text-emerald-700 flex items-center gap-0.5 mt-0.5">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                                             <span class="truncate">{{ $vehicle->location }}</span>
                                         </p>
@@ -212,12 +212,12 @@
 
                             {{-- Status Pill --}}
                             @if ($vehicle->assignedDriver)
-                                <span class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
+                                <span class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.625rem] font-extrabold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
                                     ASSIGNED
                                 </span>
                             @else
-                                <span class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-600">
+                                <span class="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[0.625rem] font-extrabold uppercase tracking-wide text-slate-600">
                                     UNASSIGNED
                                 </span>
                             @endif
@@ -236,7 +236,7 @@
                             @endphp
 
                             <div>
-                                <label for="assign-driver-{{ $vehicle->id }}" class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PRIMARY DRIVER</label>
+                                <label for="assign-driver-{{ $vehicle->id }}" class="block text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400 mb-1">PRIMARY DRIVER</label>
                                 <div class="relative">
                                     <select
                                         name="assigned_driver_id"
@@ -277,8 +277,8 @@
                                     </div>
                                     <div class="min-w-0 leading-tight space-y-0.5">
                                         <p class="truncate text-xs font-bold text-slate-900">{{ $vehicle->assignedDriver->name }}</p>
-                                        <p class="truncate text-[11px] text-slate-500">{{ $vehicle->assignedDriver->email }}</p>
-                                        <p class="truncate text-[11px] text-slate-500">
+                                        <p class="truncate text-[0.6875rem] text-slate-500">{{ $vehicle->assignedDriver->email }}</p>
+                                        <p class="truncate text-[0.6875rem] text-slate-500">
                                             Exp: {{ optional($vehicle->assignedDriver->license_expiration_date)->format('Y-m-d') ?: '—' }}
                                         </p>
                                     </div>

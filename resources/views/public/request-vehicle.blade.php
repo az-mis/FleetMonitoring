@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Request a Vehicle</title>
+    @include('partials.text-size')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         /* ── Phone-friendly form (screens under 640px) ─────────────────────────
@@ -17,20 +18,20 @@
             .form-row > * { min-width: 0; }
             form input:not([type="hidden"]):not([type="checkbox"]),
             form select,
-            form textarea { font-size: 16px !important; }
+            form textarea { font-size:1rem !important; }
             form input:not([type="hidden"]):not([type="checkbox"]),
             form select,
             #office-dropdown-trigger { height: 44px !important; }
-            #office-dropdown-trigger { font-size: 14px !important; }
+            #office-dropdown-trigger { font-size:0.875rem !important; }
             form textarea { min-height: 120px; }
             /* iOS renders native date fields wider than their box unless told otherwise */
             form input[type="date"] { min-width: 0; max-width: 100%; -webkit-appearance: none; appearance: none; }
             form input[type="checkbox"] { width: 20px !important; height: 20px !important; }
-            .office-option-item { padding-top: 12px !important; padding-bottom: 12px !important; font-size: 14px !important; }
+            .office-option-item { padding-top: 12px !important; padding-bottom: 12px !important; font-size:0.875rem !important; }
             #office-options-list { max-height: 45vh !important; }
             /* calendar */
             #cal-prev, #cal-next { width: 40px !important; height: 40px !important; }
-            #cal-grid button { min-height: 38px; font-size: 13px !important; }
+            #cal-grid button { min-height: 38px; font-size:0.8125rem !important; }
             /* passengers */
             #passenger-list input { padding-right: 46px !important; }
             [data-remove-passenger] { width: 32px !important; height: 32px !important; right: 8px !important; }
@@ -54,7 +55,7 @@
         </nav>
         <div class="mb-4 flex items-center gap-2.5">
             <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-10 w-10 rounded-full bg-white object-contain p-1">
-            <div><h1 class="text-xl font-bold">Official Vehicle Request</h1><p class="mt-0.5 text-[12.5px] leading-snug text-emerald-100/70">Complete the form below to request government vehicle transport for official travel. A unique tracking code will be generated upon submission.</p></div>
+            <div><h1 class="text-xl font-bold">Official Vehicle Request</h1><p class="mt-0.5 text-[0.78125rem] leading-snug text-emerald-100/70">Complete the form below to request government vehicle transport for official travel. A unique tracking code will be generated upon submission.</p></div>
         </div>
         @if (isset($errors) && $errors->any())
             <div class="mb-4 rounded-xl border border-rose-400/40 bg-rose-950/80 p-4 text-xs text-rose-200">
@@ -128,16 +129,16 @@ $offices = [
 
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Your Full Name <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Your Full Name <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+                        <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[0.75rem] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
                     </div>
                 </div>
 
                 {{-- Custom Searchable Office / Section Dropdown --}}
                 <div class="relative" id="custom-office-dropdown-container">
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90">
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
                         <span>Your Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></span>
                     </label>
@@ -153,7 +154,7 @@ $offices = [
                         aria-expanded="false"
                         aria-controls="office-dropdown-panel"
                         onclick="toggleOfficeDropdown()"
-                        class="group flex h-9 w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-left text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
+                        class="group flex h-9 w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-left text-[0.75rem] text-emerald-100 focus:border-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
                         <span id="office-dropdown-selected-label" class="truncate {{ old('requesterOffice') ? 'text-emerald-100' : 'text-emerald-100/40' }}">{{ old('requesterOffice') ?: '— Select your office / division —' }}</span>
@@ -216,10 +217,10 @@ $offices = [
 
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>From (Station) <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>From (Station) <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <select name="location" required class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                        <select name="location" required class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[0.75rem] text-emerald-100 focus:border-emerald-400 focus:outline-none">
                             <option value="">— Select Your Station —</option>
                             @foreach(['Oriental Mindoro', 'Occidental Mindoro', 'Marinduque', 'Palawan', 'Romblon', 'Quezon City Satellite Office'] as $loc)
                                 <option value="{{ $loc }}" @selected(old('location') === $loc)>{{ $loc }}</option>
@@ -229,7 +230,7 @@ $offices = [
                 </div>
                     {{-- Searchable Destination Dropdown with Distance Badges --}}
                 <div class="relative" id="public-dest-dropdown-container">
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90">
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                         <span id="public-dest-label">To (Destination) <span class="text-emerald-300">*</span></span>
                     </label>
@@ -250,7 +251,7 @@ $offices = [
                         aria-labelledby="public-dest-label"
                         onclick="togglePublicDestDropdown()"
                         onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown')) { event.preventDefault(); togglePublicDestDropdown(); }"
-                        class="group flex min-h-[40px] w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-3 pr-3 text-left text-[12px] text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
+                        class="group flex min-h-[40px] w-full items-center justify-between rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-3 pr-3 text-left text-[0.75rem] text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
                     >
                         <div id="public-dest-pills-container" class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 py-1">
                             <span id="public-dest-placeholder" class="text-emerald-100/40">
@@ -291,7 +292,7 @@ $offices = [
                                     class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none"
                                 >
                             </div>
-                            <p class="text-[10px] text-emerald-100/50 mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
+                            <p class="text-[0.625rem] text-emerald-100/50 mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
                         </div>
 
                         {{-- Custom Add Option (Shown when typing) --}}
@@ -312,17 +313,17 @@ $offices = [
             <div id="station-panel" class="hidden space-y-3">
                 <div class="form-row grid gap-3 sm:grid-cols-2">
                     <div>
-                        <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg><span>Travel Date (From) <span class="text-emerald-300">*</span></span></label>
+                        <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg><span>Travel Date (From) <span class="text-emerald-300">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                            <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[0.75rem] text-emerald-100 focus:border-emerald-400 focus:outline-none">
                         </div>
                     </div>
                     <div>
-                        <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg><span>Travel Date (To) <span class="text-emerald-300">*</span></span></label>
+                        <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg><span>Travel Date (To) <span class="text-emerald-300">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDateEnd" required value="{{ old('travelDateEnd') }}" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                            <input type="date" name="travelDateEnd" required value="{{ old('travelDateEnd') }}" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[0.75rem] text-emerald-100 focus:border-emerald-400 focus:outline-none">
                         </div>
                     </div>
                 </div>
@@ -335,12 +336,12 @@ $offices = [
                     </div>
                     <div class="grid grid-cols-7 gap-[3px] text-center">
                         @foreach(['S','M','T','W','T','F','S'] as $d)
-                            <div class="py-0.5 text-[9.5px] font-bold text-white/50">{{ $d }}</div>
+                            <div class="py-0.5 text-[0.59375rem] font-bold text-white/50">{{ $d }}</div>
                         @endforeach
                     </div>
                     <div id="cal-grid" class="grid grid-cols-7 gap-[3px] text-center"></div>
-                    <p class="mt-2 text-[10.5px] text-white/55">Tip: click your travel date to see the available vehicles, then click your end date. Click the same date again for a one-day trip.</p>
-                    <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[10.5px] font-semibold text-white/60">
+                    <p class="mt-2 text-[0.65625rem] text-white/55">Tip: click your travel date to see the available vehicles, then click your end date. Click the same date again for a one-day trip.</p>
+                    <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[0.65625rem] font-semibold text-white/60">
                         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:transparent;border:1px solid rgba(255,255,255,.45)"></span>No requests yet</span>
                         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#2f855a"></span>Approved Trip</span>
                         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#dd6b20"></span>Pending Request</span>
@@ -349,25 +350,25 @@ $offices = [
                 </div>
 
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><span>Select Vehicle <span class="text-emerald-300">*</span></span></label>
-                    <p id="vehicle-hint" class="mb-2 text-[11px] text-emerald-100/70"></p>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><span>Select Vehicle <span class="text-emerald-300">*</span></span></label>
+                    <p id="vehicle-hint" class="mb-2 text-[0.6875rem] text-emerald-100/70"></p>
                     <input type="hidden" name="vehicleId" id="vehicle-id-input" value="{{ old('vehicleId') }}">
                     <div id="vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
-                    <p class="mt-2 text-[10.5px] text-emerald-100/60">The driver shown is the vehicle's default driver. Admin reviewers may designate a substitute if the default driver is unavailable on your travel date.</p>
+                    <p class="mt-2 text-[0.65625rem] text-emerald-100/60">The driver shown is the vehicle's default driver. Admin reviewers may designate a substitute if the default driver is unavailable on your travel date.</p>
                 </div>
             </div>
 
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg><span>Official Purpose <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg><span>Official Purpose <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-[11px] h-4 w-4 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                        <textarea name="purpose" required rows="5" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 py-2 pl-9 pr-3 text-[12px] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">{{ old('purpose') }}</textarea>
+                        <textarea name="purpose" required rows="5" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 py-2 pl-9 pr-3 text-[0.75rem] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">{{ old('purpose') }}</textarea>
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Additional Passengers <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
-                    <label class="mb-2 flex items-center gap-2 text-[13px] text-emerald-100/80">
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Additional Passengers <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
+                    <label class="mb-2 flex items-center gap-2 text-[0.8125rem] text-emerald-100/80">
                         <input type="checkbox" name="requesterIsPassenger" value="1" @checked(old('requesterIsPassenger')) class="h-4 w-4 rounded border-emerald-300/30 bg-[#062512] text-emerald-500">
                         I am riding along on this trip as a passenger
                     </label>
@@ -376,35 +377,35 @@ $offices = [
                         @foreach($oldPassengers as $index => $pass)
                             <div class="group relative">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-8 text-[12px] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
-                                <button type="button" data-remove-passenger aria-label="Remove passenger" title="Remove passenger" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fca5a5;font-size:15px;line-height:1;cursor:pointer;">×</button>
+                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-8 text-[0.75rem] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+                                <button type="button" data-remove-passenger aria-label="Remove passenger" title="Remove passenger" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fca5a5;font-size:0.9375rem;line-height:1;cursor:pointer;">×</button>
                             </div>
                         @endforeach
                     </div>
-                    <button type="button" id="add-passenger" class="mt-2 text-[12px] font-bold text-white hover:text-emerald-200">＋ Add another passenger</button>
+                    <button type="button" id="add-passenger" class="mt-2 text-[0.75rem] font-bold text-white hover:text-emerald-200">＋ Add another passenger</button>
                 </div>
             </div>
 
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Contact Number <span class="font-normal text-red-300/80">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Contact Number <span class="font-normal text-red-300/80">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
+                        <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[0.75rem] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none">
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg><span>Previous Trip Ticket Date <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/90"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg><span>Previous Trip Ticket Date <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                        <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[12px] text-emerald-100 focus:border-emerald-400 focus:outline-none">
+                        <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-3 text-[0.75rem] text-emerald-100 focus:border-emerald-400 focus:outline-none">
                     </div>
                 </div>
             </div>
 
             <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 px-4 py-3 text-sm font-bold shadow-lg hover:from-emerald-400 hover:to-green-400">Submit Vehicle Request&nbsp; →</button>
         </form>
-        <footer class="mt-3 border-t border-emerald-200/15 pt-3 text-center text-xs text-emerald-100/55">♧ Official Government Fleet Management System<br><span class="text-[10px]">© {{ date('Y') }} {{ config('app.name', 'Fleet Monitoring') }}</span></footer>
+        <footer class="mt-3 border-t border-emerald-200/15 pt-3 text-center text-xs text-emerald-100/55">♧ Official Government Fleet Management System<br><span class="text-[0.625rem]">© {{ date('Y') }} {{ config('app.name', 'Fleet Monitoring') }}</span></footer>
     </div>
     </main>
     <script>
@@ -554,7 +555,7 @@ $offices = [
                             </span>
                             <span>${esc(d.name)}</span>
                         </div>
-                        <span class="inline-flex items-center rounded-md bg-emerald-900/60 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-bold text-emerald-300 shrink-0">
+                        <span class="inline-flex items-center rounded-md bg-emerald-900/60 border border-emerald-500/40 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-300 shrink-0">
                             ${esc(d.distance_km)} kms
                         </span>
                     </div>
@@ -675,7 +676,7 @@ $offices = [
                     customAddItem.innerHTML = `
                         <div role="button" tabindex="0" onclick="addPublicCustomDest((document.getElementById('public-dest-search-input')?.value || '').trim())" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-900/80 border border-emerald-400/60 p-2 text-xs font-bold text-emerald-200 hover:bg-emerald-800 transition">
                             <span class="truncate">➕ Add custom: "${esc(query)}"</span>
-                            <span class="text-[10px] text-emerald-300 font-semibold shrink-0">Press Enter</span>
+                            <span class="text-[0.625rem] text-emerald-300 font-semibold shrink-0">Press Enter</span>
                         </div>
                     `;
                     customAddItem.classList.remove('hidden');
@@ -786,7 +787,7 @@ $offices = [
                 const title = info
                     ? `${info.busy} of ${stationVehicles.length} vehicle(s) booked · ${labels[info.worst]}`
                     : 'No requests yet';
-                html += `<button type="button" data-date="${key}" title="${esc(title)}" style="width:100%;border:0;font-family:inherit;font-size:11px;padding:4px 0;border-radius:5px;background:${bg};color:${color};font-weight:${info || inRange ? 700 : 500};cursor:pointer;${ring}">${day}</button>`;
+                html += `<button type="button" data-date="${key}" title="${esc(title)}" style="width:100%;border:0;font-family:inherit;font-size:0.6875rem;padding:4px 0;border-radius:5px;background:${bg};color:${color};font-weight:${info || inRange ? 700 : 500};cursor:pointer;${ring}">${day}</button>`;
             }
             calGrid.innerHTML = html;
         }
@@ -837,7 +838,7 @@ $offices = [
             }
 
             if (!visible.length) {
-                cardsBox.innerHTML = '<p style="grid-column:1/-1;font-size:12px;color:rgba(254,215,215,.9);">No vehicles are available on this date. Try another date.</p>';
+                cardsBox.innerHTML = '<p style="grid-column:1/-1;font-size:0.75rem;color:rgba(254,215,215,.9);">No vehicles are available on this date. Try another date.</p>';
                 return;
             }
 
@@ -863,16 +864,16 @@ $offices = [
                 const initial = esc((v.driver || '?').trim().charAt(0).toUpperCase());
                 const avatar = v.driver_photo
                     ? `<img src="${esc(v.driver_photo)}" alt="${esc(v.driver)}" style="width:20px;height:20px;border-radius:999px;object-fit:cover;flex-shrink:0;">`
-                    : `<span style="width:20px;height:20px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;color:#fff;">${v.driver ? initial : '?'}</span>`;
+                    : `<span style="width:20px;height:20px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:0.625rem;font-weight:800;flex-shrink:0;color:#fff;">${v.driver ? initial : '?'}</span>`;
 
                 // min-width:0 lets the grid cell shrink so long model names truncate instead of widening the page on phones
                 return `<button type="button" data-vehicle="${v.id}" ${blocked ? 'disabled' : ''} style="position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px;border-radius:14px;border:2px solid ${border};background:${isSelected ? 'rgba(16,185,129,.28)' : 'rgba(4,29,14,.75)'};color:#fff;text-align:left;font-family:inherit;cursor:${blocked ? 'not-allowed' : 'pointer'};opacity:${blocked ? .65 : 1};transition:all .15s ease;">
                     <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:8px;">
                         <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
                             ${avatar}
-                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:700;color:${v.driver ? '#ecfdf5' : 'rgba(255,255,255,.5)'};" title="${esc(v.driver || 'No assigned driver')}">${esc(v.driver || 'No assigned driver')}</span>
+                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.71875rem;font-weight:700;color:${v.driver ? '#ecfdf5' : 'rgba(255,255,255,.5)'};" title="${esc(v.driver || 'No assigned driver')}">${esc(v.driver || 'No assigned driver')}</span>
                         </div>
-                        ${isSelected ? '<span style="font-size:10px;font-weight:800;background:#10b981;color:#052e16;border-radius:999px;padding:1px 7px;flex-shrink:0;">✓ Selected</span>' : ''}
+                        ${isSelected ? '<span style="font-size:0.625rem;font-weight:800;background:#10b981;color:#052e16;border-radius:999px;padding:1px 7px;flex-shrink:0;">✓ Selected</span>' : ''}
                     </div>
 
                     <div style="display:flex;align-items:center;gap:10px;width:100%;">
@@ -880,13 +881,13 @@ $offices = [
                             ${photo}
                         </div>
                         <div style="min-width:0;flex:1;text-align:left;">
-                            <div style="font-size:14px;font-weight:900;letter-spacing:.03em;color:#ffffff;line-height:1.2;">${esc(v.plate)}</div>
-                            <div style="font-size:11px;font-weight:600;color:rgba(209,250,229,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;" title="${esc(v.name)}">${esc(v.name)}</div>
+                            <div style="font-size:0.875rem;font-weight:900;letter-spacing:.03em;color:#ffffff;line-height:1.2;">${esc(v.plate)}</div>
+                            <div style="font-size:0.6875rem;font-weight:600;color:rgba(209,250,229,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;" title="${esc(v.name)}">${esc(v.name)}</div>
                         </div>
                     </div>
 
                     <div style="margin-top:8px;padding-top:4px;">
-                        <div style="display:inline-flex;align-items:center;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:800;background:${note.bg};color:${note.textClr || '#fff'};">
+                        <div style="display:inline-flex;align-items:center;border-radius:6px;padding:2px 7px;font-size:0.625rem;font-weight:800;background:${note.bg};color:${note.textClr || '#fff'};">
                             ${note.head}
                         </div>
                     </div>
@@ -1090,7 +1091,7 @@ $offices = [
             wrapper.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
             const input = document.createElement('input');
             input.name = 'passengers[]';
-            input.className = 'h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-8 text-[12px] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none';
+            input.className = 'h-9 w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 pl-9 pr-8 text-[0.75rem] placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none';
             wrapper.appendChild(input);
             const remove = document.createElement('button');
             remove.type = 'button';
@@ -1098,7 +1099,7 @@ $offices = [
             remove.setAttribute('aria-label', 'Remove passenger');
             remove.title = 'Remove passenger';
             remove.textContent = '×';
-            remove.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fca5a5;font-size:15px;line-height:1;cursor:pointer;';
+            remove.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fca5a5;font-size:0.9375rem;line-height:1;cursor:pointer;';
             wrapper.appendChild(remove);
             passengerList.appendChild(wrapper);
             renumberPassengers();

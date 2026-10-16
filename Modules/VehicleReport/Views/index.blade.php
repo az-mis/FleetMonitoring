@@ -50,15 +50,15 @@
 {{-- ── Stat cards ──────────────────────────────────────────────────── --}}
 <div class="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
     <div class="rounded-xl border border-gray-100 bg-white p-3.5 shadow-sm">
-        <div class="text-[11px] font-bold uppercase text-amber-700">{{ $isAdmin ? 'New Reports' : 'My Submitted' }}</div>
+        <div class="text-[0.6875rem] font-bold uppercase text-amber-700">{{ $isAdmin ? 'New Reports' : 'My Submitted' }}</div>
         <div class="mt-1 text-2xl font-extrabold text-gray-900">{{ $counts['submitted'] }}</div>
     </div>
     <div class="rounded-xl border border-gray-100 bg-white p-3.5 shadow-sm">
-        <div class="text-[11px] font-bold uppercase text-sky-700">In Progress</div>
+        <div class="text-[0.6875rem] font-bold uppercase text-sky-700">In Progress</div>
         <div class="mt-1 text-2xl font-extrabold text-gray-900">{{ $counts['active'] }}</div>
     </div>
     <div class="rounded-xl border border-gray-100 bg-white p-3.5 shadow-sm">
-        <div class="text-[11px] font-bold uppercase text-green-700">Resolved</div>
+        <div class="text-[0.6875rem] font-bold uppercase text-green-700">Resolved</div>
         <div class="mt-1 text-2xl font-extrabold text-gray-900">{{ $counts['resolved'] }}</div>
     </div>
 </div>
@@ -85,15 +85,15 @@
             <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <div class="text-[11px] font-bold uppercase text-gray-400">{{ $report->plate_number }} &middot; {{ $report->vehicle_label }}</div>
-                        <div class="mt-0.5 text-[15px] font-extrabold text-gray-900">
+                        <div class="text-[0.6875rem] font-bold uppercase text-gray-400">{{ $report->plate_number }} &middot; {{ $report->vehicle_label }}</div>
+                        <div class="mt-0.5 text-[0.9375rem] font-extrabold text-gray-900">
                             {{ $report->issue_type }} issue
                             <span class="text-xs font-bold {{ $priorityStyles[$report->priority] ?? 'text-green-700' }}">&middot; {{ $report->priority }}</span>
                         </div>
                     </div>
-                    <span class="rounded-full {{ $status['bg'] }} {{ $status['text'] }} px-2.5 py-1 text-[11px] font-extrabold">{{ $status['label'] }}</span>
+                    <span class="rounded-full {{ $status['bg'] }} {{ $status['text'] }} px-2.5 py-1 text-[0.6875rem] font-extrabold">{{ $status['label'] }}</span>
                 </div>
-                <p class="my-2 whitespace-pre-line break-words text-[13px] leading-relaxed text-gray-600">{{ $report->description }}</p>
+                <p class="my-2 whitespace-pre-line break-words text-[0.8125rem] leading-relaxed text-gray-600">{{ $report->description }}</p>
                 <div class="text-xs text-gray-400">
                     Reported by <b class="text-gray-600">{{ $report->driver_name }}</b>
                     @if($report->related_maintenance_title)
@@ -129,7 +129,7 @@
         <form method="POST" action="{{ route('vehicle-reports.store') }}" class="space-y-4 px-5 py-5" onsubmit="document.getElementById('report-submit-btn').disabled = true;">
             @csrf
             @if($errors->any())
-                <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[13px] text-rose-700">{{ $errors->first() }}</div>
+                <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[0.8125rem] text-rose-700">{{ $errors->first() }}</div>
             @endif
             @if(isset($assignedVehicles) && $assignedVehicles->count() > 1)
                 @php
@@ -168,7 +168,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <div class="font-bold text-slate-800 text-xs truncate" x-text="v.plate + ' — ' + v.name"></div>
-                                    <div class="text-[11px] text-slate-500" x-text="v.type || 'Vehicle'"></div>
+                                    <div class="text-[0.6875rem] text-slate-500" x-text="v.type || 'Vehicle'"></div>
                                 </div>
                             </div>
                         </template>
@@ -197,7 +197,7 @@
                                     </div>
                                     <div class="min-w-0">
                                         <p class="text-xs font-bold text-slate-800 truncate" x-text="v.plate + ' — ' + v.name"></p>
-                                        <p class="text-[11px] text-slate-500" x-text="v.type || 'Vehicle'"></p>
+                                        <p class="text-[0.6875rem] text-slate-500" x-text="v.type || 'Vehicle'"></p>
                                     </div>
                                 </div>
                                 <div x-show="selectedId == v.id" class="text-emerald-600 shrink-0 pr-1">
@@ -210,7 +210,7 @@
                     </div>
                 </div>
             @elseif($assignedVehicle)
-                <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-2.5 text-[13px] text-emerald-900">
+                <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-2.5 text-[0.8125rem] text-emerald-900">
                     <input type="hidden" name="vehicle_id" value="{{ $assignedVehicle->id }}">
                     <div class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-white border border-emerald-200 overflow-hidden shadow-2xs">
                         @if($assignedVehicle->photo_url)
@@ -223,7 +223,7 @@
                     </div>
                     <div>
                         <b class="text-xs font-black text-emerald-950">{{ $assignedVehicle->plate_number }}</b>
-                        <p class="text-[11px] text-emerald-800 font-medium">{{ $assignedVehicle->brand }} {{ $assignedVehicle->model }}</p>
+                        <p class="text-[0.6875rem] text-emerald-800 font-medium">{{ $assignedVehicle->brand }} {{ $assignedVehicle->model }}</p>
                     </div>
                 </div>
             @endif
@@ -271,9 +271,9 @@
             @csrf
             @method('PUT')
             @if($errors->any())
-                <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[13px] text-rose-700">{{ $errors->first() }}</div>
+                <div class="rounded-lg bg-rose-50 px-2.5 py-2 text-[0.8125rem] text-rose-700">{{ $errors->first() }}</div>
             @endif
-            <div class="grid gap-0.5 rounded-lg bg-green-50 px-3 py-2.5 text-[13px] text-green-800">
+            <div class="grid gap-0.5 rounded-lg bg-green-50 px-3 py-2.5 text-[0.8125rem] text-green-800">
                 <b id="review-title"></b>
                 <span id="review-subtitle"></span>
             </div>
@@ -307,7 +307,7 @@
                 <div class="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                     <div class="min-w-0">
-                        <div id="review-linked-title" class="text-[13px] font-bold text-emerald-900"></div>
+                        <div id="review-linked-title" class="text-[0.8125rem] font-bold text-emerald-900"></div>
                         <div id="review-linked-meta" class="text-xs text-emerald-800/80"></div>
                     </div>
                 </div>

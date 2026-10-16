@@ -84,7 +84,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <h3 class="truncate text-xs font-black text-slate-900 leading-tight">{{ $officer->location }}</h3>
-                                    <p class="text-[10px] font-medium text-slate-400">Trip Ticket Signatories</p>
+                                    <p class="text-[0.625rem] font-medium text-slate-400">Trip Ticket Signatories</p>
                                 </div>
                             </div>
 
@@ -129,8 +129,8 @@
                             @csrf
                             @method('PATCH')
                             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                                <p class="text-[11px] font-semibold text-slate-500">Tick who appears on the approved Trip Ticket <span class="font-bold text-emerald-700">(1 to 2)</span></p>
-                                <span class="text-[10px] font-medium text-slate-400">{{ $officer->signatories->count() }} / {{ \Modules\ApprovingOfficer\Models\ApprovingOfficer::MAX_SIGNATORIES }} signatories</span>
+                                <p class="text-[0.6875rem] font-semibold text-slate-500">Tick who appears on the approved Trip Ticket <span class="font-bold text-emerald-700">(1 to 2)</span></p>
+                                <span class="text-[0.625rem] font-medium text-slate-400">{{ $officer->signatories->count() }} / {{ \Modules\ApprovingOfficer\Models\ApprovingOfficer::MAX_SIGNATORIES }} signatories</span>
                             </div>
 
                             @if($officer->signatories->isEmpty())
@@ -143,8 +143,8 @@
                                                    class="ticket-check mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-emerald-600 accent-emerald-600 focus:ring-emerald-500 cursor-pointer">
                                             <span class="min-w-0">
                                                 <span data-sig-name class="block truncate text-xs font-bold text-slate-800">{{ $sig->name }}</span>
-                                                <span class="block text-[11px] text-slate-500">{{ $sig->title ?: '—' }}</span>
-                                                <span class="on-ticket-badge mt-1 {{ $sig->show_on_ticket ? 'inline-block' : 'hidden' }} rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white">On Ticket</span>
+                                                <span class="block text-[0.6875rem] text-slate-500">{{ $sig->title ?: '—' }}</span>
+                                                <span class="on-ticket-badge mt-1 {{ $sig->show_on_ticket ? 'inline-block' : 'hidden' }} rounded-full bg-emerald-600 px-2 py-0.5 text-[0.5625rem] font-black uppercase tracking-wide text-white">On Ticket</span>
                                             </span>
                                         </label>
                                     @endforeach
@@ -152,12 +152,12 @@
 
                                 {{-- Printed order: 1st = top of the ticket. Swap flips the two. --}}
                                 <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                    <p class="ticket-preview hidden text-[11px] font-medium text-slate-500"></p>
-                                    <button type="button" class="ticket-swap hidden rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-50 cursor-pointer">&#8645; Swap order</button>
+                                    <p class="ticket-preview hidden text-[0.6875rem] font-medium text-slate-500"></p>
+                                    <button type="button" class="ticket-swap hidden rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-[0.6875rem] font-bold text-emerald-700 transition hover:bg-emerald-50 cursor-pointer">&#8645; Swap order</button>
                                 </div>
 
                                 <div class="mt-3 flex items-center justify-end gap-3">
-                                    <p class="ticket-msg hidden text-[11px] font-semibold text-rose-600"></p>
+                                    <p class="ticket-msg hidden text-[0.6875rem] font-semibold text-rose-600"></p>
                                     <button type="submit" disabled class="ticket-save rounded-xl bg-[#008751] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#007345] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer">
                                         Save Trip Ticket selection
                                     </button>
@@ -168,7 +168,7 @@
 
                     {{-- Updated By Footer --}}
                     <div class="mt-3 border-t border-gray-100 pt-2 text-right">
-                        <span class="text-[10px] text-slate-400">
+                        <span class="text-[0.625rem] text-slate-400">
                             Updated by: <strong class="font-semibold text-slate-600">{{ $officer->updatedBy?->name ?: 'System Default' }}</strong>
                         </span>
                     </div>
@@ -235,9 +235,9 @@
                 <div>
                     <div class="mb-1 flex items-center justify-between">
                         <p class="text-xs font-bold text-slate-800">Signatories <span id="sig-count" class="font-medium text-slate-400">(0/10)</span></p>
-                        <button type="button" id="sig-add-btn" onclick="addSignatoryRow()" class="rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 cursor-pointer">+ Add signatory</button>
+                        <button type="button" id="sig-add-btn" onclick="addSignatoryRow()" class="rounded-lg bg-emerald-50 px-2.5 py-1 text-[0.6875rem] font-bold text-emerald-700 hover:bg-emerald-100 cursor-pointer">+ Add signatory</button>
                     </div>
-                    <p class="mb-2 text-[11px] text-slate-500">Tick the box for who will appear on the approved Trip Ticket (at least 1, maximum 2).</p>
+                    <p class="mb-2 text-[0.6875rem] text-slate-500">Tick the box for who will appear on the approved Trip Ticket (at least 1, maximum 2).</p>
                     <div id="sig-rows" class="max-h-72 space-y-2 overflow-y-auto pr-1"></div>
                     <p id="sig-error" class="mt-2 hidden text-xs font-semibold text-rose-600"></p>
                 </div>
@@ -379,7 +379,7 @@
                     <button type="button" title="Remove" aria-label="Remove signatory" onclick="this.closest('[data-sig-row]').remove(); reindexRows();" class="shrink-0 rounded-lg p-1.5 text-rose-500 hover:bg-rose-50 cursor-pointer">&#10005;</button>
                 </div>
                 <input type="text" data-f="title" maxlength="150" aria-label="Signatory title or office designation" placeholder="Title / Office designation" value="${esc(data.title)}" class="${inputCls}">
-                <label class="flex items-center gap-2 text-[11px] font-semibold text-slate-700 cursor-pointer">
+                <label class="flex items-center gap-2 text-[0.6875rem] font-semibold text-slate-700 cursor-pointer">
                     <input type="checkbox" data-f="show" value="1" ${data.show_on_ticket ? 'checked' : ''} onchange="enforceTicketLimit(this)" class="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 accent-emerald-600 focus:ring-emerald-500">
                     Show on approved Trip Ticket
                 </label>`;
