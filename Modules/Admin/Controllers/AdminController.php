@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Modules\Admin\Enums\UserRole;
 use Modules\Admin\Requests\StoreAdminRequest;
 use Modules\Admin\Requests\UpdateAdminRequest;
 use Modules\Admin\Services\AdminService;
@@ -17,8 +18,7 @@ class AdminController extends Controller
 {
     public function __construct(
         private readonly AdminService $adminService,
-    ) {
-    }
+    ) {}
 
     public function index(): View
     {
@@ -53,7 +53,14 @@ class AdminController extends Controller
 
     public function update(UpdateAdminRequest $request, User $admin): RedirectResponse
     {
-        $this->adminService->updateAdmin($admin, $request->validated());
+        $data = $request->validated();
+
+        // Demoting yourself could leave the system without a Super Admin
+        if ($admin->is($request->user()) && ($data['role'] ?? $admin->role->value) !== UserRole::SUPER_ADMIN->value) {
+            return redirect()->route('admin.index')->with('error', 'You cannot change your own role. Ask another Super Admin to do it.');
+        }
+
+        $this->adminService->updateAdmin($admin, $data);
 
         return redirect()->route('admin.index')->with('success', 'Admin updated successfully.');
     }
@@ -61,6 +68,11 @@ class AdminController extends Controller
     public function destroy(User $admin): RedirectResponse
     {
         $this->authorize('delete', $admin);
+
+        // Only a Super Admin can delete accounts, so blocking self-deletion also keeps at least one Super Admin
+        if ($admin->is(auth()->user())) {
+            return redirect()->route('admin.index')->with('error', 'You cannot delete your own account. Ask another Super Admin to remove it.');
+        }
 
         $this->adminService->deleteAdmin($admin);
 

@@ -143,7 +143,7 @@
                             <td>{{ $r->requester_name }}</td>
                             @if($isSuperAdmin)<td>{{ $r->location }}</td>@endif
                             <td>{{ $vehicleLabel($r) }}</td>
-                            <td>{{ $r->destination }}</td>
+                            <td>{{ str_replace(';;', ', ', (string) $r->destination) }}</td>
                             <td style="text-transform:capitalize">{{ $r->status }}</td>
                         </tr>
                     @empty

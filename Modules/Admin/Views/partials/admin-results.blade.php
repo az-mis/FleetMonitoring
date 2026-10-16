@@ -97,7 +97,7 @@
                     </div>
                 </div>
 
-                <div class="mt-3 grid grid-cols-2 gap-2">
+                <div class="mt-3 grid {{ $isCurrent ? 'grid-cols-1' : 'grid-cols-2' }} gap-2">
                     <button type="button" onclick="openEditAdminModal(this)" data-name="{{ $admin->name }}" data-email="{{ $admin->email }}" data-avatar="{{ $admin->avatar_url }}" data-initial="{{ $initial }}" data-role-value="{{ $admin->role->value }}" data-phone-number="{{ $admin->phone_number }}" data-location="{{ $admin->location }}" data-signee1-name="{{ $officer?->signee1_name }}" data-signee1-title="{{ $officer?->signee1_title }}" data-signee2-name="{{ $officer?->signee2_name }}" data-signee2-title="{{ $officer?->signee2_title }}" data-update-url="{{ route('admin.update', $admin) }}" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-100 px-2 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-50">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -105,14 +105,16 @@
                         </svg>
                         Edit
                     </button>
-                    <button type="button" onclick="openDeleteModal(this)" data-name="{{ $admin->name }}" data-delete-url="{{ route('admin.destroy', $admin) }}" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-100 px-2 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 6h18"/>
-                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                        </svg>
-                        Delete
-                    </button>
+                    @unless ($isCurrent)
+                        <button type="button" onclick="openDeleteModal(this)" data-name="{{ $admin->name }}" data-delete-url="{{ route('admin.destroy', $admin) }}" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-100 px-2 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18"/>
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                            </svg>
+                            Delete
+                        </button>
+                    @endunless
                 </div>
             </article>
         @endforeach

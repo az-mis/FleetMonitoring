@@ -375,7 +375,7 @@
                             <td class="px-4 py-2.5 font-semibold text-gray-800">{{ $r->requester_name }}</td>
                             @if($isSuperAdmin)<td class="px-4 py-2.5 text-gray-600">{{ $r->location }}</td>@endif
                             <td class="px-4 py-2.5 text-gray-600">{{ $r->vehicle?->plate_number ?: '—' }}</td>
-                            <td class="max-w-[220px] truncate px-4 py-2.5 text-gray-600" title="{{ $r->destination }}">{{ $r->destination }}</td>
+                            <td class="max-w-[220px] truncate px-4 py-2.5 text-gray-600" title="{{ str_replace(';;', ', ', (string) $r->destination) }}">{{ str_replace(';;', ', ', (string) $r->destination) }}</td>
                             <td class="px-4 py-2.5"><span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold capitalize ring-1 {{ $statusStyles[$r->status] ?? 'bg-slate-50 text-slate-600 ring-slate-200' }}">{{ $r->status }}</span></td>
                             <td class="px-4 py-2.5 text-right">
                                 @if($r->status === 'approved')

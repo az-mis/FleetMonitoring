@@ -179,15 +179,15 @@
                         </div>
                     @endif
 
-                    {{-- Status badge --}}
-                    <span class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-50/95 px-2.5 py-1 text-[11px] font-bold text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+                    {{-- Assignment badge (the app has no stored vehicle status, so show what is actually known) --}}
+                    <span class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold shadow-sm ring-1 {{ $vehicle->assignedDriver ? 'bg-emerald-50/95 text-emerald-700 ring-emerald-100' : 'bg-slate-50/95 text-slate-600 ring-slate-200' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M10 17h4V5H2v12h3"/>
                             <path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/>
                             <circle cx="7" cy="17" r="2"/>
                             <circle cx="17" cy="17" r="2"/>
                         </svg>
-                        Active
+                        {{ $vehicle->assignedDriver ? 'Driver Assigned' : 'No Driver' }}
                     </span>
 
                     {{-- Kebab menu --}}

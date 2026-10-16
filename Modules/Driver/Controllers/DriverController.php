@@ -7,19 +7,20 @@ namespace Modules\Driver\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+use Modules\Admin\Enums\UserRole;
 use Modules\Driver\Requests\StoreDriverRequest;
 use Modules\Driver\Requests\UpdateDriverRequest;
 use Modules\Driver\Services\DriverService;
-use Modules\Admin\Enums\UserRole;
+use Modules\VehicleReport\Models\VehicleIssueReport;
+use Modules\VehicleRequest\Models\VehicleRequest;
 
 class DriverController extends Controller
 {
     public function __construct(
         private readonly DriverService $driverService,
-    ) {
-    }
+    ) {}
 
     public function index(): View
     {
@@ -86,6 +87,15 @@ class DriverController extends Controller
     {
         Gate::authorize('manage-drivers');
         $this->authorizeLocation($driver);
+
+        // Deleting would erase the driver from trip tickets and cascade-delete their vehicle reports
+        $hasRecords = VehicleRequest::where('confirmed_driver_id', $driver->id)->exists()
+            || VehicleIssueReport::where('driver_id', $driver->id)->exists();
+
+        if ($hasRecords) {
+            return redirect()->route('driver.index')
+                ->with('error', "{$driver->name} has trips or vehicle reports on record and cannot be deleted. These records must keep the driver's name.");
+        }
 
         $this->driverService->deleteDriver($driver);
 

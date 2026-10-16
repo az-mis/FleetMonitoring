@@ -238,7 +238,12 @@
                                 <option value="{{ $locationOption }}" @selected(old('_admin_form') === 'create' && old('location') === $locationOption)>{{ $locationOption }}</option>
                             @endforeach
                         </select>
-                        <p class="mt-1 text-xs leading-snug text-slate-500">Admins assigned to a specific province will only see vehicle requests from that location.</p>
+                        @if (old('_admin_form') !== 'edit')
+                            @error('location')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
+                        <p class="mt-1 text-xs leading-snug text-slate-500">Required for Admins. An Admin only sees and manages vehicles, drivers, trips and records of their own province.</p>
                     </div>
 
                     <div>
@@ -383,7 +388,12 @@
                                 <option value="{{ $locationOption }}" @selected(old('_admin_form') === 'edit' && old('location') === $locationOption)>{{ $locationOption }}</option>
                             @endforeach
                         </select>
-                        <p class="mt-1 text-xs leading-snug text-slate-500">Admins assigned to a specific province will only see vehicle requests from that location.</p>
+                        @if (old('_admin_form') === 'edit')
+                            @error('location')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        @endif
+                        <p class="mt-1 text-xs leading-snug text-slate-500">Required for Admins. An Admin only sees and manages vehicles, drivers, trips and records of their own province.</p>
                     </div>
 
                     <div>

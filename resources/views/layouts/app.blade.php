@@ -882,14 +882,28 @@
                                 My Profile
                             </a>
 
-                            <a
-                                href="{{ route('content-settings') }}"
+                            {{-- Content Settings is for Admins and Super Admins only --}}
+                            @if (auth()->user()?->role !== \Modules\Admin\Enums\UserRole::DRIVER)
+                                <a
+                                    href="{{ route('content-settings') }}"
+                                    @click="open = false"
+                                    class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('content-settings*') ? 'bg-emerald-50 text-emerald-800' : '' }}"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>
+                                    Settings
+                                </a>
+                            @endif
+
+                            {{-- On phones the sidebar (and its Logout button) is hidden, so offer it here too --}}
+                            <button
+                                type="button"
                                 @click="open = false"
-                                class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition {{ request()->routeIs('content-settings*') ? 'bg-emerald-50 text-emerald-800' : '' }}"
+                                onclick="openLogoutModal(this)"
+                                class="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 transition cursor-pointer"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></svg>
-                                Settings
-                            </a>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+                                Log out
+                            </button>
                         </div>
                     </div>
                 </div>

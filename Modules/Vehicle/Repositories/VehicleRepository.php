@@ -46,11 +46,11 @@ class VehicleRepository implements VehicleRepositoryInterface
             'engine_number' => $data['engine_number'] ?? null,
             'brand' => $data['brand'],
             'model' => $data['model'],
-            'year' => $data['year'],
+            'year' => $data['year'] ?? null,
             'color' => $data['color'],
             'odometer' => $odometer,
             'last_change_oil_odometer' => $odometer, // Basis odometer for oil change interval
-            'change_oil_interval_km' => !empty($data['change_oil_interval_km']) ? (int) $data['change_oil_interval_km'] : 5000,
+            'change_oil_interval_km' => ! empty($data['change_oil_interval_km']) ? (int) $data['change_oil_interval_km'] : 5000,
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
@@ -68,10 +68,11 @@ class VehicleRepository implements VehicleRepositoryInterface
             'engine_number' => $data['engine_number'] ?? null,
             'brand' => $data['brand'],
             'model' => $data['model'],
-            'year' => $data['year'],
+            // Year is optional: an omitted field keeps the current value, an empty one clears it
+            'year' => array_key_exists('year', $data) ? $data['year'] : $vehicle->year,
             'color' => $data['color'],
             'odometer' => $newOdometer,
-            'change_oil_interval_km' => !empty($data['change_oil_interval_km']) ? (int) $data['change_oil_interval_km'] : 5000,
+            'change_oil_interval_km' => ! empty($data['change_oil_interval_km']) ? (int) $data['change_oil_interval_km'] : 5000,
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
@@ -85,10 +86,10 @@ class VehicleRepository implements VehicleRepositoryInterface
 
         $vehicle->fill($updateFields);
 
-        if (!empty($data['photo'])) {
+        if (! empty($data['photo'])) {
             $this->deletePhotoFile($vehicle->photo);
             $vehicle->photo = $this->storePhoto($data['photo']);
-        } elseif (!empty($data['remove_photo'])) {
+        } elseif (! empty($data['remove_photo'])) {
             $this->deletePhotoFile($vehicle->photo);
             $vehicle->photo = null;
         }
@@ -113,7 +114,7 @@ class VehicleRepository implements VehicleRepositoryInterface
 
     private function storePhoto(mixed $file): ?string
     {
-        if (!$file) {
+        if (! $file) {
             return null;
         }
 

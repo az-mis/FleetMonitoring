@@ -100,7 +100,9 @@ class QaSeeder extends Seeder
             'created_by' => $palawanAdmin->id,
         ]);
 
+        // Real requests always have an end date (both request forms require it); default to a one-day trip
         $request = fn (string $code, array $attributes) => VehicleRequest::create(array_merge([
+            'travel_date_end' => $attributes['travel_date'] ?? null,
             'reference_code' => $code,
             'requester_name' => 'Ana Reyes',
             'location' => 'Palawan',

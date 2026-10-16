@@ -2402,7 +2402,7 @@
             document.getElementById('modal-detail-office').textContent    = data.office || '—';
             document.getElementById('modal-detail-contact').textContent   = data.contact || '—';
             document.getElementById('modal-detail-vehicle').textContent   = data.vehicle || '—';
-            document.getElementById('modal-detail-destination').textContent = data.destination || '—';
+            document.getElementById('modal-detail-destination').textContent = formatDestinations(data.destination) || '—';
             document.getElementById('modal-detail-travel-date').textContent = data.travel_date || '—';
             document.getElementById('modal-detail-purpose').textContent   = data.purpose || '—';
             document.getElementById('modal-detail-passengers').textContent = data.passengers || 'None';
@@ -2671,11 +2671,15 @@
             const form = document.getElementById('review-form');
 
             if (reasonContainer.classList.contains('hidden')) {
+                const declineBtn = document.getElementById('modal-decline-action-btn');
                 reasonContainer.classList.remove('hidden');
                 statusInput.value = 'declined';
-                document.getElementById('modal-decline-action-btn').textContent = 'Confirm Decline';
-                document.getElementById('modal-decline-action-btn').type = 'submit';
-                document.getElementById('modal-decline-action-btn').className = 'flex-1 rounded-xl bg-red-600 hover:bg-red-700 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center';
+                declineBtn.textContent = 'Confirm Decline';
+                declineBtn.className = 'flex-1 rounded-xl bg-red-600 hover:bg-red-700 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer text-center';
+                // Switch to submit only after this click finishes; changing it now makes this same
+                // click submit the form, declining the request before a reason can be entered.
+                setTimeout(() => { declineBtn.type = 'submit'; }, 0);
+                reasonContainer.querySelector('textarea')?.focus();
             }
         }
 

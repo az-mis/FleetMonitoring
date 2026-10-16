@@ -26,7 +26,7 @@ class UpdateAdminRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($admin->id)],
             'password' => ['nullable', 'confirmed', Password::defaults()],
-            'role' => ['required', 'in:' . implode(',', array_column(UserRole::cases(), 'value'))],
+            'role' => ['required', 'in:'.implode(',', array_column(UserRole::cases(), 'value'))],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'remove_avatar' => ['nullable', 'boolean'],
             'phone_number' => ['nullable', 'string', 'max:40'],
@@ -36,6 +36,13 @@ class UpdateAdminRequest extends FormRequest
             'signee1_title' => ['nullable', 'string', 'max:255'],
             'signee2_name' => ['nullable', 'string', 'max:255'],
             'signee2_title' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'location.required_if' => 'Choose the province this Admin will manage.',
         ];
     }
 }

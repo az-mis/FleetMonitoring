@@ -84,6 +84,30 @@ class ReportsDashboardTest extends TestCase
         $this->assertTrue($found, 'Exported workbook should contain the requester name as text.');
     }
 
+    public function test_multi_destination_trips_read_naturally_in_reports_and_exports(): void
+    {
+        $admin = $this->admin('Palawan');
+        $this->tripRequest($this->vehicle('Palawan'), [
+            'status' => 'approved',
+            'trip_ticket_number' => '26-10-778',
+            'destination' => 'Roxas Agriculture Office;;Brookes Point',
+            'travel_date' => now()->toDateString(),
+            'travel_date_end' => now()->toDateString(),
+        ]);
+
+        foreach (['/reports?range=month', '/reports/print?range=month'] as $page) {
+            $this->actingAs($admin)->get($page)->assertOk()
+                ->assertSee('Roxas Agriculture Office, Brookes Point')
+                ->assertDontSee('Office;;Brookes');
+        }
+
+        $response = $this->actingAs($admin)->get('/reports/export/xlsx?range=month');
+        $tripLog = IOFactory::load($response->baseResponse->getFile()->getPathname())->getSheetByName('Trip Log');
+        $values = collect($tripLog->toArray())->flatten()->filter()->all();
+
+        $this->assertContains('Roxas Agriculture Office, Brookes Point', $values);
+    }
+
     public function test_fuel_spend_excludes_card_top_ups(): void
     {
         $admin = $this->admin('Palawan');

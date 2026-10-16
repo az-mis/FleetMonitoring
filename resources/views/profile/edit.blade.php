@@ -88,7 +88,7 @@
                                 <label for="profile-phone" class="mb-1 flex items-center gap-1 text-[11px] font-bold text-gray-700">
                                     Phone Number <span class="text-red-500">*</span>
                                 </label>
-                                <input id="profile-phone" type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                <input id="profile-phone" type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required @if ($user->role === \Modules\Admin\Enums\UserRole::DRIVER) pattern="09[0-9]{9}" maxlength="11" inputmode="numeric" placeholder="09171234567" title="Must start with 09 and be exactly 11 digits (e.g. 09171234567)" @endif class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                 @error('phone_number')<p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>@enderror
                             </div>
 
@@ -137,7 +137,7 @@
                         <div class="space-y-3">
                             <div>
                                 <label for="profile-birth-date" class="mb-1 block text-[11px] font-bold text-gray-700">Birth Date</label>
-                                <input id="profile-birth-date" type="date" name="birth_date" value="{{ old('birth_date', optional($user->birth_date)->format('Y-m-d')) }}" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                <input id="profile-birth-date" type="date" name="birth_date" value="{{ old('birth_date', optional($user->birth_date)->format('Y-m-d')) }}" max="{{ now()->subDay()->toDateString() }}" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                 @error('birth_date')<p class="mt-1 text-[11px] text-red-600">{{ $message }}</p>@enderror
                             </div>
 

@@ -114,7 +114,7 @@ class ReportExportService
             return array_merge($row, [
                 $this->vehicleLabel($r),
                 $r->confirmedDriver?->name ?? '',
-                $r->destination,
+                str_replace(';;', ', ', (string) $r->destination),
                 $r->purpose,
                 ucfirst((string) $r->status),
             ]);

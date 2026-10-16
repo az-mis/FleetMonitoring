@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Vehicle\Requests;
 
+use App\Rules\UniqueIdentifier;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Admin\Enums\UserRole;
@@ -30,6 +31,8 @@ class UpdateVehicleRequest extends FormRequest
                 'plate_number' => $vehicle?->plate_number,
                 'location' => $vehicle?->location,
             ]);
+        } elseif (is_string($this->input('plate_number'))) {
+            $this->merge(['plate_number' => strtoupper(preg_replace('/\s+/', ' ', trim($this->input('plate_number'))))]);
         }
     }
 
@@ -39,14 +42,14 @@ class UpdateVehicleRequest extends FormRequest
         $vehicle = $this->route('vehicle');
 
         return [
-            'plate_number' => ['required', 'string', 'max:20', 'regex:/^[A-Za-z0-9\- ]+$/', Rule::unique('vehicles', 'plate_number')->ignore($vehicle->id)],
+            'plate_number' => ['required', 'string', 'max:20', 'regex:/^[A-Za-z0-9\- ]+$/', new UniqueIdentifier('vehicles', 'plate_number', 'plate number', $vehicle->id)],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_photo' => ['nullable', 'boolean'],
             'chassis_number' => ['nullable', 'string', 'max:50'],
             'engine_number' => ['nullable', 'string', 'max:50'],
             'brand' => ['required', 'string', 'max:100'],
             'model' => ['required', 'string', 'max:100'],
-            'year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:'.(date('Y') + 1)],
             'color' => ['required', 'string', 'max:50'],
             'odometer' => ['required', 'integer', 'min:0'],
             'change_oil_interval_km' => ['nullable', 'integer', 'min:500'],

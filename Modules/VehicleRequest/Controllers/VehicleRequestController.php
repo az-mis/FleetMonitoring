@@ -826,6 +826,19 @@ class VehicleRequestController
             'grease_issued'             => ['nullable', 'numeric', 'min:0'],
 
             'remarks'                   => ['nullable', 'string', 'max:1000'],
+        ], [
+            'odo_ending.gte' => 'The odometer at the end of the trip cannot be lower than at the beginning (:value km).',
+        ], [
+            // Names as they appear on the Part B form, so messages make sense to the person filling it in
+            'odo_beginning'        => 'odometer at beginning of trip',
+            'odo_ending'           => 'odometer at end of trip',
+            'fuel_divisor'         => 'fuel divisor',
+            'fuel_balance_in_tank' => 'balance in tank',
+            'fuel_issued_office'   => 'fuel issued from stock',
+            'fuel_purchased_trip'  => 'fuel purchased during trip',
+            'gear_oil_issued'      => 'gear oil',
+            'lub_oil_issued'       => 'lub oil',
+            'grease_issued'        => 'grease',
         ]);
 
         $odoBeg = (int) round((float) $data['odo_beginning']);

@@ -865,7 +865,8 @@ $offices = [
                     ? `<img src="${esc(v.driver_photo)}" alt="${esc(v.driver)}" style="width:20px;height:20px;border-radius:999px;object-fit:cover;flex-shrink:0;">`
                     : `<span style="width:20px;height:20px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;color:#fff;">${v.driver ? initial : '?'}</span>`;
 
-                return `<button type="button" data-vehicle="${v.id}" ${blocked ? 'disabled' : ''} style="position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:10px;border-radius:14px;border:2px solid ${border};background:${isSelected ? 'rgba(16,185,129,.28)' : 'rgba(4,29,14,.75)'};color:#fff;text-align:left;font-family:inherit;cursor:${blocked ? 'not-allowed' : 'pointer'};opacity:${blocked ? .65 : 1};transition:all .15s ease;">
+                // min-width:0 lets the grid cell shrink so long model names truncate instead of widening the page on phones
+                return `<button type="button" data-vehicle="${v.id}" ${blocked ? 'disabled' : ''} style="position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px;border-radius:14px;border:2px solid ${border};background:${isSelected ? 'rgba(16,185,129,.28)' : 'rgba(4,29,14,.75)'};color:#fff;text-align:left;font-family:inherit;cursor:${blocked ? 'not-allowed' : 'pointer'};opacity:${blocked ? .65 : 1};transition:all .15s ease;">
                     <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:8px;">
                         <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
                             ${avatar}

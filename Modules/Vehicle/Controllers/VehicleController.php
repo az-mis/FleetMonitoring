@@ -523,8 +523,11 @@ class VehicleController extends Controller
         $this->authorizeSuperAdmin();
         $this->authorizeFleetLocation($vehicle->location);
 
+        // Same rule as the quick-update dialog: a reading can only move forward
         $validated = $request->validate([
-            'odometer' => 'required|integer|min:0',
+            'odometer' => ['required', 'integer', 'min:' . (int) $vehicle->odometer],
+        ], [
+            'odometer.min' => 'The new reading cannot be lower than the current odometer (' . number_format((int) $vehicle->odometer) . ' km).',
         ]);
 
         $vehicle->update([

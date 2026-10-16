@@ -22,7 +22,7 @@ class StoreAdminRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => ['required', 'in:' . implode(',', array_column(UserRole::cases(), 'value'))],
+            'role' => ['required', 'in:'.implode(',', array_column(UserRole::cases(), 'value'))],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'phone_number' => ['nullable', 'string', 'max:40'],
             // An admin without a location would bypass every per-location restriction
@@ -31,6 +31,13 @@ class StoreAdminRequest extends FormRequest
             'signee1_title' => ['nullable', 'string', 'max:255'],
             'signee2_name' => ['nullable', 'string', 'max:255'],
             'signee2_title' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'location.required_if' => 'Choose the province this Admin will manage.',
         ];
     }
 }
