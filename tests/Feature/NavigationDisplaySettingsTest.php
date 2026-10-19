@@ -53,7 +53,11 @@ class NavigationDisplaySettingsTest extends TestCase
         $menu = $this->accountMenu($this->actingAs($driver)->get('/my-profile')->assertOk()->getContent());
         $this->assertStringContainsString('href="'.route('settings').'"', $menu);
         $this->assertStringNotContainsString(route('content-settings'), $menu);
+        // Every role's menu says "System Settings"; for drivers it holds theme and text size only
+        $this->assertStringContainsString('System Settings', $menu);
         $this->actingAs($driver)->get('/settings')->assertOk()
+            ->assertSee('<h2 class="text-xl font-bold text-gray-900">System Settings</h2>', false)
+            ->assertSee('id="theme-light"', false)
             ->assertSeeInOrder(['Standard', 'Large', 'Larger', 'Largest'])
             ->assertSee("localStorage.getItem('fleet_text_size')", false);
     }

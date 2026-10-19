@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Display & Text Size')
-@section('page-title', 'Display & Text Size')
+@section('title', 'System Settings')
+@section('page-title', 'System Settings')
 
-{{-- Drivers' settings page. Admins and Super Admins find the same text size choice in System Settings. --}}
+{{-- Drivers' System Settings: theme and text size. Admins and Super Admins open the fuller System Settings page. --}}
 @section('content')
     <div class="mx-auto max-w-3xl space-y-5">
         <div>
-            <h2 class="text-xl font-bold text-gray-900">Display &amp; Text Size</h2>
+            <h2 class="text-xl font-bold text-gray-900">System Settings</h2>
             <p class="mt-1 text-sm text-gray-500">Choose the theme and make the Fleet Management System easier to read on this device.</p>
         </div>
 
