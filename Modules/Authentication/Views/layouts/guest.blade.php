@@ -9,26 +9,26 @@
 
     <div class="public-card overflow-hidden">
         <div class="grid md:grid-cols-[1fr_1.05fr]">
-            <section class="relative hidden flex-col justify-between overflow-hidden border-r border-white/10 bg-gradient-to-br from-emerald-500/15 via-transparent to-transparent p-9 md:flex">
+            <section class="relative hidden flex-col justify-between overflow-hidden border-r border-pub-border bg-gradient-to-br from-pub-highlight via-transparent to-transparent p-9 md:flex">
                 <div>
-                    <h2 class="text-2xl font-extrabold leading-tight tracking-tight">Smart fleet operations<br><span class="text-emerald-300">&amp; monitoring</span></h2>
-                    <p class="mt-3 max-w-sm text-sm leading-6 text-emerald-50/65">Vehicles, drivers and official trips for the whole region, in one secure place.</p>
+                    <h2 class="text-2xl font-extrabold leading-tight tracking-tight">Smart fleet operations<br><span class="text-pub-accent">&amp; monitoring</span></h2>
+                    <p class="mt-3 max-w-sm text-sm leading-6 text-pub-muted">Vehicles, drivers and official trips for the whole region, in one secure place.</p>
 
                     <ul class="mt-8 space-y-5">
                         @foreach ($features as [$title, $text, $icon])
                             <li class="flex items-start gap-3">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-300/15">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pub-highlight text-pub-accent ring-1 ring-inset ring-pub-border">
                                     <svg class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icon !!}</svg>
                                 </span>
                                 <span>
                                     <span class="block text-sm font-semibold">{{ $title }}</span>
-                                    <span class="mt-0.5 block text-[0.8125rem] leading-5 text-emerald-50/55">{{ $text }}</span>
+                                    <span class="mt-0.5 block text-[0.8125rem] leading-5 text-pub-muted">{{ $text }}</span>
                                 </span>
                             </li>
                         @endforeach
                     </ul>
                 </div>
-                <p class="mt-10 flex items-center gap-2 text-xs text-emerald-50/45">
+                <p class="mt-10 flex items-center gap-2 text-xs text-pub-muted">
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="11" x="4" y="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
                     Encrypted session · All activity is logged
                 </p>

@@ -87,8 +87,8 @@
             cursor: not-allowed;
         }
         #sidebar .sidebar-active {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.12);
+            background: var(--sidebar-active-surface);
+            box-shadow: var(--sidebar-active-shadow);
         }
 
         #sidebar .sidebar-active::before {
@@ -134,15 +134,15 @@
         }
         /* Link icons carry a soft tint of their group's color */
         #sidebar .sidebar-section .sidebar-item:not(.sidebar-active) .sidebar-item-icon {
-            color: color-mix(in srgb, var(--section) 78%, white);
+            color: color-mix(in srgb, var(--section) 78%, var(--sidebar-icon-mix));
         }
         #sidebar .sidebar-section .sidebar-item:not(.sidebar-active):hover .sidebar-item-icon {
-            color: #fff;
+            color: var(--color-sidebar-strong);
         }
 
         #sidebar .sidebar-nav {
             scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+            scrollbar-color: color-mix(in srgb, var(--color-sidebar-fg) 30%, transparent) transparent;
         }
 
         /* Collapsed icon-rail state — applied on desktop via JS */
@@ -367,20 +367,20 @@
         {{-- Sidebar — static part of layout on desktop (starts open), off-canvas on mobile --}}
         <aside
             id="sidebar"
-            class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-[#004a2c] bg-[linear-gradient(180deg,#005a36_0%,#004a2c_55%,#003b23_100%)] shadow-xl shadow-black/10 transition-all duration-200 ease-in-out md:static md:w-64 md:translate-x-0 md:shrink-0 md:shadow-none"
+            class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-sidebar bg-(image:--sidebar-surface) border-r border-sidebar-border shadow-xl shadow-black/10 transition-all duration-200 ease-in-out md:static md:w-64 md:translate-x-0 md:shrink-0 md:shadow-none"
         >
-            <div class="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-                <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-9 w-9 shrink-0 rounded-full bg-white object-contain p-0.5 shadow ring-2 ring-white/15">
+            <div class="flex items-center gap-3 border-b border-sidebar-border px-4 py-4">
+                <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-9 w-9 shrink-0 rounded-full bg-white object-contain p-0.5 shadow ring-2 ring-sidebar-border">
                 <div class="sidebar-label-block min-w-0 leading-tight">
-                    <p class="truncate text-[0.9375rem] font-extrabold tracking-tight text-white">Fleet Management</p>
-                    <p class="truncate text-[0.65625rem] font-semibold uppercase tracking-[0.12em] text-emerald-200/60">{{ config('app.name') }}</p>
+                    <p class="truncate text-[0.9375rem] font-extrabold tracking-tight text-sidebar-strong">Fleet Management</p>
+                    <p class="truncate text-[0.65625rem] font-semibold uppercase tracking-[0.12em] text-sidebar-muted">{{ config('app.name') }}</p>
                 </div>
 
                 <button
                     id="sidebar-close-btn"
                     type="button"
                     onclick="closeSidebar()"
-                    class="ml-auto rounded-md p-1.5 text-emerald-200 hover:bg-white/10 hover:text-white transition md:hidden"
+                    class="ml-auto rounded-md p-1.5 text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-strong transition md:hidden"
                     title="Close sidebar"
                     aria-label="Close navigation"
                 >
@@ -405,7 +405,7 @@
                 </div>
 
                 @if ($isFleetAdmin)
-                    <x-sidebar-section id="nav-operations" label="Operations" color="#7dd3fc">
+                    <x-sidebar-section id="nav-operations" label="Operations" color="operations">
                         <x-sidebar-link :href="route('vehicle-requests.index')" label="Travel Requests" :active="request()->routeIs('vehicle-requests.*')" :badge="$pendingTravelCount > 0 ? $pendingTravelCount : null" :locked="$locked('vehicleRequests')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v3H9z"/><rect width="16" height="16" x="4" y="5" rx="2"/><path d="M8 11h8M8 15h5"/></svg>
                         </x-sidebar-link>
@@ -419,7 +419,7 @@
                         </x-sidebar-link>
                     </x-sidebar-section>
 
-                    <x-sidebar-section id="nav-vehicles" label="Vehicles" color="#fdba74">
+                    <x-sidebar-section id="nav-vehicles" label="Vehicles" color="vehicles">
                         <x-sidebar-link :href="route('vehicles.index')" label="Vehicles List" :active="request()->routeIs('vehicles.*') && ! request()->routeIs('vehicles.inspections.*')" :locked="$locked('vehicles')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
                         </x-sidebar-link>
@@ -437,7 +437,7 @@
                         </x-sidebar-link>
                     </x-sidebar-section>
 
-                    <x-sidebar-section id="nav-administration" label="Administration" color="#c4b5fd">
+                    <x-sidebar-section id="nav-administration" label="Administration" color="administration">
                         <x-sidebar-link :href="route('reports.index')" label="Reports" :active="request()->routeIs('reports.*')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-8"/></svg>
                         </x-sidebar-link>
@@ -456,7 +456,7 @@
                 @endif
 
                 @if ($user?->role === \Modules\Admin\Enums\UserRole::DRIVER)
-                    <x-sidebar-section id="nav-my-work" label="My Work" color="#7dd3fc">
+                    <x-sidebar-section id="nav-my-work" label="My Work" color="operations">
                         <x-sidebar-link :href="route('travel-history')" label="Travel History" :active="request()->routeIs('travel-history')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-6-8-12a8 8 0 0 1 16 0c0 6-8 12-8 12z"/><path d="M12 7v3l2 2"/></svg>
                         </x-sidebar-link>
@@ -468,18 +468,18 @@
             </nav>
 
             {{-- Signed-in user, display only. My Profile and Log out are in the account menu at the top right --}}
-            <div class="border-t border-white/10 p-3">
+            <div class="border-t border-sidebar-border p-3">
                 <div title="{{ $user?->name }}" class="user-profile-link flex cursor-default select-none items-center gap-3 rounded-xl px-2 py-2">
                     @if ($hasPhoto)
-                        <img src="{{ $user->avatar_url }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/15">
+                        <img src="{{ $user->avatar_url }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-sidebar-border">
                     @else
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-[0.8125rem] font-bold text-white ring-2 ring-white/15" aria-hidden="true">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-[0.8125rem] font-bold text-white ring-2 ring-sidebar-border" aria-hidden="true">
                             {{ Illuminate\Support\Str::upper(Illuminate\Support\Str::substr($user?->name ?? 'A', 0, 1)) }}
                         </span>
                     @endif
                     <span class="sidebar-label-block min-w-0 flex-1 leading-tight">
-                        <span class="block truncate text-[0.8125rem] font-semibold text-white">{{ $user?->name }}</span>
-                        <span class="block truncate text-[0.6875rem] text-emerald-200/70">{{ $user?->role?->label() }}{{ filled($user?->location) ? ' · '.$user->location : '' }}</span>
+                        <span class="block truncate text-[0.8125rem] font-semibold text-sidebar-strong">{{ $user?->name }}</span>
+                        <span class="block truncate text-[0.6875rem] text-sidebar-muted">{{ $user?->role?->label() }}{{ filled($user?->location) ? ' · '.$user->location : '' }}</span>
                     </span>
                 </div>
             </div>
@@ -488,10 +488,10 @@
         {{-- Main --}}
         <div class="flex flex-1 flex-col min-w-0 overflow-hidden">
             {{-- Topbar --}}
-            <header class="relative flex min-h-[60px] items-center justify-between border-b border-emerald-800/30 bg-[#0f5d33] px-4 py-3 shadow-sm sm:border-gray-200 sm:bg-white sm:px-6">
+            <header class="relative flex min-h-[60px] items-center justify-between border-b border-topbar-mobile-border bg-topbar-mobile px-4 py-3 shadow-sm sm:border-gray-200 sm:bg-white sm:px-6">
                 <div class="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5">
                     <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-8 w-8 rounded-full object-contain">
-                    <span class="whitespace-nowrap text-lg font-bold tracking-tight text-white sm:hidden">FMS</span>
+                    <span class="whitespace-nowrap text-lg font-bold tracking-tight text-topbar-mobile-fg sm:hidden">FMS</span>
                     <span class="hidden whitespace-nowrap text-lg font-bold tracking-tight text-[#155f35] sm:inline">Fleet Management System</span>
                 </div>
 
@@ -503,7 +503,7 @@
                         aria-label="Toggle navigation"
                         aria-controls="sidebar"
                         aria-expanded="false"
-                        class="shrink-0 rounded-md p-2 text-white hover:bg-white/10 sm:text-gray-500 sm:hover:bg-gray-100 sm:hover:text-gray-700"
+                        class="shrink-0 rounded-md p-2 text-topbar-mobile-fg hover:bg-topbar-mobile-hover sm:text-gray-500 sm:hover:bg-gray-100 sm:hover:text-gray-700"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 6h16"/>
@@ -519,7 +519,7 @@
                         <button
                             type="button"
                             @click="open = !open"
-                            class="relative rounded-full p-2 text-white hover:bg-white/10 sm:text-slate-500 sm:hover:bg-slate-100 sm:hover:text-slate-700 transition cursor-pointer"
+                            class="relative rounded-full p-2 text-topbar-mobile-fg hover:bg-topbar-mobile-hover sm:text-slate-500 sm:hover:bg-slate-100 sm:hover:text-slate-700 transition cursor-pointer"
                             title="Notifications"
                             aria-label="Notifications"
                             :aria-expanded="open.toString()"
@@ -775,11 +775,11 @@
                                 <img
                                     src="{{ $user->avatar_url }}"
                                     alt="{{ $user->name }}"
-                                    class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white/40 sm:ring-emerald-100"
+                                    class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-topbar-mobile-border sm:ring-emerald-100"
                                 >
                             @else
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/40 sm:bg-gray-100 sm:ring-emerald-100">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white sm:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-topbar-mobile-hover ring-2 ring-topbar-mobile-border sm:bg-gray-100 sm:ring-emerald-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-topbar-mobile-fg sm:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/>
                                         <path d="M4 21a8 8 0 0 1 16 0 1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
                                     </svg>

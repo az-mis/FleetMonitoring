@@ -16,14 +16,14 @@
     @endphp
 
     <section class="text-center">
-        <span class="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-emerald-200">
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
+        <span class="inline-flex items-center gap-2 rounded-full border border-pub-border bg-pub-highlight px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-pub-accent">
+            <span class="h-1.5 w-1.5 rounded-full bg-pub-accent"></span>
             Fleet Management System
         </span>
         <h1 class="mx-auto mt-5 max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
-            Smart fleet operations <span class="bg-gradient-to-r from-emerald-300 to-lime-200 bg-clip-text text-transparent">&amp; monitoring</span>
+            Smart fleet operations <span class="bg-gradient-to-r from-pub-accent to-pub-accent-2 bg-clip-text text-transparent">&amp; monitoring</span>
         </h1>
-        <p class="mx-auto mt-5 max-w-2xl text-pretty text-base leading-7 text-emerald-50/70">
+        <p class="mx-auto mt-5 max-w-2xl text-pretty text-base leading-7 text-pub-muted">
             One place to request official vehicles, assign drivers and track every trip in real time.
         </p>
     </section>
@@ -31,8 +31,8 @@
     <section class="mt-10 grid grid-cols-1 gap-3 sm:mt-12 md:grid-cols-3" aria-label="Get started">
         @foreach ($actions as $action)
             <a href="{{ $action['url'] }}"
-               class="group flex items-start gap-4 rounded-2xl p-5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 {{ $action['primary'] ? 'bg-emerald-500 text-[#032611] shadow-xl shadow-emerald-950/40 hover:bg-emerald-400' : 'public-card hover:border-emerald-300/30 hover:bg-[#0a3019]/90' }}">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl {{ $action['primary'] ? 'bg-[#032611]/10' : 'bg-emerald-400/10 text-emerald-300' }}">
+               class="group flex items-start gap-4 rounded-2xl p-5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent {{ $action['primary'] ? 'bg-pub-primary text-pub-on-primary shadow-xl shadow-emerald-950/40 hover:bg-pub-primary-hover' : 'public-card hover:border-pub-border hover:bg-pub-highlight' }}">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl {{ $action['primary'] ? 'bg-pub-on-primary/10' : 'bg-pub-highlight text-pub-accent' }}">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $action['icon'] !!}</svg>
                 </span>
                 <span class="min-w-0 flex-1 text-left">
@@ -40,19 +40,19 @@
                         {{ $action['title'] }}
                         <svg class="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
-                    <span class="mt-1 block text-sm leading-5 {{ $action['primary'] ? 'text-[#032611]/75' : 'text-emerald-50/60' }}">{{ $action['text'] }}</span>
+                    <span class="mt-1 block text-sm leading-5 {{ $action['primary'] ? 'text-pub-on-primary/75' : 'text-pub-muted' }}">{{ $action['text'] }}</span>
                 </span>
             </a>
         @endforeach
     </section>
 
-    <section class="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-x-8 gap-y-4 border-t border-white/10 pt-8 sm:grid-cols-3" aria-label="Features">
+    <section class="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-x-8 gap-y-4 border-t border-pub-border pt-8 sm:grid-cols-3" aria-label="Features">
         @foreach ($features as [$title, $text, $icon])
             <div class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-300/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icon !!}</svg>
+                <svg class="mt-0.5 h-5 w-5 shrink-0 text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icon !!}</svg>
                 <div>
                     <p class="text-sm font-semibold">{{ $title }}</p>
-                    <p class="mt-0.5 text-[0.8125rem] leading-5 text-emerald-50/55">{{ $text }}</p>
+                    <p class="mt-0.5 text-[0.8125rem] leading-5 text-pub-muted">{{ $text }}</p>
                 </div>
             </div>
         @endforeach

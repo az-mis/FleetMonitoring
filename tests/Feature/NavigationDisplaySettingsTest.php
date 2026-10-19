@@ -72,6 +72,33 @@ class NavigationDisplaySettingsTest extends TestCase
         $this->get('/login')->assertOk()->assertSee("localStorage.getItem('fleet_text_size')", false);
     }
 
+    public function test_theme_can_be_chosen_on_both_settings_pages(): void
+    {
+        $this->actingAs($this->admin())->get('/content-settings')->assertOk()
+            ->assertSee('id="theme-green"', false)
+            ->assertSee('id="theme-light"', false)
+            ->assertSeeInOrder(['Theme', 'Display &amp; Text Size'], false);
+
+        $this->actingAs($this->driver())->get('/settings')->assertOk()
+            ->assertSee('id="theme-light"', false)
+            ->assertSee("localStorage.setItem('fleet_theme', value)", false);
+    }
+
+    public function test_saved_theme_is_applied_before_paint_on_app_and_public_pages(): void
+    {
+        $boot = "localStorage.getItem('fleet_theme') === 'light'";
+
+        foreach (['/', '/login', '/request-vehicle', '/check-status'] as $url) {
+            $this->followingRedirects()->get($url)->assertOk()->assertSee($boot, false);
+        }
+        $this->actingAs($this->admin())->get('/my-profile')->assertOk()
+            ->assertSee($boot, false)
+            // Sidebar colors come from theme tokens, not hardcoded hex values
+            ->assertSee('bg-sidebar', false)
+            ->assertSee('--section: var(--section-operations)', false)
+            ->assertDontSee('bg-[#004a2c]', false);
+    }
+
     /** The account dropdown (top right): from its Alpine root to the Log out button. */
     private function accountMenu(string $html): string
     {

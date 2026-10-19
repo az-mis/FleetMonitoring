@@ -39,6 +39,8 @@
 
     <div class="space-y-6">
         {{-- Personal, per-device preference shown first so it is easy to find --}}
+        @include('partials.theme-picker')
+
         @include('partials.text-size-picker')
 
         @if($isSuperAdmin)

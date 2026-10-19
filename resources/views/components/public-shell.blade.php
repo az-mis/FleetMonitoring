@@ -24,20 +24,20 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{ $head ?? '' }}
 </head>
-<body class="min-h-screen bg-[#04170b] text-white antialiased [color-scheme:dark] selection:bg-emerald-400/30 [&_option]:bg-[#0b2a17] [&_option]:text-emerald-50">
+<body class="min-h-screen bg-pub-bg text-pub-text antialiased [color-scheme:var(--pub-scheme)] selection:bg-emerald-400/30 [&_option]:bg-pub-panel [&_option]:text-pub-text">
     <div class="fixed inset-0 -z-10" aria-hidden="true">
         <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('FleetMS-bg.jpg') }}')"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-[#03160b]/80 via-[#03160b]/88 to-[#020e07]/95"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(60rem_28rem_at_50%_-8%,rgba(52,211,153,.16),transparent)]"></div>
+        <div class="absolute inset-0 bg-(image:--pub-wash)"></div>
+        <div class="absolute inset-0 bg-(image:--pub-glow)"></div>
     </div>
 
     <div class="flex min-h-screen flex-col">
         <header class="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
-            <a href="{{ url('/') }}" class="flex min-w-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
-                <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="" class="h-9 w-9 shrink-0 rounded-full bg-white object-contain p-0.5 ring-1 ring-white/20">
+            <a href="{{ url('/') }}" class="flex min-w-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent">
+                <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="" class="h-9 w-9 shrink-0 rounded-full bg-white object-contain p-0.5 ring-1 ring-pub-border">
                 <span class="min-w-0 leading-tight">
                     <span class="block truncate text-[0.8125rem] font-bold tracking-tight sm:text-sm">Fleet Management</span>
-                    <span class="block truncate text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-emerald-200/60">{{ config('app.name') }}</span>
+                    <span class="block truncate text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-pub-muted">{{ config('app.name') }}</span>
                 </span>
             </a>
 
@@ -46,14 +46,14 @@
                     <a href="{{ $link['url'] }}"
                        @if ($active === $key) aria-current="page" @endif
                        title="{{ $link['label'] }}"
-                       class="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-[0.8125rem] sm:px-2.5 font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 {{ $active === $key ? 'bg-white/10 text-white' : 'text-emerald-100/75 hover:bg-white/5 hover:text-white' }}">
+                       class="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-[0.8125rem] sm:px-2.5 font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent {{ $active === $key ? 'bg-pub-highlight text-pub-text' : 'text-pub-muted hover:bg-pub-highlight hover:text-pub-text' }}">
                         <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $link['icon'] !!}</svg>
                         <span class="hidden sm:inline">{{ $link['label'] }}</span>
                         <span class="sr-only sm:hidden">{{ $link['label'] }}</span>
                     </a>
                 @endforeach
                 @if ($active !== 'login')
-                    <a href="{{ route('login') }}" class="ml-1 inline-flex h-9 items-center whitespace-nowrap rounded-lg bg-white px-2.5 text-[0.8125rem] sm:px-3 font-semibold text-[#063d20] shadow-sm transition hover:bg-emerald-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                    <a href="{{ route('login') }}" class="ml-1 inline-flex h-9 items-center whitespace-nowrap rounded-lg bg-pub-cta px-2.5 text-[0.8125rem] sm:px-3 font-semibold text-pub-on-cta shadow-sm transition hover:bg-pub-cta-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent">
                         Staff Login
                     </a>
                 @endif
@@ -66,7 +66,7 @@
             </div>
         </main>
 
-        <footer class="px-4 pb-6 text-center text-xs text-emerald-100/45">
+        <footer class="px-4 pb-6 text-center text-xs text-pub-muted">
             © {{ date('Y') }} {{ config('app.name') }} · Official Government Fleet Management System · Authorized personnel only
         </footer>
     </div>

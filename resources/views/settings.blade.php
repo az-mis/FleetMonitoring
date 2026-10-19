@@ -8,8 +8,10 @@
     <div class="mx-auto max-w-3xl space-y-5">
         <div>
             <h2 class="text-xl font-bold text-gray-900">Display &amp; Text Size</h2>
-            <p class="mt-1 text-sm text-gray-500">Make the Fleet Management System easier to read on this device.</p>
+            <p class="mt-1 text-sm text-gray-500">Choose the theme and make the Fleet Management System easier to read on this device.</p>
         </div>
+
+        @include('partials.theme-picker')
 
         @include('partials.text-size-picker')
 

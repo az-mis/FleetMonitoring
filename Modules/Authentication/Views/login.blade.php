@@ -4,12 +4,12 @@
 
 @section('content')
     <div class="mb-5">
-        <h1 class="text-2xl font-bold tracking-tight text-white">Sign In</h1>
-        <p class="mt-1.5 text-sm leading-6 text-emerald-50/60">Enter your account credentials to access your dashboard.</p>
+        <h1 class="text-2xl font-bold tracking-tight text-pub-text">Sign In</h1>
+        <p class="mt-1.5 text-sm leading-6 text-pub-muted">Enter your account credentials to access your dashboard.</p>
     </div>
 
     @session('status')
-        <div class="mb-4 rounded-xl border border-emerald-300/40 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100" role="status">
+        <div class="mb-4 rounded-xl border border-pub-border bg-pub-highlight px-4 py-3 text-sm text-pub-text" role="status">
             {{ $value }}
         </div>
     @endsession
@@ -18,9 +18,9 @@
         @csrf
 
         <div>
-            <label for="email" class="block text-[0.8125rem] font-semibold text-emerald-50">Email address</label>
+            <label for="email" class="block text-[0.8125rem] font-semibold text-pub-text">Email address</label>
             <div class="relative mt-1.5">
-                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path>
                 </svg>
                 <input
@@ -33,23 +33,23 @@
                     autocomplete="username"
                     @error('email') aria-invalid="true" aria-describedby="email-error" @enderror
                     placeholder="name@agency.gov.ph"
-                    class="block h-11 w-full rounded-xl border border-white/15 bg-black/25 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-emerald-100/35 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+                    class="block h-11 w-full rounded-xl border border-pub-border bg-pub-field py-2.5 pl-10 pr-3 text-sm text-pub-text placeholder:text-pub-faint transition focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
                 >
             </div>
             @error('email')
-                <p id="email-error" class="mt-1.5 text-xs font-semibold text-red-300" role="alert">{{ $message }}</p>
+                <p id="email-error" class="mt-1.5 text-xs font-semibold text-pub-danger" role="alert">{{ $message }}</p>
             @enderror
         </div>
 
         <div>
             <div class="flex items-center justify-between">
-                <label for="password" class="block text-[0.8125rem] font-semibold text-emerald-50">Password</label>
+                <label for="password" class="block text-[0.8125rem] font-semibold text-pub-text">Password</label>
                 @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-[0.6875rem] font-semibold text-emerald-200 hover:text-white hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
+                    <a href="{{ route('password.request') }}" class="text-[0.6875rem] font-semibold text-pub-accent hover:text-pub-text hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
                 @endif
             </div>
             <div class="relative mt-1.5">
-                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
                 </svg>
                 <input
@@ -60,9 +60,9 @@
                     autocomplete="current-password"
                     @error('password') aria-invalid="true" aria-describedby="password-error" @enderror
                     placeholder="••••••••••••"
-                    class="block h-11 w-full rounded-xl border border-white/15 bg-black/25 py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-emerald-100/35 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+                    class="block h-11 w-full rounded-xl border border-pub-border bg-pub-field py-2.5 pl-10 pr-10 text-sm text-pub-text placeholder:text-pub-faint transition focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
                 >
-                <button type="button" id="toggle-password" class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-emerald-100/60 transition hover:text-emerald-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400" aria-label="Show password">
+                <button type="button" id="toggle-password" class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-pub-muted transition hover:text-pub-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent" aria-label="Show password">
                     <svg id="eye-closed" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.1A10.8 10.8 0 0 1 12 4.8c5.2 0 8.7 4.8 9.7 7.2a13.8 13.8 0 0 1-3.1 4.2"></path><path d="M6.2 6.2A14 14 0 0 0 2.3 12c1 2.4 4.5 7.2 9.7 7.2 1 0 2-.2 2.9-.5"></path>
                     </svg>
@@ -72,13 +72,13 @@
                 </button>
             </div>
             @error('password')
-                <p id="password-error" class="mt-1.5 text-xs font-semibold text-red-300" role="alert">{{ $message }}</p>
+                <p id="password-error" class="mt-1.5 text-xs font-semibold text-pub-danger" role="alert">{{ $message }}</p>
             @enderror
         </div>
 
         <button
             type="submit"
-            class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-bold text-[#032611] shadow-lg shadow-emerald-950/40 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#072413] transition"
+            class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-pub-primary px-4 text-sm font-bold text-pub-on-primary shadow-lg shadow-emerald-950/40 hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent focus-visible:ring-offset-2 focus-visible:ring-offset-pub-panel transition"
         >
             Sign in <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
@@ -95,9 +95,9 @@
         });
     </script>
 
-    <p class="mt-6 border-t border-white/10 pt-5 text-center text-[0.8125rem] text-emerald-50/55">
+    <p class="mt-6 border-t border-pub-border pt-5 text-center text-[0.8125rem] text-pub-muted">
         Need a vehicle?
-        <a href="{{ route('request-vehicle') }}" class="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">Request one without signing in</a>
+        <a href="{{ route('request-vehicle') }}" class="font-semibold text-pub-accent hover:text-pub-accent hover:underline">Request one without signing in</a>
     </p>
 
 @endsection

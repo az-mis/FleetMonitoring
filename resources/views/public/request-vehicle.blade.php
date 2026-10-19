@@ -40,11 +40,11 @@
     <div class="public-card p-4 sm:p-6">
         <div class="mb-4">
             <h1 class="text-xl font-bold tracking-tight">Request a vehicle</h1>
-            <p class="mt-1 text-[0.8125rem] text-emerald-50/60">Book a government vehicle for official travel. No account needed. You'll get a reference code to track it.</p>
+            <p class="mt-1 text-[0.8125rem] text-pub-muted">Book a government vehicle for official travel. No account needed. You'll get a reference code to track it.</p>
         </div>
         @if (isset($errors) && $errors->any())
-            <div class="mb-5 rounded-xl border border-rose-400/40 bg-rose-500/10 p-4 text-sm text-rose-200" role="alert">
-                <p class="font-bold text-rose-100 mb-1">Please fix the following issues before submitting:</p>
+            <div class="mb-5 rounded-xl border border-pub-danger-border bg-pub-danger-soft p-4 text-sm text-pub-danger" role="alert">
+                <p class="font-bold text-pub-danger mb-1">Please fix the following issues before submitting:</p>
                 <ul class="list-disc list-inside space-y-0.5">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -113,23 +113,23 @@ $offices = [
 @endphp
 
             <div class="flex items-center gap-2.5">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">1</span>
-                <h2 class="text-sm font-semibold text-white">Your details</h2>
-                <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">1</span>
+                <h2 class="text-sm font-semibold text-pub-text">Your details</h2>
+                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Your Full Name <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Your Full Name <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                     </div>
                 </div>
 
                 {{-- Custom Searchable Office / Section Dropdown --}}
                 <div class="relative" id="custom-office-dropdown-container">
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50">
-                        <span>Your Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></span>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text">
+                        <span>Your Office / Section <span class="font-normal text-pub-muted">(Optional)</span></span>
                     </label>
 
                     {{-- Hidden input for form submission --}}
@@ -143,11 +143,11 @@ $offices = [
                         aria-expanded="false"
                         aria-controls="office-dropdown-panel"
                         onclick="toggleOfficeDropdown()"
-                        class="group flex h-10 w-full items-center justify-between rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-left text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
+                        class="group flex h-10 w-full items-center justify-between rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-left text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40 focus-visible:ring-2 focus-visible:ring-pub-accent/60 transition cursor-pointer relative"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
-                        <span id="office-dropdown-selected-label" class="truncate {{ old('requesterOffice') ? 'text-emerald-100' : 'text-emerald-100/40' }}">{{ old('requesterOffice') ?: '— Select your office / division —' }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-emerald-300/70 transition-transform duration-200" id="office-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+                        <span id="office-dropdown-selected-label" class="truncate {{ old('requesterOffice') ? 'text-pub-text' : 'text-pub-faint' }}">{{ old('requesterOffice') ?: '— Select your office / division —' }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-pub-accent transition-transform duration-200" id="office-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m6 9 6 6 6-6"/>
                         </svg>
                     </button>
@@ -155,11 +155,11 @@ $offices = [
                     {{-- Dropdown Menu Panel --}}
                     <div
                         id="office-dropdown-panel"
-                        class="absolute left-0 right-0 sm:left-auto sm:w-96 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md"
+                        class="absolute left-0 right-0 sm:left-auto sm:w-96 top-full z-50 mt-1.5 hidden rounded-xl border border-pub-border bg-pub-panel p-2 shadow-2xl backdrop-blur-md"
                     >
                         {{-- Search Bar inside Dropdown --}}
                         <div class="relative mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="11" cy="11" r="7"/>
                                 <path d="m21 21-4.3-4.3"/>
                             </svg>
@@ -169,7 +169,7 @@ $offices = [
                                 aria-label="Search office"
                                 oninput="filterOfficeOptions()"
                                 placeholder="Search office..."
-                                class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                                class="w-full rounded-lg border border-pub-border bg-pub-field py-1.5 pl-8 pr-3 text-xs text-pub-text placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
                             >
                         </div>
 
@@ -179,7 +179,7 @@ $offices = [
                                 role="option" tabindex="0"
                                 onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                                 onclick="selectOffice('', '— Select your office / division —')"
-                                class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100/60 hover:bg-emerald-800/40 hover:text-emerald-200 transition"
+                                class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-pub-muted hover:bg-pub-highlight hover:text-pub-accent transition"
                                 data-label="— select your office / division —"
                             >
                                 <span>— Select your office / division —</span>
@@ -189,13 +189,13 @@ $offices = [
                                     role="option" tabindex="0"
                                     onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                                     onclick="selectOffice('{{ addslashes($office['label']) }}')"
-                                    class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-emerald-100 hover:bg-emerald-800/50 hover:text-white transition"
+                                    class="office-option-item flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs text-pub-text hover:bg-pub-highlight hover:text-pub-text transition"
                                     data-label="{{ strtolower($office['label'] . ' ' . $office['value']) }}"
                                 >
                                     <span>{{ $office['label'] }}</span>
                                 </div>
                             @endforeach
-                            <div id="no-office-found" class="hidden px-3 py-4 text-center text-xs text-emerald-100/50">
+                            <div id="no-office-found" class="hidden px-3 py-4 text-center text-xs text-pub-muted">
                                 No office found matching search.
                             </div>
                         </div>
@@ -205,16 +205,16 @@ $offices = [
 
 
             <div class="flex items-center gap-2.5 pt-1">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">2</span>
-                <h2 class="text-sm font-semibold text-white">Trip details</h2>
-                <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">2</span>
+                <h2 class="text-sm font-semibold text-pub-text">Trip details</h2>
+                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>From (Station) <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>From (Station) <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <select name="location" required class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <select name="location" required class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                             <option value="">— Select Your Station —</option>
                             @foreach(['Oriental Mindoro', 'Occidental Mindoro', 'Marinduque', 'Palawan', 'Romblon', 'Quezon City Satellite Office'] as $loc)
                                 <option value="{{ $loc }}" @selected(old('location') === $loc)>{{ $loc }}</option>
@@ -224,8 +224,8 @@ $offices = [
                 </div>
                     {{-- Searchable Destination Dropdown with Distance Badges --}}
                 <div class="relative" id="public-dest-dropdown-container">
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50">
-                        <span id="public-dest-label">To (Destination) <span class="text-emerald-300">*</span></span>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text">
+                        <span id="public-dest-label">To (Destination) <span class="text-pub-accent">*</span></span>
                     </label>
 
                     {{-- Hidden inputs --}}
@@ -244,16 +244,16 @@ $offices = [
                         aria-labelledby="public-dest-label"
                         onclick="togglePublicDestDropdown()"
                         onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown')) { event.preventDefault(); togglePublicDestDropdown(); }"
-                        class="group flex min-h-10 w-full items-center justify-between rounded-xl border border-white/15 bg-black/25 pl-3 pr-3 text-left text-sm text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
+                        class="group flex min-h-10 w-full items-center justify-between rounded-xl border border-pub-border bg-pub-field pl-3 pr-3 text-left text-sm text-pub-text focus-within:border-pub-accent focus-within:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent/60 transition cursor-pointer relative"
                     >
                         <div id="public-dest-pills-container" class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 py-1">
-                            <span id="public-dest-placeholder" class="text-emerald-100/40">
+                            <span id="public-dest-placeholder" class="text-pub-faint">
                                 — Select destination(s) or type custom place —
                             </span>
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0 ml-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-300/70 transition-transform duration-200" id="public-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pub-accent transition-transform duration-200" id="public-dest-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m6 9 6 6 6-6"/>
                             </svg>
                         </div>
@@ -267,12 +267,12 @@ $offices = [
                         aria-labelledby="public-dest-label"
                         onkeydown="if (event.key === 'Escape') { event.preventDefault(); closePublicDestDropdown(); document.getElementById('public-dest-dropdown-trigger')?.focus(); }"
                         style="max-height: 230px; overflow-y: auto; overscroll-behavior: contain;"
-                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-emerald-400/30 bg-[#041d0e] p-2 shadow-2xl backdrop-blur-md max-h-[230px] overflow-y-auto overscroll-contain scrollbar-thin"
+                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-pub-border bg-pub-panel p-2 shadow-2xl backdrop-blur-md max-h-[230px] overflow-y-auto overscroll-contain scrollbar-thin"
                     >
                         {{-- Search & Direct Add Input --}}
-                        <div class="sticky top-0 z-10 bg-[#041d0e] pb-2 pt-0.5">
+                        <div class="sticky top-0 z-10 bg-pub-panel pb-2 pt-0.5">
                             <div class="relative">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
                                 </svg>
                                 <input
@@ -282,10 +282,10 @@ $offices = [
                                     oninput="filterPublicDestOptions()"
                                     onkeydown="onPublicDestSearchKeyDown(event)"
                                     placeholder="Type place name or search registered locations..."
-                                    class="w-full rounded-lg border border-emerald-500/30 bg-[#021208] py-1.5 pl-8 pr-3 text-xs text-white placeholder:text-emerald-100/40 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                                    class="w-full rounded-lg border border-pub-border bg-pub-field py-1.5 pl-8 pr-3 text-xs text-pub-text placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
                                 >
                             </div>
-                            <p class="text-xs text-emerald-100/50 mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
+                            <p class="text-xs text-pub-muted mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
                         </div>
 
                         {{-- Custom Add Option (Shown when typing) --}}
@@ -306,36 +306,36 @@ $offices = [
             <div id="station-panel" class="hidden space-y-3">
                 <div class="form-row grid gap-3 sm:grid-cols-2">
                     <div>
-                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Travel Date (From) <span class="text-emerald-300">*</span></span></label>
+                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (From) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
+                            <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                         </div>
                     </div>
                     <div>
-                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Travel Date (To) <span class="text-emerald-300">*</span></span></label>
+                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (To) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDateEnd" required value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
+                            <input type="date" name="travelDateEnd" required value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                         </div>
                     </div>
                 </div>
 
-                <div id="booking-calendar" class="rounded-xl border border-white/15 bg-black/20 p-2.5 backdrop-blur">
+                <div id="booking-calendar" class="rounded-xl border border-pub-border bg-pub-field p-2.5 backdrop-blur">
                     <div class="mb-2 flex items-center justify-between">
-                        <button type="button" id="cal-prev" aria-label="Previous month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-base text-white transition hover:bg-white/10">‹</button>
-                        <span id="cal-month-label" class="text-xs font-bold text-white"></span>
-                        <button type="button" id="cal-next" aria-label="Next month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-base text-white transition hover:bg-white/10">›</button>
+                        <button type="button" id="cal-prev" aria-label="Previous month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-pub-border bg-pub-highlight text-base text-pub-text transition hover:bg-pub-highlight">‹</button>
+                        <span id="cal-month-label" class="text-xs font-bold text-pub-text"></span>
+                        <button type="button" id="cal-next" aria-label="Next month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-pub-border bg-pub-highlight text-base text-pub-text transition hover:bg-pub-highlight">›</button>
                     </div>
                     <div class="grid grid-cols-7 gap-[3px] text-center">
                         @foreach(['S','M','T','W','T','F','S'] as $d)
-                            <div class="py-0.5 text-[0.6875rem] font-bold text-white/50">{{ $d }}</div>
+                            <div class="py-0.5 text-[0.6875rem] font-bold text-pub-muted">{{ $d }}</div>
                         @endforeach
                     </div>
                     <div id="cal-grid" class="grid grid-cols-7 gap-[3px] text-center"></div>
-                    <p class="mt-2 text-xs text-white/55">Tip: click your travel date to see the available vehicles, then click your end date. Click the same date again for a one-day trip.</p>
-                    <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-white/60">
-                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:transparent;border:1px solid rgba(255,255,255,.45)"></span>No requests yet</span>
+                    <p class="mt-2 text-xs text-pub-muted">Tip: click your travel date to see the available vehicles, then click your end date. Click the same date again for a one-day trip.</p>
+                    <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-pub-muted">
+                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:transparent;border:1px solid var(--color-pub-faint)"></span>No requests yet</span>
                         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#2f855a"></span>Approved Trip</span>
                         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#dd6b20"></span>Pending Request</span>
                         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#b91c1c"></span>Maintenance</span>
@@ -343,75 +343,75 @@ $offices = [
                 </div>
 
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Select Vehicle <span class="text-emerald-300">*</span></span></label>
-                    <p id="vehicle-hint" class="mb-2 text-xs text-emerald-100/70"></p>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Select Vehicle <span class="text-pub-accent">*</span></span></label>
+                    <p id="vehicle-hint" class="mb-2 text-xs text-pub-muted"></p>
                     <input type="hidden" name="vehicleId" id="vehicle-id-input" value="{{ old('vehicleId') }}">
                     <div id="vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
-                    <p class="mt-2 text-xs text-emerald-100/60">The admin confirms the driver when approving your request. The driver's name appears on your printable trip ticket.</p>
+                    <p class="mt-2 text-xs text-pub-muted">The admin confirms the driver when approving your request. The driver's name appears on your printable trip ticket.</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2.5 pt-1">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">3</span>
-                <h2 class="text-sm font-semibold text-white">Purpose and passengers</h2>
-                <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">3</span>
+                <h2 class="text-sm font-semibold text-pub-text">Purpose and passengers</h2>
+                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Official Purpose <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Official Purpose <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                        <textarea name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-white/15 bg-black/25 py-2 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">{{ old('purpose') }}</textarea>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                        <textarea name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-pub-border bg-pub-field py-2 pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">{{ old('purpose') }}</textarea>
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Additional Passengers <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
-                    <label class="mb-2 flex items-center gap-2 text-[0.8125rem] text-emerald-100/80">
-                        <input type="checkbox" name="requesterIsPassenger" value="1" @checked(old('requesterIsPassenger')) class="h-4 w-4 rounded border-emerald-300/30 bg-[#062512] text-emerald-500">
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Additional Passengers <span class="font-normal text-pub-muted">(Optional)</span></span></label>
+                    <label class="mb-2 flex items-center gap-2 text-[0.8125rem] text-pub-muted">
+                        <input type="checkbox" name="requesterIsPassenger" value="1" @checked(old('requesterIsPassenger')) class="h-4 w-4 rounded border-pub-border bg-pub-field text-pub-accent">
                         I am riding along on this trip as a passenger
                     </label>
                     <div id="passenger-list" style="display:flex;flex-direction:column;gap:8px;">
                         @php $oldPassengers = old('passengers', ['']); @endphp
                         @foreach($oldPassengers as $index => $pass)
                             <div class="group relative">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-8 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
-                                <button type="button" data-remove-passenger aria-label="Remove passenger" title="Remove passenger" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fca5a5;font-size:0.9375rem;line-height:1;cursor:pointer;">×</button>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-8 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                                <button type="button" data-remove-passenger aria-label="Remove passenger" title="Remove passenger" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:var(--color-pub-highlight);color:var(--color-pub-danger);font-size:0.9375rem;line-height:1;cursor:pointer;">×</button>
                             </div>
                         @endforeach
                     </div>
-                    <button type="button" id="add-passenger" class="mt-2 text-sm font-bold text-white hover:text-emerald-200">＋ Add another passenger</button>
+                    <button type="button" id="add-passenger" class="mt-2 text-sm font-bold text-pub-text hover:text-pub-accent">＋ Add another passenger</button>
                 </div>
             </div>
 
             <div class="flex items-center gap-2.5 pt-1">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">4</span>
-                <h2 class="text-sm font-semibold text-white">Contact</h2>
-                <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">4</span>
+                <h2 class="text-sm font-semibold text-pub-text">Contact</h2>
+                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Contact Number <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Contact Number <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Previous Trip Ticket Date <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Previous Trip Ticket Date <span class="font-normal text-pub-muted">(Optional)</span></span></label>
                     <div class="group relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                        <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
+                        <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                     </div>
                 </div>
             </div>
 
-            <div class="border-t border-white/10 pt-4">
-                <button type="submit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-bold text-[#032611] shadow-lg shadow-emerald-950/40 transition hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+            <div class="border-t border-pub-border pt-4">
+                <button type="submit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-pub-primary px-4 text-sm font-bold text-pub-on-primary shadow-lg shadow-emerald-950/40 transition hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent">
                     Submit request
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
-                <p class="mt-2 text-center text-xs text-emerald-50/50">An administrator reviews every request. Check its progress any time on Check Status.</p>
+                <p class="mt-2 text-center text-xs text-pub-muted">An administrator reviews every request. Check its progress any time on Check Status.</p>
             </div>
         </form>
         </div>
@@ -454,11 +454,11 @@ $offices = [
             if (labelSpan) {
                 labelSpan.textContent = val || (displayLabel || '— Select your office / division —');
                 if (val) {
-                    labelSpan.classList.remove('text-emerald-100/40');
-                    labelSpan.classList.add('text-emerald-100');
+                    labelSpan.classList.remove('text-pub-faint');
+                    labelSpan.classList.add('text-pub-text');
                 } else {
-                    labelSpan.classList.remove('text-emerald-100');
-                    labelSpan.classList.add('text-emerald-100/40');
+                    labelSpan.classList.remove('text-pub-text');
+                    labelSpan.classList.add('text-pub-faint');
                 }
             }
             closeOfficeDropdown();
@@ -521,8 +521,8 @@ $offices = [
                 const list = document.getElementById('public-dest-options-list');
                 if (list) {
                     list.innerHTML = `
-                        <div class="flex items-center gap-2 px-3 py-4 text-xs text-emerald-100/50 italic">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-emerald-400/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <div class="flex items-center gap-2 px-3 py-4 text-xs text-pub-muted italic">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                             Please select your station first
                         </div>
                     `;
@@ -556,14 +556,14 @@ $offices = [
                 const isPicked = selectedPublicDestinations.some(item => item.name.toLowerCase() === d.name.toLowerCase());
 
                 html += `
-                    <div role="option" tabindex="0" aria-selected="${isPicked ? 'true' : 'false'}" onclick="togglePublicSelectedDest(window.__publicDestRenderList[${i}].name, window.__publicDestRenderList[${i}].distance_km)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-emerald-800/80 text-white font-bold border border-emerald-400' : 'text-emerald-100 hover:bg-emerald-800/50 hover:text-white'}" data-label="${esc((d.name + ' ' + d.distance_km + 'km').toLowerCase())}">
+                    <div role="option" tabindex="0" aria-selected="${isPicked ? 'true' : 'false'}" onclick="togglePublicSelectedDest(window.__publicDestRenderList[${i}].name, window.__publicDestRenderList[${i}].distance_km)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" class="public-dest-option flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs transition ${isPicked ? 'bg-pub-highlight text-pub-text font-bold border border-pub-accent' : 'text-pub-text hover:bg-pub-highlight hover:text-pub-text'}" data-label="${esc((d.name + ' ' + d.distance_km + 'km').toLowerCase())}">
                         <div class="flex items-center gap-2">
-                            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isPicked ? 'border-emerald-300 bg-emerald-500 text-emerald-950 font-black' : 'border-emerald-500/40 bg-emerald-950/60'}">
+                            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isPicked ? 'border-pub-accent bg-pub-primary text-pub-on-primary font-black' : 'border-pub-border bg-pub-highlight'}">
                                 ${isPicked ? '✓' : ''}
                             </span>
                             <span>${esc(d.name)}</span>
                         </div>
-                        <span class="inline-flex items-center rounded-md bg-emerald-900/60 border border-emerald-500/40 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-300 shrink-0">
+                        <span class="inline-flex items-center rounded-md bg-pub-highlight border border-pub-border px-2 py-0.5 text-[0.625rem] font-bold text-pub-accent shrink-0">
                             ${esc(d.distance_km)} kms
                         </span>
                     </div>
@@ -627,14 +627,14 @@ $offices = [
 
             if (container) {
                 if (selectedPublicDestinations.length === 0) {
-                    container.innerHTML = `<span id="public-dest-placeholder" class="text-emerald-100/40">— Select destination(s) or type custom place —</span>`;
+                    container.innerHTML = `<span id="public-dest-placeholder" class="text-pub-faint">— Select destination(s) or type custom place —</span>`;
                 } else {
                     let pillsHtml = '';
                     selectedPublicDestinations.forEach((item, index) => {
                         pillsHtml += `
-                            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-800/90 border border-emerald-400/60 px-2 py-0.5 text-xs font-bold text-white shadow-2xs">
+                            <span class="inline-flex items-center gap-1 rounded-md bg-pub-highlight border border-pub-accent px-2 py-0.5 text-xs font-bold text-pub-text shadow-2xs">
                                 <span>${esc(item.name)}</span>
-                                <button type="button" onclick="removePublicSelectedDest(${index}, event)" aria-label="Remove ${esc(item.name)}" class="hover:text-red-300 text-emerald-300 font-extrabold ml-1 cursor-pointer">✕</button>
+                                <button type="button" onclick="removePublicSelectedDest(${index}, event)" aria-label="Remove ${esc(item.name)}" class="hover:text-pub-danger text-pub-accent font-extrabold ml-1 cursor-pointer">✕</button>
                             </span>
                         `;
                     });
@@ -682,9 +682,9 @@ $offices = [
             if (customAddItem) {
                 if (query.length > 0) {
                     customAddItem.innerHTML = `
-                        <div role="button" tabindex="0" onclick="addPublicCustomDest((document.getElementById('public-dest-search-input')?.value || '').trim())" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" class="flex cursor-pointer items-center justify-between rounded-lg bg-emerald-900/80 border border-emerald-400/60 p-2 text-xs font-bold text-emerald-200 hover:bg-emerald-800 transition">
+                        <div role="button" tabindex="0" onclick="addPublicCustomDest((document.getElementById('public-dest-search-input')?.value || '').trim())" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" class="flex cursor-pointer items-center justify-between rounded-lg bg-pub-highlight border border-pub-accent p-2 text-xs font-bold text-pub-accent hover:bg-pub-highlight transition">
                             <span class="truncate">➕ Add custom: "${esc(query)}"</span>
-                            <span class="text-[0.625rem] text-emerald-300 font-semibold shrink-0">Press Enter</span>
+                            <span class="text-[0.625rem] text-pub-accent font-semibold shrink-0">Press Enter</span>
                         </div>
                     `;
                     customAddItem.classList.remove('hidden');
@@ -790,8 +790,8 @@ $offices = [
                 const info = map.get(key);
                 const inRange = range && key >= range.start && key <= range.end;
                 const bg = info ? colors[info.worst] : 'transparent';
-                const color = info || inRange ? '#ffffff' : 'rgba(255,255,255,0.8)';
-                const ring = inRange ? 'outline:2.5px solid #72ebb0;outline-offset:-2.5px;' : '';
+                const color = info ? '#ffffff' : (inRange ? 'var(--color-pub-text)' : 'var(--color-pub-muted)');
+                const ring = inRange ? 'outline:2.5px solid var(--color-pub-accent);outline-offset:-2.5px;' : '';
                 const title = info
                     ? `${info.busy} of ${stationVehicles.length} vehicle(s) booked · ${labels[info.worst]}`
                     : 'No requests yet';
@@ -809,7 +809,7 @@ $offices = [
             return out;
         }
 
-        const PLACEHOLDER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>';
+        const PLACEHOLDER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>';
 
         function renderCards() {
             const range = selectedRange();
@@ -846,7 +846,7 @@ $offices = [
             }
 
             if (!visible.length) {
-                cardsBox.innerHTML = '<p style="grid-column:1/-1;font-size:0.75rem;color:rgba(254,215,215,.9);">No vehicles are available on this date. Try another date.</p>';
+                cardsBox.innerHTML = '<p style="grid-column:1/-1;font-size:0.75rem;color:var(--color-pub-danger);">No vehicles are available on this date. Try another date.</p>';
                 return;
             }
 
@@ -861,35 +861,35 @@ $offices = [
                 } else if (c.pending) {
                     note = { bg: 'rgba(217,119,6,.6)', head: '⚠ Pending Request: ' + fmtRange(c.pending.start, c.pending.end) };
                 } else {
-                    note = { bg: 'rgba(16,185,129,.25)', head: '✓ Available', textClr: '#6ee7b7' };
+                    note = { bg: 'var(--color-pub-highlight)', head: '✓ Available', textClr: 'var(--color-pub-accent)' };
                 }
 
-                const border = isSelected ? '#34d399' : (blocked ? 'rgba(239,68,68,.4)' : 'rgba(255,255,255,.15)');
+                const border = isSelected ? 'var(--color-pub-accent)' : (blocked ? 'rgba(239,68,68,.4)' : 'var(--color-pub-border)');
                 const photo = v.photo
                     ? `<img src="${esc(v.photo)}" alt="${esc(v.plate)}" style="width:auto;max-width:100%;height:56px;object-fit:contain;border-radius:6px;">`
                     : PLACEHOLDER_SVG;
 
                 // Driver names and photos are not shown publicly (decision D11), only whether one is assigned
                 const driverLabel = v.has_driver ? 'Driver assigned' : 'No driver yet';
-                const avatar = `<span style="width:20px;height:20px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>`;
+                const avatar = `<span style="width:20px;height:20px;border-radius:999px;background:var(--color-pub-highlight);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--color-pub-accent);" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>`;
 
                 // min-width:0 lets the grid cell shrink so long model names truncate instead of widening the page on phones
-                return `<button type="button" data-vehicle="${v.id}" ${blocked ? 'disabled' : ''} style="position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px;border-radius:14px;border:2px solid ${border};background:${isSelected ? 'rgba(16,185,129,.28)' : 'rgba(4,29,14,.75)'};color:#fff;text-align:left;font-family:inherit;cursor:${blocked ? 'not-allowed' : 'pointer'};opacity:${blocked ? .65 : 1};transition:all .15s ease;">
-                    <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:8px;">
+                return `<button type="button" data-vehicle="${v.id}" ${blocked ? 'disabled' : ''} style="position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px;border-radius:14px;border:2px solid ${border};background:${isSelected ? 'var(--color-pub-highlight)' : 'var(--color-pub-field)'};color:#fff;text-align:left;font-family:inherit;cursor:${blocked ? 'not-allowed' : 'pointer'};opacity:${blocked ? .65 : 1};transition:all .15s ease;">
+                    <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:6px;border-bottom:1px solid var(--color-pub-border);margin-bottom:8px;">
                         <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
                             ${avatar}
-                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.71875rem;font-weight:700;color:${v.has_driver ? '#ecfdf5' : 'rgba(255,255,255,.5)'};">${driverLabel}</span>
+                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.71875rem;font-weight:700;color:${v.has_driver ? 'var(--color-pub-text)' : 'var(--color-pub-muted)'};">${driverLabel}</span>
                         </div>
                         ${isSelected ? '<span style="font-size:0.625rem;font-weight:800;background:#10b981;color:#052e16;border-radius:999px;padding:1px 7px;flex-shrink:0;">✓ Selected</span>' : ''}
                     </div>
 
                     <div style="display:flex;align-items:center;gap:10px;width:100%;">
-                        <div style="width:72px;height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border-radius:8px;padding:2px;">
+                        <div style="width:72px;height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--color-pub-highlight);color:var(--color-pub-faint);border-radius:8px;padding:2px;">
                             ${photo}
                         </div>
                         <div style="min-width:0;flex:1;text-align:left;">
-                            <div style="font-size:0.875rem;font-weight:900;letter-spacing:.03em;color:#ffffff;line-height:1.2;">${esc(v.plate)}</div>
-                            <div style="font-size:0.6875rem;font-weight:600;color:rgba(209,250,229,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;" title="${esc(v.name)}">${esc(v.name)}</div>
+                            <div style="font-size:0.875rem;font-weight:900;letter-spacing:.03em;color:var(--color-pub-text);line-height:1.2;">${esc(v.plate)}</div>
+                            <div style="font-size:0.6875rem;font-weight:600;color:var(--color-pub-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;" title="${esc(v.name)}">${esc(v.name)}</div>
                         </div>
                     </div>
 
@@ -1033,7 +1033,7 @@ $offices = [
                 vehicleHint.textContent = locationSelect.value
                     ? 'Please choose a vehicle card below before submitting.'
                     : 'Please select your station first, then choose a vehicle.';
-                vehicleHint.style.color = '#fca5a5';
+                vehicleHint.style.color = 'var(--color-pub-danger)';
                 stationPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
@@ -1095,10 +1095,10 @@ $offices = [
             if (passengerList.children.length >= 20) return;
             const wrapper = document.createElement('div');
             wrapper.className = 'group relative';
-            wrapper.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+            wrapper.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
             const input = document.createElement('input');
             input.name = 'passengers[]';
-            input.className = 'h-9 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-8 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40';
+            input.className = 'h-9 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-8 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40';
             wrapper.appendChild(input);
             const remove = document.createElement('button');
             remove.type = 'button';
@@ -1106,7 +1106,7 @@ $offices = [
             remove.setAttribute('aria-label', 'Remove passenger');
             remove.title = 'Remove passenger';
             remove.textContent = '×';
-            remove.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fca5a5;font-size:0.9375rem;line-height:1;cursor:pointer;';
+            remove.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:var(--color-pub-highlight);color:var(--color-pub-danger);font-size:0.9375rem;line-height:1;cursor:pointer;';
             wrapper.appendChild(remove);
             passengerList.appendChild(wrapper);
             renumberPassengers();
