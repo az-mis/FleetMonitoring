@@ -69,14 +69,19 @@ class VehicleAssigningController
             'assigned_driver_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);
 
-        if (!empty($data['assigned_driver_id'])) {
+        if (! empty($data['assigned_driver_id'])) {
             $driver = User::find($data['assigned_driver_id']);
-            if (!$driver || $driver->role !== UserRole::DRIVER) {
-                return back()->withErrors(['assigned_driver_id' => 'The selected user is not a driver.']);
+            // Errors use the flash message: this page has no field-level error display
+            if (! $driver || $driver->role !== UserRole::DRIVER) {
+                return back()->with('error', 'The selected user is not a driver.');
             }
 
-            if (!empty($vehicle->location) && !empty($driver->location) && $driver->location !== $vehicle->location) {
-                return back()->withErrors(['assigned_driver_id' => 'The selected driver is not assigned to ' . $vehicle->location . '.']);
+            if (! empty($vehicle->location) && ! empty($driver->location) && $driver->location !== $vehicle->location) {
+                return back()->with('error', 'The selected driver is not assigned to '.$vehicle->location.'.');
+            }
+
+            if ($problem = $driver->licenceProblem()) {
+                return back()->with('error', $problem);
             }
         }
 

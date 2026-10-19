@@ -6,10 +6,15 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Modules\Admin\Enums\UserRole;
+use Modules\Vehicle\Models\Vehicle;
 
 #[Fillable(['name', 'email', 'password', 'role', 'avatar', 'phone_number', 'location', 'birth_date', 'address', 'license_number', 'license_front', 'license_back', 'license_expiration_date'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
@@ -30,42 +35,64 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => \Modules\Admin\Enums\UserRole::class,
+            'role' => UserRole::class,
             'birth_date' => 'date',
             'license_expiration_date' => 'date',
         ];
     }
 
-    protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function avatarUrl(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn () => $this->avatar ? Storage::disk('public')->url($this->avatar) : null,
         );
     }
 
-    protected function licenseFrontUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function licenseFrontUrl(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn () => $this->license_front ? Storage::disk('public')->url($this->license_front) : null,
         );
     }
 
-    protected function licenseBackUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function licenseBackUrl(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn () => $this->license_back ? Storage::disk('public')->url($this->license_back) : null,
         );
     }
 
-    protected function age(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function age(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn () => $this->birth_date ? $this->birth_date->age : null,
         );
     }
 
-    public function assignedVehicles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function assignedVehicles(): HasMany
     {
-        return $this->hasMany(\Modules\Vehicle\Models\Vehicle::class, 'assigned_driver_id');
+        return $this->hasMany(Vehicle::class, 'assigned_driver_id');
+    }
+
+    /**
+     * Why this driver may not drive through $lastDay (default: today), or null when the licence is valid
+     * through that day. A missing expiry date is not blocked here; the Drivers form requires one.
+     */
+    public function licenceProblem(\DateTimeInterface|string|null $lastDay = null): ?string
+    {
+        $expiry = $this->license_expiration_date;
+        if (! $expiry) {
+            return null;
+        }
+
+        $date = $expiry->format('M j, Y');
+        if ($expiry->lt(today())) {
+            return "{$this->name}'s driver's licence expired on {$date}. Update the licence in Drivers or choose another driver.";
+        }
+        if ($lastDay && $expiry->lt(Carbon::parse($lastDay)->startOfDay())) {
+            return "{$this->name}'s driver's licence expires on {$date}, before this trip ends. Update the licence in Drivers or choose another driver.";
+        }
+
+        return null;
     }
 }

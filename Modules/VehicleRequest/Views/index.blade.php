@@ -557,6 +557,10 @@
                                             'vehicle_id' => $item->vehicle_id,
                                             'vehicle_odometer' => (float) ($item->vehicle?->odometer ?? 0),
                                             'is_future' => $item->travel_date->isFuture() && !$item->travel_date->isToday(),
+                                            'start_has_passed' => $item->travel_date->lt(today()),
+                                            'start_label' => $item->travel_date->format('M j, Y'),
+                                            // Approved trips can be cancelled until they are logged or charged to a fleet card
+                                            'can_cancel' => $item->status === 'approved' && ! $item->completion && ! $item->fleet_card_logs_exists,
                                         ];
                                     @endphp
 
@@ -1344,10 +1348,14 @@
                                 <p id="modal-driver-error" class="mt-1 hidden text-[0.6875rem] font-semibold text-red-600"></p>
                             </div>
 
+                            {{-- Shown when the travel date has already passed --}}
+                            <p id="modal-past-date-warning" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[0.6875rem] font-semibold leading-snug text-amber-800" role="note"></p>
+
                             {{-- Decline Reason Container --}}
                             <div id="modal-decline-reason-container" class="hidden">
-                                <label class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Reason for Declining</label>
-                                <textarea name="decline_reason" rows="2" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="State reason..."></textarea>
+                                <label for="modal-decline-reason" class="block text-[0.6875rem] font-bold text-slate-700 mb-1">Reason for Declining <span class="text-red-500">*</span></label>
+                                <textarea id="modal-decline-reason" name="decline_reason" rows="2" maxlength="500" class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="e.g. Vehicle is reserved for another official trip on that date."></textarea>
+                                <p class="mt-1 text-[0.625rem] text-slate-500">The requester will see this reason when checking their request.</p>
                             </div>
 
                             {{-- Action Buttons --}}
@@ -1400,6 +1408,39 @@
                                 </svg>
                                 Change Driver
                             </button>
+                        </div>
+
+                        {{-- Cancel an approved trip (until it is logged or charged to a fleet card) --}}
+                        <button
+                            type="button"
+                            onclick="toggleCancelTrip()"
+                            id="modal-cancel-trip-btn"
+                            class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-white py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition cursor-pointer"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                            Cancel Trip
+                        </button>
+                        <div id="modal-cancel-trip-section" class="hidden rounded-xl border border-red-200 bg-red-50/60 p-3 space-y-2">
+                            <div>
+                                <p class="text-[0.6875rem] font-extrabold text-red-800">Cancel this trip?</p>
+                                <p class="text-[0.625rem] text-red-700/80 mt-0.5">The trip ticket becomes void and the vehicle and driver are freed for those dates. This cannot be undone.</p>
+                            </div>
+                            <form id="cancel-trip-form" method="POST" action="" class="space-y-2" onsubmit="lockSubmitButton(this.querySelector('[type=submit]'))">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="declined">
+                                <label for="modal-cancel-reason" class="block text-[0.6875rem] font-bold text-slate-700">Reason for cancelling <span class="text-red-500">*</span></label>
+                                <textarea id="modal-cancel-reason" name="decline_reason" rows="2" maxlength="500" required class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="e.g. The activity was postponed by the organizer."></textarea>
+                                <p class="text-[0.625rem] text-slate-500">The requester will see this reason when checking their request.</p>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="toggleCancelTrip()" class="flex-1 rounded-xl border border-slate-200 bg-white py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                                        Keep Trip
+                                    </button>
+                                    <button type="submit" class="flex-1 rounded-xl bg-red-600 hover:bg-red-700 py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer">
+                                        Confirm Cancellation
+                                    </button>
+                                </div>
+                            </form>
                         </div>
 
                         {{-- Change Driver Expandable Section --}}
@@ -1456,6 +1497,7 @@
                             <p>&bull; Destination: <span id="confirm-modal-destination" class="font-bold text-slate-800"></span></p>
                             <p>&bull; Assigned Driver: <span id="confirm-modal-driver" class="font-bold text-slate-800"></span></p>
                         </div>
+                        <p id="confirm-modal-past-date" class="mt-2 hidden rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[0.6875rem] font-semibold text-amber-800" role="note"></p>
                     </div>
                 </div>
 
@@ -2437,7 +2479,8 @@
             const banner     = document.getElementById('modal-status-banner');
             const bannerText = document.getElementById('modal-status-banner-text');
             if (!isPending) {
-                const label = data.status === 'approved' ? 'Approved' : 'Declined';
+                // A declined request that had a ticket was an approved trip that got cancelled
+                const label = data.status === 'approved' ? 'Approved' : (data.trip_ticket_number ? 'Cancelled' : 'Declined');
                 let parts = [label];
                 if (data.driver_name && data.driver_name !== 'Assigned Driver') parts.push('Driver: ' + data.driver_name);
                 if (data.approved_by_name) parts.push('Approver: ' + data.approved_by_name);
@@ -2477,6 +2520,13 @@
 
                 // Reset change driver panel
                 document.getElementById('modal-change-driver-section').classList.add('hidden');
+                document.getElementById('modal-change-driver-btn').style.display = data.status === 'approved' ? '' : 'none';
+
+                // Cancel Trip: only for approved trips not yet logged or charged
+                document.getElementById('modal-cancel-trip-btn').style.display = data.can_cancel ? '' : 'none';
+                document.getElementById('modal-cancel-trip-section').classList.add('hidden');
+                document.getElementById('cancel-trip-form').action = `/vehicle-requests/${data.id}/status`;
+                document.getElementById('modal-cancel-reason').value = '';
 
                 // Filter change-driver select by location
                 const cdSelect = document.getElementById('modal-change-driver-select');
@@ -2516,7 +2566,18 @@
             document.getElementById('modal-driver-error').classList.add('hidden');
             driverSelect.onchange = () => document.getElementById('modal-driver-error').classList.add('hidden');
             document.getElementById('modal-decline-reason-container').classList.add('hidden');
+            const declineReason = document.getElementById('modal-decline-reason');
+            declineReason.value = '';
+            declineReason.required = false;
             document.getElementById('modal-status-input').value = 'approved';
+
+            // Approving after the travel date is allowed (to record a trip after the fact) but must be deliberate
+            const pastWarning = document.getElementById('modal-past-date-warning');
+            const confirmPast = document.getElementById('confirm-modal-past-date');
+            const pastText = data.start_has_passed
+                ? `The travel date (${data.start_label}) has already passed. Approve only if this trip really took place or must still be recorded.`
+                : '';
+            [pastWarning, confirmPast].forEach((el) => { el.textContent = pastText; el.classList.toggle('hidden', !pastText); });
             const declineBtn = document.getElementById('modal-decline-action-btn');
             if (declineBtn) {
                 declineBtn.textContent = 'Decline';
@@ -2530,6 +2591,14 @@
         function toggleChangeDriver() {
             const section = document.getElementById('modal-change-driver-section');
             section.classList.toggle('hidden');
+            document.getElementById('modal-cancel-trip-section').classList.add('hidden');
+        }
+
+        function toggleCancelTrip() {
+            const section = document.getElementById('modal-cancel-trip-section');
+            section.classList.toggle('hidden');
+            document.getElementById('modal-change-driver-section').classList.add('hidden');
+            if (!section.classList.contains('hidden')) document.getElementById('modal-cancel-reason').focus();
         }
 
         function closeReviewModal() {
@@ -2575,6 +2644,7 @@
 
         function submitApprovalForm(btn) {
             lockSubmitButton(btn);
+            document.getElementById('modal-decline-reason').required = false;
             document.getElementById('modal-status-input').value = 'approved';
             document.getElementById('review-form').submit();
         }
@@ -2679,7 +2749,10 @@
                 // Switch to submit only after this click finishes; changing it now makes this same
                 // click submit the form, declining the request before a reason can be entered.
                 setTimeout(() => { declineBtn.type = 'submit'; }, 0);
-                reasonContainer.querySelector('textarea')?.focus();
+                // A reason is required (the requester sees it); only now, so Approve is never blocked by it
+                const reason = reasonContainer.querySelector('textarea');
+                reason.required = true;
+                reason.focus();
             }
         }
 

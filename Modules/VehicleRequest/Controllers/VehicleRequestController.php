@@ -50,6 +50,7 @@ class VehicleRequestController
 
         $baseQuery = VehicleRequest::query()
             ->with(['vehicle', 'confirmedDriver', 'approvedBy', 'completion'])
+            ->withExists('fleetCardLogs')
             ->when($location, fn ($builder) => $builder->where('location', $location));
 
         $counts = [
@@ -234,8 +235,11 @@ class VehicleRequestController
         $this->authorizeFleetLocation($vehicleRequest->location);
         $data = $request->validate([
             'status' => ['required', 'in:approved,declined'],
-            'decline_reason' => ['nullable', 'string', 'max:500'],
+            // The requester sees this on Check Status, so declining or cancelling always needs a reason
+            'decline_reason' => ['nullable', 'required_if:status,declined', 'string', 'max:500'],
             'confirmed_driver_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', UserRole::DRIVER->value)],
+        ], [
+            'decline_reason.required_if' => 'Please give a reason. The requester will see it when checking their request.',
         ]);
 
         // Status workflow: pending -> approved/declined; an approved trip may change driver or be
@@ -251,12 +255,15 @@ class VehicleRequestController
                 return back()->with('error', 'This trip already has a completion or fleet card record, so it can no longer be declined.');
             }
 
+            $wasApproved = $vehicleRequest->status === 'approved';
             $vehicleRequest->update([
                 'status' => 'declined',
-                'decline_reason' => $data['decline_reason'] ?? null,
+                'decline_reason' => $data['decline_reason'],
             ]);
 
-            return back()->with('success', "Request from {$vehicleRequest->requester_name} declined.");
+            return back()->with('success', $wasApproved
+                ? "Trip {$vehicleRequest->trip_ticket_number} cancelled. The vehicle and driver are free again for those dates."
+                : "Request from {$vehicleRequest->requester_name} declined.");
         }
 
         // Never approve a trip nobody will drive: use the chosen driver, else the vehicle's default driver,
@@ -268,6 +275,9 @@ class VehicleRequestController
         $driver = User::find($driverId);
         if (! $driver || $driver->role !== UserRole::DRIVER || (filled($driver->location) && $driver->location !== $vehicleRequest->location)) {
             return back()->with('error', 'The selected driver is not a driver assigned to ' . $vehicleRequest->location . '.');
+        }
+        if ($problem = $driver->licenceProblem($vehicleRequest->travel_date_end ?? $vehicleRequest->travel_date)) {
+            return back()->with('error', $problem);
         }
 
         $error = $this->withTicketRetry(function () use ($request, $vehicleRequest, $driverId): ?string {
@@ -385,6 +395,9 @@ class VehicleRequestController
         $driverLocation = User::whereKey($driverId)->value('location');
         if (filled($driverLocation) && $driverLocation !== $data['location']) {
             return back()->withErrors(['confirmed_driver_id' => 'The selected driver is not assigned to ' . $data['location'] . '.'])->withInput();
+        }
+        if ($problem = User::find($driverId)?->licenceProblem($data['travel_date_end'])) {
+            return back()->withErrors(['confirmed_driver_id' => $problem])->withInput();
         }
 
         // Generate unique reference code

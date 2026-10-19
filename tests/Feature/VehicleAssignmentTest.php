@@ -51,7 +51,7 @@ class VehicleAssignmentTest extends TestCase
 
         $this->actingAs($admin)
             ->patch("/vehicle-assigning/{$vehicle->id}", ['assigned_driver_id' => $admin->id])
-            ->assertSessionHasErrors('assigned_driver_id');
+            ->assertSessionHas('error', 'The selected user is not a driver.');
 
         $this->assertNull($vehicle->fresh()->assigned_driver_id);
     }
@@ -62,7 +62,7 @@ class VehicleAssignmentTest extends TestCase
 
         $this->actingAs($this->admin('Palawan'))
             ->patch("/vehicle-assigning/{$vehicle->id}", ['assigned_driver_id' => $this->driver('Romblon')->id])
-            ->assertSessionHasErrors('assigned_driver_id');
+            ->assertSessionHas('error', 'The selected driver is not assigned to Palawan.');
 
         $this->assertNull($vehicle->fresh()->assigned_driver_id);
     }

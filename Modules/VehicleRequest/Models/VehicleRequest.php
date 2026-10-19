@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\VehicleRequest\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\FleetCard\Models\FleetCardLog;
 use Modules\Vehicle\Models\Vehicle;
 
 class VehicleRequest extends Model
@@ -38,16 +42,21 @@ class VehicleRequest extends Model
 
     public function confirmedDriver(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'confirmed_driver_id');
+        return $this->belongsTo(User::class, 'confirmed_driver_id');
     }
 
     public function approvedBy(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function completion(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function completion(): HasOne
     {
         return $this->hasOne(TripTicketCompletion::class, 'vehicle_request_id');
+    }
+
+    public function fleetCardLogs(): HasMany
+    {
+        return $this->hasMany(FleetCardLog::class, 'vehicle_request_id');
     }
 }

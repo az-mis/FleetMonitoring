@@ -94,7 +94,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-xs font-extrabold text-rose-400 tracking-wide">Request Declined</h3>
+                            {{-- A declined request that had a ticket number was an approved trip that was later cancelled --}}
+                            <h3 class="text-xs font-extrabold text-rose-400 tracking-wide">{{ $requestRecord->trip_ticket_number ? 'Trip Cancelled' : 'Request Declined' }}</h3>
                             <p class="mt-0.5 text-[0.6875rem] text-rose-100/70">{{ $requestRecord->decline_reason ? 'Reason: ' . $requestRecord->decline_reason : 'This travel request was declined by the administrator.' }}</p>
                         </div>
                     </div>
