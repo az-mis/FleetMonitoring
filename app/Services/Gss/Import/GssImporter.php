@@ -506,13 +506,25 @@ final class GssImporter
                 continue;
             }
             $return = GssCellParser::date($c['F'] ?? null, $this->year);
-            $end = $return && $return['end']->gte($travel['start']) ? $return['end'] : $travel['end'];
             if ($travel['guessed'] || ($return['guessed'] ?? false)) {
                 $reasons[] = 'Travel date read with a guess ("'.($c['E'] ?? '').'" / "'.($c['F'] ?? '').'").';
             }
-            // A trip of another year in this year's workbook is most likely a typed-in wrong year
-            if ((int) $travel['start']->format('Y') !== $this->year) {
-                $reasons[] = 'Travel date '.$travel['start']->format('M j, Y')." is outside {$this->year}; check the year.";
+            // A wrong year typed into a date (July 2027 on a trip recorded July 2026) is set back to the workbook's year
+            $recordedOn = GssCellParser::date($c['B'] ?? null, $this->year)['start'] ?? null;
+            $start = $this->sameYear($travel['start'], $recordedOn, 'Travel date', $reasons);
+            $end = $this->sameYear($travel['end'], $start, 'Travel end date', $reasons);
+            if ($return) {
+                $back = $this->sameYear($return['end'], $start, 'Date of return', $reasons);
+                // A return before the trip starts or over a month after it is a typing slip; the travel date is kept
+                if ($back->lt($start) || $back->diffInDays($start) > 31) {
+                    $reasons[] = 'Date of return '.$return['end']->format('M j, Y').' does not fit a trip starting '.$start->format('M j, Y').'; it was ignored.';
+                } else {
+                    $end = $back->max($end);
+                }
+            }
+            $travel['start'] = $start;
+            if ((int) $start->format('Y') !== $this->year) {
+                $reasons[] = 'Travel date '.$start->format('M j, Y')." is outside {$this->year}; check the year.";
             }
             if (! GssCellParser::text($c['E'] ?? null)) {
                 $reasons[] = 'No travel date; the date recorded was used.';
@@ -930,6 +942,25 @@ final class GssImporter
             $this->counts[$sheet]['review']++;
             $this->review[] = ['sheet' => $sheet, 'row' => $row, 'outcome' => $outcome === 'created' ? 'Imported, check it' : 'Updated, check it', 'reason' => implode(' ', $reasons), 'record' => class_basename($model).' #'.$model->getKey(), 'raw' => $raw];
         }
+    }
+
+    /**
+     * The date with the workbook's year when only the year looks mistyped: it falls in another year, but with the
+     * workbook's year it sits within two months of the reference date (the date recorded, or the trip's start).
+     */
+    private function sameYear(CarbonImmutable $date, ?CarbonImmutable $reference, string $label, array &$reasons): CarbonImmutable
+    {
+        if ((int) $date->format('Y') === $this->year || ! $reference) {
+            return $date;
+        }
+        $day = min((int) $date->format('j'), CarbonImmutable::create($this->year, (int) $date->format('n'), 1)->daysInMonth);
+        $fixed = CarbonImmutable::create($this->year, (int) $date->format('n'), $day);
+        if (abs($fixed->diffInDays($reference, false)) > 62) {
+            return $date;
+        }
+        $reasons[] = "{$label} {$date->format('M j, Y')} looked like a typing slip; the year was set to {$this->year}.";
+
+        return $fixed;
     }
 
     /**

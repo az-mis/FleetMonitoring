@@ -211,6 +211,32 @@ class GssImportTest extends TestCase
         $this->assertTrue(ImportRecord::where('needs_review', true)->exists());
     }
 
+    public function test_a_mistyped_year_in_a_trip_date_is_corrected_and_flagged(): void
+    {
+        $this->vehicle('Palawan', ['plate_number' => 'SNE 9139']);
+        $file = $this->workbook(['TRIP TICKET MONITORING' => [
+            4 => ['A' => 'PALAWAN'],
+            // Travel date typed as July 2027 on a trip recorded July 2026 (serials 46574 and 46209)
+            5 => ['A' => '26-07-569', 'B' => 46209, 'E' => 46574, 'F' => 46210, 'I' => 'SNE 9139'],
+            // Return date typed as May 2028 on a trip of May 28, 2026 (serial 46902)
+            6 => ['A' => '26-06-459', 'B' => 46170, 'E' => ',May 28, 2026', 'F' => 46902, 'I' => 'SNE 9139'],
+            // A real trip of another year far from its recorded date is left as typed, but flagged
+            7 => ['A' => '26-01-900', 'B' => 46027, 'E' => 'October 3, 2027', 'I' => 'SNE 9139'],
+        ]]);
+
+        $result = app(GssImporter::class)->run($file, 2026, commit: true);
+
+        $trips = VehicleRequest::orderBy('id')->get()->keyBy('trip_ticket_number');
+        $this->assertSame(['2026-07-06', '2026-07-07'], [$trips['26-07-569']->travel_date->toDateString(), $trips['26-07-569']->travel_date_end->toDateString()]);
+        $this->assertSame(['2026-05-28', '2026-05-29'], [$trips['26-06-459']->travel_date->toDateString(), $trips['26-06-459']->travel_date_end->toDateString()]);
+        $this->assertSame('2027-10-03', $trips['26-01-900']->travel_date->toDateString());
+
+        $reasons = implode("\n", array_column(IOFactory::load($result['review_file'])->getActiveSheet()->toArray(), 3));
+        $this->assertStringContainsString('Travel date Jul 6, 2027 looked like a typing slip; the year was set to 2026.', $reasons);
+        $this->assertStringContainsString('Date of return May 29, 2028 looked like a typing slip; the year was set to 2026.', $reasons);
+        $this->assertStringContainsString('Travel date Oct 3, 2027 is outside 2026', $reasons);
+    }
+
     public function test_running_the_import_again_changes_nothing(): void
     {
         $file = $this->sample();

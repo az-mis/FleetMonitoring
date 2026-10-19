@@ -472,6 +472,11 @@
                             </div>
                             <a href="{{ route('vehicle-requests.index', $locationParam + ['status' => 'approved']) }}" class="text-[0.625rem] font-bold text-emerald-700 hover:underline">View all →</a>
                         </div>
+                        @php
+                            // The year shows when a trip date is not in this year, so a mistyped year stands out
+                            $tripDay = fn ($date) => $date->format($date->isCurrentYear() ? 'M j' : 'M j, Y');
+                            $tripDays = fn ($trip) => $tripDay($trip->travel_date).($trip->travel_date_end && ! $trip->travel_date_end->isSameDay($trip->travel_date) ? ' – '.$tripDay($trip->travel_date_end) : '');
+                        @endphp
                         <div class="space-y-1.5 max-h-48 overflow-y-auto">
                             @if($todaysTrips->isNotEmpty())
                                 @foreach($todaysTrips as $trip)
@@ -485,7 +490,7 @@
                                         </div>
                                         <div class="mt-1 flex items-center justify-between text-[0.625rem] text-emerald-800">
                                             <span class="truncate">{{ $trip->requester_name }}</span>
-                                            <span class="shrink-0 font-medium">{{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</span>
+                                            <span class="shrink-0 font-medium">{{ $tripDays($trip) }}</span>
                                         </div>
                                     </div>
                                 @endforeach
@@ -502,7 +507,7 @@
                                         <div class="flex items-center justify-between gap-2">
                                             <div class="flex items-center gap-1.5 min-w-0 truncate">
                                                 <span class="rounded bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 text-[0.5625rem] font-extrabold uppercase tracking-wide shrink-0">
-                                                    {{ $trip->travel_date->isTomorrow() ? 'Tomorrow' : $trip->travel_date->format('M j') }}
+                                                    {{ $trip->travel_date->isTomorrow() ? 'Tomorrow' : $tripDay($trip->travel_date) }}
                                                 </span>
                                                 <p class="text-xs font-bold text-slate-900 truncate">{{ str_replace(";;", ", ", (string) $trip->destination) }}</p>
                                             </div>
@@ -510,7 +515,7 @@
                                         </div>
                                         <div class="mt-1 flex items-center justify-between text-[0.625rem] text-slate-500">
                                             <span class="truncate">{{ $trip->requester_name }}</span>
-                                            <span class="shrink-0 font-medium text-slate-600">{{ $trip->travel_date->format('M j') }}{{ $trip->travel_date_end ? ' – '.$trip->travel_date_end->format('M j') : '' }}</span>
+                                            <span class="shrink-0 font-medium text-slate-600">{{ $tripDays($trip) }}</span>
                                         </div>
                                     </div>
                                 @endforeach
