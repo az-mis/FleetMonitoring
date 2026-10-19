@@ -16,7 +16,7 @@ class MaintenanceService
         ?string $status = null,
         int $perPage = 10,
     ): LengthAwarePaginator {
-        $query = VehicleMaintenance::with('vehicle.assignedDriver')
+        $query = VehicleMaintenance::with(['vehicle.assignedDriver', 'procurements'])
             ->orderBy('scheduled_date', 'desc');
 
         if ($location) {
@@ -25,6 +25,9 @@ class MaintenanceService
 
         if ($status === 'active') {
             $query->whereIn('status', ['scheduled', 'ongoing']);
+        } elseif ($status === 'awaiting_payment') {
+            // Work done (or under way) whose purchase request still waits for payment
+            $query->whereHas('procurements', fn ($q) => $q->awaitingPayment());
         } elseif ($status && $status !== 'all') {
             $query->where('status', $status);
         }
@@ -57,6 +60,7 @@ class MaintenanceService
             'completed' => (clone $query)->where('status', 'completed')->count(),
             'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
             'all'       => (clone $query)->count(),
+            'awaiting_payment' => (clone $query)->whereHas('procurements', fn ($q) => $q->awaitingPayment())->count(),
         ];
     }
 

@@ -21,7 +21,14 @@
     ];
 
     $maintenanceTypes = ['Preventive','Repair','Inspection','Oil Change','Tire','Battery','Other'];
-    $statusFilters    = ['active','scheduled','ongoing','completed','cancelled','all'];
+    $statusFilters    = ['active','scheduled','ongoing','completed','cancelled','all','awaiting_payment'];
+    $statusFilterLabels = ['awaiting_payment' => 'Awaiting payment'];
+    $prTones = [
+        'success' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+        'warning' => 'bg-amber-50 text-amber-700 ring-amber-200',
+        'info'    => 'bg-sky-50 text-sky-700 ring-sky-200',
+        'neutral' => 'bg-slate-100 text-slate-600 ring-slate-200',
+    ];
 
     $editRecord = session('edit_record') ?? null;
 @endphp
@@ -139,7 +146,7 @@
               {{ $statusFilter === $sf
                  ? 'bg-emerald-600 text-white shadow-sm'
                  : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50' }}">
-        <span>{{ ucfirst($sf) }}</span>
+        <span>{{ $statusFilterLabels[$sf] ?? ucfirst($sf) }}</span>
         <span class="rounded-full px-1.5 text-[0.625rem] {{ $statusFilter === $sf ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }}">
             {{ $counts[$sf] ?? 0 }}
         </span>
@@ -260,11 +267,18 @@
                                 <p>—</p>
                             @endif
                             @if($record->vendor)<p class="text-gray-400">{{ $record->vendor }}</p>@endif
+                            @if($pr = $record->procurements->first())
+                                <span class="mt-1 inline-flex items-center rounded-full px-2 py-px text-[0.625rem] font-bold ring-1 ring-inset {{ $prTones[$pr->tone()] }}" title="Latest purchase request{{ $pr->pr_number ? ' '.$pr->pr_number : '' }}">PR: {{ $pr->status }}</span>
+                            @endif
                         </td>
 
                         {{-- Actions --}}
                         <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-1">
+                                <a href="{{ route('maintenance.repair', $record) }}"
+                                    class="rounded-md p-1.5 text-emerald-600 hover:bg-emerald-50 transition" title="Repair &amp; procurement" aria-label="Repair and procurement for {{ $record->plate_number }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>
+                                </a>
                                 <button type="button"
                                     onclick="openMaintenanceModal({{ $record->id }})"
                                     class="rounded-md p-1.5 text-blue-500 hover:bg-blue-50 transition" title="Edit">

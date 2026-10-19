@@ -6,7 +6,9 @@ namespace Modules\Maintenance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Vehicle\Models\Vehicle;
+use App\Models\Office;
 use App\Models\User;
 
 class VehicleMaintenance extends Model
@@ -34,6 +36,17 @@ class VehicleMaintenance extends Model
         'source_report_id',
         'pms_item_id',
         'pms_template_id',
+        // Repair details kept in the GSS workbook (repair index, pre/post repair CM value, PMS log)
+        'requisitioner_office_id',
+        'pm_request_no',
+        'pre_inspection_date',
+        'defect_nature',
+        'parts_replaced',
+        'post_inspection_date',
+        'post_inspection_findings',
+        'current_market_value',
+        'cmv_issued_at',
+        'cmv_issued_by',
     ];
 
     protected $casts = [
@@ -41,11 +54,25 @@ class VehicleMaintenance extends Model
         'scheduled_date_end' => 'date',
         'completed_date'     => 'date',
         'cost'               => 'decimal:2',
+        'pre_inspection_date' => 'date',
+        'post_inspection_date' => 'date',
+        'current_market_value' => 'decimal:2',
+        'cmv_issued_at'      => 'date',
     ];
 
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function requisitionerOffice(): BelongsTo
+    {
+        return $this->belongsTo(Office::class, 'requisitioner_office_id');
+    }
+
+    public function procurements(): HasMany
+    {
+        return $this->hasMany(Procurement::class)->orderByDesc('pr_date')->orderByDesc('id');
     }
 
     public function pmsItem(): BelongsTo
