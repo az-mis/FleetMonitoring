@@ -4,6 +4,7 @@ namespace Modules\FleetCard\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Http\Controllers\Controller;
+use App\Models\Office;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Modules\Destination\Models\Destination;
 use Modules\FleetCard\Models\FleetCard;
 use Modules\FleetCard\Models\FleetCardLog;
 use Modules\FleetCard\Services\FleetCardService;
+use Modules\FleetCard\Services\FleetCardSpendService;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleRequest\Models\VehicleRequest;
 
@@ -27,7 +29,7 @@ class FleetCardController extends Controller
     {
         $userLoc = $this->fleetLocationScope();
 
-        $query = FleetCard::with(['vehicle', 'creator', 'logs.logger', 'logs.vehicleRequest'])
+        $query = FleetCard::with(['vehicle', 'creator', 'office', 'logs.logger', 'logs.vehicleRequest'])
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc));
 
         if ($request->filled('location')) {
@@ -74,6 +76,10 @@ class FleetCardController extends Controller
             ->take(20)
             ->get();
 
+        // Divisions over their monthly allowance this month (GSS "Index for Fleetcard")
+        $overAllowance = app(FleetCardSpendService::class)->overAllowance($userLoc ?? ($request->filled('location') ? $request->location : null));
+        $offices = Office::query()->active()->get(['id', 'name']);
+
         return view('fleetcard::index', compact(
             'cards',
             'vehicles',
@@ -82,7 +88,9 @@ class FleetCardController extends Controller
             'recentLogs',
             'totalInitialBudget',
             'totalCurrentBalance',
-            'totalConsumed'
+            'totalConsumed',
+            'overAllowance',
+            'offices'
         ));
     }
 
@@ -103,6 +111,10 @@ class FleetCardController extends Controller
             'rate_peso' => 'required|numeric|min:0.01',
             'rate_km' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string',
+            'provider' => ['nullable', Rule::in(FleetCard::PROVIDERS)],
+            'office_id' => ['nullable', 'integer', Rule::exists('offices', 'id')],
+            'monthly_allowance' => 'nullable|numeric|min:0|max:99999999',
+            'allowed_products' => 'nullable|string|max:60',
         ]);
 
         $validated['current_balance'] = $validated['initial_budget'];
@@ -131,6 +143,10 @@ class FleetCardController extends Controller
             'rate_peso' => 'required|numeric|min:0.01',
             'rate_km' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string',
+            'provider' => ['nullable', Rule::in(FleetCard::PROVIDERS)],
+            'office_id' => ['nullable', 'integer', Rule::exists('offices', 'id')],
+            'monthly_allowance' => 'nullable|numeric|min:0|max:99999999',
+            'allowed_products' => 'nullable|string|max:60',
         ]);
 
         $newInitialBudget = (float) $validated['initial_budget'];

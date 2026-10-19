@@ -77,6 +77,10 @@
                 </script>
             @endif
 
+            <a href="{{ route('fleet-cards.monthly-spend', array_filter(['location' => request('location')])) }}" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+                Monthly Spend
+            </a>
             <button type="button" onclick="openAddCardModal()" class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#0f5d33] px-3 text-xs font-bold text-white shadow-2xs transition hover:bg-[#0b4726] cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 12h14"/><path d="M12 5v14"/>
@@ -85,6 +89,24 @@
             </button>
         </div>
     </div>
+
+    <datalist id="fleet-card-products">
+        @foreach (\Modules\FleetCard\Models\FleetCard::PRODUCTS as $product)
+            <option value="{{ $product }}">
+        @endforeach
+    </datalist>
+
+    @if($overAllowance->isNotEmpty())
+        <div role="alert" class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            <p class="font-bold">Over the monthly allowance in {{ now()->format('F') }}</p>
+            <ul class="mt-1 space-y-0.5 text-xs">
+                @foreach($overAllowance as $over)
+                    <li>{{ $over['label'] }} ({{ $over['provider'] }}): ₱{{ number_format($over['spent'], 2) }} spent of ₱{{ number_format($over['allowance'], 2) }}</li>
+                @endforeach
+            </ul>
+            <a href="{{ route('fleet-cards.monthly-spend', array_filter(['location' => request('location')])) }}" class="mt-1 inline-block text-xs font-bold text-amber-900 underline">See monthly spend</a>
+        </div>
+    @endif
 
     @if($errors->any())
         <div role="alert" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -174,6 +196,21 @@
                                     @endif
                                     • <span class="font-semibold text-gray-600"><x-icon name="pin" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> {{ $card->location }}</span>
                                 </p>
+                                @if($card->provider || $card->office)
+                                    <p class="text-[0.6875rem] text-gray-500 truncate">
+                                        {{ collect([$card->provider, $card->office?->name, $card->allowed_products])->filter()->implode(' · ') }}
+                                    </p>
+                                @endif
+                                @if($card->monthly_allowance)
+                                    @php
+                                        $spentThisMonth = (float) $card->logs
+                                            ->filter(fn ($log) => (float) $log->consumed_amount > 0 && $log->created_at?->isSameMonth(now()))
+                                            ->sum('consumed_amount');
+                                    @endphp
+                                    <p class="text-[0.6875rem] {{ $spentThisMonth > (float) $card->monthly_allowance ? 'font-bold text-amber-700' : 'text-gray-500' }}">
+                                        {{ now()->format('F') }}: ₱{{ number_format($spentThisMonth, 2) }} of ₱{{ number_format((float) $card->monthly_allowance, 2) }} allowance
+                                    </p>
+                                @endif
                             </div>
                             <span class="shrink-0 rounded-full border px-2 py-0.5 text-[0.625rem] font-bold {{ $badgeColor }}">
                                 {{ $pct }}% Balance
@@ -554,6 +591,8 @@
                 </div>
             </div>
 
+            @include('fleetcard::partials.card-gss-fields', ['prefix' => 'add'])
+
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Initial Budget Allocated (₱)</label>
                 <input type="number" step="0.01" name="initial_budget" value="5000.00" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-bold text-emerald-800 focus:border-emerald-500 focus:outline-none">
@@ -921,6 +960,8 @@
                 </div>
             </div>
 
+            @include('fleetcard::partials.card-gss-fields', ['prefix' => 'edit'])
+
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Initial Budget Allocated (₱)</label>
                 <input type="number" step="0.01" id="edit-initial-budget" name="initial_budget" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-bold text-emerald-800 focus:border-emerald-500 focus:outline-none" oninput="updateEditModalTotalBalance()">
@@ -1224,6 +1265,10 @@ function openEditCardModal(card) {
     document.getElementById('edit-initial-budget').value = card.initial_budget;
     document.getElementById('edit-rate-peso').value = card.rate_peso;
     document.getElementById('edit-rate-km').value = card.rate_km;
+    document.getElementById('edit-card-provider').value = card.provider || '';
+    document.getElementById('edit-card-products').value = card.allowed_products || '';
+    document.getElementById('edit-card-office').value = card.office_id || '';
+    document.getElementById('edit-card-allowance').value = card.monthly_allowance || '';
 
     // Set location — dropdown for Super Admin, plain input for province admin
     const editLocSelect = document.getElementById('edit-card-location');

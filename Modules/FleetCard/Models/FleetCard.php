@@ -2,6 +2,7 @@
 
 namespace Modules\FleetCard\Models;
 
+use App\Models\Office;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,12 +14,21 @@ class FleetCard extends Model
 {
     use HasFactory;
 
+    public const PROVIDERS = ['Petron', 'Shell'];
+
+    /** Products the GSS workbook lists as allowed on a card */
+    public const PRODUCTS = ['Diesel Max', 'Turbo Diesel', 'Diesel', 'Gasoline'];
+
     protected $fillable = [
         'vehicle_id',
         'card_number',
         'card_name',
+        'provider',
         'location',
+        'office_id',
         'initial_budget',
+        'monthly_allowance',
+        'allowed_products',
         'rate_peso',
         'rate_km',
         'current_balance',
@@ -32,11 +42,18 @@ class FleetCard extends Model
         'rate_peso' => 'decimal:2',
         'rate_km' => 'decimal:2',
         'current_balance' => 'decimal:2',
+        'monthly_allowance' => 'decimal:2',
     ];
 
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    /** The division or program the card is charged to */
+    public function office(): BelongsTo
+    {
+        return $this->belongsTo(Office::class);
     }
 
     public function creator(): BelongsTo
