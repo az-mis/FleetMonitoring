@@ -66,6 +66,62 @@
         <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700">{{ $errors->first('export') }}</div>
     @endif
 
+    {{-- The vehicle sheets of the GSS workbook, same columns and order as "GSS {year}.xlsx" --}}
+    <details class="group rounded-2xl border border-emerald-200 bg-white shadow-sm">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+            <span class="flex items-center gap-2.5">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h2M8 17h2M14 13h2M14 17h2"/></svg>
+                </span>
+                <span>
+                    <span class="block text-sm font-extrabold text-slate-900">GSS workbook (.xlsx)</span>
+                    <span class="block text-xs text-slate-500">The vehicle sheets of the GSS monitoring workbook, with the same columns and order{{ $isSuperAdmin ? '' : ' · '.$scopeLabel.' only' }}.</span>
+                </span>
+            </span>
+            <svg class="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <form method="GET" action="{{ route('reports.gss-workbook') }}" class="space-y-3 border-t border-slate-100 px-4 py-4" x-data="{ all: true }">
+            <div class="flex flex-wrap items-end gap-3">
+                <div>
+                    <label for="gss-year" class="block text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500">Year</label>
+                    <select id="gss-year" name="year" class="mt-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        @foreach (range((int) now()->format('Y'), 2024) as $y)
+                            <option value="{{ $y }}">{{ $y }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @if($isSuperAdmin)
+                    <div>
+                        <label for="gss-location" class="block text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500">Area</label>
+                        <select id="gss-location" name="location" class="mt-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <option value="">All areas</option>
+                            @foreach($locationOptions as $loc)
+                                <option value="{{ $loc }}" @selected($location === $loc)>{{ $loc }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+                <label class="flex items-center gap-2 pb-2 text-xs font-semibold text-slate-700">
+                    <input type="checkbox" x-model="all" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                    All sheets
+                </label>
+            </div>
+            <fieldset x-show="! all" x-cloak class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <legend class="sr-only">Sheets to include</legend>
+                @foreach($gssSheets as $key => $title)
+                    <label class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700">
+                        <input type="checkbox" name="sheets[]" value="{{ $key }}" :disabled="all" checked class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        {{ $title }}
+                    </label>
+                @endforeach
+            </fieldset>
+            <button type="submit" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#00432a]">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                Download GSS workbook
+            </button>
+        </form>
+    </details>
+
     {{-- Filter bar --}}
     <form method="GET" action="{{ route('reports.index') }}" id="filter-form" class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center">
         @if($isSuperAdmin)

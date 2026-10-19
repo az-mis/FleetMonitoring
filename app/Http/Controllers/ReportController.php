@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Gss\GssExportService;
+use App\Services\Gss\GssScope;
 use App\Services\ReportExportService;
 use App\Services\ReportService;
 use App\Support\FleetLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpWord\PhpWord;
@@ -31,6 +34,7 @@ class ReportController extends Controller
         return view('reports.index', $ctx + [
             'tripLogPreview' => $ctx['tripLog']->take(15),
             'locationOptions' => $this->locationOptions,
+            'gssSheets' => collect(app(GssExportService::class)->sheets())->map->title(),
         ]);
     }
 
@@ -62,6 +66,29 @@ class ReportController extends Controller
             : $this->exportService->docx($ctx);
 
         return response()->download($path, $this->exportName($format, $ctx))->deleteFileAfterSend(true);
+    }
+
+    /** The vehicle sheets of the GSS workbook for one year (admins get only their own area) */
+    public function gssWorkbook(Request $request, GssExportService $gss): BinaryFileResponse
+    {
+        $user = $request->user();
+        $roleValue = $user?->role?->value ?? $user?->role;
+        abort_unless(in_array($roleValue, ['admin', 'super_admin'], true), 403);
+
+        $data = $request->validate([
+            'year' => ['nullable', 'integer', 'between:2000,2100'],
+            'location' => ['nullable', Rule::in($this->locationOptions)],
+            'sheets' => ['nullable', 'array'],
+            'sheets.*' => ['string', Rule::in(array_keys($gss->sheets()))],
+        ]);
+
+        $location = $roleValue === 'super_admin' ? ($data['location'] ?? null) : $user->location;
+        abort_if($roleValue !== 'super_admin' && blank($location), 403, 'Your account has no assigned location.');
+        $scope = new GssScope((int) ($data['year'] ?? now()->format('Y')), $location, $user->name);
+
+        $name = sprintf('GSS_%d_%s.xlsx', $scope->year, $location ? Str::studly(Str::slug($location, ' ')) : 'AllAreas');
+
+        return response()->download($gss->export($scope, $data['sheets'] ?? []), $name)->deleteFileAfterSend(true);
     }
 
     /** Trip_Report_QuezonCity_2026-09-01_to_2026-09-30.xlsx */

@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');
     Route::get('/reports/export/{format}', [ReportController::class, 'export'])->name('reports.export');
+    Route::get('/reports/gss-workbook', [ReportController::class, 'gssWorkbook'])->name('reports.gss-workbook');
     Route::get('/my-profile', [ProfileController::class, 'edit'])->name('my-profile');
     Route::put('/my-profile', [ProfileController::class, 'update'])->name('my-profile.update');
     Route::view('/settings', 'settings')->name('settings');
