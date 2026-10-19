@@ -8,6 +8,7 @@ use App\Models\ImportRecord;
 use App\Models\Office;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -509,6 +510,10 @@ final class GssImporter
             if ($travel['guessed'] || ($return['guessed'] ?? false)) {
                 $reasons[] = 'Travel date read with a guess ("'.($c['E'] ?? '').'" / "'.($c['F'] ?? '').'").';
             }
+            // A trip of another year in this year's workbook is most likely a typed-in wrong year
+            if ((int) $travel['start']->format('Y') !== $this->year) {
+                $reasons[] = 'Travel date '.$travel['start']->format('M j, Y')." is outside {$this->year}; check the year.";
+            }
             if (! GssCellParser::text($c['E'] ?? null)) {
                 $reasons[] = 'No travel date; the date recorded was used.';
             }
@@ -540,6 +545,7 @@ final class GssImporter
                 'driver_name' => $driverId ? null : ($driverName ? Str::limit($driverName, 120, '') : null),
                 'approved_at' => ($recorded['start'] ?? $travel['start'])->toDateTimeString(),
             ]);
+            $this->backdate($trip, $recorded['start'] ?? $travel['start']);
 
             $before = GssCellParser::number($c['K'] ?? null);
             $after = GssCellParser::number($c['L'] ?? null);
@@ -682,11 +688,12 @@ final class GssImporter
                 if (! $status) {
                     $reasons[] = "PR status \"{$statusText}\" not recognised; recorded as PR on process.";
                 }
-                $record->procurements()->create([
+                $this->backdate($record->procurements()->create([
                     'vehicle_id' => $vehicle->id, 'location' => $record->location, 'description' => Str::limit('Repair: '.$record->title, 255, ''),
                     'category' => 'Vehicle parts', 'status' => $status ?? 'PR on process', 'amount' => $record->cost, 'remarks' => $remarks,
-                ]);
+                ]), $scheduled);
             }
+            $this->backdate($record, $scheduled);
             $this->done($sheet, $r, $key, $record, 'created', $reasons, $c);
         }
     }
@@ -762,6 +769,7 @@ final class GssImporter
                     'completed_date' => $post ? $post['start']->toDateString() : null, 'location' => $vehicle->location,
                     'created_by_name' => 'GSS workbook import',
                 ]);
+                $this->backdate($record, $requested['start'] ?? $scheduled);
                 $outcome = 'created';
             }
             // The sheet also carries the vehicle's acquisition, which belongs on its property record
@@ -818,6 +826,7 @@ final class GssImporter
                 'requisitioner_office_id' => $this->office(GssCellParser::text($c['D'] ?? null)),
                 'created_by_name' => 'GSS workbook import',
             ]);
+            $this->backdate($record, $requested['start'] ?? $scheduled);
             $this->done($sheet, $r, $key, $record, 'created', $reasons, $c);
         }
     }
@@ -872,6 +881,7 @@ final class GssImporter
                 'coa_date' => $coa['start'] ?? null,
                 'remarks' => Str::limit(implode(' | ', array_reverse($texts)), 2000, '') ?: null,
             ]);
+            $this->backdate($pr, $prDate['start'] ?? null);
             $this->done($sheet, $r, $key, $pr, 'created', $reasons, $c);
         }
     }
@@ -919,6 +929,17 @@ final class GssImporter
         if ($reasons) {
             $this->counts[$sheet]['review']++;
             $this->review[] = ['sheet' => $sheet, 'row' => $row, 'outcome' => $outcome === 'created' ? 'Imported, check it' : 'Updated, check it', 'reason' => implode(' ', $reasons), 'record' => class_basename($model).' #'.$model->getKey(), 'raw' => $raw];
+        }
+    }
+
+    /**
+     * Dates an imported record by when it happened in the workbook (date recorded, requested, PR date) instead of
+     * the day of the import, so charts and monthly counts put it in its own month.
+     */
+    private function backdate(Model $model, ?CarbonInterface $date): void
+    {
+        if ($date) {
+            $model->forceFill(['created_at' => $date->toDateTimeString(), 'updated_at' => $date->toDateTimeString()])->saveQuietly();
         }
     }
 

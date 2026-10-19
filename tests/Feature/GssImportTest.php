@@ -98,6 +98,7 @@ class GssImportTest extends TestCase
                 7 => ['A' => '0011-01-2026', 'B' => 46028, 'C' => 'Research', 'E' => 46028, 'F' => 46028, 'H' => 'Calapan City', 'I' => 'SKP906', 'J' => 'Glen M. Malbon', 'K' => 360494, 'L' => 360600],
                 8 => ['A' => 46113, 'B' => 46063, 'C' => 'CORN', 'E' => 46063, 'I' => 'SNE 6227'],
                 9 => ['A' => '0020-01-2026', 'E' => 'Jan 20, 2026', 'I' => 'HI-ACE'],
+                10 => ['A' => '0021-01-2026', 'E' => 'January 22, 2027', 'I' => 'SKP 906'],
             ],
             'INDEX FOR REPAIR OF VEHICLES' => [
                 2 => ['A' => 'NO.', 'B' => 'AREA'],
@@ -175,9 +176,10 @@ class GssImportTest extends TestCase
 
         // Trips: area and month headings, duplicate ticket kept with a suffix, ticket stored as a date dropped
         $trips = VehicleRequest::orderBy('id')->get();
-        $this->assertCount(3, $trips);
-        $this->assertSame(['0011-01-2026', '0011-01-2026 (2)', null], $trips->pluck('trip_ticket_number')->all());
+        $this->assertCount(4, $trips);
+        $this->assertSame(['0011-01-2026', '0011-01-2026 (2)', null, '0021-01-2026'], $trips->pluck('trip_ticket_number')->all());
         $this->assertSame('Oriental Mindoro', $trips[0]->location);
+        $this->assertSame('2026-01-05', $trips[0]->created_at->toDateString(), 'dated by the date recorded, not the import day');
         $this->assertSame(['2026-01-06', '2026-01-09'], [$trips[0]->travel_date->toDateString(), $trips[0]->travel_date_end->toDateString()]);
         $this->assertSame('RD', $trips[0]->office->code);
         $this->assertSame($driver->id, $trips[1]->confirmed_driver_id);
@@ -190,7 +192,8 @@ class GssImportTest extends TestCase
         $this->assertSame(['completed', 'Repair', 'Reimbursement'], [$repair->status, $repair->type, $repair->procurements->first()->status]);
         $this->assertSame('Preventive', VehicleMaintenance::where('pm_request_no', '7')->value('type'));
         $pr = Procurement::where('pr_number', '2026-03-101')->firstOrFail();
-        $this->assertSame(['Completed', '2026-02-24'], [$pr->status, $pr->pr_date->toDateString()]);
+        $this->assertSame(['Completed', '2026-02-24', '2026-02-24'], [$pr->status, $pr->pr_date->toDateString(), $pr->created_at->toDateString()]);
+        $this->assertSame('2026-02-23', $repair->created_at->toDateString(), 'dated by the pre-repair date (serial 46076)');
         $this->assertNull(Procurement::where('pr_number', '2026-02-490')->first(), 'other goods stay in Excel');
         $this->assertEquals(41181.89, (float) FleetCardMonthlySpend::where('month', 2)->value('amount'));
         $this->assertTrue(FleetCardMonthlySpend::where('division_label', 'BAR-PRES VEHICLE')->value('excluded_from_total'));
@@ -200,6 +203,7 @@ class GssImportTest extends TestCase
         $review = IOFactory::load($result['review_file'])->getActiveSheet()->toArray();
         $reasons = implode("\n", array_column($review, 3));
         $this->assertStringContainsString('appears more than once', $reasons);
+        $this->assertStringContainsString('Travel date Jan 22, 2027 is outside 2026', $reasons);
         $this->assertStringContainsString('holds a date or number', $reasons);
         $this->assertStringContainsString('Vehicle "HI-ACE" not found', $reasons);
         $this->assertStringContainsString('"6.3.26" could not be read for sure', $reasons);
