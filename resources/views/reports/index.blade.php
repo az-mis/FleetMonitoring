@@ -156,7 +156,7 @@
                     <div class="min-w-[8.5rem] flex-1 rounded-xl bg-white/10 p-3 backdrop-blur-xs ring-1 ring-white/10">
                         <p class="text-[0.625rem] font-bold uppercase tracking-wider text-emerald-200">Distance</p>
                         <p class="mt-1 break-words text-lg font-black text-white tabular-nums sm:text-xl">{{ number_format($ca['total_km'], 1) }} km</p>
-                        <p class="text-[0.625rem] text-emerald-200/80">Logged trips</p>
+                        <p class="text-[0.625rem] text-emerald-200/80">Trips already taken</p>
                     </div>
                 </div>
             </div>

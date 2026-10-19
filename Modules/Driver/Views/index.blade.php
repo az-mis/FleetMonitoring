@@ -50,6 +50,21 @@
             </form>
 
             <div class="flex flex-wrap items-center gap-2">
+                {{-- Active / Inactive filter (decision D10) --}}
+                @php
+                    $statusOptions = ['' => 'All', 'active' => 'Active', 'inactive' => 'Inactive'];
+                    $currentStatus = $statusFilter ?? '';
+                @endphp
+                <div class="flex h-10 shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1" role="group" aria-label="Driver status">
+                    @foreach ($statusOptions as $value => $label)
+                        <a
+                            href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => request('location'), 'status' => $value])) }}"
+                            @if ($currentStatus === $value) aria-current="true" @endif
+                            class="flex h-full items-center rounded-lg px-2.5 text-xs font-semibold transition {{ $currentStatus === $value ? 'bg-[#005a36] text-white' : 'text-slate-500 hover:text-slate-700' }}"
+                        >{{ $label }}</a>
+                    @endforeach
+                </div>
+
                 {{-- Location filter dropdown --}}
                 <div class="relative">
                     <button type="button" onclick="toggleDriverLocationMenu()" class="inline-flex h-10 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 cursor-pointer">
@@ -66,14 +81,14 @@
                     </button>
 
                     <div id="driver-location-menu" class="absolute left-0 z-20 mt-2 hidden w-64 sm:left-auto sm:right-0 overflow-hidden rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/5">
-                        <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
+                        <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'status' => request('status')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
                             <span>All Locations</span>
                             @if(blank($selectedLocation))
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                             @endif
                         </a>
                         @foreach ($locationOptions as $opt)
-                            <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => $opt])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
+                            <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => $opt, 'status' => request('status')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
                                 <span>{{ $opt }}</span>
                                 @if($selectedLocation === $opt)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -781,6 +796,30 @@
     </div>
 
     {{-- Delete confirmation modal --}}
+    {{-- Deactivate / Reactivate confirmation (decision D10) --}}
+    <div id="driver-status-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="driver-status-modal-title">
+            <h2 id="driver-status-modal-title" class="text-lg font-semibold text-gray-900"></h2>
+            <div id="driver-status-modal-body" class="mt-2 space-y-2 text-sm text-gray-600"></div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button
+                    type="button"
+                    onclick="closeDriverStatusModal()"
+                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                    Cancel
+                </button>
+
+                <form id="driver-status-form" method="POST" action="">
+                    @csrf
+                    @method('PATCH')
+                    <button id="driver-status-submit" type="submit" class="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div id="delete-driver-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
         <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-driver-modal-title">
             <div class="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600">
@@ -933,6 +972,44 @@
         }
 
         /* ---------------- Delete modal ---------------- */
+
+        function openDriverStatusModal(btn) {
+            const deactivate = btn.dataset.action === 'deactivate';
+            const name = btn.dataset.name;
+            const title = document.getElementById('driver-status-modal-title');
+            const body = document.getElementById('driver-status-modal-body');
+            const submit = document.getElementById('driver-status-submit');
+
+            title.textContent = deactivate ? `Deactivate ${name}?` : `Reactivate ${name}?`;
+            body.replaceChildren();
+            const lines = deactivate
+                ? [
+                    `${name} will no longer be able to sign in, and will not appear when choosing a driver for a trip or vehicle.`,
+                    btn.dataset.vehicles ? `They will be removed as the default driver of ${btn.dataset.vehicles}.` : null,
+                    'Their past trips and vehicle reports are kept. You can reactivate them at any time.',
+                ]
+                : [`${name} will be able to sign in again and can be chosen for trips and vehicles.`];
+            lines.filter(Boolean).forEach((text) => {
+                const p = document.createElement('p');
+                p.textContent = text;
+                body.appendChild(p);
+            });
+
+            submit.textContent = deactivate ? 'Yes, deactivate' : 'Yes, reactivate';
+            submit.className = 'rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition '
+                + (deactivate ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#005a36] hover:bg-[#00432a]');
+            document.getElementById('driver-status-form').action = btn.dataset.url;
+
+            const modal = document.getElementById('driver-status-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDriverStatusModal() {
+            const modal = document.getElementById('driver-status-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
 
         function openDeleteDriverModal(btn) {
             document.getElementById('delete-driver-name').textContent = btn.dataset.name;
@@ -1222,7 +1299,8 @@
                 const el = document.getElementById(id);
                 return el && !el.classList.contains('hidden');
             };
-            if (isOpen('delete-driver-modal')) closeDeleteDriverModal();
+            if (isOpen('driver-status-modal')) closeDriverStatusModal();
+            else if (isOpen('delete-driver-modal')) closeDeleteDriverModal();
             else if (isOpen('view-driver-modal')) closeViewDriverModal();
             else if (isOpen('edit-driver-modal')) closeEditDriverModal();
             else if (isOpen('add-driver-modal')) closeAddDriverModal();

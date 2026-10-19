@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Modules\FleetCard\Models\FleetCardLog;
 use Modules\Maintenance\Models\VehicleMaintenance;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleRequest\Models\VehicleRequest;
@@ -12,6 +15,12 @@ use Modules\VehicleRequest\Models\VehicleRequest;
 class ReportService
 {
     public const RANGES = ['week', 'month', 'quarter', 'year', 'custom'];
+
+    /** The vehicle a card expense is credited to: the charged trip's vehicle, else the card's vehicle. */
+    private const SPEND_VEHICLE = 'COALESCE(vehicle_requests.vehicle_id, fleet_card_logs.vehicle_id)';
+
+    /** A trip's distance: the actual Part B logged distance, else the requester's estimate. */
+    private const TRIP_KM = 'COALESCE(NULLIF((SELECT MAX(ttc.distance_travelled) FROM trip_ticket_completions ttc WHERE ttc.vehicle_request_id = vehicle_requests.id), 0), vehicle_requests.distance_km, 0)';
 
     /**
      * Resolve a range key (+ optional custom from/to) into [start, end] Carbon dates.
@@ -79,7 +88,9 @@ class ReportService
         $townCounts = [];
 
         foreach ($requests as $destStr) {
-            if (!$destStr) continue;
+            if (! $destStr) {
+                continue;
+            }
 
             $parts = str_contains($destStr, ';;')
                 ? explode(';;', $destStr)
@@ -87,7 +98,9 @@ class ReportService
 
             foreach ($parts as $part) {
                 $town = trim($part);
-                if ($town === '') continue;
+                if ($town === '') {
+                    continue;
+                }
                 $townCounts[$town] = ($townCounts[$town] ?? 0) + 1;
             }
         }
@@ -277,31 +290,28 @@ class ReportService
         $insights = $this->buildCostInsights($currStats, $prevStats, $diffCost, $pctChange, $vehicleBreakdown);
 
         return [
-            'total_spent'      => $currStats['total_cost'],
-            'fuel_spent'       => $currStats['fuel_cost'],
-            'maint_spent'      => $currStats['maint_cost'],
-            'total_km'         => $currStats['total_km'],
-            'cost_per_km'      => $currStats['cost_per_km'],
-            'entry_count'      => $currStats['entry_count'],
-            'prev_spent'       => $prevStats['total_cost'],
-            'diff_cost'        => abs($diffCost),
-            'diff_direction'   => $diffCost >= 0 ? 'more' : 'less',
-            'pct_change'       => abs($pctChange),
-            'vehicles'         => $vehicleBreakdown,
-            'insights'         => $insights,
+            'total_spent' => $currStats['total_cost'],
+            'fuel_spent' => $currStats['fuel_cost'],
+            'maint_spent' => $currStats['maint_cost'],
+            'total_km' => $currStats['total_km'],
+            'cost_per_km' => $currStats['cost_per_km'],
+            'entry_count' => $currStats['entry_count'],
+            'prev_spent' => $prevStats['total_cost'],
+            'diff_cost' => abs($diffCost),
+            'diff_direction' => $diffCost >= 0 ? 'more' : 'less',
+            'pct_change' => abs($pctChange),
+            'vehicles' => $vehicleBreakdown,
+            'insights' => $insights,
         ];
     }
 
     private function aggregateCostsAndDistance(?string $location, Carbon $start, Carbon $end, ?int $vehicleFilterId = null): array
     {
-        // Fuel / Card expenses
-        $cardLogsQuery = \Modules\FleetCard\Models\FleetCardLog::query()
-            ->when($vehicleFilterId, fn ($q) => $q->where('vehicle_id', $vehicleFilterId))
-            ->when($location, fn ($q) => $q->whereHas('vehicle', fn ($vq) => $vq->where('location', $location)))
-            ->where('distance_source', '!=', 'recharge')
-            ->whereBetween('created_at', [$start, $end]);
+        // Fuel / Card expenses, credited to the trip's vehicle (decision D6)
+        $cardLogsQuery = $this->cardSpendQuery($location, $start, $end)
+            ->when($vehicleFilterId, fn ($q) => $q->whereRaw(self::SPEND_VEHICLE.' = ?', [$vehicleFilterId]));
 
-        $fuelCost = (float) (clone $cardLogsQuery)->sum('consumed_amount');
+        $fuelCost = (float) (clone $cardLogsQuery)->sum('fleet_card_logs.consumed_amount');
         $fuelEntries = (clone $cardLogsQuery)->count();
 
         // Maintenance expenses
@@ -316,29 +326,51 @@ class ReportService
 
         $totalCost = round($fuelCost + $maintCost, 2);
 
-        // Distance: from approved trips in this period
-        $tripKm = (float) VehicleRequest::query()
+        // Distance: trips that have already happened, using the Part B logged distance
+        $tripKm = (float) $this->tripDistanceQuery($location, $start, $end)
             ->when($vehicleFilterId, fn ($q) => $q->where('vehicle_id', $vehicleFilterId))
-            ->when($location, fn ($q) => $q->where('location', $location))
-            ->where('status', 'approved')
-            ->whereBetween('travel_date', [$start, $end])
-            ->sum('distance_km');
+            ->sum(DB::raw(self::TRIP_KM));
 
-        // Fallback distance from fleet card logs if trip distance_km is 0
+        // Fallback distance from fleet card logs when no trip distance is known
         if ($tripKm <= 0) {
-            $tripKm = (float) (clone $cardLogsQuery)->sum('distance_km');
+            $tripKm = (float) (clone $cardLogsQuery)->sum('fleet_card_logs.distance_km');
         }
 
         $costPerKm = $tripKm > 0 ? round($totalCost / $tripKm, 2) : 0.00;
 
         return [
-            'total_cost'  => $totalCost,
-            'fuel_cost'   => round($fuelCost, 2),
-            'maint_cost'  => round($maintCost, 2),
-            'total_km'    => round($tripKm, 1),
+            'total_cost' => $totalCost,
+            'fuel_cost' => round($fuelCost, 2),
+            'maint_cost' => round($maintCost, 2),
+            'total_km' => round($tripKm, 1),
             'cost_per_km' => $costPerKm,
             'entry_count' => $fuelEntries + $maintEntries,
         ];
+    }
+
+    private function cardSpendQuery(?string $location, Carbon $start, Carbon $end): Builder
+    {
+        return FleetCardLog::query()
+            ->leftJoin('vehicle_requests', 'vehicle_requests.id', '=', 'fleet_card_logs.vehicle_request_id')
+            ->when($location, fn ($q) => $q->whereExists(fn ($sub) => $sub->select(DB::raw(1))
+                ->from('vehicles')
+                ->whereRaw('vehicles.id = '.self::SPEND_VEHICLE)
+                ->where('vehicles.location', $location)))
+            ->where('fleet_card_logs.distance_source', '!=', 'recharge')
+            ->whereBetween('fleet_card_logs.created_at', [$start, $end]);
+    }
+
+    private function tripDistanceQuery(?string $location, Carbon $start, Carbon $end): Builder
+    {
+        $today = today()->toDateString();
+
+        return VehicleRequest::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->where('status', 'approved')
+            ->whereBetween('travel_date', [$start, $end])
+            // Only trips that have already happened: Part B is logged or the trip's last day has passed
+            ->where(fn ($q) => $q->whereHas('completion')
+                ->orWhereRaw('COALESCE(travel_date_end, travel_date) <= ?', [$today]));
     }
 
     private function vehicleCostBreakdown(?string $location, Carbon $start, Carbon $end): array
@@ -347,27 +379,32 @@ class ReportService
             ->when($location, fn ($q) => $q->where('location', $location))
             ->get();
 
+        $fuelByVehicle = $this->cardSpendQuery($location, $start, $end)
+            ->selectRaw(self::SPEND_VEHICLE.' as spend_vehicle_id, SUM(fleet_card_logs.consumed_amount) as spent, SUM(fleet_card_logs.distance_km) as km')
+            ->groupBy(DB::raw(self::SPEND_VEHICLE))
+            ->get()
+            ->keyBy('spend_vehicle_id');
+
+        $maintByVehicle = VehicleMaintenance::query()
+            ->whereNotNull('completed_date')
+            ->whereBetween('completed_date', [$start, $end])
+            ->selectRaw('vehicle_id, SUM(cost) as spent')
+            ->groupBy('vehicle_id')
+            ->pluck('spent', 'vehicle_id');
+
+        $kmByVehicle = $this->tripDistanceQuery(null, $start, $end)
+            ->selectRaw('vehicle_id, SUM('.self::TRIP_KM.') as km')
+            ->groupBy('vehicle_id')
+            ->pluck('km', 'vehicle_id');
+
         $breakdown = [];
         foreach ($vehicles as $v) {
-            $fuel = (float) \Modules\FleetCard\Models\FleetCardLog::where('vehicle_id', $v->id)
-                ->where('distance_source', '!=', 'recharge')
-                ->whereBetween('created_at', [$start, $end])
-                ->sum('consumed_amount');
-
-            $maint = (float) VehicleMaintenance::where('vehicle_id', $v->id)
-                ->whereNotNull('completed_date')
-                ->whereBetween('completed_date', [$start, $end])
-                ->sum('cost');
-
-            $km = (float) VehicleRequest::where('vehicle_id', $v->id)
-                ->where('status', 'approved')
-                ->whereBetween('travel_date', [$start, $end])
-                ->sum('distance_km');
+            $fuel = (float) ($fuelByVehicle[$v->id]->spent ?? 0);
+            $maint = (float) ($maintByVehicle[$v->id] ?? 0);
+            $km = (float) ($kmByVehicle[$v->id] ?? 0);
 
             if ($km <= 0) {
-                $km = (float) \Modules\FleetCard\Models\FleetCardLog::where('vehicle_id', $v->id)
-                    ->whereBetween('created_at', [$start, $end])
-                    ->sum('distance_km');
+                $km = (float) ($fuelByVehicle[$v->id]->km ?? 0);
             }
 
             $total = $fuel + $maint;
@@ -375,14 +412,14 @@ class ReportService
 
             if ($total > 0 || $km > 0) {
                 $breakdown[] = [
-                    'id'          => $v->id,
-                    'plate'       => $v->plate_number,
-                    'label'       => trim("{$v->brand} {$v->model}"),
+                    'id' => $v->id,
+                    'plate' => $v->plate_number,
+                    'label' => trim("{$v->brand} {$v->model}"),
                     'total_spent' => round($total, 2),
-                    'total_km'    => round($km, 1),
+                    'total_km' => round($km, 1),
                     'cost_per_km' => $cpk,
-                    'fuel_cost'   => round($fuel, 2),
-                    'maint_cost'  => round($maint, 2),
+                    'fuel_cost' => round($fuel, 2),
+                    'maint_cost' => round($maint, 2),
                 ];
             }
         }
@@ -400,31 +437,31 @@ class ReportService
         if ($prev['total_cost'] > 0) {
             $dirText = $diff >= 0 ? 'more' : 'less';
             $insights[] = [
-                'tag'   => 'SPENDING TREND',
+                'tag' => 'SPENDING TREND',
                 'title' => sprintf('₱%s in the selected period', number_format($curr['total_cost'], 2)),
-                'desc'  => sprintf('%d%% %s than the previous period (₱%s).', abs(round($pct)), $dirText, number_format($prev['total_cost'], 2)),
-                'tone'  => $diff > 0 ? 'amber' : 'emerald',
+                'desc' => sprintf('%d%% %s than the previous period (₱%s).', abs(round($pct)), $dirText, number_format($prev['total_cost'], 2)),
+                'tone' => $diff > 0 ? 'amber' : 'emerald',
             ];
         }
 
         // 2. Cost efficiency insight
         if ($curr['cost_per_km'] > 0) {
             $insights[] = [
-                'tag'   => 'COST EFFICIENCY',
+                'tag' => 'COST EFFICIENCY',
                 'title' => sprintf('₱%s per kilometer fleet average', number_format($curr['cost_per_km'], 2)),
-                'desc'  => sprintf('Based on %s km logged and ₱%s total fuel & service expenses.', number_format($curr['total_km'], 1), number_format($curr['total_cost'], 2)),
-                'tone'  => 'sky',
+                'desc' => sprintf('Based on %s km logged and ₱%s total fuel & service expenses.', number_format($curr['total_km'], 1), number_format($curr['total_cost'], 2)),
+                'tone' => 'sky',
             ];
         }
 
         // 3. Highest spending vehicle
-        if (!empty($vehicles)) {
+        if (! empty($vehicles)) {
             $top = $vehicles[0];
             $insights[] = [
-                'tag'   => 'TOP VEHICLE EXPENSE',
+                'tag' => 'TOP VEHICLE EXPENSE',
                 'title' => sprintf('%s (%s) had highest spend', $top['plate'], $top['label']),
-                'desc'  => sprintf('Total of ₱%s (₱%s/km over %s km).', number_format($top['total_spent'], 2), number_format($top['cost_per_km'], 2), number_format($top['total_km'], 1)),
-                'tone'  => 'violet',
+                'desc' => sprintf('Total of ₱%s (₱%s/km over %s km).', number_format($top['total_spent'], 2), number_format($top['cost_per_km'], 2), number_format($top['total_km'], 1)),
+                'tone' => 'violet',
             ];
         }
 

@@ -4,6 +4,10 @@
         <p class="mt-1 text-sm text-gray-500">
             @if (request('search'))
                 No results match "{{ request('search') }}".
+            @elseif (request('status') === 'inactive')
+                No drivers are deactivated.
+            @elseif (request('status') === 'active')
+                No active drivers.
             @else
                 Get started by registering your first driver.
             @endif
@@ -29,7 +33,7 @@
                         @php
                             $initial = Illuminate\Support\Str::upper(Illuminate\Support\Str::substr($driver->name, 0, 1));
                         @endphp
-                        <tr class="hover:bg-gray-50/70">
+                        <tr class="{{ $driver->isActive() ? 'hover:bg-gray-50/70' : 'bg-slate-50/80 hover:bg-slate-100/70' }}">
                             <td class="whitespace-nowrap px-4 py-3.5">
                                 <div class="flex items-center gap-3">
                                     @if ($driver->avatar_url)
@@ -39,7 +43,10 @@
                                             {{ $initial }}
                                         </div>
                                     @endif
-                                    <span class="text-sm font-semibold text-gray-900">{{ $driver->name }}</span>
+                                    <span class="text-sm font-semibold {{ $driver->isActive() ? 'text-gray-900' : 'text-slate-500' }}">{{ $driver->name }}</span>
+                                    @unless ($driver->isActive())
+                                        <span class="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[0.6875rem] font-bold text-slate-700" title="Deactivated {{ $driver->deactivated_at->format('M d, Y') }}">Inactive</span>
+                                    @endunless
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-4 py-3.5 text-sm text-slate-500">{{ $driver->email }}</td>
@@ -98,6 +105,7 @@
                                             <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/>
                                         </svg>
                                     </button>
+                                    @include('driver::partials.status-button', ['buttonClass' => 'inline-flex h-8 w-8 items-center justify-center rounded-md'])
                                     <button
                                         type="button"
                                         onclick="openDeleteDriverModal(this)"
@@ -166,6 +174,7 @@
                                     <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/>
                                 </svg>
                             </button>
+                            @include('driver::partials.status-button', ['buttonClass' => 'inline-flex h-7 w-7 items-center justify-center rounded-md bg-white/70 transition shadow-xs'])
                             <button
                                 type="button"
                                 onclick="openDeleteDriverModal(this)"
@@ -188,10 +197,17 @@
                     <div class="px-4 pb-3 space-y-1.5">
                         <div class="flex items-center justify-between gap-2">
                             <p class="truncate text-base font-bold text-slate-900">{{ $driver->name }}</p>
-                            <span class="inline-flex items-center gap-1 shrink-0 rounded-full bg-emerald-100/70 px-2 py-0.5 text-[0.625rem] font-semibold text-emerald-800">
-                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
-                                Active
-                            </span>
+                            @if ($driver->isActive())
+                                <span class="inline-flex items-center gap-1 shrink-0 rounded-full bg-emerald-100/70 px-2 py-0.5 text-[0.625rem] font-semibold text-emerald-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+                                    Active
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 shrink-0 rounded-full bg-slate-200 px-2 py-0.5 text-[0.625rem] font-semibold text-slate-700" title="Deactivated {{ $driver->deactivated_at->format('M d, Y') }}">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+                                    Inactive
+                                </span>
+                            @endif
                         </div>
 
                         {{-- Metadata list with icons --}}

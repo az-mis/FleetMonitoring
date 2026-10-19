@@ -77,7 +77,7 @@ class VehicleRequestController
 
         return view('vehicle-request::index', [
             'requests' => $query->paginate($perPage)->withQueryString(),
-            'drivers' => User::where('role', UserRole::DRIVER)
+            'drivers' => User::where('role', UserRole::DRIVER)->active()
                 ->when($location, fn ($builder) => $builder->where('location', $location))
                 ->orderBy('name')
                 ->get(),
@@ -90,7 +90,7 @@ class VehicleRequestController
                 ->orderBy('plate_number')
                 ->get(),
             // Only what the manual-request driver picker needs; full user records carry personal data
-            'allDrivers' => User::where('role', UserRole::DRIVER)
+            'allDrivers' => User::where('role', UserRole::DRIVER)->active()
                 ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
                 ->orderBy('name')
                 ->get(['id', 'name', 'location'])
@@ -276,7 +276,7 @@ class VehicleRequestController
         if (! $driver || $driver->role !== UserRole::DRIVER || (filled($driver->location) && $driver->location !== $vehicleRequest->location)) {
             return back()->with('error', 'The selected driver is not a driver assigned to ' . $vehicleRequest->location . '.');
         }
-        if ($problem = $driver->licenceProblem($vehicleRequest->travel_date_end ?? $vehicleRequest->travel_date)) {
+        if ($problem = $driver->drivingProblem($vehicleRequest->travel_date_end ?? $vehicleRequest->travel_date)) {
             return back()->with('error', $problem);
         }
 
@@ -396,7 +396,7 @@ class VehicleRequestController
         if (filled($driverLocation) && $driverLocation !== $data['location']) {
             return back()->withErrors(['confirmed_driver_id' => 'The selected driver is not assigned to ' . $data['location'] . '.'])->withInput();
         }
-        if ($problem = User::find($driverId)?->licenceProblem($data['travel_date_end'])) {
+        if ($problem = User::find($driverId)?->drivingProblem($data['travel_date_end'])) {
             return back()->withErrors(['confirmed_driver_id' => $problem])->withInput();
         }
 

@@ -6,6 +6,8 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,6 +25,8 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const DEACTIVATED_MESSAGE = 'This account has been deactivated. Please contact your fleet administrator.';
+
     protected $appends = ['avatar_url', 'license_front_url', 'license_back_url', 'age'];
 
     /**
@@ -38,6 +42,7 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'birth_date' => 'date',
             'license_expiration_date' => 'date',
+            'deactivated_at' => 'datetime',
         ];
     }
 
@@ -69,9 +74,33 @@ class User extends Authenticatable
         );
     }
 
+    /** Deactivated drivers cannot sign in or be given new trips, but keep their history (decision D10). */
+    public function isActive(): bool
+    {
+        return $this->deactivated_at === null;
+    }
+
+    #[Scope]
+    protected function active(Builder $query): void
+    {
+        $query->whereNull('deactivated_at');
+    }
+
     public function assignedVehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class, 'assigned_driver_id');
+    }
+
+    /**
+     * Why this driver may not be given a trip or vehicle through $lastDay: deactivated, or a licence problem.
+     */
+    public function drivingProblem(\DateTimeInterface|string|null $lastDay = null): ?string
+    {
+        if (! $this->isActive()) {
+            return "{$this->name} is deactivated. Reactivate the driver in Drivers or choose another driver.";
+        }
+
+        return $this->licenceProblem($lastDay);
     }
 
     /**

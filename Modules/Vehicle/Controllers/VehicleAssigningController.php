@@ -45,7 +45,7 @@ class VehicleAssigningController
 
         $vehicles = $query->paginate($perPage)->withQueryString();
 
-        $drivers = User::where('role', UserRole::DRIVER)
+        $drivers = User::where('role', UserRole::DRIVER)->active()
             ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))
             ->with(['assignedVehicles'])
             ->orderBy('name')
@@ -81,7 +81,7 @@ class VehicleAssigningController
                 return back()->with('error', 'The selected driver is not assigned to '.$vehicle->location.'.');
             }
 
-            if ($problem = $driver->licenceProblem()) {
+            if ($problem = $driver->drivingProblem()) {
                 return back()->with('error', $problem);
             }
         }

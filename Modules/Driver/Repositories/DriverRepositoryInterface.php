@@ -9,7 +9,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface DriverRepositoryInterface
 {
-    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator;
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null, ?string $status = null): LengthAwarePaginator;
 
     public function create(array $data): User;
 

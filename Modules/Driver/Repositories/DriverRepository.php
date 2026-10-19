@@ -12,13 +12,15 @@ use Modules\Admin\Enums\UserRole;
 
 class DriverRepository implements DriverRepositoryInterface
 {
-    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null, ?string $status = null): LengthAwarePaginator
     {
         return User::query()
             ->with(['assignedVehicles'])
             ->where('role', UserRole::DRIVER->value)
             ->when($location, fn ($q) => $q->where('location', $location))
-            ->when($search, fn($q) => $q->where(fn($inner) => $inner
+            ->when($status === 'active', fn ($q) => $q->whereNull('deactivated_at'))
+            ->when($status === 'inactive', fn ($q) => $q->whereNotNull('deactivated_at'))
+            ->when($search, fn ($q) => $q->where(fn ($inner) => $inner
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")
                 ->orWhere('address', 'like', "%{$search}%")))
@@ -59,24 +61,24 @@ class DriverRepository implements DriverRepositoryInterface
             'license_expiration_date' => $data['license_expiration_date'] ?? null,
         ]);
 
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $driver->password = Hash::make($data['password']);
         }
 
-        if (!empty($data['avatar'])) {
+        if (! empty($data['avatar'])) {
             $this->deleteFile($driver->avatar);
             $driver->avatar = $this->storeFile($data['avatar'], 'avatars');
-        } elseif (!empty($data['remove_avatar'])) {
+        } elseif (! empty($data['remove_avatar'])) {
             $this->deleteFile($driver->avatar);
             $driver->avatar = null;
         }
 
-        if (!empty($data['license_front'])) {
+        if (! empty($data['license_front'])) {
             $this->deleteFile($driver->license_front);
             $driver->license_front = $this->storeFile($data['license_front'], 'licenses');
         }
 
-        if (!empty($data['license_back'])) {
+        if (! empty($data['license_back'])) {
             $this->deleteFile($driver->license_back);
             $driver->license_back = $this->storeFile($data['license_back'], 'licenses');
         }
@@ -97,7 +99,7 @@ class DriverRepository implements DriverRepositoryInterface
 
     private function storeFile(mixed $file, string $folder): ?string
     {
-        if (!$file) {
+        if (! $file) {
             return null;
         }
 

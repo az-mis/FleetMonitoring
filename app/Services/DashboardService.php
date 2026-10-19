@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Modules\Admin\Enums\UserRole;
+use Modules\FleetCard\Models\FleetCard;
 use Modules\Maintenance\Models\VehicleMaintenance;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleReport\Models\VehicleIssueReport;
-use Modules\FleetCard\Models\FleetCard;
 use Modules\VehicleRequest\Models\VehicleRequest;
 
 class DashboardService
@@ -44,6 +43,7 @@ class DashboardService
 
         $expiringLicenses = $loc(User::query())
             ->where('role', UserRole::DRIVER)
+            ->active()
             ->whereNotNull('license_expiration_date')
             ->whereDate('license_expiration_date', '<=', now()->addDays(30)->toDateString())
             ->count();
@@ -135,7 +135,7 @@ class DashboardService
         $vehiclesUnavailable = $onTripIds->merge($maintenanceIds)->merge($issueIds)->unique()->count();
         $vehiclesAvailable = max(0, $vehicleTotal - $vehiclesUnavailable);
 
-        $driverTotal = $loc(User::query())->where('role', UserRole::DRIVER)->count();
+        $driverTotal = $loc(User::query())->where('role', UserRole::DRIVER)->active()->count();
 
         $cards = [
             [
@@ -166,11 +166,11 @@ class DashboardService
             ],
             [
                 'key' => 'drivers',
-                'label' => 'Total Drivers',
+                'label' => 'Active Drivers',
                 'value' => $driverTotal,
                 'icon' => 'users',
                 'color' => 'violet',
-                'url' => route('driver.index', $location ? ['location' => $location] : []),
+                'url' => route('driver.index', array_filter(['location' => $location, 'status' => 'active'])),
             ],
         ];
 
@@ -229,13 +229,13 @@ class DashboardService
 
         if ($vehicles->isEmpty()) {
             return [
-                'score'    => 100,
-                'label'    => 'Good',
-                'color'    => 'emerald',
-                'good'     => 0,
-                'fair'     => 0,
-                'poor'     => 0,
-                'total'    => 0,
+                'score' => 100,
+                'label' => 'Good',
+                'color' => 'emerald',
+                'good' => 0,
+                'fair' => 0,
+                'poor' => 0,
+                'total' => 0,
             ];
         }
 
@@ -247,21 +247,25 @@ class DashboardService
         foreach ($vehicles as $v) {
             $h = $v->health_score;
             $scores[] = $h['score'];
-            if ($h['score'] >= 80) $good++;
-            elseif ($h['score'] >= 50) $fair++;
-            else $poor++;
+            if ($h['score'] >= 80) {
+                $good++;
+            } elseif ($h['score'] >= 50) {
+                $fair++;
+            } else {
+                $poor++;
+            }
         }
 
         $avgScore = (int) round(array_sum($scores) / count($scores));
 
         return [
-            'score'    => $avgScore,
-            'label'    => $avgScore >= 80 ? 'Good' : ($avgScore >= 50 ? 'Fair' : 'Needs Attention'),
-            'color'    => $avgScore >= 80 ? 'emerald' : ($avgScore >= 50 ? 'amber' : 'red'),
-            'good'     => $good,
-            'fair'     => $fair,
-            'poor'     => $poor,
-            'total'    => $vehicles->count(),
+            'score' => $avgScore,
+            'label' => $avgScore >= 80 ? 'Good' : ($avgScore >= 50 ? 'Fair' : 'Needs Attention'),
+            'color' => $avgScore >= 80 ? 'emerald' : ($avgScore >= 50 ? 'amber' : 'red'),
+            'good' => $good,
+            'fair' => $fair,
+            'poor' => $poor,
+            'total' => $vehicles->count(),
         ];
     }
 
@@ -282,7 +286,9 @@ class DashboardService
         foreach ($requests as $req) {
             $startDate = $req->travel_date ? $req->travel_date->format('Y-m-d') : null;
             $endDate = $req->travel_date_end ? $req->travel_date_end->format('Y-m-d') : $startDate;
-            if (!$startDate) continue;
+            if (! $startDate) {
+                continue;
+            }
 
             $events[] = [
                 'type' => $req->status, // 'approved' or 'pending'
@@ -304,7 +310,9 @@ class DashboardService
         foreach ($maintenances as $m) {
             $startDate = $m->scheduled_date ? $m->scheduled_date->format('Y-m-d') : null;
             $endDate = $m->scheduled_date_end ? $m->scheduled_date_end->format('Y-m-d') : $startDate;
-            if (!$startDate) continue;
+            if (! $startDate) {
+                continue;
+            }
 
             $events[] = [
                 'type' => 'maintenance',
@@ -418,9 +426,9 @@ class DashboardService
             ->when($location, fn ($q) => $q->where('location', $location))
             ->get(['initial_budget', 'current_balance']);
 
-        $totalAllocated  = (float) $cards->sum('initial_budget');
-        $totalRemaining  = (float) $cards->sum('current_balance');
-        $totalConsumed   = max(0.0, $totalAllocated - $totalRemaining);
+        $totalAllocated = (float) $cards->sum('initial_budget');
+        $totalRemaining = (float) $cards->sum('current_balance');
+        $totalConsumed = max(0.0, $totalAllocated - $totalRemaining);
         $consumedPercent = $totalAllocated > 0
             ? round(($totalConsumed / $totalAllocated) * 100, 1)
             : 0.0;
@@ -429,12 +437,12 @@ class DashboardService
             : 0.0;
 
         return [
-            'total_allocated'   => $totalAllocated,
-            'total_consumed'    => $totalConsumed,
-            'total_remaining'   => $totalRemaining,
-            'consumed_percent'  => $consumedPercent,
+            'total_allocated' => $totalAllocated,
+            'total_consumed' => $totalConsumed,
+            'total_remaining' => $totalRemaining,
+            'consumed_percent' => $consumedPercent,
             'remaining_percent' => $remainingPercent,
-            'card_count'        => $cards->count(),
+            'card_count' => $cards->count(),
         ];
     }
 }

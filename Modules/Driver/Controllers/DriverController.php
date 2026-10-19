@@ -29,13 +29,16 @@ class DriverController extends Controller
         $perPage = min(max((int) request('per_page', 10), 1), 100);
         $search = request('search');
         $location = auth()->user()?->role === UserRole::ADMIN ? auth()->user()->location : request('location');
+        $status = in_array(request('status'), ['active', 'inactive'], true) ? request('status') : null;
 
         return view('driver::index', [
             'drivers' => $this->driverService->list(
                 search: $search,
                 location: $location,
                 perPage: $perPage,
+                status: $status,
             ),
+            'statusFilter' => $status,
         ]);
     }
 
@@ -94,12 +97,47 @@ class DriverController extends Controller
 
         if ($hasRecords) {
             return redirect()->route('driver.index')
-                ->with('error', "{$driver->name} has trips or vehicle reports on record and cannot be deleted. These records must keep the driver's name.");
+                ->with('error', "{$driver->name} has trips or vehicle reports on record and cannot be deleted. These records must keep the driver's name. Deactivate the driver instead.");
         }
 
         $this->driverService->deleteDriver($driver);
 
         return redirect()->route('driver.index')->with('success', 'Driver deleted.');
+    }
+
+    public function deactivate(User $driver): RedirectResponse
+    {
+        Gate::authorize('manage-drivers');
+        $this->authorizeLocation($driver);
+
+        if (! $driver->isActive()) {
+            return back()->with('error', "{$driver->name} is already deactivated.");
+        }
+
+        $tickets = $this->driverService->upcomingTrips($driver);
+        if ($tickets->isNotEmpty()) {
+            return back()->with('error', "{$driver->name} still has upcoming trip ".$tickets->filter()->implode(', ')
+                .'. Choose another driver for these trips or cancel them first, then deactivate.');
+        }
+
+        $unassigned = $this->driverService->deactivate($driver);
+        $vehicleNote = match (true) {
+            $unassigned === 1 => ' 1 vehicle no longer has a default driver.',
+            $unassigned > 1 => " {$unassigned} vehicles no longer have a default driver.",
+            default => '',
+        };
+
+        return back()->with('success', "{$driver->name} deactivated. They can no longer sign in or be chosen for trips.".$vehicleNote);
+    }
+
+    public function reactivate(User $driver): RedirectResponse
+    {
+        Gate::authorize('manage-drivers');
+        $this->authorizeLocation($driver);
+
+        $this->driverService->reactivate($driver);
+
+        return back()->with('success', "{$driver->name} reactivated and can sign in again.");
     }
 
     private function authorizeLocation(User $driver): void
