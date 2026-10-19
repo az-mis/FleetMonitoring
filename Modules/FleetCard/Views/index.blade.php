@@ -110,8 +110,7 @@
             <div class="flex items-center justify-between">
                 <span class="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-500">Total Allocated Budget</span>
                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 text-xs shadow-2xs">
-                    💳
-                </span>
+                    <x-icon name="card" class="inline-block h-3.5 w-3.5 align-[-0.2em]" />                 </span>
             </div>
             <p class="mt-1.5 text-lg font-black text-gray-900">₱{{ number_format($totalInitialBudget, 2) }}</p>
             <p class="text-[0.625rem] text-gray-400">Total registered cards budget</p>
@@ -121,8 +120,7 @@
             <div class="flex items-center justify-between">
                 <span class="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-500">Total Expense Consumed</span>
                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 text-xs shadow-2xs">
-                    ⛽
-                </span>
+                    <x-icon name="fuel" class="inline-block h-3.5 w-3.5 align-[-0.2em]" />                 </span>
             </div>
             <p class="mt-1.5 text-lg font-black text-amber-700">₱{{ number_format($totalConsumed, 2) }}</p>
             <p class="text-[0.625rem] text-gray-400">Total fuel &amp; service deductions</p>
@@ -132,8 +130,7 @@
             <div class="flex items-center justify-between">
                 <span class="text-[0.6875rem] font-bold uppercase tracking-wider text-gray-500">Total Remaining Balance</span>
                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 text-xs shadow-2xs">
-                    ✅
-                </span>
+                    <x-icon name="check-circle" class="inline-block h-3.5 w-3.5 align-[-0.2em]" />                 </span>
             </div>
             <p class="mt-1.5 text-lg font-black text-emerald-700">₱{{ number_format($totalCurrentBalance, 2) }}</p>
             <p class="text-[0.625rem] text-gray-400">Total active funds available</p>
@@ -152,8 +149,7 @@
         @if($cards->isEmpty())
             <div class="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center">
                 <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2">
-                    💳
-                </div>
+                    <x-icon name="card" class="inline-block h-3.5 w-3.5 align-[-0.2em]" />                 </div>
                 <h3 class="text-xs font-bold text-gray-800">No Fleet Cards Registered Yet</h3>
                 <p class="mt-0.5 text-[0.6875rem] text-gray-500 max-w-sm mx-auto">Add a fleet card assigned to a vehicle with budget and price per liter.</p>
                 <button type="button" onclick="openAddCardModal()" class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0f5d33] px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-[#0b4726]">
@@ -183,7 +179,7 @@
                                     @else
                                         <span class="text-gray-400 italic">Unassigned</span>
                                     @endif
-                                    • <span class="font-semibold text-gray-600">📍 {{ $card->location }}</span>
+                                    • <span class="font-semibold text-gray-600"><x-icon name="pin" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> {{ $card->location }}</span>
                                 </p>
                             </div>
                             <span class="shrink-0 rounded-full border px-2 py-0.5 text-[0.625rem] font-bold {{ $badgeColor }}">
@@ -224,25 +220,23 @@
                         <div class="flex flex-wrap items-center justify-between gap-1.5 pt-2 border-t border-gray-100">
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <button type="button" onclick="openExpenseModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[0.6875rem] font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-2xs">
-                                    ⛽ Compute
+                                    <x-icon name="fuel" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> Compute
                                 </button>
                                 <button type="button" onclick="openRechargeModal({{ json_encode($card) }})" class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[0.6875rem] font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200 cursor-pointer">
-                                    💳 Top Up
+                                    <x-icon name="card" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> Top Up
                                 </button>
                                 <button type="button" onclick="filterHistoryByCard('{{ $card->id }}', @js($card->card_name))" class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[0.6875rem] font-bold text-slate-700 hover:bg-slate-200 transition border border-slate-200 cursor-pointer" title="View transaction history for this card">
-                                    📋 History
+                                    <x-icon name="history" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> History
                                 </button>
                             </div>
                             <div class="flex items-center gap-0.5">
                                 <button type="button" onclick="openEditCardModal({{ json_encode($card) }})" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition cursor-pointer" title="Edit Parameters" aria-label="Edit fleet card">
-                                    ✏️
-                                </button>
+                                    <x-icon name="pencil" class="inline-block h-3.5 w-3.5 align-[-0.2em]" />                                 </button>
                                 <form action="{{ route('fleet-cards.destroy', $card->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this fleet card?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer" title="Delete Card" aria-label="Delete fleet card">
-                                        🗑️
-                                    </button>
+                                        <x-icon name="trash" class="inline-block h-3.5 w-3.5 align-[-0.2em]" />                                     </button>
                                 </form>
                             </div>
                         </div>
@@ -278,19 +272,19 @@
                     All
                 </button>
                 <button type="button" @click="activeCategory = 'fuel'" :class="activeCategory === 'fuel' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
-                    ⛽ Fuel
+                    <x-icon name="fuel" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> Fuel
                 </button>
                 <button type="button" @click="activeCategory = 'service'" :class="activeCategory === 'service' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
-                    🛠️ Service
+                    <x-icon name="wrench" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> Service
                 </button>
                 <button type="button" @click="activeCategory = 'parking'" :class="activeCategory === 'parking' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
                     🅿️ Parking
                 </button>
                 <button type="button" @click="activeCategory = 'toll'" :class="activeCategory === 'toll' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
-                    🛣️ Toll
+                    <x-icon name="road" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> Toll
                 </button>
                 <button type="button" @click="activeCategory = 'topup'" :class="activeCategory === 'topup' ? 'bg-[#005a36] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="rounded-full px-2.5 py-0.5 text-[0.6875rem] font-bold transition cursor-pointer">
-                    💳 Top-ups
+                    <x-icon name="card" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> Top-ups
                 </button>
             </div>
         </div>
@@ -343,12 +337,12 @@
                                                 default   => 'bg-slate-50 text-slate-700 border-slate-200',
                                             };
                                             $catLabel = match($cat) {
-                                                'fuel'    => '⛽ Fuel',
-                                                'service' => '🛠️ Service',
+                                                'fuel'    => 'Fuel',
+                                                'service' => 'Service',
                                                 'parking' => '🅿️ Parking',
-                                                'toll'    => '🛣️ Toll',
-                                                'topup'   => '💳 Top-up',
-                                                default   => '📦 Other',
+                                                'toll'    => 'Toll',
+                                                'topup'   => 'Top-up',
+                                                default   => 'Other',
                                             };
                                             $isExpense = $log->distance_source !== 'recharge' && $log->consumed_amount > 0;
                                         @endphp
@@ -390,7 +384,7 @@
                                             <td class="px-2.5 py-1.5 whitespace-nowrap">
                                                 @if($log->liters_used)
                                                     <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-px text-[0.5625rem] font-black text-amber-800">
-                                                        ⛽ {{ number_format($log->liters_used, 2) }} L
+                                                        <x-icon name="fuel" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> {{ number_format($log->liters_used, 2) }} L
                                                     </span>
                                                 @else
                                                     <span class="text-gray-300">—</span>
@@ -453,7 +447,7 @@
 <div id="log-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
     <div role="dialog" aria-modal="true" aria-labelledby="log-detail-title" class="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 id="log-detail-title" class="text-base font-extrabold text-gray-900">📋 Log Entry Details</h3>
+            <h3 id="log-detail-title" class="text-base font-extrabold text-gray-900">Log Entry Details</h3>
             <button type="button" onclick="closeLogDetailModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         <div id="log-detail-body" class="space-y-2 text-xs text-gray-700"></div>
@@ -464,7 +458,7 @@
 <div id="edit-log-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
     <div role="dialog" aria-modal="true" aria-labelledby="edit-log-title" class="w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 id="edit-log-title" class="text-base font-extrabold text-gray-900">✏️ Edit Log Remarks</h3>
+            <h3 id="edit-log-title" class="text-base font-extrabold text-gray-900">Edit Log Remarks</h3>
             <button type="button" onclick="closeEditLogModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         <form id="edit-log-form" method="POST" class="space-y-3" onsubmit="this.querySelector('[type=submit]').disabled = true">
@@ -632,11 +626,11 @@
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Expense Category</label>
                 <select name="category" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs font-semibold focus:border-emerald-500 focus:outline-none">
-                    <option value="fuel">⛽ Fuel (Gasoline / Diesel)</option>
-                    <option value="service">🛠️ PMS / Service</option>
+                    <option value="fuel">Fuel (Gasoline / Diesel)</option>
+                    <option value="service">PMS / Service</option>
                     <option value="parking">🅿️ Parking Fee</option>
-                    <option value="toll">🛣️ Toll Fee</option>
-                    <option value="other">📦 Other Expense</option>
+                    <option value="toll">Toll Fee</option>
+                    <option value="other">Other Expense</option>
                 </select>
             </div>
 
@@ -759,7 +753,7 @@
                                         </div>
                                         @if($fuelUsed > 0)
                                             <span class="font-black text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
-                                                ⛽ {{ number_format($fuelUsed, 2) }} L
+                                                <x-icon name="fuel" class="inline-block h-3.5 w-3.5 align-[-0.2em]" /> {{ number_format($fuelUsed, 2) }} L
                                             </span>
                                         @else
                                             <span class="font-black text-xs text-emerald-700 shrink-0">{{ number_format($dist, 1) }} km</span>
@@ -803,7 +797,7 @@
             {{-- LIVE CALCULATION BOX --}}
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-3">
                 <div class="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-emerald-900 border-b border-emerald-200/80 pb-1.5">
-                    <span>⚡ Live Computation Summary</span>
+                    <span>Live Computation Summary</span>
                     <span id="live-rate-badge" class="rounded bg-white px-2 py-0.5 text-[0.625rem] text-emerald-800 shadow-2xs">₱0/km</span>
                 </div>
 
@@ -943,7 +937,7 @@
             <div id="edit-topup-container" class="rounded-xl border border-blue-100 bg-blue-50/60 p-3 space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-blue-950 flex items-center gap-1.5">
-                        <span>💳 Top-Up Entries</span>
+                        <span>Top-Up Entries</span>
                     </span>
                     <span id="edit-topup-count" class="text-[0.625rem] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">0 entries</span>
                 </div>
@@ -1544,7 +1538,7 @@ function filterHistoryByCard(cardId, cardName) {
     const badge = document.getElementById('history-card-filter-badge');
     const label = document.getElementById('history-card-filter-label');
     if (badge && label) {
-        label.innerText = '📋 Showing: ' + cardName;
+        label.innerText = 'Showing: ' + cardName;
         badge.classList.remove('hidden');
     }
     // Scroll to history section

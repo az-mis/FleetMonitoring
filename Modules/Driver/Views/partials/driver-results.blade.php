@@ -237,7 +237,7 @@
                     >
                         <div class="flex items-center justify-between mb-2">
                             <p class="text-[0.625rem] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                                <span>🚗</span> ASSIGNED VEHICLES
+                                <x-icon name="car" class="h-3.5 w-3.5" /> ASSIGNED VEHICLES
                                 @if ($assignedVehicles->isNotEmpty())
                                     <span class="inline-flex items-center justify-center rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[0.5625rem] font-extrabold text-slate-700">
                                         {{ $assignedVehicles->count() }}

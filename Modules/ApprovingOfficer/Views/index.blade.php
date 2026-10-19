@@ -259,6 +259,8 @@
         document.querySelectorAll('.ticket-select-form').forEach(form => {
             const max = parseInt(form.dataset.max, 10);
             const boxes = [...form.querySelectorAll('.ticket-check')];
+            // An officer with no signatories yet has nothing to pick
+            if (!boxes.length) return;
             const save = form.querySelector('.ticket-save');
             const msg = form.querySelector('.ticket-msg');
             const swapBtn = form.querySelector('.ticket-swap');

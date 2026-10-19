@@ -1,242 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Check Request Status</title>
-    @include('partials.text-size')
-    @vite(['resources/css/app.css','resources/js/app.js'])
-</head>
-<body class="relative min-h-screen bg-[#082b16] text-white antialiased">
-    {{-- Fixed Full-screen Background --}}
-    <div class="fixed inset-0 -z-10 bg-cover bg-center bg-fixed" style="background-image:linear-gradient(rgba(5,38,18,.68),rgba(5,38,18,.78)),url('{{ asset('FleetMS-bg.jpg') }}');"></div>
+<x-public-shell title="Check Request Status" active="status" width="max-w-xl">
+    @php
+        $status = $requestRecord?->status;
+        // A declined request that had a ticket number was an approved trip that was later cancelled
+        $banner = match ($status) {
+            'approved' => ['tone' => 'emerald', 'title' => 'Request approved',
+                'text' => 'Your trip is approved. Open the printable trip ticket below.',
+                'icon' => '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/>'],
+            'declined' => ['tone' => 'rose', 'title' => $requestRecord->trip_ticket_number ? 'Trip cancelled' : 'Request declined',
+                'text' => $requestRecord->decline_reason ? 'Reason: '.$requestRecord->decline_reason : 'This travel request was declined by the administrator.',
+                'icon' => '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>'],
+            null => null,
+            default => ['tone' => 'amber', 'title' => 'Pending review',
+                'text' => 'Your request is waiting for an administrator to review it.',
+                'icon' => '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'],
+        };
+        $tones = [
+            'emerald' => 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300',
+            'rose' => 'border-rose-400/30 bg-rose-500/10 text-rose-300',
+            'amber' => 'border-amber-400/30 bg-amber-500/10 text-amber-300',
+        ];
+    @endphp
 
-<main class="flex min-h-screen items-start justify-center px-4 pb-10 pt-8 sm:px-8 sm:pt-28">
-    <div class="w-full max-w-xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm">
-        <nav class="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/15 pb-3 text-[0.6875rem] text-emerald-100/75">
-            <a href="{{ route('request-vehicle') }}" class="inline-flex min-h-8 items-center hover:text-white">← Request Form</a>
-            <span class="hidden rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 font-semibold uppercase tracking-wide text-emerald-300 sm:inline-block"><span aria-hidden="true">⌕</span> Status Portal</span>
-            <a href="{{ route('login') }}" class="inline-flex min-h-8 items-center hover:text-white">Staff Login →</a>
-        </nav>
-        <div class="mb-5">
-            <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="mb-4 h-11 w-11 rounded-full bg-white object-contain p-1">
-            <h1 class="text-xl font-bold">Check Request Status</h1>
-            <p class="mt-1 text-xs leading-5 text-emerald-100/70">Enter your 7-character reference code to view real-time trip approval, assigned driver details, and access your printable Trip Ticket.</p>
-        </div>
-        <form method="GET" action="{{ route('check-status') }}" class="flex gap-2">
+    <div class="public-card p-6 sm:p-8">
+        <h1 class="text-2xl font-bold tracking-tight">Check request status</h1>
+        <p class="mt-1.5 text-sm leading-6 text-emerald-50/60">Enter the 7-character reference code you received when you submitted your request.</p>
+
+        <form method="GET" action="{{ route('check-status') }}" class="mt-6 flex flex-col gap-2 sm:flex-row">
+            <label for="code" class="sr-only">Reference code</label>
             <div class="relative min-w-0 flex-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-300/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="7"/>
-                    <path d="m21 21-4.3-4.3"/>
-                </svg>
+                <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-200/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                 <input
+                    id="code"
                     name="code"
-                    aria-label="Reference code"
                     value="{{ request('code') }}"
                     maxlength="7"
                     minlength="7"
                     required
-                    class="w-full rounded-xl border border-emerald-200/25 bg-[#03150a]/90 py-3 pl-10 pr-4 text-xs font-mono font-bold uppercase tracking-widest text-white placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-                    placeholder="WUF8CEW"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                    placeholder="e.g. 7K4RXWM"
+                    class="h-12 w-full rounded-xl border border-white/15 bg-black/25 pl-10 pr-4 font-mono text-base font-semibold uppercase tracking-[0.25em] text-white placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-emerald-50/35 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                 >
             </div>
-            <button type="submit" class="rounded-xl bg-[#008751] hover:bg-[#007345] px-5 py-3 text-xs font-bold text-white shadow-lg transition cursor-pointer shrink-0">
-                Check Status
+            <button type="submit" class="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500 px-6 text-sm font-bold text-[#032611] shadow-lg shadow-emerald-950/40 transition hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                Check status
             </button>
         </form>
 
         @if (session('request_submitted'))
-            <div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-200">
-                <div class="min-w-0">
-                    Request submitted successfully. Save your reference code:
-                    <strong class="font-mono text-sm text-white tracking-widest block sm:inline sm:ml-1 mt-0.5 sm:mt-0" id="submitted-code-val">{{ session('request_submitted') }}</strong>
+            <div class="mt-5 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4" role="status">
+                <p class="text-sm font-semibold text-emerald-200">Request submitted. Save your reference code:</p>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <strong class="font-mono text-2xl tracking-[0.25em] text-white">{{ session('request_submitted') }}</strong>
+                    <button type="button" onclick="copyCode('{{ session('request_submitted') }}')" class="inline-flex h-10 items-center gap-1.5 rounded-lg bg-white/10 px-3.5 text-[0.8125rem] font-semibold text-white ring-1 ring-inset ring-white/15 transition hover:bg-white/15">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        <span id="copy-btn-txt">Copy code</span>
+                    </button>
                 </div>
-                <button
-                    type="button"
-                    onclick="copyCode('{{ session('request_submitted') }}')"
-                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[0.6875rem] font-bold text-white shadow-xs hover:bg-emerald-500 transition cursor-pointer"
-                    id="copy-btn-el"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                    </svg>
-                    <span id="copy-btn-txt">Copy Code</span>
-                </button>
             </div>
-        @elseif (request('code') && !$requestRecord)
-            <div class="mt-4 rounded-xl border border-red-300/25 bg-red-500/10 p-3.5 text-xs text-red-200">
-                We couldn't find a request with reference code: <strong>{{ request('code') }}</strong>.
+        @elseif (request('code') && ! $requestRecord)
+            <div class="mt-5 rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200" role="alert">
+                We couldn't find a request with reference code <strong class="font-mono tracking-widest text-white">{{ request('code') }}</strong>. Check the code and try again.
             </div>
         @elseif ($requestRecord)
-            <div class="mt-4 space-y-3">
-                {{-- Status Banner --}}
-                @if ($requestRecord->status === 'approved')
-                    <div class="rounded-xl border border-emerald-500/30 bg-[#052b14]/80 p-3.5 flex items-start gap-3">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                <polyline points="22 4 12 14.01 9 11.01"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xs font-extrabold text-emerald-400 tracking-wide">Request Approved</h3>
-                            <p class="mt-0.5 text-[0.6875rem] text-emerald-100/70">Your trip has been approved. You can now view assigned driver details and access your printable Trip Ticket below.</p>
-                        </div>
-                    </div>
-                @elseif ($requestRecord->status === 'declined')
-                    <div class="rounded-xl border border-rose-500/30 bg-[#380b12]/80 p-3.5 flex items-start gap-3">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500/20 text-rose-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="15" y1="9" x2="9" y2="15"/>
-                                <line x1="9" y1="9" x2="15" y2="15"/>
-                            </svg>
-                        </div>
-                        <div>
-                            {{-- A declined request that had a ticket number was an approved trip that was later cancelled --}}
-                            <h3 class="text-xs font-extrabold text-rose-400 tracking-wide">{{ $requestRecord->trip_ticket_number ? 'Trip Cancelled' : 'Request Declined' }}</h3>
-                            <p class="mt-0.5 text-[0.6875rem] text-rose-100/70">{{ $requestRecord->decline_reason ? 'Reason: ' . $requestRecord->decline_reason : 'This travel request was declined by the administrator.' }}</p>
-                        </div>
-                    </div>
-                @else
-                    <div class="rounded-xl border border-amber-500/30 bg-[#382606]/80 p-3.5 flex items-start gap-3">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12 6 12 12 16 14"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xs font-extrabold text-amber-400 tracking-wide">Pending Review</h3>
-                            <p class="mt-0.5 text-[0.6875rem] text-amber-100/70">Your request is in the queue awaiting review and vehicle assignment.</p>
-                        </div>
-                    </div>
-                @endif
-
-                {{-- 2-Column Details Grid Card --}}
-                <div class="rounded-2xl border border-emerald-400/20 bg-[#031b0c]/80 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {{-- Vehicle --}}
-                    <div class="flex items-start gap-2.5">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-950 text-emerald-400 ring-1 ring-emerald-500/20 mt-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M10 17h4V5H2v12h3"/>
-                                <path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/>
-                                <circle cx="7" cy="17" r="2"/>
-                                <circle cx="17" cy="17" r="2"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">VEHICLE</p>
-                            <p class="text-xs font-bold text-white mt-0.5 break-words">
-                                {{ $requestRecord->vehicle?->plate_number ? $requestRecord->vehicle->plate_number . ' · ' . $requestRecord->vehicle->brand . ' ' . $requestRecord->vehicle->model : 'Pending Assignment' }}
-                            </p>
-                        </div>
-                    </div>
-
-                    {{-- Destination --}}
-                    <div class="flex items-start gap-2.5">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-950 text-emerald-400 ring-1 ring-emerald-500/20 mt-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">DESTINATION</p>
-                            <p class="text-xs font-bold text-white mt-0.5 break-words">{{ str_replace(';;', ', ', (string) $requestRecord->destination) }}</p>
-                        </div>
-                    </div>
-
-                    {{-- Travel Date --}}
-                    <div class="flex items-start gap-2.5">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-950 text-emerald-400 ring-1 ring-emerald-500/20 mt-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">TRAVEL DATE</p>
-                            <p class="text-xs font-bold text-white mt-0.5 truncate">
-                                {{ $requestRecord->travel_date->format('M j, Y') }}
-                                {{ $requestRecord->travel_date_end ? ' – ' . $requestRecord->travel_date_end->format('M j, Y') : '' }}
-                            </p>
-                        </div>
-                    </div>
-
-                    {{-- Office / Section --}}
-                    <div class="flex items-start gap-2.5">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-950 text-emerald-400 ring-1 ring-emerald-500/20 mt-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
-                                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
-                                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
-                                <path d="M10 6h4"/>
-                                <path d="M10 10h4"/>
-                                <path d="M10 14h4"/>
-                                <path d="M10 18h4"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">OFFICE / SECTION</p>
-                            <p class="text-xs font-bold text-white mt-0.5 break-words">
-                                {{ $requestRecord->requester_office ?: $requestRecord->location }}
-                            </p>
-                        </div>
-                    </div>
-
-                    {{-- Requester --}}
-                    <div class="flex items-start gap-2.5 sm:col-span-2 border-t border-emerald-500/10 pt-3">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-950 text-emerald-400 ring-1 ring-emerald-500/20 mt-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-300/80">REQUESTER</p>
-                            <p class="text-xs font-bold text-white mt-0.5 break-words">{{ $requestRecord->requester_name }}</p>
-                        </div>
+            <div class="mt-6 space-y-4">
+                <div class="flex items-start gap-3 rounded-xl border p-4 {{ $tones[$banner['tone']] }}">
+                    <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $banner['icon'] !!}</svg>
+                    <div>
+                        <h2 class="text-sm font-bold">{{ $banner['title'] }}</h2>
+                        <p class="mt-0.5 text-sm leading-6 text-white/75">{{ $banner['text'] }}</p>
                     </div>
                 </div>
 
-                {{-- Printable Trip Ticket Button --}}
-                @if ($requestRecord->status === 'approved')
-                    <div class="pt-1">
-                        <a href="{{ \Illuminate\Support\Facades\URL::signedRoute('trip-ticket', $requestRecord) }}" target="_blank" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-xs font-bold text-white shadow-lg hover:from-emerald-500 hover:to-green-500 transition cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 6 2 18 2 18 9"/>
-                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                                <rect width="12" height="8" x="6" y="14"/>
-                            </svg>
-                            <span>Open Printable Trip Ticket →</span>
-                        </a>
-                    </div>
+                <dl class="grid grid-cols-1 gap-x-6 gap-y-4 rounded-xl border border-white/10 bg-black/15 p-5 sm:grid-cols-2">
+                    @foreach ([
+                        'Reference' => $requestRecord->reference_code,
+                        'Trip ticket' => $requestRecord->trip_ticket_number ?: 'Issued once approved',
+                        'Vehicle' => $requestRecord->vehicle?->plate_number ? $requestRecord->vehicle->plate_number.' · '.$requestRecord->vehicle->brand.' '.$requestRecord->vehicle->model : 'Pending assignment',
+                        'Travel date' => $requestRecord->travel_date->format('M j, Y').($requestRecord->travel_date_end && ! $requestRecord->travel_date_end->isSameDay($requestRecord->travel_date) ? ' – '.$requestRecord->travel_date_end->format('M j, Y') : ''),
+                        'Destination' => str_replace(';;', ', ', (string) $requestRecord->destination),
+                        'Office / section' => $requestRecord->requester_office ?: $requestRecord->location,
+                        'Requester' => $requestRecord->requester_name,
+                    ] as $label => $value)
+                        <div class="min-w-0 {{ $label === 'Destination' ? 'sm:col-span-2' : '' }}">
+                            <dt class="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-emerald-200/55">{{ $label }}</dt>
+                            <dd class="mt-1 break-words text-sm font-semibold text-white">{{ $value }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+
+                @if ($status === 'approved')
+                    <a href="{{ \Illuminate\Support\Facades\URL::signedRoute('trip-ticket', $requestRecord) }}" target="_blank" rel="noopener" class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-bold text-[#032611] shadow-lg shadow-emerald-950/40 transition hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                        Open printable trip ticket
+                    </a>
                 @endif
             </div>
         @endif
-        <div class="mt-4 rounded-xl border border-emerald-200/15 bg-[#062512]/70 p-3">
-            <h2 class="text-xs font-bold text-white">Where do I find my reference code?</h2>
-            <p class="mt-1 text-[0.6875rem] leading-4 text-emerald-100/60">Your 7-character code was generated when you submitted the vehicle request form (e.g. 7K4RXWM).</p>
-        </div>
-        <footer class="mt-4 border-t border-emerald-200/15 pt-3 text-center text-[0.6875rem] text-emerald-100/55">♧ Official Government Fleet Management System<br><span class="text-[0.5625rem]">© {{ date('Y') }} {{ config('app.name', 'Fleet Monitoring') }}</span></footer>
+
+        @unless ($requestRecord || session('request_submitted'))
+            <div class="mt-6 flex items-start gap-3 border-t border-white/10 pt-5 text-[0.8125rem] leading-5 text-emerald-50/55">
+                <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-300/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p>Your code was shown when you submitted the request form. Lost it? Ask the fleet office at your station and give them your name and travel date.</p>
+            </div>
+        @endunless
     </div>
-</main>
-<script>
-    function copyCode(code) {
-        navigator.clipboard.writeText(code).then(() => {
-            const txt = document.getElementById('copy-btn-txt');
-            if (txt) {
-                txt.textContent = 'Copied!';
-                setTimeout(() => { txt.textContent = 'Copy Code'; }, 2000);
+
+    <x-slot:scripts>
+        <script>
+            function copyCode(code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    const txt = document.getElementById('copy-btn-txt');
+                    if (txt) {
+                        txt.textContent = 'Copied!';
+                        setTimeout(() => { txt.textContent = 'Copy code'; }, 2000);
+                    }
+                }).catch(() => {
+                    alert('Code: ' + code);
+                });
             }
-        }).catch(() => {
-            alert('Code: ' + code);
-        });
-    }
-</script>
-</body>
-</html>
+        </script>
+    </x-slot:scripts>
+</x-public-shell>

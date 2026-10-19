@@ -164,7 +164,7 @@
                                 {{-- Destination & Purpose --}}
                                 <td class="py-3 px-3">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="text-red-500 text-xs shrink-0">📍</span>
+                                        <span class="text-red-500 text-xs shrink-0"><x-icon name="pin" class="inline-block h-4 w-4 align-[-0.2em]" /></span>
                                         <span class="font-extrabold text-slate-900">{{ $trip['destination'] }}</span>
                                     </div>
                                     @if($trip['purpose'])
@@ -290,7 +290,7 @@
                             <div>
                                 <p class="text-[0.5625rem] font-black uppercase tracking-wider text-emerald-800">DESTINATION</p>
                                 <div class="mt-0.5 flex items-center gap-1.5">
-                                    <span class="text-red-500 text-sm">📍</span>
+                                    <span class="text-red-500 text-sm"><x-icon name="pin" class="inline-block h-4 w-4 align-[-0.2em]" /></span>
                                     <h4 class="text-sm font-black text-emerald-950" x-text="selectedTrip.destination"></h4>
                                 </div>
                             </div>

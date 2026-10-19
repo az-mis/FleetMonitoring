@@ -105,9 +105,9 @@ class ReportService
             }
         }
 
-        arsort($townCounts);
+        // Most visited first; ties in alphabetical order
+        uksort($townCounts, fn ($a, $b) => [$townCounts[$b], $a] <=> [$townCounts[$a], $b]);
         $topTowns = array_slice($townCounts, 0, $limit, true);
-        ksort($topTowns);
 
         return ['labels' => array_keys($topTowns), 'data' => array_values($topTowns)];
     }

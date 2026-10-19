@@ -1,51 +1,42 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+<x-public-shell :title="View::yieldContent('title', config('app.name', 'Fleet Monitoring'))" active="login" width="max-w-4xl" :center="true">
+    @php
+        $features = [
+            ['Role-based access', 'Separate workflows for super admins, admins and drivers.', '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>'],
+            ['Live availability', 'Vehicle assignments and a calendar of free dates.', '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'],
+            ['Printable trip tickets', 'Official travel authorizations, ready to print.', '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>'],
+        ];
+    @endphp
 
-    <title>@yield('title', config('app.name', 'Fleet Monitoring'))</title>
-    @include('partials.text-size')
+    <div class="public-card overflow-hidden">
+        <div class="grid md:grid-cols-[1fr_1.05fr]">
+            <section class="relative hidden flex-col justify-between overflow-hidden border-r border-white/10 bg-gradient-to-br from-emerald-500/15 via-transparent to-transparent p-9 md:flex">
+                <div>
+                    <h2 class="text-2xl font-extrabold leading-tight tracking-tight">Smart fleet operations<br><span class="text-emerald-300">&amp; monitoring</span></h2>
+                    <p class="mt-3 max-w-sm text-sm leading-6 text-emerald-50/65">Vehicles, drivers and official trips for the whole region, in one secure place.</p>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="antialiased bg-[#082b16] text-white min-h-screen">
-    <main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-cover bg-center px-4 py-8 sm:px-8"
-          style="background-image: linear-gradient(rgba(5, 38, 18, .70), rgba(5, 38, 18, .78)), url('{{ asset('FleetMS-bg.jpg') }}');">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(93,160,94,.22),transparent_45%)]"></div>
+                    <ul class="mt-8 space-y-5">
+                        @foreach ($features as [$title, $text, $icon])
+                            <li class="flex items-start gap-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-300/15">
+                                    <svg class="h-[1.125rem] w-[1.125rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icon !!}</svg>
+                                </span>
+                                <span>
+                                    <span class="block text-sm font-semibold">{{ $title }}</span>
+                                    <span class="mt-0.5 block text-[0.8125rem] leading-5 text-emerald-50/55">{{ $text }}</span>
+                                </span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+                <p class="mt-10 flex items-center gap-2 text-xs text-emerald-50/45">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="11" x="4" y="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                    Encrypted session · All activity is logged
+                </p>
+            </section>
 
-        <div class="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 shadow-2xl shadow-black/40 backdrop-blur-sm">
-            <div class="grid md:grid-cols-[1.05fr_.95fr]">
-                <section class="hidden border-r border-emerald-200/15 bg-[#092f18]/75 p-6 sm:p-8 md:flex md:flex-col md:justify-between lg:p-9">
-                    <div>
-                        <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-300">
-                            <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></span>
-                            Fleet Management System
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="h-11 w-11 rounded-full bg-white object-contain p-1">
-                            <h2 class="text-xl font-bold leading-tight text-white">Smart Fleet Operations &amp;<br>Monitoring</h2>
-                        </div>
-                        <p class="mt-3 max-w-md text-xs leading-5 text-emerald-100/75">A unified, secure platform for tracking vehicles, assigning drivers, and managing trip requests in real time.</p>
-
-                        <div class="mt-5 space-y-2">
-                            @foreach ([['♢', 'Role-Based Security', 'Super admin, admin & driver workflows'], ['▣', 'Real-Time Allocation', 'Permanent assignments & calendar availability'], ['▤', 'Trip Ticket Generation', 'Instant printable travel authorizations']] as $feature)
-                                <div class="flex items-center gap-2 rounded-xl border border-emerald-300/10 bg-[#062512]/75 px-2.5 py-2">
-                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-base text-emerald-300" aria-hidden="true">{{ $feature[0] }}</span>
-                                    <div><p class="text-xs font-semibold text-white">{{ $feature[1] }}</p><p class="text-[0.625rem] text-emerald-100/60">{{ $feature[2] }}</p></div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="border-t border-emerald-200/15 pt-4 text-[0.625rem] text-emerald-100/55">Authorized Agency Personnel Only &nbsp;•&nbsp; All activities logged</div>
-                </section>
-
-                <section class="p-6 sm:p-8 lg:p-9">
-                    @yield('content')
-                </section>
-            </div>
+            <section class="p-6 sm:p-9">
+                @yield('content')
+            </section>
         </div>
-    </main>
-</body>
-</html>
+    </div>
+</x-public-shell>

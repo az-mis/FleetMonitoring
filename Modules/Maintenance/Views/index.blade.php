@@ -360,7 +360,7 @@
             {{-- Notification Auto-Edit Prompt Banner --}}
             <div id="status-prompt-banner" class="hidden rounded-xl border border-blue-200 bg-blue-50/90 p-3 text-xs text-blue-900 shadow-2xs space-y-1">
                 <div class="flex items-center gap-1.5 font-extrabold text-blue-900">
-                    <span>💡 Maintenance Action Required:</span>
+                    <span>Maintenance Action Required:</span>
                 </div>
                 <p class="text-[0.71875rem] text-blue-800">This maintenance is scheduled for today. Update the <b>Status</b> below to <span class="font-bold text-blue-950 underline">Ongoing</span> if servicing has started, or <span class="font-bold text-emerald-950 underline">Completed</span> if finished.</p>
             </div>

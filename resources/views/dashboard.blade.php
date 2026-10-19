@@ -529,7 +529,7 @@
                             <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Requests per Month</h3>
                             <a href="{{ route('reports.index', $locationParam) }}" class="text-[0.625rem] font-bold text-emerald-700 hover:underline">Full report →</a>
                         </div>
-                        <div class="relative w-full"><canvas id="chart-requests-month" height="130"></canvas></div>
+                        <div class="relative h-48 w-full"><canvas id="chart-requests-month" aria-label="Requests per month for the last six months" role="img"></canvas></div>
                     </section>
 
                     <section class="min-w-0 rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
@@ -537,7 +537,28 @@
                             <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">Top Destinations</h3>
                             <a href="{{ route('reports.index', $locationParam) }}" class="text-[0.625rem] font-bold text-emerald-700 hover:underline">Full report →</a>
                         </div>
-                        <div class="relative w-full"><canvas id="chart-destinations" height="130"></canvas></div>
+                        {{-- A ranked list, not a chart: place names are long and every one must stay readable --}}
+                        @php $maxDestination = max(1, ...($topDestinations['data'] ?: [1])); @endphp
+                        @if (count($topDestinations['labels']))
+                            <ol class="space-y-2.5">
+                                @foreach ($topDestinations['labels'] as $i => $destination)
+                                    <li>
+                                        <div class="flex items-baseline justify-between gap-3 text-xs">
+                                            <span class="flex min-w-0 items-baseline gap-2">
+                                                <span class="w-4 shrink-0 text-right font-bold text-slate-400">{{ $i + 1 }}</span>
+                                                <span class="truncate font-semibold text-slate-700" title="{{ $destination }}">{{ $destination }}</span>
+                                            </span>
+                                            <span class="shrink-0 font-bold tabular-nums text-slate-900">{{ $topDestinations['data'][$i] }} {{ Str::plural('trip', $topDestinations['data'][$i]) }}</span>
+                                        </div>
+                                        <div class="ml-6 mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                                            <div class="h-full rounded-full bg-blue-500" style="width: {{ round($topDestinations['data'][$i] / $maxDestination * 100) }}%"></div>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        @else
+                            <p class="py-6 text-center text-xs text-slate-400">No destinations recorded yet.</p>
+                        @endif
                     </section>
                 </div>
 
@@ -578,28 +599,25 @@
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     if (!window.Chart) return;
-                    const opts = { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
+                    // Labels arrive as "May 2026"; the axis shows "May" and the tooltip the full month
+                    const monthLabels = @json($requestsPerMonth['labels']);
                     new window.Chart(document.getElementById('chart-requests-month'), {
-                        type: 'line',
-                        data: {
-                            labels: @json($requestsPerMonth['labels']),
-                            datasets: [{ data: @json($requestsPerMonth['data']), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }],
-                        },
-                        options: opts,
-                    });
-                    new window.Chart(document.getElementById('chart-destinations'), {
                         type: 'bar',
                         data: {
-                            labels: @json($topDestinations['labels']),
-                            datasets: [{ data: @json($topDestinations['data']), backgroundColor: '#3b82f6' }],
+                            labels: monthLabels,
+                            datasets: [{ label: 'Requests', data: @json($requestsPerMonth['data']), backgroundColor: '#10b981', hoverBackgroundColor: '#059669', borderRadius: 6, maxBarThickness: 28 }],
                         },
                         options: {
                             responsive: true,
-                            indexAxis: 'y',
+                            maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
                             scales: {
-                                x: { beginAtZero: true, ticks: { stepSize: 1 } }
-                            }
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { autoSkip: false, maxRotation: 0, callback: (value, index) => monthLabels[index].split(' ')[0] },
+                                },
+                                y: { beginAtZero: true, grace: '10%', ticks: { precision: 0 }, border: { display: false } },
+                            },
                         },
                     });
                 });

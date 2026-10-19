@@ -1,17 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fleet Management System</title>@vite(['resources/css/app.css','resources/js/app.js'])</head>
-<body class="min-h-screen bg-[#082b16] text-white antialiased">
-<main class="flex min-h-screen items-center justify-center bg-cover bg-center p-6" style="background-image:linear-gradient(rgba(5,38,18,.72),rgba(5,38,18,.82)),url('{{ asset('FleetMS-bg.jpg') }}')">
-    <div class="w-full max-w-4xl rounded-3xl border border-emerald-300/30 bg-[#0a351b]/90 p-8 text-center shadow-2xl backdrop-blur-sm sm:p-12">
-        <img src="{{ $appLogoUrl ?? asset('da-logo.png') }}" alt="Agency logo" class="mx-auto h-16 w-16 rounded-full bg-white object-contain p-1">
-        <span class="mt-5 inline-flex rounded-full border border-emerald-400/40 bg-emerald-950/60 px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-300">Fleet Management System</span>
-        <h1 class="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl">Smart Fleet Operations<br><span class="text-emerald-300">&amp; Monitoring</span></h1>
-        <p class="mx-auto mt-4 max-w-2xl text-sm leading-6 text-emerald-100/75">A unified, secure platform for tracking vehicles, assigning drivers, and managing official trip requests in real time.</p>
-        <div class="mt-8 flex flex-wrap justify-center gap-3"><a href="{{ route('login') }}" class="rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 px-5 py-3 text-sm font-bold hover:from-emerald-400 hover:to-green-400">Staff Login →</a><a href="{{ route('request-vehicle') }}" class="rounded-xl border border-emerald-300/30 bg-emerald-950/50 px-5 py-3 text-sm font-semibold text-emerald-100 hover:bg-emerald-900/60">Request a Vehicle</a><a href="{{ route('check-status') }}" class="rounded-xl border border-emerald-300/30 bg-emerald-950/50 px-5 py-3 text-sm font-semibold text-emerald-100 hover:bg-emerald-900/60">Check Request Status</a></div>
-        <div class="mt-10 grid gap-3 text-left sm:grid-cols-3"><div class="rounded-xl border border-emerald-300/10 bg-[#062512]/70 p-4"><p class="font-semibold">Role-Based Security</p><p class="mt-1 text-xs text-emerald-100/60">Secure workflows for admins and drivers.</p></div><div class="rounded-xl border border-emerald-300/10 bg-[#062512]/70 p-4"><p class="font-semibold">Real-Time Allocation</p><p class="mt-1 text-xs text-emerald-100/60">Manage vehicles, drivers, and availability.</p></div><div class="rounded-xl border border-emerald-300/10 bg-[#062512]/70 p-4"><p class="font-semibold">Trip Ticket Generation</p><p class="mt-1 text-xs text-emerald-100/60">Printable official travel authorizations.</p></div></div>
-        <p class="mt-8 text-[0.625rem] text-emerald-100/50">Authorized Agency Personnel Only · All activities logged</p>
-    </div>
-</main>
-</body>
-</html>
+<x-public-shell title="Fleet Management System" active="home" width="max-w-5xl" :center="true">
+    @php
+        $actions = [
+            ['title' => 'Request a Vehicle', 'text' => 'Book an official vehicle for travel. No account needed.', 'url' => route('request-vehicle'), 'primary' => true,
+                'icon' => '<path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/>'],
+            ['title' => 'Check Request Status', 'text' => 'Track your request and print your trip ticket.', 'url' => route('check-status'), 'primary' => false,
+                'icon' => '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'],
+            ['title' => 'Staff Login', 'text' => 'For administrators and drivers.', 'url' => route('login'), 'primary' => false,
+                'icon' => '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/>'],
+        ];
+        $features = [
+            ['Role-based access', 'Separate, secure workflows for admins and drivers.', '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>'],
+            ['Live availability', 'See vehicles and drivers free on each date.', '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'],
+            ['Printable trip tickets', 'Official travel authorizations in one click.', '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>'],
+        ];
+    @endphp
+
+    <section class="text-center">
+        <span class="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-emerald-200">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
+            Fleet Management System
+        </span>
+        <h1 class="mx-auto mt-5 max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
+            Smart fleet operations <span class="bg-gradient-to-r from-emerald-300 to-lime-200 bg-clip-text text-transparent">&amp; monitoring</span>
+        </h1>
+        <p class="mx-auto mt-5 max-w-2xl text-pretty text-base leading-7 text-emerald-50/70">
+            One place to request official vehicles, assign drivers and track every trip in real time.
+        </p>
+    </section>
+
+    <section class="mt-10 grid grid-cols-1 gap-3 sm:mt-12 md:grid-cols-3" aria-label="Get started">
+        @foreach ($actions as $action)
+            <a href="{{ $action['url'] }}"
+               class="group flex items-start gap-4 rounded-2xl p-5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 {{ $action['primary'] ? 'bg-emerald-500 text-[#032611] shadow-xl shadow-emerald-950/40 hover:bg-emerald-400' : 'public-card hover:border-emerald-300/30 hover:bg-[#0a3019]/90' }}">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl {{ $action['primary'] ? 'bg-[#032611]/10' : 'bg-emerald-400/10 text-emerald-300' }}">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $action['icon'] !!}</svg>
+                </span>
+                <span class="min-w-0 flex-1 text-left">
+                    <span class="flex items-center justify-between gap-2 text-base font-bold">
+                        {{ $action['title'] }}
+                        <svg class="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </span>
+                    <span class="mt-1 block text-sm leading-5 {{ $action['primary'] ? 'text-[#032611]/75' : 'text-emerald-50/60' }}">{{ $action['text'] }}</span>
+                </span>
+            </a>
+        @endforeach
+    </section>
+
+    <section class="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-x-8 gap-y-4 border-t border-white/10 pt-8 sm:grid-cols-3" aria-label="Features">
+        @foreach ($features as [$title, $text, $icon])
+            <div class="flex items-start gap-3">
+                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-300/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icon !!}</svg>
+                <div>
+                    <p class="text-sm font-semibold">{{ $title }}</p>
+                    <p class="mt-0.5 text-[0.8125rem] leading-5 text-emerald-50/55">{{ $text }}</p>
+                </div>
+            </div>
+        @endforeach
+    </section>
+</x-public-shell>

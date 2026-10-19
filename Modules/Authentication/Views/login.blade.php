@@ -4,15 +4,12 @@
 
 @section('content')
     <div class="mb-5">
-        <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-950/60 px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-300 md:hidden">
-            <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Fleet Management System
-        </p>
-        <h1 class="text-xl font-bold text-white">Sign In</h1>
-        <p class="mt-1 text-xs text-emerald-100/65">Enter your account credentials to access your dashboard.</p>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Sign In</h1>
+        <p class="mt-1.5 text-sm leading-6 text-emerald-50/60">Enter your account credentials to access your dashboard.</p>
     </div>
 
     @session('status')
-        <div class="mt-4 rounded-md bg-emerald-50 px-4 py-3 text-sm text-emerald-700 border border-emerald-200">
+        <div class="mb-4 rounded-xl border border-emerald-300/40 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100" role="status">
             {{ $value }}
         </div>
     @endsession
@@ -21,7 +18,7 @@
         @csrf
 
         <div>
-            <label for="email" class="block text-xs font-semibold text-white">Email address</label>
+            <label for="email" class="block text-[0.8125rem] font-semibold text-emerald-50">Email address</label>
             <div class="relative mt-1.5">
                 <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path>
@@ -36,7 +33,7 @@
                     autocomplete="username"
                     @error('email') aria-invalid="true" aria-describedby="email-error" @enderror
                     placeholder="name@agency.gov.ph"
-                    class="block w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-emerald-100/35 shadow-inner focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+                    class="block h-11 w-full rounded-xl border border-white/15 bg-black/25 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-emerald-100/35 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
                 >
             </div>
             @error('email')
@@ -46,7 +43,7 @@
 
         <div>
             <div class="flex items-center justify-between">
-                <label for="password" class="block text-xs font-semibold text-white">Password</label>
+                <label for="password" class="block text-[0.8125rem] font-semibold text-emerald-50">Password</label>
                 @if (Route::has('password.request'))
                     <a href="{{ route('password.request') }}" class="text-[0.6875rem] font-semibold text-emerald-200 hover:text-white hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
                 @endif
@@ -63,7 +60,7 @@
                     autocomplete="current-password"
                     @error('password') aria-invalid="true" aria-describedby="password-error" @enderror
                     placeholder="••••••••••••"
-                    class="block w-full rounded-xl border border-emerald-200/25 bg-[#062512]/80 py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-emerald-100/35 shadow-inner focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+                    class="block h-11 w-full rounded-xl border border-white/15 bg-black/25 py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-emerald-100/35 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
                 >
                 <button type="button" id="toggle-password" class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-emerald-100/60 transition hover:text-emerald-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400" aria-label="Show password">
                     <svg id="eye-closed" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -81,9 +78,9 @@
 
         <button
             type="submit"
-            class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-950/30 hover:from-emerald-400 hover:to-green-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-[#0a351b] transition"
+            class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-bold text-[#032611] shadow-lg shadow-emerald-950/40 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#072413] transition"
         >
-            Continue to Dashboard <span class="ml-1">→</span>
+            Sign in <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
     </form>
 
@@ -98,13 +95,9 @@
         });
     </script>
 
-    <div class="mt-5 border-t border-emerald-200/15 pt-4">
-        <p class="mb-2 text-center text-[0.625rem] font-semibold uppercase tracking-[.18em] text-emerald-100/65">Public Staff Portals</p>
-        <div class="grid grid-cols-2 gap-2">
-            <a href="{{ route('request-vehicle') }}" class="rounded-lg border border-emerald-200/20 bg-[#062512]/65 px-2 py-2 text-center text-xs text-emerald-100/80 transition hover:border-emerald-300/50 hover:bg-emerald-900/50"><span aria-hidden="true">♧</span> &nbsp;Request a Vehicle</a>
-            <a href="{{ route('check-status') }}" class="rounded-lg border border-emerald-200/20 bg-[#062512]/65 px-2 py-2 text-center text-xs text-emerald-100/80 transition hover:border-emerald-300/50 hover:bg-emerald-900/50"><span aria-hidden="true">⌕</span> &nbsp;Check Request Status</a>
-        </div>
-        <div class="mt-4 border-t border-emerald-200/15 pt-3 text-center text-[0.625rem] text-emerald-100/65"><span aria-hidden="true">♧</span> Encrypted &amp; Protected Session<br><span class="mt-1 inline-block">© {{ date('Y') }} {{ config('app.name', 'Vehicle Monitoring & Management System') }}</span></div>
-    </div>
+    <p class="mt-6 border-t border-white/10 pt-5 text-center text-[0.8125rem] text-emerald-50/55">
+        Need a vehicle?
+        <a href="{{ route('request-vehicle') }}" class="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">Request one without signing in</a>
+    </p>
 
 @endsection

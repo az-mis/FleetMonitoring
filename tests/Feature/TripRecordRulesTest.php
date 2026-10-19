@@ -70,7 +70,7 @@ class TripRecordRulesTest extends TestCase
         $this->actingAs($admin)->patch("/vehicle-requests/{$request->id}/status", ['status' => 'declined', 'decline_reason' => 'Vehicle reserved for an inspection.'])
             ->assertSessionHas('success');
         $this->get('/check-status?code='.$request->reference_code)
-            ->assertSee('Request Declined')
+            ->assertSee('Request declined')
             ->assertSee('Vehicle reserved for an inspection.');
     }
 
@@ -88,7 +88,7 @@ class TripRecordRulesTest extends TestCase
         $this->assertSame('declined', $trip->fresh()->status);
 
         $this->get('/check-status?code='.$trip->reference_code)
-            ->assertSee('Trip Cancelled')
+            ->assertSee('Trip cancelled')
             ->assertSee('The activity was postponed.');
     }
 

@@ -187,7 +187,7 @@
     </div>
 
     {{-- Stats Cards Row --}}
-    <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {{-- Total Requests --}}
         <div class="flex items-center gap-3 rounded-2xl border border-gray-200/80 bg-white p-3.5 shadow-sm">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-700 text-white shadow-xs">
@@ -465,7 +465,7 @@
                                     @endphp
                                     <div class="text-xs">
                                         <span class="inline-flex items-start gap-1 font-semibold text-slate-800">
-                                            <span class="text-rose-500 shrink-0 mt-px">📍</span>
+                                            <span class="text-rose-500 shrink-0 mt-px"><x-icon name="pin" class="inline-block h-4 w-4 align-[-0.2em]" /></span>
                                             <span>{{ $destFirst }}</span>
                                         </span>
                                         @if(count($destRest) > 0)
@@ -873,7 +873,7 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[0.6875rem] font-extrabold text-blue-900 mb-1">⚡ Distance Travelled</label>
+                            <label class="block text-[0.6875rem] font-extrabold text-blue-900 mb-1">Distance Travelled</label>
                             <div class="flex items-center rounded-full border border-emerald-500 bg-emerald-50/40 overflow-hidden shadow-2xs">
                                 <span id="tc-calc-distance-display" class="w-full px-3 py-1.5 text-xs font-black text-emerald-950 truncate">0</span>
                                 <input type="hidden" id="tc-distance" name="distance_travelled" value="0">
@@ -3282,8 +3282,8 @@
                                 <span class="text-[0.6875rem] font-bold text-slate-800 truncate">${esc(item.requester_name)}</span>
                             </div>
                             <p class="text-[0.625rem] text-slate-500 mt-0.5 truncate">
-                                ${item.vehicle_plate ? `🚗 ${esc(item.vehicle_plate)}` : ''}
-                                ${item.destination ? ` &bull; 📍 ${esc(formatDestinations(item.destination))}` : ''}
+                                ${item.vehicle_plate ? `${esc(item.vehicle_plate)}` : ''}
+                                ${item.destination ? ` &bull; ${esc(formatDestinations(item.destination))}` : ''}
                             </p>
                         </div>
                         <div class="shrink-0 text-right">
