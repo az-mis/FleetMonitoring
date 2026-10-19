@@ -15,6 +15,8 @@ class VehicleRepository implements VehicleRepositoryInterface
         return Vehicle::query()
             ->with(['assignedDriver', 'creator', 'updater'])
             ->when($location, fn ($q) => $q->where('location', $location))
+            // Dashboard "Vehicle papers due" link: registration or insurance expired or expiring soon
+            ->when(request('papers') === 'due', fn ($q) => $q->papersDue())
             ->when($search, function ($q) use ($search) {
                 $terms = preg_split('/\s+/', trim($search), -1, PREG_SPLIT_NO_EMPTY);
 

@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Modules\Vehicle\Controllers\VehicleController;
 use Modules\Vehicle\Controllers\VehicleAssigningController;
+use Modules\Vehicle\Controllers\VehicleController;
+use Modules\Vehicle\Controllers\VehicleRegistryController;
 
 Route::middleware(['web', 'auth', 'verified', 'module:vehicles'])
     ->prefix('vehicles')
@@ -24,6 +25,11 @@ Route::middleware(['web', 'auth', 'verified', 'module:vehicles'])
         Route::put('/{vehicle}/pms-items/{item}', [VehicleController::class, 'updatePmsItem'])->name('pms.update');
         Route::post('/{vehicle}/pms-items/{item}/log-done', [VehicleController::class, 'logPmsItemDone'])->name('pms.log-done');
         Route::delete('/{vehicle}/pms-items/{item}', [VehicleController::class, 'destroyPmsItem'])->name('pms.destroy');
+        // Property record and paperwork (GSS workbook)
+        Route::get('/{vehicle}/registry', [VehicleRegistryController::class, 'show'])->name('registry');
+        Route::put('/{vehicle}/registry', [VehicleRegistryController::class, 'update'])->name('registry.update');
+        Route::post('/{vehicle}/accessories', [VehicleRegistryController::class, 'storeAccessory'])->name('accessories.store');
+        Route::delete('/{vehicle}/accessories/{accessory}', [VehicleRegistryController::class, 'destroyAccessory'])->name('accessories.destroy');
         Route::patch('/{vehicle}/odometer', [VehicleController::class, 'updateOdometer'])->name('odometer.update');
         Route::put('/{vehicle}', [VehicleController::class, 'update'])->name('update');
         Route::delete('/{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');

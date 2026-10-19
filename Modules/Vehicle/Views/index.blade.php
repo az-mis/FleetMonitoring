@@ -178,6 +178,13 @@
         </button>
     </div>
 
+    @if (request('papers') === 'due')
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800" role="status">
+            <span>Showing vehicles whose registration or insurance has expired or expires within {{ \Modules\Vehicle\Models\Vehicle::PAPERS_DUE_DAYS }} days.</span>
+            <a href="{{ route('vehicles.index', array_filter(['location' => request('location')])) }}" class="font-semibold underline">Show all vehicles</a>
+        </div>
+    @endif
+
     <div id="vehicle-results">
         @include('vehicle::partials.vehicle-results', ['vehicles' => $vehicles])
     </div>

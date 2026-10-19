@@ -21,7 +21,7 @@
             <table class="min-w-full divide-y divide-gray-100 text-left text-xs">
                 <thead class="bg-slate-50/80 text-[0.6875rem] font-black uppercase tracking-wider text-slate-500">
                     <tr>
-                        <th class="px-5 py-3.5 font-bold">Plate</th>
+                        <th class="sticky left-0 z-10 bg-slate-50 px-5 py-3.5 font-bold shadow-[6px_0_8px_-6px_rgba(15,23,42,0.15)]">Plate</th>
                         <th class="px-4 py-3.5 font-bold">Vehicle</th>
                         <th class="px-4 py-3.5 font-bold">Assigned Driver</th>
                         <th class="px-3 py-3.5 font-bold">Year</th>
@@ -31,14 +31,14 @@
                         <th class="px-3 py-3.5 font-bold">Type</th>
                         <th class="px-3 py-3.5 font-bold">Fuel</th>
                         <th class="px-4 py-3.5 font-bold">Location</th>
-                        <th class="sticky right-0 bg-slate-50 px-5 py-3.5 text-right font-bold shadow-[-6px_0_8px_-6px_rgba(15,23,42,0.15)]">Actions</th>
+                        <th class="px-5 py-3.5 text-right font-bold">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-slate-700">
                     @foreach ($vehicles as $vehicle)
                         <tr class="vehicle-row group hover:bg-slate-50/80 transition duration-150" data-category="{{ $vehicleCategory($vehicle->vehicle_type) }}">
-                            {{-- Plate Number with vehicle thumbnail --}}
-                            <td class="whitespace-nowrap px-5 py-3.5">
+                            {{-- Plate Number with vehicle thumbnail; stays put while the table scrolls sideways --}}
+                            <td class="sticky left-0 z-10 whitespace-nowrap bg-white px-5 py-3.5 shadow-[6px_0_8px_-6px_rgba(15,23,42,0.15)] transition duration-150 group-hover:bg-slate-50">
                                 <div class="flex items-center gap-3">
                                     @if ($vehicle->photo_url)
                                         <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->plate_number }}" class="h-10 w-14 shrink-0 rounded-xl object-cover border border-slate-200/70 shadow-2xs">
@@ -155,7 +155,7 @@
                                 </span>
                             </td>
 
-                            <td class="sticky right-0 whitespace-nowrap bg-white px-5 py-3.5 text-right shadow-[-6px_0_8px_-6px_rgba(15,23,42,0.15)] transition duration-150 group-hover:bg-slate-50">
+                            <td class="whitespace-nowrap px-5 py-3.5 text-right">
                                 <x-vehicle::row-actions :vehicle="$vehicle" />
                             </td>
                         </tr>
@@ -180,7 +180,7 @@
                     @endif
 
                     {{-- Assignment badge (the app has no stored vehicle status, so show what is actually known) --}}
-                    <span class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold shadow-sm ring-1 {{ $vehicle->assignedDriver ? 'bg-emerald-50/95 text-emerald-700 ring-emerald-100' : 'bg-slate-50/95 text-slate-600 ring-slate-200' }}">
+                    <span class="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold shadow-sm ring-1 {{ $vehicle->assignedDriver ? 'bg-emerald-50/95 text-emerald-700 ring-emerald-100' : 'bg-slate-50/95 text-slate-600 ring-slate-200' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M10 17h4V5H2v12h3"/>
                             <path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/>
@@ -190,8 +190,8 @@
                         {{ $vehicle->assignedDriver ? 'Driver Assigned' : 'No Driver' }}
                     </span>
 
-                    {{-- Kebab menu --}}
-                    <div class="absolute right-2 top-2 rounded-lg bg-white/95 shadow-sm">
+                    {{-- Actions --}}
+                    <div class="absolute right-2 top-2 rounded-xl bg-white/95 p-1 shadow-sm ring-1 ring-black/5">
                         <x-vehicle::row-actions :vehicle="$vehicle" :menu="true" />
                     </div>
                 </div>

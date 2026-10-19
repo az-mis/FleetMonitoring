@@ -56,6 +56,11 @@ class DashboardService
 
         $vehiclesWithoutDriver = $loc(Vehicle::query())->whereNull('assigned_driver_id')->count();
 
+        $papersDue = $loc(Vehicle::query())->papersDue()->count();
+        $papersExpired = $loc(Vehicle::query())
+            ->where(fn ($q) => $q->whereDate('registration_expiry', '<', now()->toDateString())->orWhereDate('insurance_to', '<', now()->toDateString()))
+            ->count();
+
         $locationParam = $location ? ['location' => $location] : [];
 
         return array_values(array_filter([
@@ -92,6 +97,14 @@ class DashboardService
                 'detail' => 'Within 30 days',
                 'severity' => 'medium',
                 'url' => route('driver.index', $locationParam),
+            ] : null,
+            $papersDue > 0 ? [
+                'key' => 'vehicle_papers',
+                'label' => 'Vehicle Papers Due',
+                'value' => $papersDue,
+                'detail' => $papersExpired > 0 ? "{$papersExpired} expired" : 'Registration or insurance within 30 days',
+                'severity' => $papersExpired > 0 ? 'high' : 'medium',
+                'url' => route('vehicles.index', $locationParam + ['papers' => 'due']),
             ] : null,
             $unconfirmedDriverTrips > 0 ? [
                 'key' => 'unconfirmed_driver',

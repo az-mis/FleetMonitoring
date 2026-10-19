@@ -11,6 +11,21 @@
         </svg>
     </button>
 
+    @php $papers = $vehicle->registrationStatus()['tone'] === 'danger' || $vehicle->insuranceStatus()['tone'] === 'danger' ? 'danger' : (in_array('warning', [$vehicle->registrationStatus()['tone'], $vehicle->insuranceStatus()['tone']], true) ? 'warning' : null); @endphp
+    <a
+        href="{{ route('vehicles.registry', $vehicle) }}"
+        title="Property & Registration{{ $papers === 'danger' ? ' (papers expired)' : ($papers === 'warning' ? ' (papers due soon)' : '') }}"
+        aria-label="Property and registration for {{ $vehicle->plate_number }}"
+        class="relative inline-flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50/70 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition shadow-2xs"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/>
+        </svg>
+        @if ($papers)
+            <span class="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full ring-2 ring-white {{ $papers === 'danger' ? 'bg-red-500' : 'bg-amber-400' }}" aria-hidden="true"></span>
+        @endif
+    </a>
+
     <button
         type="button"
         onclick="openEditVehicleModal(this)"
