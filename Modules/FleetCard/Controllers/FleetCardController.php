@@ -49,7 +49,8 @@ class FleetCardController extends Controller
         $pendingRequests = VehicleRequest::query()
             ->with(['completion', 'vehicle', 'confirmedDriver'])
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-            ->whereIn('status', ['approved', 'completed', 'pending'])
+            // Only approved trips can be charged (decision D5); pending requests may never happen
+            ->where('status', 'approved')
             ->whereNotIn('id', FleetCardLog::whereNotNull('vehicle_request_id')->pluck('vehicle_request_id'))
             ->latest()
             ->take(50)
@@ -160,14 +161,14 @@ class FleetCardController extends Controller
             'fuel_price_per_liter' => 'nullable|numeric|min:0',
             'vehicle_request_id' => [
                 'nullable',
-                Rule::exists('vehicle_requests', 'id')->where('location', $fleetCard->location),
+                Rule::exists('vehicle_requests', 'id')->where('location', $fleetCard->location)->where('status', 'approved'),
                 // A trip ticket can only be charged to a fleet card once
                 Rule::unique('fleet_card_logs', 'vehicle_request_id'),
             ],
             'remarks' => 'nullable|string|max:255',
         ], [
             'vehicle_request_id.unique' => 'This trip ticket has already been charged to a fleet card.',
-            'vehicle_request_id.exists' => 'The selected trip ticket does not belong to this card\'s location.',
+            'vehicle_request_id.exists' => 'Only approved trips from this card\'s location can be charged.',
         ]);
 
         $this->fleetCardService->recordExpense($fleetCard, $validated);

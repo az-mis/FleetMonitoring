@@ -536,7 +536,7 @@ class VehicleRequestController
         // no-store keeps the browser from showing a cached (already submitted)
         // copy of the form when the user presses Back after submitting.
         return response()->view('public.request-vehicle', [
-            'vehicles' => Vehicle::query()->with('assignedDriver')->orderBy('plate_number')->get(),
+            'vehicles' => Vehicle::query()->orderBy('plate_number')->get(),
             // One-time token: each rendered form gets its own, and store() accepts it once.
             'formToken' => (string) Str::uuid(),
         ])->withHeaders([
@@ -587,7 +587,6 @@ class VehicleRequestController
         $location = (string) $request->query('location', '');
 
         $vehicles = Vehicle::query()
-            ->with('assignedDriver')
             ->where('location', $location)
             ->orderBy('plate_number')
             ->get();
@@ -622,9 +621,8 @@ class VehicleRequestController
                     'plate' => $v->plate_number,
                     'name' => trim(($v->brand ?? '').' '.($v->model ?? '')),
                     'photo' => $v->photo_url,
-                    'driver' => $v->assignedDriver->name ?? null,
-                    'driver_id' => $v->assigned_driver_id,
-                    'driver_photo' => $v->assignedDriver->avatar_url ?? null,
+                    // Public page: say whether a driver is assigned, never who (no name, ID or photo; decision D11)
+                    'has_driver' => (bool) $v->assigned_driver_id,
                     'bookings' => $bookings->values(),
                 ];
             })->values(),
