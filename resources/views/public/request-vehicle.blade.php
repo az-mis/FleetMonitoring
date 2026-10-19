@@ -37,10 +37,10 @@
     </style>
     </x-slot:head>
 
-    <div class="public-card p-5 sm:p-8">
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold tracking-tight">Request a vehicle</h1>
-            <p class="mt-1.5 max-w-2xl text-sm leading-6 text-emerald-50/60">Fill in the form to book a government vehicle for official travel. You'll get a reference code to track your request. No account needed.</p>
+    <div class="public-card p-4 sm:p-6">
+        <div class="mb-4">
+            <h1 class="text-xl font-bold tracking-tight">Request a vehicle</h1>
+            <p class="mt-1 text-[0.8125rem] text-emerald-50/60">Book a government vehicle for official travel. No account needed. You'll get a reference code to track it.</p>
         </div>
         @if (isset($errors) && $errors->any())
             <div class="mb-5 rounded-xl border border-rose-400/40 bg-rose-500/10 p-4 text-sm text-rose-200" role="alert">
@@ -53,7 +53,7 @@
             </div>
         @endif
 
-        <form class="space-y-4" method="POST" autocomplete="off" action="{{ route('request-vehicle.store') }}">
+        <form class="space-y-3" method="POST" autocomplete="off" action="{{ route('request-vehicle.store') }}">
             @csrf
             <input type="hidden" name="form_token" value="{{ $formToken ?? '' }}">
 @php
@@ -112,23 +112,23 @@ $offices = [
 ];
 @endphp
 
-            <div class="flex items-center gap-3 ">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-xs font-bold text-emerald-300">1</span>
+            <div class="flex items-center gap-2.5">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">1</span>
                 <h2 class="text-sm font-semibold text-white">Your details</h2>
                 <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Your Full Name <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Your Full Name <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-11 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
                     </div>
                 </div>
 
                 {{-- Custom Searchable Office / Section Dropdown --}}
                 <div class="relative" id="custom-office-dropdown-container">
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50">
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50">
                         <span>Your Office / Section <span class="font-normal text-emerald-100/55">(Optional)</span></span>
                     </label>
 
@@ -143,7 +143,7 @@ $offices = [
                         aria-expanded="false"
                         aria-controls="office-dropdown-panel"
                         onclick="toggleOfficeDropdown()"
-                        class="group flex h-11 w-full items-center justify-between rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-left text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
+                        class="group flex h-10 w-full items-center justify-between rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-left text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
                         <span id="office-dropdown-selected-label" class="truncate {{ old('requesterOffice') ? 'text-emerald-100' : 'text-emerald-100/40' }}">{{ old('requesterOffice') ?: '— Select your office / division —' }}</span>
@@ -204,17 +204,17 @@ $offices = [
             </div>
 
 
-            <div class="flex items-center gap-3 pt-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-xs font-bold text-emerald-300">2</span>
+            <div class="flex items-center gap-2.5 pt-1">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">2</span>
                 <h2 class="text-sm font-semibold text-white">Trip details</h2>
                 <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>From (Station) <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>From (Station) <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <select name="location" required class="h-11 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <select name="location" required class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
                             <option value="">— Select Your Station —</option>
                             @foreach(['Oriental Mindoro', 'Occidental Mindoro', 'Marinduque', 'Palawan', 'Romblon', 'Quezon City Satellite Office'] as $loc)
                                 <option value="{{ $loc }}" @selected(old('location') === $loc)>{{ $loc }}</option>
@@ -224,7 +224,7 @@ $offices = [
                 </div>
                     {{-- Searchable Destination Dropdown with Distance Badges --}}
                 <div class="relative" id="public-dest-dropdown-container">
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50">
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50">
                         <span id="public-dest-label">To (Destination) <span class="text-emerald-300">*</span></span>
                     </label>
 
@@ -244,7 +244,7 @@ $offices = [
                         aria-labelledby="public-dest-label"
                         onclick="togglePublicDestDropdown()"
                         onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown')) { event.preventDefault(); togglePublicDestDropdown(); }"
-                        class="group flex min-h-11 w-full items-center justify-between rounded-xl border border-white/15 bg-black/25 pl-3 pr-3 text-left text-sm text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
+                        class="group flex min-h-10 w-full items-center justify-between rounded-xl border border-white/15 bg-black/25 pl-3 pr-3 text-left text-sm text-emerald-100 focus-within:border-emerald-400 focus-within:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition cursor-pointer relative"
                     >
                         <div id="public-dest-pills-container" class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 py-1">
                             <span id="public-dest-placeholder" class="text-emerald-100/40">
@@ -306,17 +306,17 @@ $offices = [
             <div id="station-panel" class="hidden space-y-3">
                 <div class="form-row grid gap-3 sm:grid-cols-2">
                     <div>
-                        <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Travel Date (From) <span class="text-emerald-300">*</span></span></label>
+                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Travel Date (From) <span class="text-emerald-300">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="h-11 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                            <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
                         </div>
                     </div>
                     <div>
-                        <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Travel Date (To) <span class="text-emerald-300">*</span></span></label>
+                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Travel Date (To) <span class="text-emerald-300">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDateEnd" required value="{{ old('travelDateEnd') }}" class="h-11 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                            <input type="date" name="travelDateEnd" required value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
                         </div>
                     </div>
                 </div>
@@ -343,7 +343,7 @@ $offices = [
                 </div>
 
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Select Vehicle <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Select Vehicle <span class="text-emerald-300">*</span></span></label>
                     <p id="vehicle-hint" class="mb-2 text-xs text-emerald-100/70"></p>
                     <input type="hidden" name="vehicleId" id="vehicle-id-input" value="{{ old('vehicleId') }}">
                     <div id="vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
@@ -351,21 +351,21 @@ $offices = [
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 pt-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-xs font-bold text-emerald-300">3</span>
+            <div class="flex items-center gap-2.5 pt-1">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">3</span>
                 <h2 class="text-sm font-semibold text-white">Purpose and passengers</h2>
                 <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Official Purpose <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Official Purpose <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                        <textarea name="purpose" required rows="5" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-white/15 bg-black/25 py-2 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">{{ old('purpose') }}</textarea>
+                        <textarea name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-white/15 bg-black/25 py-2 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">{{ old('purpose') }}</textarea>
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Additional Passengers <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Additional Passengers <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
                     <label class="mb-2 flex items-center gap-2 text-[0.8125rem] text-emerald-100/80">
                         <input type="checkbox" name="requesterIsPassenger" value="1" @checked(old('requesterIsPassenger')) class="h-4 w-4 rounded border-emerald-300/30 bg-[#062512] text-emerald-500">
                         I am riding along on this trip as a passenger
@@ -375,7 +375,7 @@ $offices = [
                         @foreach($oldPassengers as $index => $pass)
                             <div class="group relative">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-11 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-8 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-8 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
                                 <button type="button" data-remove-passenger aria-label="Remove passenger" title="Remove passenger" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fca5a5;font-size:0.9375rem;line-height:1;cursor:pointer;">×</button>
                             </div>
                         @endforeach
@@ -384,34 +384,34 @@ $offices = [
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 pt-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-xs font-bold text-emerald-300">4</span>
+            <div class="flex items-center gap-2.5 pt-1">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-[0.6875rem] font-bold text-emerald-300">4</span>
                 <h2 class="text-sm font-semibold text-white">Contact</h2>
                 <span class="h-px flex-1 bg-white/10" aria-hidden="true"></span>
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Contact Number <span class="text-emerald-300">*</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Contact Number <span class="text-emerald-300">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-11 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm placeholder:text-emerald-100/35 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Previous Trip Ticket Date <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
+                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-50"><span>Previous Trip Ticket Date <span class="font-normal text-emerald-100/55">(Optional)</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45 transition-colors group-focus-within:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                        <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-11 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
+                        <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-10 w-full rounded-xl border border-white/15 bg-black/25 pl-9 pr-3 text-sm text-emerald-100 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40">
                     </div>
                 </div>
             </div>
 
-            <div class="border-t border-white/10 pt-5">
-                <button type="submit" class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-bold text-[#032611] shadow-lg shadow-emerald-950/40 transition hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+            <div class="border-t border-white/10 pt-4">
+                <button type="submit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-bold text-[#032611] shadow-lg shadow-emerald-950/40 transition hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
                     Submit request
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
-                <p class="mt-3 text-center text-xs text-emerald-50/50">An administrator reviews every request. Check its progress any time on Check Status.</p>
+                <p class="mt-2 text-center text-xs text-emerald-50/50">An administrator reviews every request. Check its progress any time on Check Status.</p>
             </div>
         </form>
         </div>

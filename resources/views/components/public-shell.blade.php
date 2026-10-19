@@ -24,7 +24,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{ $head ?? '' }}
 </head>
-<body class="min-h-screen bg-[#04170b] text-white antialiased selection:bg-emerald-400/30">
+<body class="min-h-screen bg-[#04170b] text-white antialiased [color-scheme:dark] selection:bg-emerald-400/30 [&_option]:bg-[#0b2a17] [&_option]:text-emerald-50">
     <div class="fixed inset-0 -z-10" aria-hidden="true">
         <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('FleetMS-bg.jpg') }}')"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-[#03160b]/80 via-[#03160b]/88 to-[#020e07]/95"></div>
