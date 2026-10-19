@@ -217,4 +217,10 @@ class Vehicle extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'assigned_driver_id');
     }
+
+    /** Primary-driver history, newest first (decision D7). */
+    public function assignmentHistory(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(VehicleAssignmentHistory::class)->latest('id');
+    }
 }

@@ -51,7 +51,8 @@ class UpdateVehicleRequest extends FormRequest
             'model' => ['required', 'string', 'max:100'],
             'year' => ['nullable', 'integer', 'min:1900', 'max:'.(date('Y') + 1)],
             'color' => ['required', 'string', 'max:50'],
-            'odometer' => ['required', 'integer', 'min:0'],
+            // Only a Super Admin may lower the reading, e.g. to correct a typing mistake (decision D9)
+            'odometer' => ['required', 'integer', 'min:'.($this->user()?->role === UserRole::SUPER_ADMIN ? 0 : (int) $vehicle->odometer)],
             'change_oil_interval_km' => ['nullable', 'integer', 'min:500'],
             // Any registered type, or the value the vehicle already has (older records
             // may hold values like "Sedan" that were never registered as a type).
@@ -68,6 +69,7 @@ class UpdateVehicleRequest extends FormRequest
     {
         return [
             'plate_number.regex' => 'Plate number may only contain letters, numbers, dashes, and spaces.',
+            'odometer.min' => 'The odometer cannot be lower than the current reading ('.number_format((int) $this->route('vehicle')?->odometer).' km). Ask a Super Admin to correct a wrong reading.',
         ];
     }
 }

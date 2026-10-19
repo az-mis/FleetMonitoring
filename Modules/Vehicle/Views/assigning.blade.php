@@ -289,6 +289,35 @@
                                 No driver assigned
                             </div>
                         @endif
+
+                        {{-- Who held this vehicle and when (decision D7) --}}
+                        @if ($vehicle->assignmentHistory->isNotEmpty())
+                            <details class="group rounded-xl border border-slate-100 bg-white">
+                                <summary class="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-[0.6875rem] font-bold text-slate-600 hover:text-emerald-700">
+                                    <span>Assignment history ({{ $vehicle->assignmentHistory->count() }})</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                                </summary>
+                                <ol class="space-y-2 border-t border-slate-100 px-3 py-2">
+                                    @foreach ($vehicle->assignmentHistory as $entry)
+                                        <li class="text-[0.6875rem] leading-snug">
+                                            <p class="font-semibold text-slate-800">
+                                                {{ $entry->driver_name }}
+                                                @if (! $entry->unassigned_at)
+                                                    <span class="ml-1 rounded-full bg-emerald-100 px-1.5 py-px text-[0.625rem] font-bold text-emerald-700">Current</span>
+                                                @endif
+                                            </p>
+                                            <p class="text-slate-500">
+                                                {{ $entry->assigned_at ? $entry->assigned_at->format('M j, Y') : 'Before history began' }}
+                                                &ndash; {{ $entry->unassigned_at ? $entry->unassigned_at->format('M j, Y') : 'present' }}
+                                                @if ($entry->assignedBy)
+                                                    &middot; by {{ $entry->assignedBy->name }}
+                                                @endif
+                                            </p>
+                                        </li>
+                                    @endforeach
+                                </ol>
+                            </details>
+                        @endif
                     </div>
                 </div>
             @endforeach

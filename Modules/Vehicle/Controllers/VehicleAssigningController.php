@@ -8,6 +8,7 @@ use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Modules\Admin\Enums\UserRole;
 use Modules\Vehicle\Models\Vehicle;
@@ -26,7 +27,7 @@ class VehicleAssigningController
         $search = $request->input('search');
         $perPage = min(max((int) $request->input('per_page', 10), 1), 100);
 
-        $query = Vehicle::with('assignedDriver')
+        $query = Vehicle::with(['assignedDriver', 'assignmentHistory.assignedBy:id,name'])
             ->when($location, fn ($builder) => $builder->where('location', $location))
             ->when($search, function ($builder) use ($search) {
                 $builder->where(function ($q) use ($search) {
@@ -85,7 +86,25 @@ class VehicleAssigningController
             }
         }
 
-        $vehicle->update(['assigned_driver_id' => $data['assigned_driver_id'] ?? null]);
+        $newDriverId = $data['assigned_driver_id'] ?? null;
+
+        DB::transaction(function () use ($vehicle, $newDriverId, $request) {
+            // Keep a record of who held the vehicle and when (decision D7)
+            if ((int) $vehicle->assigned_driver_id !== (int) $newDriverId) {
+                $vehicle->assignmentHistory()->whereNull('unassigned_at')->update(['unassigned_at' => now()]);
+
+                if ($newDriverId) {
+                    $vehicle->assignmentHistory()->create([
+                        'driver_id' => $newDriverId,
+                        'driver_name' => User::whereKey($newDriverId)->value('name'),
+                        'assigned_at' => now(),
+                        'assigned_by' => $request->user()->id,
+                    ]);
+                }
+            }
+
+            $vehicle->update(['assigned_driver_id' => $newDriverId]);
+        });
 
         return back()->with('success', 'Vehicle assignment updated.');
     }

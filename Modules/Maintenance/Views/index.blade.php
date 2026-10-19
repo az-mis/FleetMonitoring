@@ -491,8 +491,10 @@
                 <div id="calendar-overlap-warning" class="hidden mt-2 rounded-lg bg-red-50 px-3 py-2 text-[0.6875rem] font-bold text-red-700">
                     Your selected date(s) overlap existing maintenance. You may still continue if both jobs are intended.
                 </div>
+                <div id="calendar-trip-warning" class="hidden mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[0.6875rem] font-bold text-rose-700" role="note"></div>
                 <div class="mt-2 flex flex-wrap gap-3 text-[0.65625rem] text-gray-500">
                     <span class="flex items-center gap-1"><i class="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400"></i> Existing maintenance</span>
+                    <span class="flex items-center gap-1"><i class="inline-block h-2.5 w-2.5 rounded-sm bg-rose-500"></i> Approved trip</span>
                     <span class="flex items-center gap-1"><i class="inline-block h-2.5 w-2.5 rounded-sm border-2 border-teal-500 bg-white"></i> Selected date(s)</span>
                 </div>
             </div>
@@ -628,6 +630,8 @@
 <script>
 // ── Record data from PHP → JS ──────────────────────────────────────────────
 const maintenanceRecords = @json($maintenanceRecordsForJs);
+// Upcoming approved trips per vehicle: maintenance on those days is allowed but warned about (decision D4)
+const approvedTrips = @json($approvedTrips);
 const sourceReportFromDriver = @json($sourceReport);
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -956,6 +960,23 @@ function renderCalendar(vehicleId, startDate, endDate) {
     const hasOverlap = [...selectedDays].some(k => existingDays.has(k));
     if (overlap) overlap.classList.toggle('hidden', !hasOverlap);
 
+    // Approved trip days for this vehicle, and a warning naming any trip the selected dates clash with
+    const tripDays = new Map();
+    approvedTrips.filter(t => t.vehicle_id == vehicleId).forEach(t => {
+        const e = new Date(`${t.end}T00:00:00`);
+        for (const d = new Date(`${t.start}T00:00:00`); d <= e; d.setDate(d.getDate() + 1)) {
+            tripDays.set(localKey(d), t.ticket);
+        }
+    });
+    const clashing = [...new Set([...selectedDays].filter(k => tripDays.has(k)).map(k => tripDays.get(k)))];
+    const tripWarning = document.getElementById('calendar-trip-warning');
+    if (tripWarning) {
+        tripWarning.textContent = clashing.length
+            ? `This vehicle has approved trip ${clashing.join(', ')} on the selected date(s). You can still save, but move or cancel the trip if the vehicle cannot go.`
+            : '';
+        tripWarning.classList.toggle('hidden', !clashing.length);
+    }
+
     const dayHeaders = ['S','M','T','W','T','F','S'].map(d => `<div class="py-0.5 text-[0.5625rem] font-bold text-gray-400">${d}</div>`).join('');
     const blanks = Array(firstOfMonth.getDay()).fill('<div></div>').join('');
     const cells  = Array.from({ length: daysInMonth }, (_, i) => {
@@ -963,16 +984,21 @@ function renderCalendar(vehicleId, startDate, endDate) {
         const k   = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const ex  = existingDays.get(k);
         const sel = selectedDays.has(k);
-        const title = ex ? `Existing: ${ex.join(', ')}` : 'Click to select date';
+        const trip = tripDays.get(k);
+        const title = ex ? `Existing: ${ex.join(', ')}` : (trip ? `Approved trip ${trip}` : 'Click to select date');
         let cls = 'flex items-center justify-center rounded text-[0.6875rem] h-6 cursor-pointer transition transform hover:scale-105 select-none ';
-        if (ex) {
+        if (trip && sel) {
+            cls += 'bg-rose-500 font-extrabold text-white ring-2 ring-teal-500 shadow-sm ';
+        } else if (trip) {
+            cls += 'bg-rose-500 text-white font-bold hover:bg-rose-600 ';
+        } else if (ex) {
             cls += 'bg-amber-400 text-white font-bold hover:bg-amber-500 ';
         } else if (sel) {
             cls += 'bg-teal-50 font-extrabold text-teal-800 ring-2 ring-teal-500 shadow-sm ';
         } else {
             cls += 'bg-white text-slate-600 ring-1 ring-gray-200 hover:bg-teal-50 hover:text-teal-700 hover:ring-2 hover:ring-teal-400 ';
         }
-        const aria = formatDate(k) + (ex ? ', existing maintenance' : '') + (sel ? ', selected' : '');
+        const aria = formatDate(k) + (ex ? ', existing maintenance' : '') + (trip ? `, approved trip ${trip}` : '') + (sel ? ', selected' : '');
         return `<button type="button" class="${cls}" title="${escHtml(title)}" aria-label="${escHtml(aria)}" onclick="onCalendarDayClick('${k}')">${day}</button>`;
     }).join('');
 

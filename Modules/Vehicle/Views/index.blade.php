@@ -1406,6 +1406,8 @@
                 document.getElementById('ev-year').value = btn.dataset.year;
                 document.getElementById('ev-color').value = btn.dataset.color;
                 document.getElementById('ev-odometer').value = btn.dataset.odometer;
+                // Only a Super Admin may lower the reading (decision D9)
+                document.getElementById('ev-odometer').min = @json($isSuperAdmin) ? 0 : (parseInt(btn.dataset.odometer, 10) || 0);
                 document.getElementById('ev-change_oil_interval_km').value = btn.dataset.change_oil_interval_km || 5000;
                 setEditSelectValue('ev-vehicle_type', btn.dataset.vehicle_type || '');
                 document.getElementById('ev-fuel_type').value = btn.dataset.fuel_type || '';

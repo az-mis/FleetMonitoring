@@ -17,6 +17,7 @@ use Modules\Maintenance\Services\MaintenanceService;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleReport\Models\VehicleIssueReport;
 use Modules\VehicleReport\Services\VehicleReportService;
+use Modules\VehicleRequest\Models\VehicleRequest;
 
 class MaintenanceController extends Controller
 {
@@ -34,11 +35,11 @@ class MaintenanceController extends Controller
     {
         $this->authorizeAdminAccess();
 
-        $user        = auth()->user();
+        $user = auth()->user();
         $isSuperAdmin = $user?->role === UserRole::SUPER_ADMIN;
-        $location    = $isSuperAdmin ? request('location') : $user?->location;
-        $status      = request('status', 'active');
-        $perPage     = min(max((int) request('per_page', 10), 1), 100);
+        $location = $isSuperAdmin ? request('location') : $user?->location;
+        $status = request('status', 'active');
+        $perPage = min(max((int) request('per_page', 10), 1), 100);
 
         $records = $this->maintenanceService->list(
             search: request('search'),
@@ -64,13 +65,25 @@ class MaintenanceController extends Controller
         }
 
         return view('maintenance::index', [
-            'records'         => $records,
-            'counts'          => $counts,
-            'vehicles'        => $vehicles,
-            'isSuperAdmin'    => $isSuperAdmin,
+            'records' => $records,
+            'counts' => $counts,
+            'vehicles' => $vehicles,
+            'isSuperAdmin' => $isSuperAdmin,
             'selectedLocation' => $location,
-            'statusFilter'    => $status,
-            'sourceReport'    => $sourceReport,
+            'statusFilter' => $status,
+            'sourceReport' => $sourceReport,
+            // Upcoming approved trips, so the schedule calendar can warn about clashes (decision D4)
+            'approvedTrips' => VehicleRequest::query()
+                ->where('status', 'approved')
+                ->whereRaw('COALESCE(travel_date_end, travel_date) >= ?', [today()->toDateString()])
+                ->when($location, fn ($q) => $q->where('location', $location))
+                ->get(['vehicle_id', 'trip_ticket_number', 'travel_date', 'travel_date_end'])
+                ->map(fn ($trip) => [
+                    'vehicle_id' => $trip->vehicle_id,
+                    'ticket' => $trip->trip_ticket_number,
+                    'start' => $trip->travel_date->toDateString(),
+                    'end' => ($trip->travel_date_end ?? $trip->travel_date)->toDateString(),
+                ])->values(),
         ]);
     }
 
@@ -91,21 +104,21 @@ class MaintenanceController extends Controller
             // Only a report for the same vehicle can be linked
             if ($report = VehicleIssueReport::where('vehicle_id', $vehicle->id)->find($reportId)) {
                 $report->update([
-                    'status'                    => 'maintenance_scheduled',
-                    'related_maintenance_id'    => $maintenance->id,
+                    'status' => 'maintenance_scheduled',
+                    'related_maintenance_id' => $maintenance->id,
                     'related_maintenance_title' => $maintenance->title,
-                    'admin_notes'               => "Maintenance has been created: {$maintenance->title}",
-                    'reviewed_by'               => auth()->id(),
-                    'reviewed_by_name'          => auth()->user()?->name,
+                    'admin_notes' => "Maintenance has been created: {$maintenance->title}",
+                    'reviewed_by' => auth()->id(),
+                    'reviewed_by_name' => auth()->user()?->name,
                 ]);
             }
 
             return redirect()->route('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
-                ->with('success', 'Maintenance created and linked to the driver report.');
+                ->with('success', 'Maintenance created and linked to the driver report.'.$this->tripClashNote($maintenance));
         }
 
         return redirect()->route('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
-            ->with('success', 'Maintenance record added.');
+            ->with('success', 'Maintenance record added.'.$this->tripClashNote($maintenance));
     }
 
     /**
@@ -124,7 +137,7 @@ class MaintenanceController extends Controller
         $this->vehicleReportService->syncFromMaintenance($record, $record->wasChanged('status'), auth()->user());
 
         return redirect()->route('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
-            ->with('success', 'Maintenance record updated.');
+            ->with('success', 'Maintenance record updated.'.$this->tripClashNote($record));
     }
 
     /**
@@ -155,5 +168,32 @@ class MaintenanceController extends Controller
         if (auth()->user()?->role !== UserRole::SUPER_ADMIN) {
             throw new AuthorizationException('This action is unauthorized.');
         }
+    }
+
+    /**
+     * Maintenance may be scheduled over an approved trip (decision D4), but the admin is told which trip
+     * clashes so it can be moved or cancelled.
+     */
+    private function tripClashNote(VehicleMaintenance $maintenance): string
+    {
+        if (! in_array($maintenance->status, ['scheduled', 'ongoing'], true) || ! $maintenance->scheduled_date) {
+            return '';
+        }
+
+        $start = $maintenance->scheduled_date->toDateString();
+        $end = ($maintenance->scheduled_date_end ?? $maintenance->scheduled_date)->toDateString();
+        $tickets = VehicleRequest::query()
+            ->where('vehicle_id', $maintenance->vehicle_id)
+            ->where('status', 'approved')
+            ->whereDate('travel_date', '<=', $end)
+            ->whereRaw('COALESCE(travel_date_end, travel_date) >= ?', [$start])
+            ->pluck('trip_ticket_number')
+            ->filter();
+
+        if ($tickets->isEmpty()) {
+            return '';
+        }
+
+        return ' Note: this vehicle also has approved trip '.$tickets->implode(', ').' on these dates. Move or cancel the trip if the vehicle cannot go.';
     }
 }
