@@ -89,7 +89,7 @@ class TripWorkflowTest extends TestCase
         $this->assertSame('approved', $trip->status);
         $this->assertSame($driver->id, $trip->confirmed_driver_id);
         $this->assertSame($admin->id, $trip->approved_by);
-        $this->assertSame('FMS-ROM-'.now()->format('Y-m').'-0001', $trip->trip_ticket_number);
+        $this->assertSame('0001-'.now()->format('m-Y'), $trip->trip_ticket_number);
     }
 
     public function test_approval_without_a_chosen_driver_stores_the_vehicles_default_driver(): void
@@ -159,7 +159,7 @@ class TripWorkflowTest extends TestCase
         $numbers = VehicleRequest::whereNotNull('trip_ticket_number')->pluck('trip_ticket_number');
         $this->assertCount(3, $numbers);
         $this->assertCount(3, $numbers->unique());
-        $this->assertStringEndsWith('-0003', $trips[2]->fresh()->trip_ticket_number);
+        $this->assertStringStartsWith('0003-', $trips[2]->fresh()->trip_ticket_number);
     }
 
     public function test_palawan_uses_yearly_sequence(): void

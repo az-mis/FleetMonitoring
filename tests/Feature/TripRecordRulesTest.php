@@ -92,6 +92,25 @@ class TripRecordRulesTest extends TestCase
             ->assertSee('The activity was postponed.');
     }
 
+    public function test_approved_trip_cannot_be_cancelled_after_its_start_date(): void
+    {
+        $admin = $this->admin('Palawan');
+        $driver = $this->driver('Palawan');
+        $vehicle = $this->vehicle('Palawan');
+        $started = $this->tripRequest($vehicle, ['status' => 'approved', 'trip_ticket_number' => '26-10-702', 'confirmed_driver_id' => $driver->id,
+            'travel_date' => now()->subDays(5)->toDateString(), 'travel_date_end' => now()->subDays(5)->toDateString()]);
+        $today = $this->tripRequest($vehicle, ['status' => 'approved', 'trip_ticket_number' => '26-10-703', 'confirmed_driver_id' => $driver->id,
+            'travel_date' => now()->toDateString(), 'travel_date_end' => now()->addDay()->toDateString()]);
+
+        $this->actingAs($admin)->patch("/vehicle-requests/{$started->id}/status", ['status' => 'declined', 'decline_reason' => 'Too late.'])
+            ->assertSessionHas('error', fn ($message) => str_contains($message, 'can no longer be cancelled'));
+        $this->assertSame('approved', $started->fresh()->status);
+
+        $this->actingAs($admin)->patch("/vehicle-requests/{$today->id}/status", ['status' => 'declined', 'decline_reason' => 'Called off this morning.'])
+            ->assertSessionHas('success');
+        $this->assertSame('declined', $today->fresh()->status);
+    }
+
     public function test_request_whose_travel_date_passed_can_still_be_approved_deliberately(): void
     {
         $admin = $this->admin('Palawan');

@@ -7,7 +7,7 @@ namespace Modules\VehicleRequest\Controllers;
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
 use App\Models\Office;
 use App\Models\User;
-use App\Support\FleetLocations;
+use App\Services\TripTicketNumberer;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -93,33 +93,10 @@ class VehicleRequestController
         ]);
     }
 
-    /**
-     * Next trip ticket number for a location. Sequences continue from the highest number
-     * already issued (not a count of approvals, which drops when a request is declined and
-     * then collides with the unique index). Must run inside a transaction.
-     */
+    /** Next trip ticket number in the location's own format. Must run inside a transaction. */
     private function nextTripTicketNumber(string $location): string
     {
-        $month = now()->format('m');
-
-        if ($location === 'Palawan') {
-            // Palawan's own scheme: {yy}-{mm}-{3-digit yearly sequence}, e.g. 26-09-868.
-            $yearSuffix = now()->format('y');
-            $sequence = str_pad((string) $this->nextPalawanSequence($yearSuffix), 3, '0', STR_PAD_LEFT);
-
-            return "{$yearSuffix}-{$month}-{$sequence}";
-        }
-
-        $abbr = FleetLocations::abbreviation($location);
-        $prefix = "FMS-{$abbr}-".now()->format('Y')."-{$month}-";
-
-        $highest = VehicleRequest::where('trip_ticket_number', 'like', $prefix.'%')
-            ->lockForUpdate()
-            ->pluck('trip_ticket_number')
-            ->map(fn (string $number) => (int) substr($number, strlen($prefix)))
-            ->max() ?? 0;
-
-        return $prefix.str_pad((string) ($highest + 1), 4, '0', STR_PAD_LEFT);
+        return app(TripTicketNumberer::class)->next($location);
     }
 
     /**
@@ -193,37 +170,6 @@ class VehicleRequestController
         }
     }
 
-    /**
-     * Last Palawan trip number already used before this system took over, keyed by
-     * 2-digit year. The next approval continues from this number + 1.
-     * e.g. '26' => 867 means the first number issued in 2026 is 26-MM-868.
-     */
-    private const PALAWAN_SEQUENCE_START = [
-        // Starts from 0 (so first generated ticket will be 001 if DB has no previous records)
-    ];
-
-    /**
-     * Next Palawan trip sequence for the year: the highest sequence already stored
-     * (so manually edited numbers are respected), or the legacy starting point,
-     * whichever is higher, plus one.
-     */
-    private function nextPalawanSequence(string $yearSuffix): int
-    {
-        $highest = self::PALAWAN_SEQUENCE_START[$yearSuffix] ?? 0;
-
-        VehicleRequest::where('location', 'Palawan')
-            ->where('trip_ticket_number', 'like', $yearSuffix.'-%')
-            ->lockForUpdate()
-            ->pluck('trip_ticket_number')
-            ->each(function (string $number) use (&$highest, $yearSuffix): void {
-                if (preg_match('/^'.$yearSuffix.'-\d{2}-(\d+)$/', $number, $m)) {
-                    $highest = max($highest, (int) $m[1]);
-                }
-            });
-
-        return $highest + 1;
-    }
-
     public function updateStatus(Request $request, VehicleRequest $vehicleRequest): RedirectResponse
     {
         $this->authorizeFleetLocation($vehicleRequest->location);
@@ -247,6 +193,10 @@ class VehicleRequestController
                 || FleetCardLog::where('vehicle_request_id', $vehicleRequest->id)->exists();
             if ($vehicleRequest->status === 'approved' && $hasTripRecords) {
                 return back()->with('error', 'This trip already has a completion or fleet card record, so it can no longer be declined.');
+            }
+            // A trip can be called off up to its start date; once that day has passed it has taken place
+            if ($vehicleRequest->status === 'approved' && $vehicleRequest->travel_date->lt(today())) {
+                return back()->with('error', 'This trip started on '.$vehicleRequest->travel_date->format('M j, Y').', so it can no longer be cancelled.');
             }
 
             $wasApproved = $vehicleRequest->status === 'approved';
@@ -481,7 +431,7 @@ class VehicleRequestController
         };
         abort_unless($canView || $request->hasValidSignature(), 403);
         abort_unless($vehicleRequest->status === 'approved', 404);
-        $vehicleRequest->load(['vehicle', 'confirmedDriver', 'approvedBy']);
+        $vehicleRequest->load(['vehicle', 'confirmedDriver', 'approvedBy', 'completion']);
 
         // Resolve signatories (max 2, the ones ticked on the Approving Officers page):
         // request location -> approver's location -> Regional Office default
@@ -745,9 +695,15 @@ class VehicleRequestController
             ->when(! $isSuperAdmin, fn ($q) => $q->where('location', $user->location));
 
         // Exact ticket/reference matches win; a partial match is only used when it is unambiguous
-        $trip = $approvedTrips()
+        // Ticket numbers are unique per area, so the same number may exist in two areas
+        $exactMatches = $approvedTrips()
             ->where(fn ($q) => $q->where('trip_ticket_number', $queryStr)->orWhere('reference_code', $queryStr))
-            ->first();
+            ->limit(6)
+            ->get();
+        if ($exactMatches->count() > 1) {
+            return response()->json(['error' => "Trip Ticket '{$queryStr}' exists in more than one area ({$exactMatches->pluck('location')->unique()->implode(', ')}). Please pick it from the suggestions or enter its reference code."], 409);
+        }
+        $trip = $exactMatches->first();
         if (! $trip) {
             $partialMatches = $approvedTrips()
                 ->where('trip_ticket_number', 'like', '%'.addcslashes($queryStr, '\\%_').'%')

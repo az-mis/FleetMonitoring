@@ -552,8 +552,8 @@
                                             'is_future' => $item->travel_date->isFuture() && !$item->travel_date->isToday(),
                                             'start_has_passed' => $item->travel_date->lt(today()),
                                             'start_label' => $item->travel_date->format('M j, Y'),
-                                            // Approved trips can be cancelled until they are logged or charged to a fleet card
-                                            'can_cancel' => $item->status === 'approved' && ! $item->completion && ! $item->fleet_card_logs_exists,
+                                            // Approved trips can be cancelled up to their start date, unless already logged or charged to a fleet card
+                                            'can_cancel' => $item->status === 'approved' && ! $item->travel_date->lt(today()) && ! $item->completion && ! $item->fleet_card_logs_exists,
                                         ];
                                     @endphp
 
@@ -691,7 +691,7 @@
                             type="text"
                             id="lookup-ticket-input"
                             autocomplete="off"
-                            placeholder="e.g. 26-10-004 or FMS-PAL-2026..."
+                            placeholder="e.g. 26-10-004 or 0001-10-2026"
                             class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold text-slate-800 uppercase focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                             oninput="onLookupInputTyped(this.value)"
                             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); performTripLookup(); }"
