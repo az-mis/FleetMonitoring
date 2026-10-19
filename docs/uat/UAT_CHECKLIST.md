@@ -119,7 +119,7 @@ No programming knowledge is needed.
 **A7. Assign and reassign a vehicle**
 
 - **Steps:**
-  1. Go to **Vehicles → Vehicle Assigning** and choose a driver for an unassigned vehicle.
+  1. Go to **Operations → Vehicle Assigning** and choose a driver for an unassigned vehicle.
   2. Then choose a different driver for the same vehicle.
 - **Expected result:**
   - "Vehicle assignment updated."
@@ -207,7 +207,19 @@ No programming knowledge is needed.
 - **Expected result:** an "Access not allowed" page with a **Go to Dashboard** button. No technical text.
 - ☐ Yes ☐ No — Comments: ______________________________
 
-**A17. Log out**
+**A17. Make the text bigger**
+
+- **Steps:**
+  1. Click your profile picture (top right) and open **System Settings**.
+  2. Under **Display & Text Size**, choose **Large**, then **Larger**, then **Largest**.
+  3. Open a few pages (Dashboard, Travel Requests, Vehicles List), then set it back to the size you prefer.
+- **Expected result:**
+  - The text grows right away and stays at your choice when you open other pages.
+  - Pages still fit the screen, with nothing cut off or overlapping.
+  - The choice is remembered on this computer the next time you sign in.
+- ☐ Yes ☐ No — Comments: ______________________________
+
+**A18. Log out**
 
 - **Steps:** click your profile picture (top right) and choose **Log out**, then confirm.
 - **Expected result:** you are signed out. Opening a page again asks you to sign in.
@@ -249,6 +261,14 @@ No programming knowledge is needed.
   - Email, province and licence cannot be changed by you.
 - ☐ Yes ☐ No — Comments: ______________________________
 
+**D5. Make the text bigger**
+
+- **Steps:**
+  1. Click your profile picture (top right) and open **Display & Text Size**.
+  2. Choose **Large** or **Larger**, then open your Dashboard and Travel History.
+- **Expected result:** the text is bigger on every page, nothing is cut off, and the choice is remembered on this phone or computer.
+- ☐ Yes ☐ No — Comments: ______________________________
+
 ### D. Super Admin
 
 **S1. Create an Admin account**
@@ -264,7 +284,7 @@ No programming knowledge is needed.
 **S2. Switch a module off and on**
 
 - **Steps:**
-  1. Open **Settings** (profile menu) and turn **Drivers** off.
+  1. Click your profile picture (top right), open **System Settings**, and turn **Drivers** off.
   2. Ask an Admin to open Drivers.
   3. Turn it back on.
 - **Expected result:** the Admin sees "Drivers Management Disabled". After you turn it on again, it works.
