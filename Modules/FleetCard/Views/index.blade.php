@@ -3,14 +3,7 @@
 
 @php
     $isSuperAdmin = auth()->user()?->role?->value === 'super_admin';
-    $locations = [
-        'Oriental Mindoro',
-        'Occidental Mindoro',
-        'Marinduque',
-        'Palawan',
-        'Romblon',
-        'Quezon City Satellite Office',
-    ];
+    $locations = \App\Support\FleetLocations::ALL;
     $userLocation = auth()->user()?->location ?? 'Palawan';
 @endphp
 

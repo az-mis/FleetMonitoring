@@ -6,18 +6,17 @@ namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
 use App\Services\ReportService;
+use App\Support\FleetLocations;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Modules\Admin\Enums\UserRole;
 
 class DashboardController extends Controller
 {
     public function __construct(
         protected DashboardService $dashboardService,
         protected ReportService $reportService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {
@@ -26,14 +25,7 @@ class DashboardController extends Controller
         $isAdmin = in_array($roleValue, ['admin', 'super_admin'], true);
         $isSuperAdmin = $roleValue === 'super_admin';
 
-        $locationOptions = [
-            'Oriental Mindoro',
-            'Occidental Mindoro',
-            'Marinduque',
-            'Palawan',
-            'Romblon',
-            'Quezon City Satellite Office',
-        ];
+        $locationOptions = FleetLocations::ALL;
 
         $dashboardLocation = match ($roleValue) {
             'admin' => $user->location,
@@ -80,10 +72,7 @@ class DashboardController extends Controller
         $roleValue = $user?->role?->value ?? $user?->role;
         abort_unless(in_array($roleValue, ['admin', 'super_admin'], true), 403);
 
-        $locationOptions = [
-            'Oriental Mindoro', 'Occidental Mindoro', 'Marinduque',
-            'Palawan', 'Romblon', 'Quezon City Satellite Office',
-        ];
+        $locationOptions = FleetLocations::ALL;
         $isSuperAdmin = $roleValue === 'super_admin';
         $location = $isSuperAdmin
             ? (in_array($request->input('location'), $locationOptions, true) ? $request->input('location') : null)

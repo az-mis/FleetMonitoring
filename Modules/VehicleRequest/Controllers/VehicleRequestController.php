@@ -5,39 +5,33 @@ declare(strict_types=1);
 namespace Modules\VehicleRequest\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Models\Office;
+use App\Models\User;
+use App\Support\FleetLocations;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Modules\FleetCard\Models\FleetCardLog;
-use Modules\Vehicle\Models\Vehicle;
-use Modules\VehicleRequest\Models\VehicleRequest;
-use Modules\VehicleRequest\Models\TripTicketCompletion;
-use Modules\VehicleRequest\Requests\StoreVehicleRequest;
-use Modules\Maintenance\Models\VehicleMaintenance;
-use App\Models\User;
 use Modules\Admin\Enums\UserRole;
 use Modules\ApprovingOfficer\Models\ApprovingOfficer;
+use Modules\FleetCard\Models\FleetCardLog;
+use Modules\Maintenance\Models\VehicleMaintenance;
+use Modules\Vehicle\Models\Vehicle;
+use Modules\VehicleRequest\Models\TripTicketCompletion;
+use Modules\VehicleRequest\Models\VehicleRequest;
+use Modules\VehicleRequest\Requests\StoreVehicleRequest;
+use Modules\VehicleRequest\Support\PersonName;
 
 class VehicleRequestController
 {
     use AuthorizesFleetAccess;
-
-    private const LOCATION_ABBREVIATIONS = [
-        'Oriental Mindoro'             => 'OR-MIN',
-        'Occidental Mindoro'           => 'OC-MIN',
-        'Marinduque'                   => 'MAR',
-        'Palawan'                      => 'PAL',
-        'Romblon'                      => 'ROM',
-        'Quezon City Satellite Office' => 'QC',
-    ];
 
     public function index(Request $request): View
     {
@@ -116,16 +110,16 @@ class VehicleRequestController
             return "{$yearSuffix}-{$month}-{$sequence}";
         }
 
-        $abbr = self::LOCATION_ABBREVIATIONS[$location] ?? strtoupper(Str::limit(Str::slug($location, ''), 6, ''));
-        $prefix = "FMS-{$abbr}-" . now()->format('Y') . "-{$month}-";
+        $abbr = FleetLocations::abbreviation($location);
+        $prefix = "FMS-{$abbr}-".now()->format('Y')."-{$month}-";
 
-        $highest = VehicleRequest::where('trip_ticket_number', 'like', $prefix . '%')
+        $highest = VehicleRequest::where('trip_ticket_number', 'like', $prefix.'%')
             ->lockForUpdate()
             ->pluck('trip_ticket_number')
             ->map(fn (string $number) => (int) substr($number, strlen($prefix)))
             ->max() ?? 0;
 
-        return $prefix . str_pad((string) ($highest + 1), 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) ($highest + 1), 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -149,7 +143,7 @@ class VehicleRequestController
             ->first();
         if ($vehicleTrip) {
             return "This vehicle is already booked for an approved trip ({$vehicleTrip->trip_ticket_number}) on "
-                . $vehicleTrip->travel_date->format('M j, Y') . '. Please choose another vehicle or decline this request.';
+                .$vehicleTrip->travel_date->format('M j, Y').'. Please choose another vehicle or decline this request.';
         }
 
         $maintenance = VehicleMaintenance::where('vehicle_id', $vehicleId)
@@ -176,7 +170,7 @@ class VehicleRequestController
                 ->first();
             if ($driverTrip) {
                 return "The selected driver is already assigned to another approved trip ({$driverTrip->trip_ticket_number}) on "
-                    . $driverTrip->travel_date->format('M j, Y') . '. Please choose a different driver.';
+                    .$driverTrip->travel_date->format('M j, Y').'. Please choose a different driver.';
             }
         }
 
@@ -274,7 +268,7 @@ class VehicleRequestController
         }
         $driver = User::find($driverId);
         if (! $driver || $driver->role !== UserRole::DRIVER || (filled($driver->location) && $driver->location !== $vehicleRequest->location)) {
-            return back()->with('error', 'The selected driver is not a driver assigned to ' . $vehicleRequest->location . '.');
+            return back()->with('error', 'The selected driver is not a driver assigned to '.$vehicleRequest->location.'.');
         }
         if ($problem = $driver->drivingProblem($vehicleRequest->travel_date_end ?? $vehicleRequest->travel_date)) {
             return back()->with('error', $problem);
@@ -328,56 +322,56 @@ class VehicleRequestController
         $adminLocation = $request->user()->location;
 
         $data = $request->validate([
-            'requester_name'        => ['required', 'string', 'max:120'],
-            'requester_office'      => ['nullable', 'string', 'max:150'],
-            'requester_contact'     => ['required', 'string', 'regex:/^09\d{9}$/'],
-            'requester_is_passenger'=> ['nullable', 'boolean'],
-            'location'              => ['required', 'string', 'max:120'],
-            'vehicle_id'            => ['required', 'integer', 'exists:vehicles,id'],
-            'confirmed_driver_id'   => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', UserRole::DRIVER->value)],
-            'destination'           => ['required', 'string', 'max:250'],
-            'distance_km'           => ['nullable', 'integer', 'min:0'],
-            'travel_date'           => ['required', 'date'],
-            'travel_date_end'       => ['required', 'date', 'after_or_equal:travel_date'],
-            'purpose'               => ['required', 'string', 'max:500'],
-            'passengers'            => ['nullable', 'array', 'max:20'],
-            'passengers.*'          => ['nullable', 'string', 'max:120'],
-            'override_conflict'     => ['nullable', 'boolean'],
+            'requester_name' => ['required', 'string', 'max:120'],
+            'requester_office' => ['nullable', 'string', 'max:150'],
+            'requester_contact' => ['required', 'string', 'regex:/^09\d{9}$/'],
+            'requester_is_passenger' => ['nullable', 'boolean'],
+            'location' => ['required', 'string', 'max:120'],
+            'vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
+            'confirmed_driver_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', UserRole::DRIVER->value)],
+            'destination' => ['required', 'string', 'max:250'],
+            'distance_km' => ['nullable', 'integer', 'min:0'],
+            'travel_date' => ['required', 'date'],
+            'travel_date_end' => ['required', 'date', 'after_or_equal:travel_date'],
+            'purpose' => ['required', 'string', 'max:500'],
+            'passengers' => ['nullable', 'array', 'max:20'],
+            'passengers.*' => ['nullable', 'string', 'max:120'],
+            'override_conflict' => ['nullable', 'boolean'],
         ], [
             'requester_contact.regex' => 'Contact number must start with 09 and be exactly 11 digits (e.g. 09171234567).',
         ]);
 
         // Location guard for regular admins
-        if (!$isSuperAdmin && $data['location'] !== $adminLocation) {
+        if (! $isSuperAdmin && $data['location'] !== $adminLocation) {
             return back()->withErrors(['location' => 'You can only create requests for your assigned location.'])->withInput();
         }
 
         // The vehicle must be stationed at the request's location
         if (! Vehicle::whereKey($data['vehicle_id'])->where('location', $data['location'])->exists()) {
-            return back()->withErrors(['vehicle_id' => 'The selected vehicle is not stationed at ' . $data['location'] . '.'])->withInput();
+            return back()->withErrors(['vehicle_id' => 'The selected vehicle is not stationed at '.$data['location'].'.'])->withInput();
         }
 
         // Vehicle conflict check (booking overlap with existing approved/pending requests)
-        $overrideConflict = $isSuperAdmin && !empty($data['override_conflict']);
-        if (!$overrideConflict) {
+        $overrideConflict = $isSuperAdmin && ! empty($data['override_conflict']);
+        if (! $overrideConflict) {
             $conflictingRequest = VehicleRequest::where('vehicle_id', $data['vehicle_id'])
                 ->whereIn('status', ['pending', 'approved'])
                 ->whereDate('travel_date', '<=', $data['travel_date_end'])
                 ->where(function ($q) use ($data) {
                     $q->whereDate('travel_date_end', '>=', $data['travel_date'])
-                      ->orWhere(function ($q2) use ($data) {
-                          $q2->whereNull('travel_date_end')
-                             ->whereDate('travel_date', '>=', $data['travel_date']);
-                      });
+                        ->orWhere(function ($q2) use ($data) {
+                            $q2->whereNull('travel_date_end')
+                                ->whereDate('travel_date', '>=', $data['travel_date']);
+                        });
                 })->first();
 
             if ($conflictingRequest) {
                 return back()
                     ->withErrors([
                         'vehicle_id' => "This vehicle already has a {$conflictingRequest->status} trip from "
-                            . $conflictingRequest->travel_date->format('M j')
-                            . ($conflictingRequest->travel_date_end ? ' – ' . $conflictingRequest->travel_date_end->format('M j, Y') : ', ' . $conflictingRequest->travel_date->format('Y'))
-                            . ". " . ($isSuperAdmin ? 'Check the override box to proceed anyway.' : 'Please choose a different vehicle or dates.'),
+                            .$conflictingRequest->travel_date->format('M j')
+                            .($conflictingRequest->travel_date_end ? ' – '.$conflictingRequest->travel_date_end->format('M j, Y') : ', '.$conflictingRequest->travel_date->format('Y'))
+                            .'. '.($isSuperAdmin ? 'Check the override box to proceed anyway.' : 'Please choose a different vehicle or dates.'),
                     ])
                     ->withInput();
             }
@@ -385,16 +379,16 @@ class VehicleRequestController
 
         // Require a driver
         $driverId = $data['confirmed_driver_id'] ?? null;
-        if (!$driverId) {
+        if (! $driverId) {
             $vehicle = Vehicle::find($data['vehicle_id']);
             $driverId = $vehicle?->assigned_driver_id;
         }
-        if (!$driverId) {
+        if (! $driverId) {
             return back()->withErrors(['confirmed_driver_id' => 'Please select a driver. This vehicle has no default driver assigned.'])->withInput();
         }
         $driverLocation = User::whereKey($driverId)->value('location');
         if (filled($driverLocation) && $driverLocation !== $data['location']) {
-            return back()->withErrors(['confirmed_driver_id' => 'The selected driver is not assigned to ' . $data['location'] . '.'])->withInput();
+            return back()->withErrors(['confirmed_driver_id' => 'The selected driver is not assigned to '.$data['location'].'.'])->withInput();
         }
         if ($problem = User::find($driverId)?->drivingProblem($data['travel_date_end'])) {
             return back()->withErrors(['confirmed_driver_id' => $problem])->withInput();
@@ -407,7 +401,7 @@ class VehicleRequestController
 
         // Normalize passenger names to Title Case
         $passengers = array_filter(array_map(
-            fn (?string $p) => \Modules\VehicleRequest\Support\PersonName::titleCase((string) $p),
+            fn (?string $p) => PersonName::titleCase((string) $p),
             (array) ($data['passengers'] ?? [])
         ));
 
@@ -426,24 +420,25 @@ class VehicleRequestController
                 $ticketNumber = $this->nextTripTicketNumber($data['location']);
 
                 return ['request' => VehicleRequest::create([
-                    'reference_code'         => $code,
-                    'requester_name'         => \Modules\VehicleRequest\Support\PersonName::titleCase($data['requester_name']),
-                    'location'               => $data['location'],
-                    'requester_office'       => $data['requester_office'] ?? null,
-                    'requester_contact'      => $data['requester_contact'],
+                    'reference_code' => $code,
+                    'requester_name' => PersonName::titleCase($data['requester_name']),
+                    'location' => $data['location'],
+                    'requester_office' => $data['requester_office'] ?? null,
+                    'office_id' => Office::idForName($data['requester_office'] ?? null),
+                    'requester_contact' => $data['requester_contact'],
                     'requester_is_passenger' => (bool) ($data['requester_is_passenger'] ?? false),
-                    'vehicle_id'             => $data['vehicle_id'],
-                    'confirmed_driver_id'    => $driverId,
-                    'destination'            => $data['destination'],
-                    'distance_km'            => $data['distance_km'] ?? null,
-                    'travel_date'            => $data['travel_date'],
-                    'travel_date_end'        => $data['travel_date_end'],
-                    'purpose'                => $data['purpose'],
-                    'passengers'             => array_values($passengers) ?: null,
-                    'status'                 => 'approved',
-                    'trip_ticket_number'     => $ticketNumber,
-                    'approved_by'            => $request->user()->id,
-                    'approved_at'            => now(),
+                    'vehicle_id' => $data['vehicle_id'],
+                    'confirmed_driver_id' => $driverId,
+                    'destination' => $data['destination'],
+                    'distance_km' => $data['distance_km'] ?? null,
+                    'travel_date' => $data['travel_date'],
+                    'travel_date_end' => $data['travel_date_end'],
+                    'purpose' => $data['purpose'],
+                    'passengers' => array_values($passengers) ?: null,
+                    'status' => 'approved',
+                    'trip_ticket_number' => $ticketNumber,
+                    'approved_by' => $request->user()->id,
+                    'approved_at' => now(),
                 ])];
             });
 
@@ -456,9 +451,9 @@ class VehicleRequestController
             return redirect()
                 ->route('vehicle-requests.index', array_filter(['status' => 'approved', 'location' => request('location')]))
                 ->with('manual_request_created', [
-                    'requester'   => $vehicleRequest->requester_name,
-                    'ticket'      => $vehicleRequest->trip_ticket_number,
-                    'ticket_url'  => route('trip-ticket', $vehicleRequest),
+                    'requester' => $vehicleRequest->requester_name,
+                    'ticket' => $vehicleRequest->trip_ticket_number,
+                    'ticket_url' => route('trip-ticket', $vehicleRequest),
                 ]);
 
         } catch (\Throwable $e) {
@@ -528,6 +523,7 @@ class VehicleRequestController
             })
             ->latest('travel_date')
             ->get();
+
         return view('vehicle-request::travel-history', ['trips' => $trips]);
     }
 
@@ -652,6 +648,7 @@ class VehicleRequestController
             'requester_name' => $data['requesterName'],
             'location' => $data['location'],
             'requester_office' => $data['requesterOffice'] ?? null,
+            'office_id' => Office::idForName($data['requesterOffice'] ?? null),
             'requester_contact' => $data['requesterContact'] ?? null,
             'requester_is_passenger' => (bool) ($data['requesterIsPassenger'] ?? false),
             'vehicle_id' => $data['vehicleId'],
@@ -699,19 +696,20 @@ class VehicleRequestController
                 ->when($search, function ($q) use ($search) {
                     $q->where(function ($sq) use ($search) {
                         $sq->where('trip_ticket_number', 'like', "%{$search}%")
-                           ->orWhere('reference_code', 'like', "%{$search}%")
-                           ->orWhere('requester_name', 'like', "%{$search}%")
-                           ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate_number', 'like', "%{$search}%"));
+                            ->orWhere('reference_code', 'like', "%{$search}%")
+                            ->orWhere('requester_name', 'like', "%{$search}%")
+                            ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate_number', 'like', "%{$search}%"));
                     });
                 })
-                ->when(!$isSuperAdmin, fn ($q) => $q->where('location', $user->location))
+                ->when(! $isSuperAdmin, fn ($q) => $q->where('location', $user->location))
                 ->latest()
                 ->limit(8)
                 ->get()
                 ->map(function ($trip) {
                     $v = $trip->vehicle;
                     $d = $trip->confirmedDriver ?: $v?->assignedDriver;
-                    $isFuture = $trip->travel_date->isFuture() && !$trip->travel_date->isToday();
+                    $isFuture = $trip->travel_date->isFuture() && ! $trip->travel_date->isToday();
+
                     return [
                         'id' => $trip->id,
                         'trip_ticket_number' => $trip->trip_ticket_number,
@@ -719,7 +717,7 @@ class VehicleRequestController
                         'requester_name' => $trip->requester_name,
                         'location' => $trip->location,
                         'destination' => $trip->destination,
-                        'travel_date' => $trip->travel_date->format('M d, Y') . ($trip->travel_date_end ? (' – ' . $trip->travel_date_end->format('M d, Y')) : ''),
+                        'travel_date' => $trip->travel_date->format('M d, Y').($trip->travel_date_end ? (' – '.$trip->travel_date_end->format('M d, Y')) : ''),
                         'travel_date_raw' => $trip->travel_date->format('Y-m-d'),
                         'is_future' => $isFuture,
                         'purpose' => $trip->purpose,
@@ -737,14 +735,14 @@ class VehicleRequestController
             return response()->json(['suggestions' => $results]);
         }
 
-        if (!$queryStr) {
+        if (! $queryStr) {
             return response()->json(['error' => 'Please provide a Trip Ticket Number.'], 422);
         }
 
         $approvedTrips = fn () => VehicleRequest::query()
             ->with(['vehicle', 'confirmedDriver', 'completion'])
             ->where('status', 'approved')
-            ->when(!$isSuperAdmin, fn ($q) => $q->where('location', $user->location));
+            ->when(! $isSuperAdmin, fn ($q) => $q->where('location', $user->location));
 
         // Exact ticket/reference matches win; a partial match is only used when it is unambiguous
         $trip = $approvedTrips()
@@ -752,7 +750,7 @@ class VehicleRequestController
             ->first();
         if (! $trip) {
             $partialMatches = $approvedTrips()
-                ->where('trip_ticket_number', 'like', '%' . addcslashes($queryStr, '\\%_') . '%')
+                ->where('trip_ticket_number', 'like', '%'.addcslashes($queryStr, '\\%_').'%')
                 ->limit(2)
                 ->get();
             if ($partialMatches->count() > 1) {
@@ -761,13 +759,13 @@ class VehicleRequestController
             $trip = $partialMatches->first();
         }
 
-        if (!$trip) {
-            return response()->json(['error' => "No approved trip found matching '{$queryStr}'." . (!$isSuperAdmin ? " (Filtered by your location: {$user->location})" : "")], 404);
+        if (! $trip) {
+            return response()->json(['error' => "No approved trip found matching '{$queryStr}'.".(! $isSuperAdmin ? " (Filtered by your location: {$user->location})" : '')], 404);
         }
 
         $vehicle = $trip->vehicle;
         $driver = $trip->confirmedDriver ?: $vehicle?->assignedDriver;
-        $isFuture = $trip->travel_date->isFuture() && !$trip->travel_date->isToday();
+        $isFuture = $trip->travel_date->isFuture() && ! $trip->travel_date->isToday();
 
         return response()->json([
             'trip' => [
@@ -777,7 +775,7 @@ class VehicleRequestController
                 'requester_name' => $trip->requester_name,
                 'location' => $trip->location,
                 'destination' => $trip->destination,
-                'travel_date' => $trip->travel_date->format('M d, Y') . ($trip->travel_date_end ? (' – ' . $trip->travel_date_end->format('M d, Y')) : ''),
+                'travel_date' => $trip->travel_date->format('M d, Y').($trip->travel_date_end ? (' – '.$trip->travel_date_end->format('M d, Y')) : ''),
                 'travel_date_raw' => $trip->travel_date->format('Y-m-d'),
                 'is_future' => $isFuture,
                 'purpose' => $trip->purpose,
@@ -789,7 +787,7 @@ class VehicleRequestController
                 'driver_name' => $driver?->name ?? 'Unassigned',
                 'has_completion' => (bool) $trip->completion,
                 'completion' => $trip->completion,
-            ]
+            ],
         ]);
     }
 
@@ -802,61 +800,63 @@ class VehicleRequestController
             if ($request->wantsJson()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->with('error', $msg);
         }
 
-        if ($vehicleRequest->travel_date->isFuture() && !$vehicleRequest->travel_date->isToday()) {
+        if ($vehicleRequest->travel_date->isFuture() && ! $vehicleRequest->travel_date->isToday()) {
             $msg = "Cannot log completion for an upcoming trip scheduled on {$vehicleRequest->travel_date->format('M d, Y')}. The trip has not taken place yet.";
             if ($request->wantsJson()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->with('error', $msg);
         }
 
         $data = $request->validate([
-            'departure_garage_time'     => ['nullable', 'string', 'max:50'],
-            'arrival_destination_time'  => ['nullable', 'string', 'max:50'],
-            'departure_destination_time'=> ['nullable', 'string', 'max:50'],
-            'arrival_garage_time'       => ['nullable', 'string', 'max:50'],
+            'departure_garage_time' => ['nullable', 'string', 'max:50'],
+            'arrival_destination_time' => ['nullable', 'string', 'max:50'],
+            'departure_destination_time' => ['nullable', 'string', 'max:50'],
+            'arrival_garage_time' => ['nullable', 'string', 'max:50'],
 
-            'odo_beginning'             => ['required', 'numeric', 'min:0'],
-            'odo_ending'                => ['required', 'numeric', 'gte:odo_beginning'],
-            'distance_travelled'        => ['nullable', 'numeric', 'min:0'],
+            'odo_beginning' => ['required', 'numeric', 'min:0'],
+            'odo_ending' => ['required', 'numeric', 'gte:odo_beginning'],
+            'distance_travelled' => ['nullable', 'numeric', 'min:0'],
 
-            'fuel_divisor'              => ['nullable', 'numeric', 'gt:0'],
-            'fuel_used_liters'          => ['nullable', 'numeric', 'min:0'],
+            'fuel_divisor' => ['nullable', 'numeric', 'gt:0'],
+            'fuel_used_liters' => ['nullable', 'numeric', 'min:0'],
 
-            'fuel_balance_in_tank'      => ['nullable', 'numeric', 'min:0'],
-            'fuel_issued_office'        => ['nullable', 'numeric', 'min:0'],
-            'fuel_purchased_trip'       => ['nullable', 'numeric', 'min:0'],
-            'fuel_total_liters'         => ['nullable', 'numeric', 'min:0'],
-            'fuel_ending_balance'       => ['nullable', 'numeric'],
+            'fuel_balance_in_tank' => ['nullable', 'numeric', 'min:0'],
+            'fuel_issued_office' => ['nullable', 'numeric', 'min:0'],
+            'fuel_purchased_trip' => ['nullable', 'numeric', 'min:0'],
+            'fuel_total_liters' => ['nullable', 'numeric', 'min:0'],
+            'fuel_ending_balance' => ['nullable', 'numeric'],
 
-            'gear_oil_issued'           => ['nullable', 'numeric', 'min:0'],
-            'lub_oil_issued'            => ['nullable', 'numeric', 'min:0'],
-            'grease_issued'             => ['nullable', 'numeric', 'min:0'],
+            'gear_oil_issued' => ['nullable', 'numeric', 'min:0'],
+            'lub_oil_issued' => ['nullable', 'numeric', 'min:0'],
+            'grease_issued' => ['nullable', 'numeric', 'min:0'],
 
-            'remarks'                   => ['nullable', 'string', 'max:1000'],
+            'remarks' => ['nullable', 'string', 'max:1000'],
         ], [
             'odo_ending.gte' => 'The odometer at the end of the trip cannot be lower than at the beginning (:value km).',
         ], [
             // Names as they appear on the Part B form, so messages make sense to the person filling it in
-            'odo_beginning'        => 'odometer at beginning of trip',
-            'odo_ending'           => 'odometer at end of trip',
-            'fuel_divisor'         => 'fuel divisor',
+            'odo_beginning' => 'odometer at beginning of trip',
+            'odo_ending' => 'odometer at end of trip',
+            'fuel_divisor' => 'fuel divisor',
             'fuel_balance_in_tank' => 'balance in tank',
-            'fuel_issued_office'   => 'fuel issued from stock',
-            'fuel_purchased_trip'  => 'fuel purchased during trip',
-            'gear_oil_issued'      => 'gear oil',
-            'lub_oil_issued'       => 'lub oil',
-            'grease_issued'        => 'grease',
+            'fuel_issued_office' => 'fuel issued from stock',
+            'fuel_purchased_trip' => 'fuel purchased during trip',
+            'gear_oil_issued' => 'gear oil',
+            'lub_oil_issued' => 'lub oil',
+            'grease_issued' => 'grease',
         ]);
 
         $odoBeg = (int) round((float) $data['odo_beginning']);
         $odoEnd = (int) round((float) $data['odo_ending']);
         $distance = max(0, $odoEnd - $odoBeg);
 
-        $divisor = !empty($data['fuel_divisor']) ? (int) round((float) $data['fuel_divisor']) : null;
+        $divisor = ! empty($data['fuel_divisor']) ? (int) round((float) $data['fuel_divisor']) : null;
         $fuelUsed = ($divisor && $divisor > 0) ? round($distance / $divisor, 2) : (float) ($data['fuel_used_liters'] ?? 0);
 
         $balTank = (float) ($data['fuel_balance_in_tank'] ?? 0);
@@ -872,28 +872,28 @@ class VehicleRequestController
             $completion = TripTicketCompletion::updateOrCreate(
                 ['vehicle_request_id' => $vehicleRequest->id],
                 [
-                    'trip_ticket_number'        => $vehicleRequest->trip_ticket_number ?? ('TRIP-' . $vehicleRequest->id),
-                    'vehicle_id'                => $vehicleRequest->vehicle_id,
-                    'driver_id'                 => $vehicleRequest->confirmed_driver_id ?: $vehicleRequest->vehicle?->assigned_driver_id,
-                    'departure_garage_time'     => $data['departure_garage_time'] ?? null,
-                    'arrival_destination_time'  => $data['arrival_destination_time'] ?? null,
-                    'departure_destination_time'=> $data['departure_destination_time'] ?? null,
-                    'arrival_garage_time'       => $data['arrival_garage_time'] ?? null,
-                    'odo_beginning'             => $odoBeg,
-                    'odo_ending'                => $odoEnd,
-                    'distance_travelled'        => $distance,
-                    'fuel_divisor'              => $divisor,
-                    'fuel_used_liters'          => $fuelUsed,
-                    'fuel_balance_in_tank'      => $balTank,
-                    'fuel_issued_office'        => $issuedOffice,
-                    'fuel_purchased_trip'       => $purchasedTrip,
-                    'fuel_total_liters'         => $totalLiters,
-                    'fuel_ending_balance'       => $endingBal,
-                    'gear_oil_issued'           => $data['gear_oil_issued'] ?? null,
-                    'lub_oil_issued'            => $data['lub_oil_issued'] ?? null,
-                    'grease_issued'             => $data['grease_issued'] ?? null,
-                    'remarks'                   => $data['remarks'] ?? null,
-                    'completed_by'              => $request->user()->id,
+                    'trip_ticket_number' => $vehicleRequest->trip_ticket_number ?? ('TRIP-'.$vehicleRequest->id),
+                    'vehicle_id' => $vehicleRequest->vehicle_id,
+                    'driver_id' => $vehicleRequest->confirmed_driver_id ?: $vehicleRequest->vehicle?->assigned_driver_id,
+                    'departure_garage_time' => $data['departure_garage_time'] ?? null,
+                    'arrival_destination_time' => $data['arrival_destination_time'] ?? null,
+                    'departure_destination_time' => $data['departure_destination_time'] ?? null,
+                    'arrival_garage_time' => $data['arrival_garage_time'] ?? null,
+                    'odo_beginning' => $odoBeg,
+                    'odo_ending' => $odoEnd,
+                    'distance_travelled' => $distance,
+                    'fuel_divisor' => $divisor,
+                    'fuel_used_liters' => $fuelUsed,
+                    'fuel_balance_in_tank' => $balTank,
+                    'fuel_issued_office' => $issuedOffice,
+                    'fuel_purchased_trip' => $purchasedTrip,
+                    'fuel_total_liters' => $totalLiters,
+                    'fuel_ending_balance' => $endingBal,
+                    'gear_oil_issued' => $data['gear_oil_issued'] ?? null,
+                    'lub_oil_issued' => $data['lub_oil_issued'] ?? null,
+                    'grease_issued' => $data['grease_issued'] ?? null,
+                    'remarks' => $data['remarks'] ?? null,
+                    'completed_by' => $request->user()->id,
                 ]
             );
 
@@ -919,4 +919,3 @@ class VehicleRequestController
         return back()->with('success', "Trip Ticket {$vehicleRequest->trip_ticket_number} completion logged successfully!");
     }
 }
-

@@ -5,14 +5,7 @@
 
 @section('content')
     @php
-        $locationOptions = [
-            'Oriental Mindoro',
-            'Occidental Mindoro',
-            'Marinduque',
-            'Palawan',
-            'Romblon',
-            'Quezon City Satellite Office',
-        ];
+        $locationOptions = \App\Support\FleetLocations::ALL;
         // The controller already resolves the effective location: the ?location= filter for
         // super admins, the admin's own assigned location for everyone else. Only fall back
         // to the query string if it wasn't passed in.

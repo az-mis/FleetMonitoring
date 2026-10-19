@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\VehicleRequest\Models;
 
+use App\Models\Office;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +16,7 @@ use Modules\Vehicle\Models\Vehicle;
 class VehicleRequest extends Model
 {
     protected $fillable = [
-        'reference_code', 'requester_name', 'location', 'requester_office',
+        'reference_code', 'requester_name', 'location', 'requester_office', 'office_id',
         'requester_contact', 'requester_is_passenger', 'vehicle_id',
         'destination', 'distance_km', 'travel_date', 'travel_date_end', 'purpose',
         'passengers', 'previous_trip_ticket_date', 'status', 'decline_reason',
@@ -33,6 +34,11 @@ class VehicleRequest extends Model
             'previous_trip_ticket_date' => 'date',
             'approved_at' => 'datetime',
         ];
+    }
+
+    public function office(): BelongsTo
+    {
+        return $this->belongsTo(Office::class);
     }
 
     public function vehicle(): BelongsTo

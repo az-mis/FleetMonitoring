@@ -5,14 +5,7 @@
 
 @section('content')
     @php
-        $locationOptions = [
-            'Oriental Mindoro',
-            'Occidental Mindoro',
-            'Marinduque',
-            'Palawan',
-            'Romblon',
-            'Quezon City Satellite Office',
-        ];
+        $locationOptions = \App\Support\FleetLocations::ALL;
         $locationButtonLabel = $selectedLocation ?: 'All Locations';
     @endphp
 

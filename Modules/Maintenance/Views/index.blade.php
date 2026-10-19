@@ -5,14 +5,7 @@
 
 @section('content')
 @php
-    $locationOptions = [
-        'Oriental Mindoro',
-        'Occidental Mindoro',
-        'Marinduque',
-        'Palawan',
-        'Romblon',
-        'Quezon City Satellite Office',
-    ];
+    $locationOptions = \App\Support\FleetLocations::ALL;
 
     $statusStyles = [
         'scheduled' => ['label' => 'Scheduled', 'bg' => 'bg-sky-100',   'text' => 'text-sky-700',   'ring' => 'ring-sky-200'],

@@ -6,28 +6,23 @@ namespace App\Http\Controllers;
 
 use App\Services\ReportExportService;
 use App\Services\ReportService;
+use App\Support\FleetLocations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpWord\PhpWord;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ReportController extends Controller
 {
-    protected array $locationOptions = [
-        'Oriental Mindoro',
-        'Occidental Mindoro',
-        'Marinduque',
-        'Palawan',
-        'Romblon',
-        'Quezon City Satellite Office',
-    ];
+    protected array $locationOptions = FleetLocations::ALL;
 
     public function __construct(
         protected ReportService $reportService,
         protected ReportExportService $exportService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {
@@ -51,8 +46,8 @@ class ReportController extends Controller
         $ctx = $this->context($request);
 
         $missing = $format === 'xlsx'
-            ? ! class_exists(\PhpOffice\PhpSpreadsheet\Spreadsheet::class)
-            : ! class_exists(\PhpOffice\PhpWord\PhpWord::class);
+            ? ! class_exists(Spreadsheet::class)
+            : ! class_exists(PhpWord::class);
 
         if ($missing) {
             return back()->withErrors([

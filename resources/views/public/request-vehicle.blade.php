@@ -57,59 +57,7 @@
             @csrf
             <input type="hidden" name="form_token" value="{{ $formToken ?? '' }}">
 @php
-$offices = [
-    ['value' => 'ORED', 'label' => 'Office of the Regional Executive Director (ORED)'],
-    ['value' => 'RAFIS', 'label' => 'Regional Agriculture and Fisheries Information Section (RAFIS)'],
-    ['value' => 'ORTDO', 'label' => 'Office of the Regional Technical Director for Operations (ORTDO)'],
-    ['value' => 'FOD', 'label' => 'Field Operations Division (FOD)'],
-    ['value' => 'FOD-RICE', 'label' => 'FOD - Rice Banner Program'],
-    ['value' => 'FOD-CORN', 'label' => 'FOD - Corn Banner Program'],
-    ['value' => 'FOD-LIVESTOCK', 'label' => 'FOD - Livestock Program'],
-    ['value' => 'FOD-HVCDP', 'label' => 'FOD - High Value Crops Development Program (HVCDP)'],
-    ['value' => 'FOD-IDS', 'label' => 'FOD - Institutional Development Section (IDS)'],
-    ['value' => 'FOD-DRRM', 'label' => 'FOD - Disaster Risk Reduction and Management (DRRM)'],
-    ['value' => 'FOD-RSBSA', 'label' => 'FOD - Registry System for Basic Sectors in Agriculture (RSBSA)'],
-    ['value' => 'FOD-SAAD', 'label' => 'FOD - Special Area for Agricultural Development (SAAD)'],
-    ['value' => 'FOD-4KS', 'label' => 'FOD - Kabuhayan at Kaunlaran ng Kababayang Katututbo (4Ks)'],
-    ['value' => 'FOD-NUPAP', 'label' => 'FOD - National Urban and Peri-Urban Agriculture Program (NUPAP)'],
-    ['value' => 'FOD-F2C2', 'label' => 'FOD - Farm and Fisheries Clustering and Consolidation Program (F2C2)'],
-    ['value' => 'FOD-PAFES', 'label' => 'FOD - Province-led Agriculture and Fisheries Extension Systems (PAFES)'],
-    ['value' => 'FOD-HFIDP', 'label' => 'FOD - Halal Food Industry Development Program (HFIDP)'],
-    ['value' => 'FOD-PRDP', 'label' => 'FOD - Philippine Rural Development Program (PRDP)'],
-    ['value' => 'ORTDRR', 'label' => 'Office of the Regional Technical Director for Research & Regulations (ORTDRR)'],
-    ['value' => 'RD', 'label' => 'Research Division (RD)'],
-    ['value' => 'ORMAES', 'label' => 'Oriental Mindoro Agricultural Experiment Station (ORMAES)'],
-    ['value' => 'PRES', 'label' => 'Palawan Research Experiment Station (PRES)'],
-    ['value' => 'PRES-LRC', 'label' => 'PRES - Livestock Resource Center (LRC)'],
-    ['value' => 'PRES-DPDC', 'label' => 'PRES - Dairy Production and Development Center (DPDC)'],
-    ['value' => 'PRES-PAC', 'label' => 'PRES - Palawan Agricultural Center (PAC)'],
-    ['value' => 'PRES-ABOABO', 'label' => 'PRES - Abo-Abo Rural Agricultural Center'],
-    ['value' => 'REGDIV', 'label' => 'Regulatory Division'],
-    ['value' => 'REGDIV-OAP', 'label' => 'Regulatory Division - Organic Agriculture Program'],
-    ['value' => 'AFD', 'label' => 'Administrative and Finance Division (AFD)'],
-    ['value' => 'AFD-ACCTG', 'label' => 'AFD - Accounting Section'],
-    ['value' => 'AFD-CASH', 'label' => 'AFD - Cashiering Unit'],
-    ['value' => 'AFD-BUDGET', 'label' => 'AFD - Budget Section'],
-    ['value' => 'AFD-HRS', 'label' => 'AFD - Human Resource Section'],
-    ['value' => 'AFD-RECORDS', 'label' => 'AFD - Records Section'],
-    ['value' => 'AFD-GSS', 'label' => 'AFD - General Services Section'],
-    ['value' => 'AFD-PSU', 'label' => 'AFD - Property & Supply Unit'],
-    ['value' => 'BAC', 'label' => 'Bids & Awards Committee (BAC)'],
-    ['value' => 'PMED', 'label' => 'Planning, Monitoring & Evaluation Division (PMED)'],
-    ['value' => 'MIS', 'label' => 'Management Information Systems Section (MIS)'],
-    ['value' => 'RAFC', 'label' => 'Regional Agricultural and Fishery Council (RAFC)'],
-    ['value' => 'AMAD', 'label' => 'Agribusiness & Marketing Assistance Division (AMAD)'],
-    ['value' => 'ILD', 'label' => 'Integrated Laboratory Division (ILD)'],
-    ['value' => 'ILD-RSL', 'label' => 'ILD - Regional Soils Laboratory'],
-    ['value' => 'ILD-RCPC', 'label' => 'ILD - Regional Crop Protection Center (RCPC)'],
-    ['value' => 'RAED', 'label' => 'Regional Agricultural Engineering Division (RAED)'],
-    ['value' => 'APCO-OCCIDENTAL', 'label' => 'APCO - Occidental Mindoro (San Jose)'],
-    ['value' => 'APCO-ORIENTAL', 'label' => 'APCO - Oriental Mindoro (Calapan City)'],
-    ['value' => 'APCO-MARINDUQUE', 'label' => 'APCO - Marinduque (Boac)'],
-    ['value' => 'APCO-ROMBLON', 'label' => 'APCO - Romblon (Odiongan)'],
-    ['value' => 'APCO-PALAWAN', 'label' => 'APCO - Palawan (Puerto Princesa City)'],
-    ['value' => 'COA', 'label' => 'Commission on Audit (COA)'],
-];
+$offices = \App\Models\Office::options();
 @endphp
 
             <div class="flex items-center gap-2.5">
@@ -216,7 +164,7 @@ $offices = [
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                         <select name="location" required class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                             <option value="">— Select Your Station —</option>
-                            @foreach(['Oriental Mindoro', 'Occidental Mindoro', 'Marinduque', 'Palawan', 'Romblon', 'Quezon City Satellite Office'] as $loc)
+                            @foreach(\App\Support\FleetLocations::ALL as $loc)
                                 <option value="{{ $loc }}" @selected(old('location') === $loc)>{{ $loc }}</option>
                             @endforeach
                         </select>
