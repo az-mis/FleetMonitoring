@@ -1,7 +1,8 @@
 @php
     $longDate = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('F j, Y') : '';
 
-    $driverName = $requestRecord->confirmedDriver?->name ?? '';
+    // An imported trip may name a driver who has no account yet
+    $driverName = $requestRecord->confirmedDriver?->name ?? $requestRecord->driver_name ?? '';
 
     $vehicleLabel = trim(($requestRecord->vehicle?->brand ?? '') . ' ' . ($requestRecord->vehicle?->model ?? ''));
     $plateLabel = $vehicleLabel !== ''
@@ -24,6 +25,8 @@
     // Part B as the driver logged it (blank lines until the completion is recorded)
     $partB = $requestRecord->completion;
     $num = fn ($v) => ($partB === null || $v === null) ? '' : rtrim(rtrim(number_format((float) $v, 2), '0'), '.');
+    // A speedometer reading of 0 means none was recorded (e.g. imported trips with only one reading)
+    $reading = fn ($v) => (float) $v > 0 ? $num($v) : '';
     // Times are typed freely ("7:30 AM"); keep the printed a.m./p.m. hint only while the line is empty
     $time = fn (?string $v) => [$v ?? '', filled($v) && preg_match('/[ap]\.?\s*m\.?/i', $v) ? '' : 'a.m./p.m.'];@endphp
 <!DOCTYPE html>
@@ -158,7 +161,7 @@
                     ['At end of trip', $partB?->odo_ending],
                     ['Distance travelled (per 5 above)', $partB?->distance_travelled],
                 ] as [$label, $value])
-                    <div class="drow sub"><div class="lbl">{{ $label }}</div><div class="line">{{ $num($value) }}</div><div class="sfx">miles/kms.</div></div>
+                    <div class="drow sub"><div class="lbl">{{ $label }}</div><div class="line">{{ $reading($value) }}</div><div class="sfx">miles/kms.</div></div>
                 @endforeach
 
                 <div class="drow"><div class="n">11</div><div class="lbl">Remarks</div><div class="line">{{ $partB?->remarks }}</div></div>

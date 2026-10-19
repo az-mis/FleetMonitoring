@@ -20,7 +20,7 @@ class VehicleRequest extends Model
         'requester_contact', 'requester_is_passenger', 'vehicle_id',
         'destination', 'distance_km', 'travel_date', 'travel_date_end', 'purpose',
         'passengers', 'previous_trip_ticket_date', 'status', 'decline_reason',
-        'trip_ticket_number', 'confirmed_driver_id', 'approved_by', 'approved_at',
+        'trip_ticket_number', 'confirmed_driver_id', 'driver_name', 'approved_by', 'approved_at',
     ];
 
     protected function casts(): array

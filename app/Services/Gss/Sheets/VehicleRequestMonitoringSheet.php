@@ -47,7 +47,7 @@ final class VehicleRequestMonitoringSheet extends GssSheet
             yield ['cells' => [
                 $request->reference_code,
                 $request->created_at,
-                $request->confirmedDriver?->name,
+                $request->confirmedDriver?->name ?? $request->driver_name,
                 strtoupper((string) $request->vehicle?->vehicle_type),
                 $this->dateRange($request->travel_date, $request->travel_date_end),
                 $request->vehicle?->plate_number,

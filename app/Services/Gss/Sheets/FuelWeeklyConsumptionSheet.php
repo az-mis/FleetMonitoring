@@ -67,7 +67,7 @@ final class FuelWeeklyConsumptionSheet extends GssSheet
                 yield ['cells' => [
                     $i === 0 ? $no : '',
                     $i === 0 ? strtoupper(trim(($vehicle?->brand ?? '').' '.($vehicle?->model ?? ''))) : '',
-                    $i === 0 ? $trip->confirmedDriver?->name : '',
+                    $i === 0 ? ($trip->confirmedDriver?->name ?? $trip->driver_name) : '',
                     $i === 0 ? $vehicle?->plate_number : '',
                     $i === 0 ? strtoupper((string) $vehicle?->fuel_type) : '',
                     $this->dateRange($trip->travel_date, $trip->travel_date_end),

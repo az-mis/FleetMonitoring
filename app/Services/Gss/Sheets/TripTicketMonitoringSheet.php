@@ -68,7 +68,7 @@ final class TripTicketMonitoringSheet extends GssSheet
                     $trip->purpose,
                     $this->destination($trip->destination),
                     $trip->vehicle?->plate_number,
-                    $trip->confirmedDriver?->name,
+                    $trip->confirmedDriver?->name ?? $trip->driver_name,
                     $trip->completion ? (float) $trip->completion->odo_beginning : null,
                     $trip->completion ? (float) $trip->completion->odo_ending : null,
                 ]];
