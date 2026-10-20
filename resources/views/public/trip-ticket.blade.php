@@ -35,6 +35,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trip_Ticket_{{ $requestRecord->trip_ticket_number }}</title>
+    @include('partials.favicon')
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #e9ebee; font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; color: #1a1a1a; }

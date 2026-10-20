@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>@yield('title') · Fleet Management System</title>
+    @include('partials.favicon')
     {{-- Self-contained on purpose: error pages must render even when assets or the app are failing --}}
     <style>
         *, *::before, *::after { box-sizing: border-box; }

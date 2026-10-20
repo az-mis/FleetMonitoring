@@ -21,6 +21,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }}</title>
     @include('partials.text-size')
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{ $head ?? '' }}
 </head>

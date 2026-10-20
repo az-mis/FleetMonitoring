@@ -7,6 +7,7 @@
 
     <title>@hasSection('title')@yield('title') · @endif Fleet Management System</title>
     @include('partials.text-size')
+    @include('partials.favicon')
 
     <script>
         window.notificationBellData = function(allNotifIds) {
