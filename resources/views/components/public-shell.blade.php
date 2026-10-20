@@ -41,6 +41,8 @@
                 </span>
             </a>
 
+            {{-- The home page shows these same three as large cards, so its top bar keeps only the logo --}}
+            @unless ($active === 'home')
             <nav class="flex shrink-0 items-center gap-0.5 sm:gap-1.5" aria-label="Public pages">
                 @foreach ($links as $key => $link)
                     <a href="{{ $link['url'] }}"
@@ -58,6 +60,7 @@
                     </a>
                 @endif
             </nav>
+            @endunless
         </header>
 
         <main class="flex flex-1 justify-center px-4 pb-10 pt-2 sm:px-6 sm:pt-6 {{ $center ? 'items-center' : 'items-start' }}">
