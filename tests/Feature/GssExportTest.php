@@ -105,7 +105,13 @@ class GssExportTest extends TestCase
 
         $this->assertSame(array_keys(self::WORKBOOK_HEADERS), $book->getSheetNames());
         foreach (self::WORKBOOK_HEADERS as $title => $headers) {
-            $this->assertSame($headers, $this->headerRows($book->getSheetByName($title), count($headers), count($headers[0])), "Headers of {$title}");
+            $ws = $book->getSheetByName($title);
+            $this->assertSame($headers, $this->headerRows($ws, count($headers), count($headers[0])), "Headers of {$title}");
+            // The DA MIMAROPA letterhead sits above the title, as on the workbook's printed sheets
+            $drawings = iterator_to_array($ws->getDrawingCollection());
+            $this->assertCount(1, $drawings, "Letterhead of {$title}");
+            $this->assertSame('A1', $drawings[0]->getCoordinates());
+            $this->assertNotSame('', (string) $ws->getCell('A2')->getValue(), "Title of {$title}");
         }
     }
 
