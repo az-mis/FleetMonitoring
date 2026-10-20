@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\VehicleRequest\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Http\Controllers\Concerns\ReturnsToList;
 use App\Models\Office;
 use App\Models\User;
 use App\Services\TripTicketNumberer;
@@ -32,8 +33,9 @@ use Modules\VehicleRequest\Support\PersonName;
 class VehicleRequestController
 {
     use AuthorizesFleetAccess;
+    use ReturnsToList;
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         // Admins are pinned to their own location; only super admins may choose one via ?location=
         $userLocation = $this->fleetLocationScope();
@@ -69,8 +71,13 @@ class VehicleRequestController
             });
         }
 
+        $requests = $query->paginate($perPage)->withQueryString();
+        if ($lastPage = $this->pageOutOfRange($requests)) {
+            return $lastPage;
+        }
+
         return view('vehicle-request::index', [
-            'requests' => $query->paginate($perPage)->withQueryString(),
+            'requests' => $requests,
             'drivers' => User::where('role', UserRole::DRIVER)->active()
                 ->when($location, fn ($builder) => $builder->where('location', $location))
                 ->orderBy('name')

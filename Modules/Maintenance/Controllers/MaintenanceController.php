@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Maintenance\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Http\Controllers\Concerns\ReturnsToList;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +23,7 @@ use Modules\VehicleRequest\Models\VehicleRequest;
 class MaintenanceController extends Controller
 {
     use AuthorizesFleetAccess;
+    use ReturnsToList;
 
     public function __construct(
         private readonly MaintenanceService $maintenanceService,
@@ -75,6 +77,9 @@ class MaintenanceController extends Controller
             status: $status,
             perPage: $perPage,
         );
+        if ($lastPage = $this->pageOutOfRange($records)) {
+            return $lastPage;
+        }
 
         $counts = $this->maintenanceService->counts($location);
 
@@ -144,11 +149,11 @@ class MaintenanceController extends Controller
                 ]);
             }
 
-            return redirect()->route('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
+            return $this->backToList('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
                 ->with('success', 'Maintenance created and linked to the driver report.'.$this->tripClashNote($maintenance));
         }
 
-        return redirect()->route('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
+        return $this->backToList('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
             ->with('success', 'Maintenance record added.'.$this->tripClashNote($maintenance));
     }
 
@@ -167,7 +172,7 @@ class MaintenanceController extends Controller
         // Reflect the change on the driver's report (e.g. completed maintenance -> resolved report).
         $this->vehicleReportService->syncFromMaintenance($record, $record->wasChanged('status'), auth()->user());
 
-        return redirect()->route('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
+        return $this->backToList('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
             ->with('success', 'Maintenance record updated.'.$this->tripClashNote($record));
     }
 
@@ -181,7 +186,7 @@ class MaintenanceController extends Controller
         $this->vehicleReportService->releaseMaintenance($maintenance, auth()->user());
         $this->maintenanceService->delete($maintenance);
 
-        return redirect()->route('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
+        return $this->backToList('maintenance.index', request()->only(['search', 'location', 'status', 'per_page']))
             ->with('success', 'Maintenance record deleted.');
     }
 

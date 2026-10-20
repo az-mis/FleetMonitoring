@@ -3,6 +3,7 @@
 namespace Modules\FleetCard\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Http\Controllers\Concerns\ReturnsToList;
 use App\Http\Controllers\Controller;
 use App\Models\Office;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,7 @@ use Modules\VehicleRequest\Models\VehicleRequest;
 class FleetCardController extends Controller
 {
     use AuthorizesFleetAccess;
+    use ReturnsToList;
 
     public function __construct(
         protected FleetCardService $fleetCardService
@@ -123,7 +125,7 @@ class FleetCardController extends Controller
 
         FleetCard::create($validated);
 
-        return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card registered successfully!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Fleet Card registered successfully!');
     }
 
     public function update(Request $request, FleetCard $fleetCard): RedirectResponse
@@ -161,7 +163,7 @@ class FleetCardController extends Controller
         $validated['updated_by'] = auth()->id();
         $fleetCard->update($validated);
 
-        return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card updated successfully!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Fleet Card updated successfully!');
     }
 
     public function logExpense(Request $request, FleetCard $fleetCard): RedirectResponse
@@ -189,7 +191,7 @@ class FleetCardController extends Controller
 
         $this->fleetCardService->recordExpense($fleetCard, $validated);
 
-        return redirect()->route('fleet-cards.index')->with('success', 'Trip expense recorded & budget updated!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Trip expense recorded & budget updated!');
     }
 
     public function recharge(Request $request, FleetCard $fleetCard): RedirectResponse
@@ -203,7 +205,7 @@ class FleetCardController extends Controller
 
         $this->fleetCardService->rechargeCard($fleetCard, (float) $validated['amount'], $validated['remarks'] ?? null);
 
-        return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card budget topped up successfully!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Fleet Card budget topped up successfully!');
     }
 
     public function destroyRecharge(Request $request, FleetCard $fleetCard, FleetCardLog $log): JsonResponse|RedirectResponse
@@ -216,7 +218,7 @@ class FleetCardController extends Controller
             return response()->json(['success' => true, 'message' => 'Top-up entry deleted successfully!']);
         }
 
-        return redirect()->route('fleet-cards.index')->with('success', 'Top-up entry removed and balance updated!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Top-up entry removed and balance updated!');
     }
 
     public function destroy(FleetCard $fleetCard): RedirectResponse
@@ -224,7 +226,7 @@ class FleetCardController extends Controller
         $this->authorizeFleetLocation($fleetCard->location);
 
         $fleetCard->delete();
-        return redirect()->route('fleet-cards.index')->with('success', 'Fleet Card deleted successfully!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Fleet Card deleted successfully!');
     }
 
     /**
@@ -257,7 +259,7 @@ class FleetCardController extends Controller
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Expense log deleted and balance restored.']);
         }
-        return redirect()->route('fleet-cards.index')->with('success', 'Expense log deleted and balance restored!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Expense log deleted and balance restored!');
     }
 
     /**
@@ -274,7 +276,7 @@ class FleetCardController extends Controller
 
         $log->update(['remarks' => $validated['remarks'] ?? $log->remarks]);
 
-        return redirect()->route('fleet-cards.index')->with('success', 'Log remarks updated!');
+        return $this->backToList('fleet-cards.index')->with('success', 'Log remarks updated!');
     }
 
     public function previewCalc(Request $request, FleetCard $fleetCard): JsonResponse

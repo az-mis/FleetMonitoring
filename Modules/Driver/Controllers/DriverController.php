@@ -18,11 +18,13 @@ use Modules\VehicleRequest\Models\VehicleRequest;
 
 class DriverController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ReturnsToList;
+
     public function __construct(
         private readonly DriverService $driverService,
     ) {}
 
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         Gate::authorize('manage-drivers');
 
@@ -31,13 +33,18 @@ class DriverController extends Controller
         $location = auth()->user()?->role === UserRole::ADMIN ? auth()->user()->location : request('location');
         $status = in_array(request('status'), ['active', 'inactive'], true) ? request('status') : null;
 
+        $drivers = $this->driverService->list(
+            search: $search,
+            location: $location,
+            perPage: $perPage,
+            status: $status,
+        );
+        if ($lastPage = $this->pageOutOfRange($drivers)) {
+            return $lastPage;
+        }
+
         return view('driver::index', [
-            'drivers' => $this->driverService->list(
-                search: $search,
-                location: $location,
-                perPage: $perPage,
-                status: $status,
-            ),
+            'drivers' => $drivers,
             'statusFilter' => $status,
         ]);
     }
@@ -59,7 +66,7 @@ class DriverController extends Controller
         }
         $this->driverService->createDriver($data);
 
-        return redirect()->route('driver.index')->with('success', 'Driver created successfully.');
+        return $this->backToList('driver.index')->with('success', 'Driver created successfully.');
     }
 
     public function edit(User $driver): View
@@ -81,7 +88,7 @@ class DriverController extends Controller
         }
         $this->driverService->updateDriver($driver, $data);
 
-        return redirect()->route('driver.index')
+        return $this->backToList('driver.index')
             ->with('success', "{$driver->name} updated.")
             ->with('driver_name', $driver->name);
     }
@@ -96,13 +103,13 @@ class DriverController extends Controller
             || VehicleIssueReport::where('driver_id', $driver->id)->exists();
 
         if ($hasRecords) {
-            return redirect()->route('driver.index')
+            return $this->backToList('driver.index')
                 ->with('error', "{$driver->name} has trips or vehicle reports on record and cannot be deleted. These records must keep the driver's name. Deactivate the driver instead.");
         }
 
         $this->driverService->deleteDriver($driver);
 
-        return redirect()->route('driver.index')->with('success', 'Driver deleted.');
+        return $this->backToList('driver.index')->with('success', 'Driver deleted.');
     }
 
     public function deactivate(User $driver): RedirectResponse

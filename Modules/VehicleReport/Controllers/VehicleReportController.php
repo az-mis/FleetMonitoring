@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\VehicleReport\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Http\Controllers\Concerns\ReturnsToList;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -19,6 +20,7 @@ use Modules\VehicleReport\Services\VehicleReportService;
 class VehicleReportController extends Controller
 {
     use AuthorizesFleetAccess;
+    use ReturnsToList;
 
     public function __construct(
         private readonly VehicleReportService $vehicleReportService,
@@ -77,7 +79,7 @@ class VehicleReportController extends Controller
 
         $this->vehicleReportService->create($request->validated(), $vehicle, $user);
 
-        return redirect()->route('vehicle-reports.index')
+        return $this->backToList('vehicle-reports.index')
             ->with('success', 'Vehicle issue report submitted for admin review.');
     }
 
@@ -95,7 +97,7 @@ class VehicleReportController extends Controller
 
         $this->vehicleReportService->review($vehicleReport, $request->validated(), $user);
 
-        return redirect()->route('vehicle-reports.index')
+        return $this->backToList('vehicle-reports.index')
             ->with('success', 'Driver report updated.');
     }
 

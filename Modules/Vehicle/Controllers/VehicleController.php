@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Vehicle\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Http\Controllers\Concerns\ReturnsToList;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,7 @@ use Modules\Vehicle\Services\VehicleService;
 class VehicleController extends Controller
 {
     use AuthorizesFleetAccess;
+    use ReturnsToList;
 
     public function __construct(
         private readonly VehicleService $vehicleService,
@@ -29,7 +31,7 @@ class VehicleController extends Controller
     /**
      * @throws AuthorizationException
      */
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         $this->authorizeSuperAdmin();
 
@@ -43,6 +45,9 @@ class VehicleController extends Controller
             location: $location,
             perPage: $perPage
         );
+        if ($lastPage = $this->pageOutOfRange($vehicles)) {
+            return $lastPage;
+        }
 
         $typeCounts = $this->vehicleService->typeCounts($location);
 
@@ -110,7 +115,7 @@ class VehicleController extends Controller
 
         $this->vehicleService->createVehicle($request->validated());
 
-        return redirect()->route('vehicles.index')->with('success', 'Vehicle registered successfully.');
+        return $this->backToList('vehicles.index')->with('success', 'Vehicle registered successfully.');
     }
 
     /**
@@ -135,7 +140,7 @@ class VehicleController extends Controller
             ]);
         }
 
-        return redirect()->route('vehicles.index', request()->only(['search', 'per_page', 'location']))
+        return $this->backToList('vehicles.index', request()->only(['search', 'per_page', 'location']))
             ->with('success', "Vehicle type \"{$type->name}\" added.");
     }
 
@@ -149,7 +154,7 @@ class VehicleController extends Controller
 
         $this->vehicleService->updateVehicle($vehicle, $request->validated());
 
-        return redirect()->route('vehicles.index')->with('success', 'Vehicle updated successfully.');
+        return $this->backToList('vehicles.index')->with('success', 'Vehicle updated successfully.');
     }
 
     /**
@@ -161,13 +166,13 @@ class VehicleController extends Controller
         $this->authorizeFleetLocation($vehicle->location);
 
         if (\Modules\VehicleRequest\Models\VehicleRequest::where('vehicle_id', $vehicle->id)->exists()) {
-            return redirect()->route('vehicles.index')
+            return $this->backToList('vehicles.index')
                 ->with('error', "{$vehicle->plate_number} has trip requests on record and cannot be deleted.");
         }
 
         $this->vehicleService->deleteVehicle($vehicle);
 
-        return redirect()->route('vehicles.index')->with('success', 'Vehicle deleted.');
+        return $this->backToList('vehicles.index')->with('success', 'Vehicle deleted.');
     }
 
     /**
@@ -281,7 +286,7 @@ class VehicleController extends Controller
             ]);
         }
 
-        return redirect()->route('vehicles.index')->with('success', "Inspection recorded for {$vehicle->plate_number}.");
+        return $this->backToList('vehicles.index')->with('success', "Inspection recorded for {$vehicle->plate_number}.");
     }
 
     /**

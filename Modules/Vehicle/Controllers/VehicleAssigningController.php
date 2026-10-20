@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Vehicle\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Http\Controllers\Concerns\ReturnsToList;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,8 +17,9 @@ use Modules\Vehicle\Models\Vehicle;
 class VehicleAssigningController
 {
     use AuthorizesFleetAccess;
+    use ReturnsToList;
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $this->authorizeFleetAdmin();
 
@@ -44,6 +46,9 @@ class VehicleAssigningController
         $unassignedCount = (clone $query)->whereNull('assigned_driver_id')->count();
 
         $vehicles = $query->paginate($perPage)->withQueryString();
+        if ($lastPage = $this->pageOutOfRange($vehicles)) {
+            return $lastPage;
+        }
 
         $drivers = User::where('role', UserRole::DRIVER)->active()
             ->when($userLocation, fn ($builder) => $builder->where('location', $userLocation))

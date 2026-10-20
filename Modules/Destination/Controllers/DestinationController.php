@@ -3,6 +3,7 @@
 namespace Modules\Destination\Controllers;
 
 use App\Http\Controllers\Concerns\AuthorizesFleetAccess;
+use App\Http\Controllers\Concerns\ReturnsToList;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Destination\Models\Destination;
@@ -10,6 +11,7 @@ use Modules\Destination\Models\Destination;
 class DestinationController extends Controller
 {
     use AuthorizesFleetAccess;
+    use ReturnsToList;
 
     public function index(Request $request)
     {
@@ -38,6 +40,9 @@ class DestinationController extends Controller
         $perPage = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $destinations = $query->orderBy('name', 'asc')->paginate($perPage)->withQueryString();
+        if ($lastPage = $this->pageOutOfRange($destinations)) {
+            return $lastPage;
+        }
 
         return view('destination::index', compact('destinations', 'selectedLocation', 'isSuperAdmin', 'perPage'));
     }
@@ -70,7 +75,7 @@ class DestinationController extends Controller
             ]);
         }
 
-        return redirect()->route('destinations.index')
+        return $this->backToList('destinations.index')
             ->with('success', "Destination '{$destination->name}' added successfully.");
     }
 
@@ -96,7 +101,7 @@ class DestinationController extends Controller
 
         $destination->update($validated);
 
-        return redirect()->route('destinations.index')
+        return $this->backToList('destinations.index')
             ->with('success', "Destination '{$destination->name}' updated successfully.");
     }
 
@@ -113,7 +118,7 @@ class DestinationController extends Controller
         $destination->save();
 
         $statusStr = $destination->is_active ? 'activated' : 'deactivated';
-        return redirect()->route('destinations.index')
+        return $this->backToList('destinations.index')
             ->with('success', "Destination '{$destination->name}' {$statusStr}.");
     }
 
@@ -129,7 +134,7 @@ class DestinationController extends Controller
         $name = $destination->name;
         $destination->delete();
 
-        return redirect()->route('destinations.index')
+        return $this->backToList('destinations.index')
             ->with('success', "Destination '{$name}' deleted successfully.");
     }
 
