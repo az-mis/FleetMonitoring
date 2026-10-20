@@ -13,6 +13,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Contracts\PasswordUpdateResponse as PasswordUpdateResponseContract;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Fortify;
 use Modules\Authentication\Actions\CreateNewUser;
@@ -20,6 +21,7 @@ use Modules\Authentication\Actions\ResetUserPassword;
 use Modules\Authentication\Actions\UpdateUserPassword;
 use Modules\Authentication\Actions\UpdateUserProfileInformation;
 use Modules\Authentication\Responses\PasswordResetLinkRequestResponse;
+use Modules\Authentication\Responses\PasswordUpdateResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -28,6 +30,8 @@ class FortifyServiceProvider extends ServiceProvider
         // Same response for known and unknown emails (prevents account enumeration)
         $this->app->bind(SuccessfulPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestResponse::class);
         $this->app->bind(FailedPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestResponse::class);
+        // Changing your own password from My Profile shows the app's success toast
+        $this->app->bind(PasswordUpdateResponseContract::class, PasswordUpdateResponse::class);
     }
 
     public function boot(): void

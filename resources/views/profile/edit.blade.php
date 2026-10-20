@@ -214,6 +214,65 @@
                 </div>
             </div>
         </form>
+
+        {{-- Change password: posts to Fortify's user-password.update; errors use the updatePassword bag --}}
+        @php
+            $passwordErrors = $errors->getBag('updatePassword');
+            $passwordInput = 'w-full rounded-lg border bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500';
+        @endphp
+        <form id="change-password" method="POST" action="{{ route('user-password.update') }}" class="mx-auto max-w-3xl scroll-mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            @csrf
+            @method('PUT')
+            <input type="text" name="username" value="{{ $user->email }}" autocomplete="username" class="hidden" aria-hidden="true" tabindex="-1">
+
+            <section class="rounded-xl border border-gray-100 bg-gray-50/70 p-4">
+                <div class="mb-3 border-b border-gray-200/60 pb-2">
+                    <h4 class="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="11" x="3" y="11" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Change Password
+                    </h4>
+                    <p class="mt-1 text-[0.625rem] text-gray-500">Enter your current password, then choose a new one of at least 8 characters.</p>
+                </div>
+
+                <div class="grid gap-3 md:grid-cols-3">
+                    <div>
+                        <label for="current-password" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
+                            Current Password <span class="text-red-500">*</span>
+                        </label>
+                        <input id="current-password" type="password" name="current_password" required autocomplete="current-password" @if ($passwordErrors->has('current_password')) autofocus aria-invalid="true" @endif class="{{ $passwordInput }} {{ $passwordErrors->has('current_password') ? 'border-red-300' : 'border-gray-300' }}">
+                        @error('current_password', 'updatePassword')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label for="new-password" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
+                            New Password <span class="text-red-500">*</span>
+                        </label>
+                        <input id="new-password" type="password" name="password" required minlength="8" autocomplete="new-password" @if (! $passwordErrors->has('current_password') && $passwordErrors->has('password')) autofocus @endif @if ($passwordErrors->has('password')) aria-invalid="true" @endif class="{{ $passwordInput }} {{ $passwordErrors->has('password') ? 'border-red-300' : 'border-gray-300' }}">
+                        @error('password', 'updatePassword')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label for="new-password-confirmation" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
+                            Confirm New Password <span class="text-red-500">*</span>
+                        </label>
+                        <input id="new-password-confirmation" type="password" name="password_confirmation" required minlength="8" autocomplete="new-password" class="{{ $passwordInput }} border-gray-300">
+                    </div>
+                </div>
+            </section>
+
+            <div class="mt-5 flex justify-end border-t border-gray-100 pt-4">
+                <button type="submit" class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-emerald-700 px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-emerald-800 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="11" x="3" y="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Change Password
+                </button>
+            </div>
+        </form>
     </div>
 
     <script>
