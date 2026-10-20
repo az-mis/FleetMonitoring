@@ -69,15 +69,15 @@
     {{-- GSS export and import side by side on wide screens (each opens on its own) --}}
     <div class="grid grid-cols-1 items-start gap-3 {{ $isSuperAdmin ? 'lg:grid-cols-2' : '' }}">
     {{-- The vehicle sheets of the GSS workbook, same columns and order as "GSS {year}.xlsx" --}}
-    <details class="group rounded-2xl border border-emerald-200 bg-white shadow-sm">
-        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+    <details class="group rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-emerald-300 open:border-emerald-300">
+        <summary class="flex min-h-[4.25rem] cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
             <span class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h2M8 17h2M14 13h2M14 17h2"/></svg>
                 </span>
                 <span>
-                    <span class="block text-sm font-extrabold text-slate-900">GSS workbook (.xlsx)</span>
-                    <span class="block text-xs text-slate-500">The vehicle sheets of the GSS monitoring workbook, with the same columns and order{{ $isSuperAdmin ? '' : ' · '.$scopeLabel.' only' }}.</span>
+                    <span class="block text-sm font-extrabold text-slate-900">Export GSS workbook</span>
+                    <span class="block text-xs text-slate-500">Download the vehicle sheets as Excel, in the workbook's own columns{{ $isSuperAdmin ? '' : ' · '.$scopeLabel.' only' }}.</span>
                 </span>
             </span>
             <svg class="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
@@ -127,15 +127,15 @@
     {{-- Super Admin only: import an updated GSS workbook (checked first, saved only on confirmation) --}}
     @if($isSuperAdmin)
         @php $importReady = \Illuminate\Support\Facades\Schema::hasTable('import_records'); @endphp
-        <details class="group rounded-2xl border border-violet-200 bg-white shadow-sm" @if($errors->hasAny(['workbook', 'year', 'gss_import'])) open @endif>
-            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+        <details class="group rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-violet-300 open:border-violet-300" @if($errors->hasAny(['workbook', 'year', 'gss_import'])) open @endif>
+            <summary class="flex min-h-[4.25rem] cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
                 <span class="flex items-center gap-2.5">
                     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-violet-700">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
                     </span>
                     <span>
                         <span class="block text-sm font-extrabold text-slate-900">Import GSS workbook</span>
-                        <span class="block text-xs text-slate-500">Bring in an updated GSS workbook. The file is checked first; nothing is saved until you confirm.</span>
+                        <span class="block text-xs text-slate-500">Upload an updated workbook. It is checked before anything is saved.</span>
                     </span>
                 </span>
                 <svg class="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
