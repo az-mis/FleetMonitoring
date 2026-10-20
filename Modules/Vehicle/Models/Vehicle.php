@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Modules\FleetCard\Models\FleetCard;
 use Modules\Maintenance\Models\VehicleMaintenance;
 use Modules\Vehicle\Factories\VehicleFactory;
 
@@ -184,6 +185,25 @@ class Vehicle extends Model
     public function maintenances(): HasMany
     {
         return $this->hasMany(VehicleMaintenance::class);
+    }
+
+    public function fleetCards(): HasMany
+    {
+        return $this->hasMany(FleetCard::class);
+    }
+
+    /** Monthly allowance set on the vehicle's registered fleet card(s), or null when no card sets one */
+    public function cardAllowance(): ?float
+    {
+        $amounts = $this->fleetCards->pluck('monthly_allowance')->filter(fn ($amount) => $amount !== null);
+
+        return $amounts->isEmpty() ? null : (float) $amounts->sum();
+    }
+
+    /** The allowance GSS lists for the vehicle: its card's once one sets it, else the amount kept on the vehicle */
+    public function effectiveFleetCardAllowance(): ?float
+    {
+        return $this->cardAllowance() ?? ($this->fleet_card_allowance !== null ? (float) $this->fleet_card_allowance : null);
     }
 
     /**

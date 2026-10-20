@@ -46,7 +46,7 @@ final class ListOfVehicleSheet extends GssSheet
     public function rows(GssScope $scope): iterable
     {
         $vehicles = Vehicle::query()
-            ->with(['assignedDriver', 'endUserOffice'])
+            ->with(['assignedDriver', 'endUserOffice', 'fleetCards'])
             ->when($scope->location, fn ($q) => $q->where('location', $scope->location))
             ->get()
             ->sortBy(fn (Vehicle $v) => [array_search($v->location, $scope->areas(), true), $v->plate_number])
@@ -62,7 +62,8 @@ final class ListOfVehicleSheet extends GssSheet
                 $vehicle->assignedDriver?->name ?? 'No Driver',
                 $vehicle->assignedDriver?->phone_number,
                 $vehicle->location,
-                $vehicle->fleet_card_allowance !== null ? (float) $vehicle->fleet_card_allowance : null,
+                // The registered card's allowance once it sets one, else the amount kept on the vehicle
+                $vehicle->effectiveFleetCardAllowance(),
                 $vehicle->old_plate_number ? "{$vehicle->old_plate_number} ({$vehicle->plate_number})" : $vehicle->plate_number,
                 $vehicle->endUserOffice?->code,
                 $vehicle->assigned_person,

@@ -180,6 +180,20 @@ class GssExportTest extends TestCase
         $this->assertSame('PM-07', $pms[0][0]);
     }
 
+    public function test_list_of_vehicle_takes_the_allowance_from_the_registered_card(): void
+    {
+        $carded = $this->vehicle('Palawan', ['plate_number' => 'AAA 0001', 'fleet_card_allowance' => 25000]);
+        $this->fleetCard($carded, ['monthly_allowance' => 30000]);
+        $this->vehicle('Palawan', ['plate_number' => 'BBB 0002', 'fleet_card_allowance' => 15000]);
+
+        $ws = $this->book('Palawan')->getSheetByName('List of Vehicle');
+        $first = GssWorkbookWriter::HEADER_ROW + 1;
+        $this->assertSame('AAA 0001', $ws->getCell('F'.$first)->getValue());
+        $this->assertEquals(30000, $ws->getCell('E'.$first)->getValue());
+        $this->assertSame('BBB 0002', $ws->getCell('F'.($first + 1))->getValue());
+        $this->assertEquals(15000, $ws->getCell('E'.($first + 1))->getValue());
+    }
+
     public function test_admin_downloads_only_their_own_area(): void
     {
         $this->vehicle('Palawan', ['plate_number' => 'PAL 0001']);

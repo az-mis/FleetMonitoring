@@ -32,7 +32,7 @@ class VehicleRegistryController extends Controller
         $this->authorizeVehicle($vehicle);
 
         return view('vehicle::registry', [
-            'vehicle' => $vehicle->load(['accessories', 'endUserOffice', 'assignedDriver']),
+            'vehicle' => $vehicle->load(['accessories', 'endUserOffice', 'assignedDriver', 'fleetCards']),
             'offices' => Office::query()->active()->get(['id', 'name']),
             'conditions' => self::CONDITIONS,
             'orCrStatuses' => self::OR_CR_STATUSES,
@@ -72,6 +72,11 @@ class VehicleRegistryController extends Controller
             'insurance_to.after_or_equal' => 'The insurance end date must be on or after its start date.',
             'acquisition_date.before_or_equal' => 'The acquisition date cannot be in the future.',
         ]);
+
+        // Once a registered card sets the allowance, the card is where it is kept (Fleet Cards page)
+        if ($vehicle->cardAllowance() !== null) {
+            unset($data['fleet_card_allowance']);
+        }
 
         $vehicle->fill($data + ['updated_by' => $request->user()->id])->save();
 

@@ -104,4 +104,29 @@ class VehicleRegistryTest extends TestCase
             ->assertSee('EXP 001')->assertSee('DUE 002')->assertDontSee('OKAY 003');
         $this->assertSame('danger', $expired->registrationStatus()['tone']);
     }
+
+    public function test_a_registered_cards_allowance_is_the_vehicles_allowance(): void
+    {
+        $admin = $this->admin('Palawan');
+        $vehicle = $this->vehicle('Palawan', ['plate_number' => 'SAB 4584', 'fleet_card_allowance' => 25000]);
+
+        // No card yet: the amount kept on the vehicle (from the workbook) is used and stays editable
+        $this->assertSame(25000.0, $vehicle->effectiveFleetCardAllowance());
+        $this->actingAs($admin)->get("/vehicles/{$vehicle->id}/registry")->assertOk()->assertSee('name="fleet_card_allowance"', false);
+
+        // A card without an allowance changes nothing
+        $card = $this->fleetCard($vehicle, ['card_number' => 'PFC-0001']);
+        $this->assertSame(25000.0, $vehicle->fresh()->effectiveFleetCardAllowance());
+
+        // Once the card sets one, the vehicle shows the card's amount read-only and keeps its own untouched
+        $card->update(['monthly_allowance' => 30000]);
+        $this->actingAs($admin)->get("/vehicles/{$vehicle->id}/registry")->assertOk()
+            ->assertSee('30,000.00')->assertSee('From fleet card PFC-0001.')->assertDontSee('name="fleet_card_allowance"', false);
+        $this->actingAs($admin)->put("/vehicles/{$vehicle->id}/registry", ['fleet_card_allowance' => '1', 'tools' => '1 set jack'])
+            ->assertSessionHasNoErrors();
+        $vehicle->refresh();
+        $this->assertSame('1 set jack', $vehicle->tools);
+        $this->assertSame('25000.00', $vehicle->fleet_card_allowance);
+        $this->assertSame(30000.0, $vehicle->effectiveFleetCardAllowance());
+    }
 }

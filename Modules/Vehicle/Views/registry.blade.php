@@ -128,7 +128,21 @@
                         </select>
                     </div>
                     <div><label for="tools" class="{{ $label }}">Tools</label><input id="tools" name="tools" value="{{ old('tools', $vehicle->tools) }}" placeholder="e.g. 1 set jack, 1 tire wrench" class="{{ $field }}"></div>
-                    <div><label for="fleet_card_allowance" class="{{ $label }}">Fleet card allowance (₱ / month)</label><input type="number" step="0.01" min="0" id="fleet_card_allowance" name="fleet_card_allowance" value="{{ old('fleet_card_allowance', $vehicle->fleet_card_allowance) }}" placeholder="e.g. 15000" class="{{ $field }}"></div>
+                    @php $cardAllowance = $vehicle->cardAllowance(); @endphp
+                    @if ($cardAllowance !== null)
+                        {{-- Kept on the registered card, so the two never disagree --}}
+                        <div>
+                            <label for="fleet_card_allowance" class="{{ $label }}">Fleet card allowance (₱ / month)</label>
+                            <input id="fleet_card_allowance" value="{{ number_format($cardAllowance, 2) }}" readonly aria-describedby="fleet_card_allowance_note" class="{{ $field }} cursor-not-allowed bg-slate-50 text-slate-600">
+                            <p id="fleet_card_allowance_note" class="mt-1 text-[0.6875rem] text-slate-500">
+                                @php $cardNumbers = $vehicle->fleetCards->whereNotNull('monthly_allowance')->pluck('card_number')->filter()->implode(', '); @endphp
+                                {{ $cardNumbers !== '' ? "From fleet card {$cardNumbers}." : 'From the vehicle\'s fleet card.' }}
+                                <a href="{{ route('fleet-cards.index') }}" class="font-semibold text-emerald-700 hover:underline">Change it on Fleet Cards</a>
+                            </p>
+                        </div>
+                    @else
+                        <div><label for="fleet_card_allowance" class="{{ $label }}">Fleet card allowance (₱ / month)</label><input type="number" step="0.01" min="0" id="fleet_card_allowance" name="fleet_card_allowance" value="{{ old('fleet_card_allowance', $vehicle->fleet_card_allowance) }}" placeholder="e.g. 15000" class="{{ $field }}"></div>
+                    @endif
                 </div>
             </section>
 

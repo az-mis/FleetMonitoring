@@ -1128,6 +1128,18 @@ function onAddLocationChange(loc) {
     filterAddVehiclePicker();
 }
 
+// Starts the new card's monthly allowance from the amount listed on the vehicle (Property & Registration),
+// unless the allowance was typed in by hand
+function prefillAddAllowance(vehicle) {
+    const allowance = document.getElementById('add-card-allowance');
+    if (!allowance || (allowance.value && allowance.value !== allowance.dataset.fromVehicle)) {
+        return;
+    }
+    const amount = vehicle && vehicle.fleet_card_allowance ? String(parseFloat(vehicle.fleet_card_allowance)) : '';
+    allowance.value = amount;
+    allowance.dataset.fromVehicle = amount;
+}
+
 function pickAddVehicle(id) {
     document.getElementById('add-field-vehicle-id').value = id;
     document.getElementById('add-vp-panel').classList.add('hidden');
@@ -1139,10 +1151,12 @@ function pickAddVehicle(id) {
         thumb.classList.add('hidden');
         label.className = 'min-w-0 flex-1 truncate text-gray-400';
         label.innerText = '-- Unassigned --';
+        prefillAddAllowance(null);
         return;
     }
 
     const vehicle = vehiclesData.find(v => v.id == id);
+    prefillAddAllowance(vehicle);
     if (vehicle) {
         if (vehicle.photo_url) {
             thumb.innerHTML = `<img src="${vehicle.photo_url}" class="h-full w-full object-contain">`;
