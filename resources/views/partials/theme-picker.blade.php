@@ -1,8 +1,8 @@
 {{-- Theme choice (saved per device). Used by System Settings and by the drivers' Display & Text Size page. --}}
 @php
     $themes = [
-        'green' => ['label' => 'Green', 'hint' => 'The original dark-green sidebar and sign-in pages.', 'sidebar' => 'bg-[#004a2c]', 'bar' => 'bg-white/30', 'active' => 'bg-white/20'],
-        'light' => ['label' => 'Light', 'hint' => 'White sidebar and light sign-in pages. Easier on bright screens.', 'sidebar' => 'bg-white border-r border-slate-200', 'bar' => 'bg-slate-300', 'active' => 'bg-emerald-100'],
+        'green' => ['label' => 'Green', 'hint' => 'The original dark-green sidebar.', 'sidebar' => 'bg-[#004a2c]', 'bar' => 'bg-white/30', 'active' => 'bg-white/20'],
+        'light' => ['label' => 'Light', 'hint' => 'White sidebar. Easier on bright screens.', 'sidebar' => 'bg-white border-r border-slate-200', 'bar' => 'bg-slate-300', 'active' => 'bg-emerald-100'],
     ];
 @endphp
 
@@ -14,7 +14,7 @@
             </div>
             <div>
                 <h3 id="theme-heading" class="text-sm font-extrabold text-slate-900">Theme</h3>
-                <p class="text-[0.6875rem] text-slate-400">Choose how the sidebar and the sign-in pages look on this device.</p>
+                <p class="text-[0.6875rem] text-slate-400">Choose how the sidebar looks on this device.</p>
             </div>
         </div>
         <p id="theme-status" class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800" role="status" aria-live="polite"></p>
