@@ -66,6 +66,8 @@
         <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700">{{ $errors->first('export') }}</div>
     @endif
 
+    {{-- GSS export and import side by side on wide screens (each opens on its own) --}}
+    <div class="grid grid-cols-1 items-start gap-3 {{ $isSuperAdmin ? 'lg:grid-cols-2' : '' }}">
     {{-- The vehicle sheets of the GSS workbook, same columns and order as "GSS {year}.xlsx" --}}
     <details class="group rounded-2xl border border-emerald-200 bg-white shadow-sm">
         <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
@@ -170,6 +172,7 @@
             @endif
         </details>
     @endif
+    </div>
 
     {{-- Filter bar --}}
     <form method="GET" action="{{ route('reports.index') }}" id="filter-form" class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center">
