@@ -186,11 +186,6 @@
         #sidebar.sidebar-collapsed .sidebar-nav > * {
             margin-block: 0 !important;
         }
-        #sidebar.sidebar-collapsed .user-profile-link {
-            justify-content: center !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-        }
         /* Hide the X close button when collapsed (nothing to close) */
         #sidebar.sidebar-collapsed #sidebar-close-btn {
             display: none !important;
@@ -467,22 +462,6 @@
                 @endif
             </nav>
 
-            {{-- Signed-in user, display only. My Profile and Log out are in the account menu at the top right --}}
-            <div class="border-t border-sidebar-border p-3">
-                <div title="{{ $user?->name }}" class="user-profile-link flex cursor-default select-none items-center gap-3 rounded-xl px-2 py-2">
-                    @if ($hasPhoto)
-                        <img src="{{ $user->avatar_url }}" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-sidebar-border">
-                    @else
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-[0.8125rem] font-bold text-white ring-2 ring-sidebar-border" aria-hidden="true">
-                            {{ Illuminate\Support\Str::upper(Illuminate\Support\Str::substr($user?->name ?? 'A', 0, 1)) }}
-                        </span>
-                    @endif
-                    <span class="sidebar-label-block min-w-0 flex-1 leading-tight">
-                        <span class="block truncate text-[0.8125rem] font-semibold text-sidebar-strong">{{ $user?->name }}</span>
-                        <span class="block truncate text-[0.6875rem] text-sidebar-muted">{{ $user?->role?->label() }}{{ filled($user?->location) ? ' · '.$user->location : '' }}</span>
-                    </span>
-                </div>
-            </div>
         </aside>
 
         {{-- Main --}}
@@ -801,10 +780,14 @@
                             class="absolute right-0 top-full z-50 mt-2 w-60 rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl"
                             style="display: none;"
                         >
-                            {{-- User info header: name and sign-in email (role and province are shown in the sidebar) --}}
+                            {{-- User info header: name, sign-in email, and the role with the area whose data this account sees --}}
+                            @php
+                                $userArea = filled($user?->location) ? $user->location : ($user?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN ? 'All areas' : null);
+                            @endphp
                             <div class="mb-1 px-3 py-2 border-b border-slate-100">
                                 <p class="text-xs font-bold text-slate-800 truncate">{{ $user?->name }}</p>
                                 <p class="text-[0.6875rem] text-slate-500 truncate" title="{{ $user?->email }}">{{ $user?->email }}</p>
+                                <p class="mt-0.5 text-[0.6875rem] font-semibold text-emerald-700 truncate">{{ $user?->role?->label() }}{{ $userArea ? ' · '.$userArea : '' }}</p>
                             </div>
 
                             <a
