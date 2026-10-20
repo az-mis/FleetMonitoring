@@ -10,61 +10,63 @@
     @include('partials.favicon')
 
     <script>
-        window.notificationBellData = function(allNotifIds) {
-            var storedReadNotifs = [];
-            try {
-                storedReadNotifs = JSON.parse(localStorage.getItem('fleet_read_notifs') || '[]');
-            } catch (e) {
-                storedReadNotifs = [];
-            }
+        // The bell (partials/notification-bell): read/unread is saved on the server per user
+        window.notificationBell = function (config) {
+            var csrf = document.querySelector("meta[name=csrf-token]")?.content;
+            var send = function (method, url, body) {
+                return fetch(url, {
+                    method: method,
+                    keepalive: true,
+                    headers: { "X-CSRF-TOKEN": csrf, "Accept": "application/json", "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+                    body: body ? JSON.stringify(body) : undefined,
+                });
+            };
+            var readUrl = function (id) { return config.readUrl.replace("__ID__", id); };
             return {
                 open: false,
                 activeOpt: null,
-                readNotifs: Array.isArray(storedReadNotifs) ? storedReadNotifs : [],
-                allNotifIds: allNotifIds || [],
+                read: config.read || {},
+                unreadCount: config.unread || 0,
                 isRead(id) {
-                    return this.readNotifs.includes(id);
+                    return !!this.read[id];
                 },
                 markRead(id) {
-                    if (!this.readNotifs.includes(id)) {
-                        this.readNotifs.push(id);
-                        localStorage.setItem('fleet_read_notifs', JSON.stringify(this.readNotifs));
-                    }
+                    if (this.isRead(id)) return;
+                    this.read[id] = true;
+                    this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    send("POST", readUrl(id));
                 },
                 markUnread(id) {
-                    this.readNotifs = this.readNotifs.filter(function(i) { return i !== id; });
-                    localStorage.setItem('fleet_read_notifs', JSON.stringify(this.readNotifs));
+                    if (!this.isRead(id)) return;
+                    this.read[id] = false;
+                    this.unreadCount++;
+                    send("DELETE", readUrl(id));
                 },
                 toggleRead(id) {
-                    if (this.isRead(id)) {
-                        this.markUnread(id);
-                    } else {
-                        this.markRead(id);
-                    }
+                    this.isRead(id) ? this.markUnread(id) : this.markRead(id);
                     this.activeOpt = null;
                 },
                 markAllAsRead() {
-                    this.readNotifs = Array.from(new Set([...this.readNotifs, ...this.allNotifIds]));
-                    localStorage.setItem('fleet_read_notifs', JSON.stringify(this.readNotifs));
-                },
-                get unreadCount() {
                     var self = this;
-                    return this.allNotifIds.filter(function(id) { return !self.readNotifs.includes(id); }).length;
+                    Object.keys(this.read).forEach(function (id) { self.read[id] = true; });
+                    this.unreadCount = 0;
+                    send("POST", config.readAllUrl);
                 },
                 init() {
-                    var self = this;
-                    this.$nextTick(function() {
-                        var container = document.getElementById('notif-list-container');
-                        if (!container) return;
-                        var cards = Array.from(container.children);
-                        cards.sort(function(a, b) {
-                            var aRead = self.isRead(a.dataset.notifId);
-                            var bRead = self.isRead(b.dataset.notifId);
-                            if (aRead !== bRead) return aRead ? 1 : -1;
-                            return (parseInt(b.dataset.notifTime) || 0) - (parseInt(a.dataset.notifTime) || 0);
-                        });
-                        cards.forEach(function(c) { container.appendChild(c); });
-                    });
+                    // Carry over what this browser marked read when read marks were kept only in the browser
+                    var self = this, old = [];
+                    try { old = JSON.parse(localStorage.getItem("fleet_read_notifs") || "[]"); } catch (e) { old = []; }
+                    if (!Array.isArray(old) || old.length === 0) return;
+                    send("POST", config.importUrl, { ids: old.map(String).slice(0, 1000) })
+                        .then(function (response) { return response.ok ? response.json() : null; })
+                        .then(function (result) {
+                            if (!result) return;
+                            (result.read || []).forEach(function (id) {
+                                if (id in self.read && !self.read[id]) { self.read[id] = true; self.unreadCount = Math.max(0, self.unreadCount - 1); }
+                            });
+                            try { localStorage.removeItem("fleet_read_notifs"); } catch (e) {}
+                        })
+                        .catch(function () {});
                 }
             };
         };
@@ -263,93 +265,29 @@
 
         $isModuleLocked = !$isSuperAdmin && $currentModuleKey && !($moduleFlags[$currentModuleKey] ?? true);
 
-        // Notifications initialization for topbar bell (available for all user roles)
+        // Topbar bell (admins and super admins): saved notifications, see App\Services\Notifications\NotificationFeed
         $pendingTravelCount = 0;
-        $dueMaintenanceItems = collect();
-        $ongoingDueItems = collect();
-        $oilDueVehicles = collect();
-        $allNotifIds = [];
-        $allNotifications = [];
+        // Drivers get an empty bell; admins and super admins get their saved notifications below
+        $bell = ['items' => [], 'unread' => 0];
 
         if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true)) {
+            $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
             try {
-                $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
-                $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where('status', 'pending')
-                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
+                $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where("status", "pending")
+                    ->when($userLoc, fn ($q) => $q->where("location", $userLoc))
                     ->count();
-                if ($pendingTravelCount > 0) {
-                    $allNotifIds[] = 'pending_travel';
-                }
-
-                // Scheduled maintenance starting today or past due -> prompt to set Ongoing
-                $dueMaintenanceItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
-                    ->where('status', 'scheduled')
-                    ->whereDate('scheduled_date', '<=', now()->toDateString())
-                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                    ->latest('scheduled_date')
-                    ->get();
-                foreach ($dueMaintenanceItems as $mItem) {
-                    $allNotifIds[] = 'maint_' . $mItem->id;
-                }
-
-                // Ongoing maintenance reaching past end date -> prompt to set Completed starting the day after end date
-                $ongoingDueItems = \Modules\Maintenance\Models\VehicleMaintenance::query()
-                    ->where('status', 'ongoing')
-                    ->where(function ($q) {
-                        $q->where(function ($sq) {
-                            $sq->whereNotNull('scheduled_date_end')
-                               ->whereDate('scheduled_date_end', '<', now()->toDateString());
-                        })->orWhere(function ($sq) {
-                            $sq->whereNull('scheduled_date_end')
-                               ->whereDate('scheduled_date', '<', now()->toDateString());
-                        });
-                    })
-                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                    ->latest('scheduled_date_end')
-                    ->get();
-                foreach ($ongoingDueItems as $ongItem) {
-                    $allNotifIds[] = 'maint_ong_' . $ongItem->id;
-                }
-
-                $oilDueVehicles = \Modules\Vehicle\Models\Vehicle::query()
-                    ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
-                    ->get()
-                    ->filter(fn ($v) => in_array($v->change_oil_status['status'], ['overdue', 'due_soon']));
-                foreach ($oilDueVehicles as $oVehicle) {
-                    $allNotifIds[] = 'oil_' . $oVehicle->id;
-                    $activeMaint = \Modules\Maintenance\Models\VehicleMaintenance::query()
-                        ->where('vehicle_id', $oVehicle->id)
-                        ->whereIn('status', ['scheduled', 'ongoing'])
-                        ->latest('scheduled_date')
-                        ->first();
-                    $oVehicle->created_maintenance_id = $activeMaint?->id;
-                }
             } catch (\Throwable $e) {
                 $pendingTravelCount = 0;
-                $dueMaintenanceItems = collect();
-                $ongoingDueItems = collect();
-                $oilDueVehicles = collect();
-                $allNotifIds = [];
             }
-
-            if (($pendingTravelCount ?? 0) > 0) {
-                $allNotifications[] = ['type' => 'pending_travel', 'time' => now(), 'ago' => 'now'];
+            try {
+                $notificationFeed = app(\App\Services\Notifications\NotificationFeed::class);
+                $notificationFeed->sync($userLoc);
+                $bell = $notificationFeed->forUser(auth()->user(), $userLoc);
+            } catch (\Throwable $e) {
+                report($e);
+                $bell = null;
             }
-            foreach ($dueMaintenanceItems as $mItem) {
-                $t = $mItem->scheduled_date ? \Carbon\Carbon::parse($mItem->scheduled_date) : now();
-                $allNotifications[] = ['type' => 'maint', 'item' => $mItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
-            }
-            foreach ($ongoingDueItems as $ongItem) {
-                $t = $ongItem->scheduled_date_end ? \Carbon\Carbon::parse($ongItem->scheduled_date_end) : ($ongItem->scheduled_date ? \Carbon\Carbon::parse($ongItem->scheduled_date) : now());
-                $allNotifications[] = ['type' => 'maint_ong', 'item' => $ongItem, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
-            }
-            foreach ($oilDueVehicles as $oVehicle) {
-                $t = $oVehicle->updated_at ?? now();
-                $allNotifications[] = ['type' => 'oil', 'item' => $oVehicle, 'time' => $t, 'ago' => $t->diffForHumans(['short' => true])];
-            }
-            usort($allNotifications, fn($a, $b) => $b['time']->timestamp - $a['time']->timestamp);
         }
-        $totalNotifCount = count($allNotifIds);
     @endphp
 
     <div class="flex h-screen supports-[height:100dvh]:h-dvh overflow-hidden">
@@ -495,251 +433,7 @@
 
                 <div class="flex items-center gap-2 sm:gap-3">
                     {{-- Notification Bell Dropdown --}}
-                    <div class="relative" x-data="notificationBellData({{ json_encode($allNotifIds ?? []) }})">
-                        <button
-                            type="button"
-                            @click="open = !open"
-                            class="relative rounded-full p-2 text-topbar-mobile-fg hover:bg-topbar-mobile-hover sm:text-slate-500 sm:hover:bg-slate-100 sm:hover:text-slate-700 transition cursor-pointer"
-                            title="Notifications"
-                            aria-label="Notifications"
-                            :aria-expanded="open.toString()"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-                            </svg>
-                            {{-- Notification badge dot (if unread notifications exist) --}}
-                            <span x-show="unreadCount > 0" x-cloak class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                            </span>
-                        </button>
-
-                        {{-- Dropdown Menu --}}
-                        <div
-                            x-show="open"
-                            x-cloak
-                            @click.outside="open = false; activeOpt = null"
-                            x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 scale-95"
-                            x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-150"
-                            x-transition:leave-start="opacity-100 scale-100"
-                            x-transition:leave-end="opacity-0 scale-95"
-                            class="fixed left-2 right-2 top-16 z-50 rounded-2xl bg-white p-4 shadow-2xl border border-slate-100
-                                   sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96"
-                            style="display: none;"
-                        >
-                            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Notifications</h4>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" 
-                                            x-show="unreadCount > 0" 
-                                            @click="markAllAsRead()" 
-                                            class="text-[0.625rem] font-semibold text-emerald-600 hover:text-emerald-800 hover:underline">
-                                        Mark all read
-                                    </button>
-                                    <span x-show="unreadCount > 0" class="rounded-full bg-red-50 px-2 py-0.5 text-[0.625rem] font-bold text-red-600 border border-red-100">
-                                        <span x-text="unreadCount"></span> New
-                                    </span>
-                                    <span x-show="unreadCount === 0" class="rounded-full bg-slate-100 px-2 py-0.5 text-[0.625rem] font-medium text-slate-500">
-                                        All read
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div id="notif-list-container" class="space-y-2 max-h-[60vh] sm:max-h-80 overflow-y-auto pr-0.5">
-                                @foreach ($allNotifications as $notif)
-                                    @php
-                                        $notifType = $notif['type'];
-                                        $notifAgo  = $notif['ago'];
-                                        $notifTs   = $notif['time']->timestamp;
-                                    @endphp
-
-                                    {{-- ── pending_travel card ─────────────────────────────────────── --}}
-                                    @if ($notifType === 'pending_travel')
-                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
-                                             data-notif-id="pending_travel"
-                                             data-notif-time="{{ $notifTs }}"
-                                             :class="isRead('pending_travel') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-amber-100/50 text-slate-800'">
-                                            <a href="{{ route('vehicle-requests.index') }}" @click="markRead('pending_travel')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M12 9v4M12 17h.01"/>
-                                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <p class="text-xs font-bold" :class="isRead('pending_travel') ? 'text-slate-500' : 'text-slate-800'">Pending Travel Requests</p>
-                                                    <p class="text-[0.6875rem] text-slate-500">You have {{ $pendingTravelCount }} trip request(s) awaiting approval.</p>
-                                                    <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
-                                                </div>
-                                                <span x-show="!isRead('pending_travel')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
-                                            </a>
-                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === 'pending_travel') activeOpt = null">
-                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === 'pending_travel' ? null : 'pending_travel')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
-                                                </button>
-                                                <div x-show="activeOpt === 'pending_travel'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
-                                                    <button type="button" @click.stop.prevent="toggleRead('pending_travel')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                        <span x-show="isRead('pending_travel')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('pending_travel')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    {{-- ── maint (scheduled due) card ──────────────────────────────── --}}
-                                    @elseif ($notifType === 'maint')
-                                        @php
-                                            $mItem = $notif['item'];
-                                            $mId = 'maint_' . $mItem->id;
-                                            $mIsToday = $mItem->scheduled_date && \Carbon\Carbon::parse($mItem->scheduled_date)->isToday();
-                                        @endphp
-                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
-                                             data-notif-id="{{ $mId }}"
-                                             data-notif-time="{{ $notifTs }}"
-                                             :class="isRead('{{ $mId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-blue-50/20 border-l-4 border-l-red-500 border-blue-200/80 shadow-2xs text-slate-800'">
-                                            <a href="{{ route('maintenance.index', array_filter(['highlight_id' => $mItem->id, 'auto_edit' => $mIsToday ? 1 : null])) }}" @click="markRead('{{ $mId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center justify-between gap-1">
-                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $mId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $mIsToday ? 'Maintenance Due Today' : 'Maintenance Scheduled' }}</p>
-                                                        <span class="text-[0.5625rem] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">{{ $mIsToday ? 'Set Ongoing' : 'Scheduled' }}</span>
-                                                    </div>
-                                                    <p class="text-[0.6875rem] font-semibold mt-0.5" :class="isRead('{{ $mId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $mItem->vehicle_label ?: $mItem->plate_number }} — {{ $mItem->title }}</p>
-                                                    <p class="text-[0.625rem] text-slate-400">Scheduled: {{ $mItem->scheduled_date?->format('M d, Y') }}</p>
-                                                    <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
-                                                </div>
-                                                <span x-show="!isRead('{{ $mId }}')" class="h-2 w-2 rounded-full bg-red-500 shrink-0 mt-1"></span>
-                                            </a>
-                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $mId }}') activeOpt = null">
-                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $mId }}' ? null : '{{ $mId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
-                                                </button>
-                                                <div x-show="activeOpt === '{{ $mId }}'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
-                                                    <button type="button" @click.stop.prevent="toggleRead('{{ $mId }}')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                        <span x-show="isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $mId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    {{-- ── maint_ong (ongoing due) card ────────────────────────────── --}}
-                                    @elseif ($notifType === 'maint_ong')
-                                        @php
-                                            $ongItem = $notif['item'];
-                                            $ongId = 'maint_ong_' . $ongItem->id;
-                                            $ongIsToday = $ongItem->scheduled_date_end && \Carbon\Carbon::parse($ongItem->scheduled_date_end)->isToday();
-                                        @endphp
-                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
-                                             data-notif-id="{{ $ongId }}"
-                                             data-notif-time="{{ $notifTs }}"
-                                             :class="isRead('{{ $ongId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-emerald-50/20 border-l-4 border-l-red-500 border-emerald-200/80 shadow-2xs text-slate-800'">
-                                            <a href="{{ route('maintenance.index', ['highlight_id' => $ongItem->id, 'auto_edit' => 1]) }}" @click="markRead('{{ $ongId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                                        <polyline points="22 4 12 14.01 9 11.01"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center justify-between gap-1">
-                                                        <p class="text-xs font-bold truncate" :class="isRead('{{ $ongId }}') ? 'text-slate-500' : 'text-slate-800'">Maintenance Due for Completion</p>
-                                                        <span class="text-[0.5625rem] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Set Completed</span>
-                                                    </div>
-                                                    <p class="text-[0.6875rem] font-semibold mt-0.5" :class="isRead('{{ $ongId }}') ? 'text-slate-400' : 'text-slate-700'">{{ $ongItem->vehicle_label ?: $ongItem->plate_number }} — {{ $ongItem->title }}</p>
-                                                    <p class="text-[0.625rem] text-slate-400">Scheduled End: {{ $ongItem->scheduled_date_end?->format('M d, Y') ?: $ongItem->scheduled_date?->format('M d, Y') }}</p>
-                                                    <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
-                                                </div>
-                                                <span x-show="!isRead('{{ $ongId }}')" class="h-2 w-2 rounded-full bg-red-500 shrink-0 mt-1"></span>
-                                            </a>
-                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $ongId }}') activeOpt = null">
-                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $ongId }}' ? null : '{{ $ongId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
-                                                </button>
-                                                <div x-show="activeOpt === '{{ $ongId }}'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
-                                                    <button type="button" @click.stop.prevent="toggleRead('{{ $ongId }}')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                        <span x-show="isRead('{{ $ongId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $ongId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    {{-- ── oil card ────────────────────────────────────────────────── --}}
-                                    @elseif ($notifType === 'oil')
-                                        @php 
-                                            $oVehicle = $notif['item'];
-                                            $oState = $oVehicle->change_oil_status; 
-                                            $oId = 'oil_' . $oVehicle->id;
-                                        @endphp
-                                        <div class="relative group flex items-center justify-between gap-2 rounded-xl p-2 transition border"
-                                             data-notif-id="{{ $oId }}"
-                                             data-notif-time="{{ $notifTs }}"
-                                             :class="isRead('{{ $oId }}') ? 'bg-slate-50/50 border-slate-100 text-slate-400' : 'bg-amber-50/20 border-l-4 border-l-red-500 border-amber-200/80 shadow-2xs text-slate-800'">
-                                            @if (!empty($oVehicle->created_maintenance_id))
-                                                <a href="{{ route('maintenance.index', ['highlight_id' => $oVehicle->created_maintenance_id]) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                    </div>
-                                                    <div class="min-w-0 flex-1">
-                                                        <div class="flex items-center justify-between gap-1">
-                                                            <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                            <span class="text-[0.5625rem] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Scheduled</span>
-                                                        </div>
-                                                        <p class="text-[0.6875rem] font-semibold text-emerald-700 mt-0.5">Maintenance Created — View in table</p>
-                                                        <p class="text-[0.625rem] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
-                                                        <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
-                                                    </div>
-                                                    <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
-                                                </a>
-                                            @else
-                                                <a href="{{ route('maintenance.index', ['schedule_vehicle_id' => $oVehicle->id, 'type' => 'Oil Change']) }}" @click="markRead('{{ $oId }}')" class="flex items-start gap-2.5 flex-1 min-w-0">
-                                                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
-                                                        <span class="text-xs">🛢️</span>
-                                                    </div>
-                                                    <div class="min-w-0 flex-1">
-                                                        <div class="flex items-center justify-between gap-1">
-                                                            <p class="text-xs font-bold truncate" :class="isRead('{{ $oId }}') ? 'text-slate-500' : 'text-slate-800'">{{ $oVehicle->plate_number }} ({{ $oVehicle->brand }} {{ $oVehicle->model }})</p>
-                                                            <span class="text-[0.5625rem] font-bold {{ $oState['status'] === 'overdue' ? 'text-red-600 bg-red-50' : 'text-amber-700 bg-amber-50' }} px-1.5 py-0.5 rounded border shrink-0">{{ $oState['status'] === 'overdue' ? 'Overdue' : 'Due Soon' }}</span>
-                                                        </div>
-                                                        <p class="text-[0.6875rem] mt-0.5" :class="isRead('{{ $oId }}') ? 'text-slate-400' : 'text-slate-600'">{{ $oState['label'] }}</p>
-                                                        <p class="text-[0.625rem] text-slate-400">Current: {{ number_format($oVehicle->odometer) }} km | Last Oil: {{ number_format($oState['last_km']) }} km</p>
-                                                        <p class="text-[0.625rem] text-slate-400 mt-0.5">{{ $notifAgo }}</p>
-                                                    </div>
-                                                    <span x-show="!isRead('{{ $oId }}')" class="h-2 w-2 rounded-full bg-amber-500 shrink-0 mt-1"></span>
-                                                </a>
-                                            @endif
-                                            <div class="relative shrink-0 ml-1" @click.outside="if (activeOpt === '{{ $oId }}') activeOpt = null">
-                                                <button type="button" @click.stop.prevent="activeOpt = (activeOpt === '{{ $oId }}' ? null : '{{ $oId }}')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" title="Options">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
-                                                </button>
-                                                <div x-show="activeOpt === '{{ $oId }}'" x-cloak x-transition class="absolute right-6 top-1/2 -translate-y-1/2 z-50 rounded-xl bg-white p-1 shadow-xl border border-slate-200 text-left whitespace-nowrap" style="display: none;">
-                                                    <button type="button" @click.stop.prevent="toggleRead('{{ $oId }}')" class="w-full text-left px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg flex items-center gap-2 cursor-pointer">
-                                                        <span x-show="isRead('{{ $oId }}')" class="flex items-center gap-1.5 text-amber-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Mark Unread</span><span x-show="!isRead('{{ $oId }}')" class="flex items-center gap-1.5 text-emerald-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Mark Read</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                @endforeach
-
-                                @if (($totalNotifCount ?? 0) === 0)
-                                    <div class="py-6 text-center text-slate-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-7 w-7 text-slate-300 mb-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-                                        </svg>
-                                        <p class="text-xs font-semibold text-slate-600">No new notifications</p>
-                                        <p class="text-[0.6875rem] text-slate-400">You're all caught up!</p>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+                    @include('partials.notification-bell')
 
                     {{-- Profile Dropdown --}}
                     <div class="relative" x-data="{ open: false }">
