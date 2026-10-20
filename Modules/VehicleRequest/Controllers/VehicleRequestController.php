@@ -67,7 +67,7 @@ class VehicleRequestController
                 $builder->where('reference_code', 'like', "%{$search}%")
                     ->orWhere('requester_name', 'like', "%{$search}%")
                     ->orWhere('destination', 'like', "%{$search}%")
-                    ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate_number', 'like', "%{$search}%"));
+                    ->orWhereHas('vehicle', fn ($vq) => $vq->wherePlateLike('plate_number', $search));
             });
         }
 
@@ -655,7 +655,7 @@ class VehicleRequestController
                         $sq->where('trip_ticket_number', 'like', "%{$search}%")
                             ->orWhere('reference_code', 'like', "%{$search}%")
                             ->orWhere('requester_name', 'like', "%{$search}%")
-                            ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate_number', 'like', "%{$search}%"));
+                            ->orWhereHas('vehicle', fn ($vq) => $vq->wherePlateLike('plate_number', $search));
                     });
                 })
                 ->when(! $isSuperAdmin, fn ($q) => $q->where('location', $user->location))

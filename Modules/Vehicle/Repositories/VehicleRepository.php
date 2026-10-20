@@ -20,17 +20,25 @@ class VehicleRepository implements VehicleRepositoryInterface
             ->when($search, function ($q) use ($search) {
                 $terms = preg_split('/\s+/', trim($search), -1, PREG_SPLIT_NO_EMPTY);
 
-                foreach ($terms as $term) {
-                    $q->where(function ($inner) use ($term) {
-                        $inner->where('plate_number', 'like', "%{$term}%")
-                            ->orWhere('brand', 'like', "%{$term}%")
-                            ->orWhere('model', 'like', "%{$term}%")
-                            ->orWhere('chassis_number', 'like', "%{$term}%")
-                            ->orWhere('engine_number', 'like', "%{$term}%")
-                            ->orWhere('color', 'like', "%{$term}%")
-                            ->orWhereRaw("CONCAT(brand, ' ', model) like ?", ["%{$term}%"]);
-                    });
-                }
+                $q->where(function ($any) use ($search, $terms) {
+                    // The whole search as a plate, spaces and dashes ignored ("SNE6227" finds SNE 6227)
+                    $any->wherePlateLike('plate_number', $search)
+                        ->orWherePlateLike('old_plate_number', $search)
+                        // …or every word found somewhere on the vehicle ("toyota white")
+                        ->orWhere(function ($all) use ($terms) {
+                            foreach ($terms as $term) {
+                                $all->where(function ($inner) use ($term) {
+                                    $inner->wherePlateLike('plate_number', $term)
+                                        ->orWhere('brand', 'like', "%{$term}%")
+                                        ->orWhere('model', 'like', "%{$term}%")
+                                        ->orWhere('chassis_number', 'like', "%{$term}%")
+                                        ->orWhere('engine_number', 'like', "%{$term}%")
+                                        ->orWhere('color', 'like', "%{$term}%")
+                                        ->orWhereRaw("CONCAT(brand, ' ', model) like ?", ["%{$term}%"]);
+                                });
+                            }
+                        });
+                });
             })
             ->latest()
             ->paginate($perPage)

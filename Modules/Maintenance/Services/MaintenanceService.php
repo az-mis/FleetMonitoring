@@ -55,7 +55,7 @@ class MaintenanceService
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('plate_number', 'like', "%{$search}%")
+                $q->wherePlateLike('plate_number', $search)
                   ->orWhere('vehicle_label', 'like', "%{$search}%")
                   ->orWhere('title', 'like', "%{$search}%")
                   ->orWhere('type', 'like', "%{$search}%")

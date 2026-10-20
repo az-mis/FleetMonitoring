@@ -33,7 +33,7 @@ class VehicleAssigningController
             ->when($location, fn ($builder) => $builder->where('location', $location))
             ->when($search, function ($builder) use ($search) {
                 $builder->where(function ($q) use ($search) {
-                    $q->where('plate_number', 'like', "%{$search}%")
+                    $q->wherePlateLike('plate_number', $search)
                         ->orWhere('brand', 'like', "%{$search}%")
                         ->orWhere('model', 'like', "%{$search}%")
                         ->orWhereHas('assignedDriver', fn ($dq) => $dq->where('name', 'like', "%{$search}%"));
