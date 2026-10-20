@@ -31,7 +31,7 @@ class MaintenanceController extends Controller
     /**
      * @throws AuthorizationException
      */
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         $this->authorizeAdminAccess();
 
@@ -40,6 +40,34 @@ class MaintenanceController extends Controller
         $location = $isSuperAdmin ? request('location') : $user?->location;
         $status = request('status', 'active');
         $perPage = min(max((int) request('per_page', 10), 1), 100);
+
+        // A notification opens the list at the record it is about (?highlight_id=…): the filter and page that hold it
+        $highlight = null;
+        if ($highlightId = (int) request('highlight_id')) {
+            $highlight = VehicleMaintenance::query()
+                ->when(! $isSuperAdmin, fn ($q) => $q->where('location', $user?->location))
+                ->find($highlightId);
+            if ($highlight && ! request()->has('page')) {
+                $status = $this->maintenanceService->statusShows($highlight, $status) ? $status : 'all';
+                $location = $isSuperAdmin && $location && $location !== $highlight->location ? null : $location;
+                $search = request('search');
+                $page = $this->maintenanceService->pageOf($highlight->id, $search, $location, $status, $perPage);
+                if ($page === null && $search) {
+                    $search = null;
+                    $page = $this->maintenanceService->pageOf($highlight->id, null, $location, $status, $perPage);
+                }
+
+                return redirect()->route('maintenance.index', array_filter([
+                    'highlight_id' => $highlight->id,
+                    'auto_edit' => request('auto_edit'),
+                    'status' => $status,
+                    'location' => $isSuperAdmin ? $location : null,
+                    'search' => $search,
+                    'per_page' => request('per_page'),
+                    'page' => $page ?? 1,
+                ]));
+            }
+        }
 
         $records = $this->maintenanceService->list(
             search: request('search'),
@@ -72,6 +100,9 @@ class MaintenanceController extends Controller
             'selectedLocation' => $location,
             'statusFilter' => $status,
             'sourceReport' => $sourceReport,
+            // The record a notification pointed to (null when it was deleted or is in another area)
+            'highlight' => $highlight,
+            'highlightMissing' => request('highlight_id') && ! $highlight,
             // Upcoming approved trips, so the schedule calendar can warn about clashes (decision D4)
             'approvedTrips' => VehicleRequest::query()
                 ->where('status', 'approved')

@@ -136,6 +136,25 @@
     ])->values();
 @endphp
 
+{{-- Opened from a notification: say which record it is about, and where it is --}}
+@if($highlight)
+    <div role="status" class="mb-3 flex flex-col gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+        <p>
+            <span class="font-bold">From your notification:</span>
+            {{ $highlight->plate_number }} · {{ $highlight->title }} · {{ ucfirst($highlight->status) }}
+            <span class="text-amber-800/80">(marked in the list below)</span>
+        </p>
+        <div class="flex shrink-0 items-center gap-2">
+            <button type="button" onclick="showHighlightedMaintenance()" class="inline-flex h-8 items-center rounded-lg bg-amber-500 px-3 text-xs font-bold text-white hover:bg-amber-600">Show it</button>
+            <a href="{{ route('maintenance.index', array_filter(['status' => request('status'), 'location' => request('location'), 'per_page' => request('per_page')])) }}" class="inline-flex h-8 items-center rounded-lg px-2 text-xs font-semibold text-amber-900 hover:bg-amber-100">Dismiss</a>
+        </div>
+    </div>
+@elseif($highlightMissing)
+    <div role="status" class="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        The maintenance record from that notification no longer exists, or belongs to another area.
+    </div>
+@endif
+
 {{-- Everything below is swapped in place when the search changes, so typing is never interrupted --}}
 <div id="maintenance-results">
 {{-- ── Stat cards ───────────────────────────────────────────────────── --}}
@@ -214,7 +233,8 @@
                         $driverName = $driver?->name ?? $record->vehicle?->assigned_driver_name ?? null;
                         $driverInitial = strtoupper(substr($driverName ?? 'D', 0, 1));
                     @endphp
-                    <tr id="maintenance-row-{{ $record->id }}" class="hover:bg-gray-50 transition border-l-4 border-transparent">
+                    @php $isHighlighted = $highlight?->id === $record->id; @endphp
+                    <tr id="maintenance-row-{{ $record->id }}" @class(["transition border-l-4", "border-amber-400 bg-amber-50" => $isHighlighted, "border-transparent hover:bg-gray-50" => ! $isHighlighted]) @if($isHighlighted) data-highlighted="1" @endif>
                         {{-- Vehicle --}}
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2.5">
@@ -234,6 +254,9 @@
 
                         {{-- Maintenance info --}}
                         <td class="px-4 py-3">
+                            @if($isHighlighted)
+                                <span class="mb-1 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-white">From your notification</span>
+                            @endif
                             <p class="font-semibold text-gray-900">{{ $record->title }}</p>
                             <p class="text-xs text-gray-400">{{ $record->type }}</p>
                         </td>
@@ -1125,6 +1148,21 @@ function escHtml(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/** Scrolls to the record a notification opened the page for, and pulses it briefly */
+function showHighlightedMaintenance() {
+    const row = document.querySelector('tr[data-highlighted="1"]');
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    let pulses = 0;
+    const interval = setInterval(() => {
+        row.classList.toggle('bg-amber-100');
+        if (++pulses >= 6) {
+            clearInterval(interval);
+            row.classList.remove('bg-amber-100');
+        }
+    }, 300);
+}
+
 // ── Auto-open schedule modal or highlight record from Notification Bell redirect ──
 document.addEventListener('DOMContentLoaded', function () {
     const params = new URLSearchParams(window.location.search);
@@ -1134,26 +1172,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const type = params.get('type');
 
     if (highlightId) {
-        const row = document.getElementById(`maintenance-row-${highlightId}`);
-        if (row) {
-            setTimeout(() => {
-                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                row.classList.add('bg-emerald-50/80', 'ring-2', 'ring-emerald-500', 'border-l-emerald-600', 'shadow-md');
-                
-                let pulseCount = 0;
-                const interval = setInterval(() => {
-                    row.classList.toggle('bg-emerald-100');
-                    pulseCount++;
-                    if (pulseCount >= 6) {
-                        clearInterval(interval);
-                        row.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-100', 'shadow-md');
-                        setTimeout(() => {
-                            row.classList.remove('bg-emerald-50/80', 'border-l-emerald-600');
-                        }, 1200);
-                    }
-                }, 350);
-            }, 150);
-        }
+        // The server opened the page that holds the record; it stays marked, so it can always be found again
+        setTimeout(showHighlightedMaintenance, 150);
 
         // Auto-open Edit Modal ONLY if auto_edit=1 flag is passed AND record is action-due
         if (autoEdit === '1' || autoEdit === 'true') {

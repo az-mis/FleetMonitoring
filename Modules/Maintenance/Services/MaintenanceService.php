@@ -16,8 +16,29 @@ class MaintenanceService
         ?string $status = null,
         int $perPage = 10,
     ): LengthAwarePaginator {
-        $query = VehicleMaintenance::with(['vehicle.assignedDriver', 'procurements'])
-            ->orderBy('scheduled_date', 'desc');
+        return $this->query($search, $location, $status)
+            ->with(['vehicle.assignedDriver', 'procurements'])
+            ->paginate($perPage)->withQueryString();
+    }
+
+    /** The page a record is on in the list with these filters, or null when the filters leave it out */
+    public function pageOf(int $id, ?string $search, ?string $location, ?string $status, int $perPage): ?int
+    {
+        $position = $this->query($search, $location, $status)->pluck('id')->search($id);
+
+        return $position === false ? null : intdiv($position, $perPage) + 1;
+    }
+
+    /** Whether the status filter (active, scheduled, awaiting payment…) shows this record */
+    public function statusShows(VehicleMaintenance $record, string $status): bool
+    {
+        return $this->query(null, null, $status)->whereKey($record->id)->exists();
+    }
+
+    private function query(?string $search, ?string $location, ?string $status): \Illuminate\Database\Eloquent\Builder
+    {
+        // Newest first; the id keeps records on the same date in a fixed order, so a record's page is known
+        $query = VehicleMaintenance::query()->orderBy('scheduled_date', 'desc')->orderBy('id', 'desc');
 
         if ($location) {
             $query->where('location', $location);
@@ -43,7 +64,7 @@ class MaintenanceService
             });
         }
 
-        return $query->paginate($perPage)->withQueryString();
+        return $query;
     }
 
     public function counts(?string $location = null): array

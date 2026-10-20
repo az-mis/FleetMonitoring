@@ -122,6 +122,28 @@ class RepairTrackingTest extends TestCase
             ->assertSee('PR: For payment');
     }
 
+    public function test_a_notification_opens_the_list_where_its_record_is_and_marks_it(): void
+    {
+        $admin = $this->admin('Palawan');
+        $vehicle = $this->vehicle('Palawan');
+        // Twelve newer active records push the completed one past the first page of the "active" list
+        foreach (range(1, 12) as $i) {
+            $this->maintenance($vehicle, ['scheduled_date' => now()->addDays(20 + $i)->toDateString(), 'title' => "Upcoming job {$i}"]);
+        }
+        $done = $this->maintenance($vehicle, ['status' => 'completed', 'completed_date' => now()->toDateString(), 'scheduled_date' => now()->subDay()->toDateString(), 'title' => 'Finished brake job']);
+
+        $this->actingAs($admin)->get("/maintenance?highlight_id={$done->id}")
+            ->assertRedirect("/maintenance?highlight_id={$done->id}&status=all&page=2");
+        $this->actingAs($admin)->get("/maintenance?highlight_id={$done->id}&status=all&page=2")->assertOk()
+            ->assertSee('From your notification:')->assertSee('Finished brake job')
+            ->assertSee('data-highlighted="1"', false);
+
+        // A record of another area is not shown, and the page says so
+        $romblon = $this->maintenance($this->vehicle('Romblon'));
+        $this->actingAs($admin)->get("/maintenance?highlight_id={$romblon->id}")->assertOk()
+            ->assertSee('no longer exists, or belongs to another area');
+    }
+
     public function test_purchase_request_is_kept_when_its_maintenance_record_is_deleted(): void
     {
         $record = $this->maintenance($this->vehicle('Palawan'));
