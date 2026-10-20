@@ -122,6 +122,55 @@
         </form>
     </details>
 
+    {{-- Super Admin only: import an updated GSS workbook (checked first, saved only on confirmation) --}}
+    @if($isSuperAdmin)
+        @php $importReady = \Illuminate\Support\Facades\Schema::hasTable('import_records'); @endphp
+        <details class="group rounded-2xl border border-violet-200 bg-white shadow-sm" @if($errors->hasAny(['workbook', 'year', 'gss_import'])) open @endif>
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                <span class="flex items-center gap-2.5">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-violet-700">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
+                    </span>
+                    <span>
+                        <span class="block text-sm font-extrabold text-slate-900">Import GSS workbook</span>
+                        <span class="block text-xs text-slate-500">Bring in an updated GSS workbook. The file is checked first; nothing is saved until you confirm.</span>
+                    </span>
+                </span>
+                <svg class="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            @if(! $importReady)
+                <p class="border-t border-slate-100 px-4 py-4 text-xs font-semibold text-amber-800">The database update for GSS imports has not been run yet, so importing is not available.</p>
+            @else
+                <form method="POST" action="{{ route('reports.gss-import.check') }}" enctype="multipart/form-data" class="space-y-3 border-t border-slate-100 px-4 py-4" x-data="{ busy: false }" @submit="busy = true">
+                    @csrf
+                    @if($errors->hasAny(['workbook', 'year', 'gss_import']))
+                        <div role="alert" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+                            {{ $errors->first('workbook') ?: ($errors->first('year') ?: $errors->first('gss_import')) }}
+                        </div>
+                    @endif
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div class="min-w-0 flex-1">
+                            <label for="gss-import-file" class="block text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500">GSS workbook (.xlsx)</label>
+                            <input id="gss-import-file" type="file" name="workbook" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required
+                                class="mt-1 block w-full rounded-lg border border-gray-200 bg-white text-xs text-slate-700 file:mr-3 file:rounded-l-lg file:border-0 file:bg-violet-50 file:px-3 file:py-2 file:text-xs file:font-bold file:text-violet-700 hover:file:bg-violet-100">
+                        </div>
+                        <div>
+                            <label for="gss-import-year" class="block text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500">Workbook year</label>
+                            <select id="gss-import-year" name="year" class="mt-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                @foreach (range((int) now()->format('Y'), 2024) as $y)
+                                    <option value="{{ $y }}" @selected((int) old('year', now()->format('Y')) === $y)>{{ $y }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" :disabled="busy" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-violet-700 px-4 text-xs font-extrabold text-white shadow-sm transition hover:bg-violet-800 disabled:opacity-60">
+                        <span x-text="busy ? 'Checking the workbook… this takes a few seconds' : 'Check file (nothing is saved yet)'">Check file (nothing is saved yet)</span>
+                    </button>
+                </form>
+            @endif
+        </details>
+    @endif
+
     {{-- Filter bar --}}
     <form method="GET" action="{{ route('reports.index') }}" id="filter-form" class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center">
         @if($isSuperAdmin)

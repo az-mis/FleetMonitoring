@@ -44,6 +44,9 @@ final class GssImporter
 {
     public const SOURCE_PREFIX = 'gss';
 
+    /** Remark on a trip's Part B that came from the workbook (a Part B logged in the system is never overwritten) */
+    public const IMPORTED_REMARK = 'Imported from the GSS workbook';
+
     /** Workbook division names → office codes */
     private const OFFICE_ALIASES = [
         'AMAD/KADIWA' => 'AMAD', 'KADIWA' => 'AMAD', 'RTD FOR OPERATION' => 'ORTDO', 'RTD FOR OPERATIONS' => 'ORTDO',
@@ -91,6 +94,15 @@ final class GssImporter
 
     /** @var list<array{id: int, location: ?string, surname: string, initial: ?string}> */
     private array $drivers = [];
+
+    /** The earlier import of the row being read, when the row changed since (see seen()) */
+    private ?ImportRecord $previous = null;
+
+    /** @var array<string, array<int, true>> records already handled in this run, by class and id */
+    private array $touched = [];
+
+    /** @var array<string, int> row keys read in this run → the row they were first read on */
+    private array $runKeys = [];
 
     /**
      * @return array{counts: array<string, array<string, int>>, review_file: string, review_rows: int, committed: bool}
@@ -228,7 +240,7 @@ final class GssImporter
             return;
         }
         $key = 'vehicle:'.GssCellParser::plateKey($plates['plate']);
-        if ($this->seen($sheet, $key)) {
+        if ($this->seen($sheet, $key, $c, $item['row'])) {
             return;
         }
         if ($plates['ambiguous']) {
@@ -300,7 +312,7 @@ final class GssImporter
                 continue;
             }
             $key = 'list:'.GssCellParser::plateKey($plates['plate']);
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             $reasons = [];
@@ -377,7 +389,7 @@ final class GssImporter
             }
             $plate = $this->plateIn($label);
             $key = 'petron:'.($plate ? GssCellParser::plateKey($plate) : 'row'.$r);
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             // "D1-C250/SNE-5690 - Hauling Truck": every plate written for the vehicle, so trips using the other one match too
@@ -449,14 +461,20 @@ final class GssImporter
                     continue;
                 }
                 $key = "spend:{$provider}:".Str::slug($b).":{$month}";
-                if ($this->seen($sheet, $key)) {
+                if ($this->seen($sheet, $key, $c, $r)) {
                     continue;
                 }
-                $spend = FleetCardMonthlySpend::updateOrCreate(
-                    ['provider' => $provider, 'division_label' => $label, 'year' => $this->year, 'month' => $month],
-                    ['office_id' => $officeId, 'amount' => $amount, 'source' => 'import', 'excluded_from_total' => $excluded],
-                );
-                $this->done($sheet, $r, $key, $spend, 'created', $officeId ? [] : ["Division \"{$b}\" matches no office; kept as written."], $c);
+                $match = ['provider' => $provider, 'division_label' => $label, 'year' => $this->year, 'month' => $month];
+                $spend = FleetCardMonthlySpend::where($match)->first();
+                // An amount GSS recorded in the system from the provider's statement is kept
+                if ($spend?->source === 'statement') {
+                    $this->done($sheet, $r, $key, $spend, 'unchanged', [], $c);
+
+                    continue;
+                }
+                $outcome = $spend ? 'updated' : 'created';
+                $spend = FleetCardMonthlySpend::updateOrCreate($match, ['office_id' => $officeId, 'amount' => $amount, 'source' => 'import', 'excluded_from_total' => $excluded]);
+                $this->done($sheet, $r, $key, $spend, $outcome, $officeId ? [] : ["Division \"{$b}\" matches no office; kept as written."], $c);
             }
         }
     }
@@ -483,7 +501,7 @@ final class GssImporter
                 continue;
             }
             $key = 'trip:'.sha1(json_encode([$area, $c['A'] ?? null, $c['B'] ?? null, $c['E'] ?? null, $c['I'] ?? null, $c['J'] ?? null]));
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             if (! $area) {
@@ -530,7 +548,12 @@ final class GssImporter
                 $reasons[] = 'No travel date; the date recorded was used.';
             }
 
-            $ticket = $this->ticket($c['A'] ?? null, $area, $reasons);
+            // In an updated workbook a corrected row (new date or plate) is found again by its ticket number
+            if (! $this->previous && ! is_numeric($c['A'] ?? null) && ($typed = GssCellParser::text($c['A'] ?? null))) {
+                $this->previous = $this->importedTrip($area, $typed);
+            }
+            $trip = $this->previousModel(VehicleRequest::class);
+            $ticket = $trip ? $trip->trip_ticket_number : $this->ticket($c['A'] ?? null, $area, $reasons);
             // A driver without an account is kept by name (no accounts are created)
             $driverName = GssCellParser::text($c['J'] ?? null);
             $driverId = $this->driver($driverName, $area);
@@ -538,8 +561,7 @@ final class GssImporter
             $passengers = array_values(array_filter(array_map('trim', preg_split('/,|&|\band\b/i', (string) GssCellParser::text($c['D'] ?? null)) ?: [])));
             $recorded = GssCellParser::date($c['B'] ?? null, $this->year);
 
-            $trip = VehicleRequest::create([
-                'reference_code' => $this->referenceCode(),
+            $values = [
                 'requester_name' => Str::limit($passengers[0] ?? $program ?? 'GSS workbook', 120, ''),
                 'requester_office' => $program ? Str::limit($program, 150, '') : null,
                 'office_id' => $this->office($program),
@@ -551,29 +573,36 @@ final class GssImporter
                 'purpose' => Str::limit(GssCellParser::text($c['G'] ?? null) ?? '—', 500, ''),
                 'travel_date' => $travel['start']->toDateString(),
                 'travel_date_end' => $end->toDateString(),
-                'status' => 'approved',
-                'trip_ticket_number' => $ticket,
                 'confirmed_driver_id' => $driverId,
                 'driver_name' => $driverId ? null : ($driverName ? Str::limit($driverName, 120, '') : null),
                 'approved_at' => ($recorded['start'] ?? $travel['start'])->toDateTimeString(),
-            ]);
-            $this->backdate($trip, $recorded['start'] ?? $travel['start']);
+            ];
+            if ($trip) {
+                // A trip cancelled in the system since the last import stays cancelled
+                $trip->update($values);
+                $outcome = 'updated';
+            } else {
+                $trip = VehicleRequest::create($values + ['reference_code' => $this->referenceCode(), 'status' => 'approved', 'trip_ticket_number' => $ticket]);
+                $this->backdate($trip, $recorded['start'] ?? $travel['start']);
+                $outcome = 'created';
+            }
 
             $before = GssCellParser::number($c['K'] ?? null);
             $after = GssCellParser::number($c['L'] ?? null);
-            if ($before !== null || $after !== null) {
-                TripTicketCompletion::create([
-                    'vehicle_request_id' => $trip->id,
+            // Readings come from the workbook only while the trip has no Part B logged in the system
+            $logged = $trip->completion()->where(fn ($q) => $q->whereNull('remarks')->orWhere('remarks', '!=', self::IMPORTED_REMARK))->exists();
+            if (($before !== null || $after !== null) && ! $logged) {
+                TripTicketCompletion::updateOrCreate(['vehicle_request_id' => $trip->id], [
                     'trip_ticket_number' => $ticket ?? 'IMPORT-'.$trip->id,
                     'vehicle_id' => $vehicle->id,
                     'driver_id' => $driverId,
                     'odo_beginning' => $before ?? 0,
                     'odo_ending' => $after ?? 0,
                     'distance_travelled' => $before !== null && $after !== null && $after > $before ? $after - $before : 0,
-                    'remarks' => 'Imported from the GSS workbook',
+                    'remarks' => self::IMPORTED_REMARK,
                 ]);
             }
-            $this->done($sheet, $r, $key, $trip, 'created', $reasons, $c);
+            $this->done($sheet, $r, $key, $trip, $outcome, $reasons, $c);
         }
     }
 
@@ -591,7 +620,7 @@ final class GssImporter
                 continue;
             }
             $key = 'fuel:'.sha1(json_encode([$ticket, $c['F'] ?? null, $plate]));
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             $vehicle = $this->findVehicle($plate);
@@ -625,7 +654,7 @@ final class GssImporter
             } else {
                 $completion = TripTicketCompletion::create($values + [
                     'vehicle_request_id' => $trip->id, 'trip_ticket_number' => $ticket, 'vehicle_id' => $trip->vehicle_id,
-                    'driver_id' => $trip->confirmed_driver_id, 'remarks' => 'Imported from the GSS workbook',
+                    'driver_id' => $trip->confirmed_driver_id, 'remarks' => self::IMPORTED_REMARK,
                 ]);
                 $outcome = 'created';
             }
@@ -647,7 +676,7 @@ final class GssImporter
                 continue;
             }
             $key = 'repair:'.sha1(json_encode([$c['B'] ?? null, $c['D'] ?? null, $c['F'] ?? null, $c['J'] ?? null]));
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             $vehicle = $this->findVehicle(GssCellParser::text($c['F'] ?? null))
@@ -674,7 +703,7 @@ final class GssImporter
             $remarks = GssCellParser::text($c['N'] ?? null);
             $completed = $post !== null || preg_match('/complet|done|repaired/i', (string) $remarks);
 
-            $record = VehicleMaintenance::create([
+            $values = [
                 'vehicle_id' => $vehicle->id,
                 'plate_number' => $vehicle->plate_number,
                 'vehicle_label' => trim($vehicle->brand.' '.$vehicle->model),
@@ -692,21 +721,27 @@ final class GssImporter
                 'post_inspection_date' => $post['start'] ?? null,
                 'defect_nature' => $defect,
                 'parts_replaced' => GssCellParser::text($c['K'] ?? null),
-                'created_by_name' => 'GSS workbook import',
-            ]);
+            ];
+            // An updated workbook (new status, cost or remarks) updates the repair imported before
+            $record = $this->previousModel(VehicleMaintenance::class);
+            $record ? $record->update($values) : $record = VehicleMaintenance::create($values + ['created_by_name' => 'GSS workbook import']);
+            $outcome = $record->wasRecentlyCreated ? 'created' : 'updated';
 
             if ($statusText = GssCellParser::text($c['M'] ?? null)) {
                 $status = $this->prStatus($statusText);
                 if (! $status) {
                     $reasons[] = "PR status \"{$statusText}\" not recognised; recorded as PR on process.";
                 }
-                $this->backdate($record->procurements()->create([
+                $pr = [
                     'vehicle_id' => $vehicle->id, 'location' => $record->location, 'description' => Str::limit('Repair: '.$record->title, 255, ''),
                     'category' => 'Vehicle parts', 'status' => $status ?? 'PR on process', 'amount' => $record->cost, 'remarks' => $remarks,
-                ]), $scheduled);
+                ];
+                ($existingPr = $record->procurements()->first()) ? $existingPr->update($pr) : $this->backdate($record->procurements()->create($pr), $scheduled);
             }
-            $this->backdate($record, $scheduled);
-            $this->done($sheet, $r, $key, $record, 'created', $reasons, $c);
+            if ($outcome === 'created') {
+                $this->backdate($record, $scheduled);
+            }
+            $this->done($sheet, $r, $key, $record, $outcome, $reasons, $c);
         }
     }
 
@@ -728,7 +763,7 @@ final class GssImporter
                 continue;
             }
             $key = 'cm:'.sha1(json_encode([$c['A'] ?? null, $plateText, $complaint]));
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             $vehicle = $this->findVehicle($plateText);
@@ -761,7 +796,12 @@ final class GssImporter
                 'cmv_issued_by' => GssCellParser::text($c['O'] ?? null),
                 'requisitioner_office_id' => $this->office(GssCellParser::text($c['B'] ?? null)),
             ];
-            if ($record) {
+            if ($earlier = $this->previousModel(VehicleMaintenance::class)) {
+                // The row changed in an updated workbook: its new values replace what it filled in before
+                $earlier->update(array_filter($values, fn ($v) => $v !== null));
+                $record = $earlier;
+                $outcome = 'updated';
+            } elseif ($record) {
                 foreach ($values as $field => $value) {
                     if ($value !== null && blank($record->{$field})) {
                         $record->{$field} = $value;
@@ -804,7 +844,7 @@ final class GssImporter
                 continue;
             }
             $key = 'pms:'.sha1(json_encode([$c['A'] ?? null, $plateText, $c['B'] ?? null, $c['I'] ?? null]));
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             $vehicle = $this->findVehicle($plateText);
@@ -826,7 +866,7 @@ final class GssImporter
             $status = $done || str_contains($statusText, 'done') ? 'completed' : (str_contains($statusText, 'process') ? 'ongoing' : 'scheduled');
             $pmNo = GssCellParser::text($c['A'] ?? null);
 
-            $record = VehicleMaintenance::create([
+            $values = [
                 'vehicle_id' => $vehicle->id, 'plate_number' => $vehicle->plate_number, 'vehicle_label' => trim($vehicle->brand.' '.$vehicle->model),
                 'type' => 'Preventive', 'title' => 'PMS'.($pmNo ? ' #'.$pmNo : ''), 'priority' => 'normal', 'status' => $status,
                 'scheduled_date' => $scheduled->toDateString(),
@@ -836,10 +876,17 @@ final class GssImporter
                 'notes' => collect([GssCellParser::text($c['L'] ?? null), GssCellParser::text($c['M'] ?? null)])->filter()->implode(' · ') ?: null,
                 'location' => $vehicle->location, 'pm_request_no' => $pmNo ? Str::limit($pmNo, 30, '') : null,
                 'requisitioner_office_id' => $this->office(GssCellParser::text($c['D'] ?? null)),
-                'created_by_name' => 'GSS workbook import',
-            ]);
-            $this->backdate($record, $requested['start'] ?? $scheduled);
-            $this->done($sheet, $r, $key, $record, 'created', $reasons, $c);
+            ];
+            // An updated workbook (PMS done, cost known) updates the PMS imported before
+            if ($record = $this->previousModel(VehicleMaintenance::class)) {
+                $record->update($values);
+                $outcome = 'updated';
+            } else {
+                $record = VehicleMaintenance::create($values + ['created_by_name' => 'GSS workbook import']);
+                $this->backdate($record, $requested['start'] ?? $scheduled);
+                $outcome = 'created';
+            }
+            $this->done($sheet, $r, $key, $record, $outcome, $reasons, $c);
         }
     }
 
@@ -853,7 +900,7 @@ final class GssImporter
             }
             $prNumber = GssCellParser::text($c['D'] ?? null);
             $key = 'pr:'.($prNumber ?? sha1(json_encode([$description, $c['F'] ?? null])));
-            if ($this->seen($sheet, $key)) {
+            if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
             $reasons = [];
@@ -879,7 +926,7 @@ final class GssImporter
             $plate = $this->plateIn($description);
             $vehicle = $this->findVehicle($plate);
 
-            $pr = Procurement::create([
+            $values = [
                 'vehicle_id' => $vehicle?->id,
                 'location' => $vehicle?->location,
                 'description' => Str::limit($description, 255, ''),
@@ -892,9 +939,17 @@ final class GssImporter
                 'jo_po_date' => $joPoDate['start'] ?? null,
                 'coa_date' => $coa['start'] ?? null,
                 'remarks' => Str::limit(implode(' | ', array_reverse($texts)), 2000, '') ?: null,
-            ]);
-            $this->backdate($pr, $prDate['start'] ?? null);
-            $this->done($sheet, $r, $key, $pr, 'created', $reasons, $c);
+            ];
+            // An updated workbook (new status, JO/PO or COA date) updates the PR imported before
+            if ($pr = $this->previousModel(Procurement::class)) {
+                $pr->update($values);
+                $outcome = 'updated';
+            } else {
+                $pr = Procurement::create($values);
+                $this->backdate($pr, $prDate['start'] ?? null);
+                $outcome = 'created';
+            }
+            $this->done($sheet, $r, $key, $pr, $outcome, $reasons, $c);
         }
     }
 
@@ -919,24 +974,79 @@ final class GssImporter
         }
     }
 
-    private function seen(string $sheet, string $key): bool
+    /**
+     * True when this row was imported before with the same values (nothing to do). When it was imported before but
+     * its values changed (an updated workbook), the earlier import is kept in $previous so the row updates that record.
+     */
+    private function seen(string $sheet, string $key, array $raw, int $row): bool
     {
-        if (ImportRecord::where('source', $this->source)->where('key', $key)->exists()) {
-            $this->counts[$sheet]['unchanged']++;
+        $this->previous = null;
+        // The same row twice in the workbook: the first one counts, so runs stay stable
+        if (isset($this->runKeys[$key])) {
+            $this->skip($sheet, $row, $key, "Repeats row {$this->runKeys[$key]} (same plate, ticket or entry); only the first one is used.", $raw);
 
             return true;
         }
+        $this->runKeys[$key] = $row;
+        $record = ImportRecord::where('source', $this->source)->where('key', $key)->first();
+        if (! $record) {
+            return false;
+        }
+        if ($this->sameValues($record->raw ?? [], $this->rawForStorage($raw))) {
+            $this->counts[$sheet]['unchanged']++;
+            $this->touched[$record->record_type][$record->record_id] = true;
+
+            return true;
+        }
+        $this->previous = $record;
 
         return false;
     }
 
+    /** The earlier import of a trip with this ticket number in the area, not yet matched to a row in this run */
+    private function importedTrip(string $area, string $ticket): ?ImportRecord
+    {
+        $ticket = Str::limit($ticket, 240, '');
+        $ids = VehicleRequest::query()->where('location', $area)
+            ->where(fn ($q) => $q->where('trip_ticket_number', $ticket)->orWhere('trip_ticket_number', 'like', addcslashes($ticket, '\\%_').' (%)'))
+            ->orderBy('id')->pluck('id')
+            ->reject(fn ($id) => isset($this->touched[VehicleRequest::class][$id]));
+
+        return $ids->isEmpty() ? null : ImportRecord::query()
+            ->where('source', $this->source)->where('record_type', VehicleRequest::class)->whereIn('record_id', $ids)
+            ->orderBy('record_id')->first();
+    }
+
+    /** The record the earlier import of this row created, if it still exists */
+    private function previousModel(string $class): ?Model
+    {
+        if (! $this->previous || $this->previous->record_type !== $class) {
+            return null;
+        }
+
+        return $class::find($this->previous->record_id);
+    }
+
+    private function sameValues(array $before, array $now): bool
+    {
+        $norm = fn (array $values) => collect($values)->map(fn ($v) => is_float($v) && floor($v) === $v ? (string) (int) $v : (string) $v)->sortKeys()->all();
+
+        return $norm($before) === $norm($now);
+    }
+
     private function done(string $sheet, int $row, string $key, Model $model, string $outcome, array $reasons, array $raw): void
     {
-        ImportRecord::create([
-            'source' => $this->source, 'sheet' => Str::limit($sheet, 60, ''), 'row' => $row, 'key' => $key,
+        ImportRecord::updateOrCreate(['source' => $this->source, 'key' => $key], [
+            'sheet' => Str::limit($sheet, 60, ''), 'row' => $row,
             'record_type' => $model::class, 'record_id' => $model->getKey(), 'outcome' => $outcome,
             'needs_review' => $reasons !== [], 'reason' => $reasons ? implode(' ', $reasons) : null, 'raw' => $this->rawForStorage($raw),
         ]);
+        // A row found again under a new key (e.g. its date was corrected) takes over the earlier record
+        if ($this->previous && $this->previous->key !== $key) {
+            $this->previous->delete();
+        }
+        $this->previous = null;
+        $this->touched[$model::class][$model->getKey()] = true;
         $this->counts[$sheet][$outcome]++;
         if ($reasons) {
             $this->counts[$sheet]['review']++;
@@ -977,6 +1087,7 @@ final class GssImporter
     private function skip(string $sheet, int $row, string $key, string $reason, array $raw): void
     {
         // Skipped rows are not recorded as imported, so they are tried again on the next run
+        $this->previous = null;
         $this->counts[$sheet]['skipped']++;
         $this->review[] = ['sheet' => $sheet, 'row' => $row, 'outcome' => 'Not imported', 'reason' => $reason, 'record' => '', 'raw' => $raw];
     }
