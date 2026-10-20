@@ -42,12 +42,7 @@
         </div>
 
         <div>
-            <div class="flex items-center justify-between">
-                <label for="password" class="block text-[0.8125rem] font-semibold text-pub-text">Password</label>
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-[0.6875rem] font-semibold text-pub-accent hover:text-pub-text hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
-                @endif
-            </div>
+            <label for="password" class="block text-[0.8125rem] font-semibold text-pub-text">Password</label>
             <div class="relative mt-1.5">
                 <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
@@ -74,6 +69,11 @@
             @error('password')
                 <p id="password-error" class="mt-1.5 text-xs font-semibold text-pub-danger" role="alert">{{ $message }}</p>
             @enderror
+            @if (Route::has('password.request'))
+                <div class="mt-2 flex justify-end">
+                    <a href="{{ route('password.request') }}" class="text-xs font-semibold text-pub-accent hover:text-pub-text hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
+                </div>
+            @endif
         </div>
 
         <button
