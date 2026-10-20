@@ -436,8 +436,8 @@
 
                             {{-- Fuel Type --}}
                             <div class="sm:col-span-4">
-                                <label for="rv-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-red-500">*</span></label>
-                                <input type="text" name="fuel_type" id="rv-fuel_type" value="{{ $rvOld('fuel_type') }}" maxlength="50" placeholder="e.g. Gasoline, Diesel" class="{{ $rvInput }} {{ $rvBorder('fuel_type') }}" required>
+                                <label for="rv-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                <input type="text" name="fuel_type" id="rv-fuel_type" value="{{ $rvOld('fuel_type') }}" maxlength="50" placeholder="e.g. Gasoline, Diesel" class="{{ $rvInput }} {{ $rvBorder('fuel_type') }}">
                                 @error('fuel_type')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
@@ -895,8 +895,8 @@
 
                         {{-- Fuel Type --}}
                         <div class="sm:col-span-3">
-                            <label for="ev-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-red-500">*</span></label>
-                            <input type="text" name="fuel_type" id="ev-fuel_type" value="{{ $evOld('fuel_type') }}" maxlength="50" placeholder="e.g. Gasoline, Diesel" class="{{ $rvInput }} {{ $evBorder('fuel_type') }}" required>
+                            <label for="ev-fuel_type" class="{{ $rvLabel }}">Fuel Type <span class="text-slate-400 font-normal">(Optional)</span></label>
+                            <input type="text" name="fuel_type" id="ev-fuel_type" value="{{ $evOld('fuel_type') }}" maxlength="50" placeholder="e.g. Gasoline, Diesel" class="{{ $rvInput }} {{ $evBorder('fuel_type') }}">
                             @if ($evIsOld)
                                 @error('fuel_type')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -1268,7 +1268,7 @@
             document.getElementById('view-vehicle-color').textContent = btn.dataset.color;
             document.getElementById('view-vehicle-odometer').textContent = btn.dataset.odometer + ' km';
             document.getElementById('view-vehicle-type').textContent = btn.dataset.vehicle_type;
-            document.getElementById('view-vehicle-fuel').textContent = btn.dataset.fuel_type;
+            document.getElementById('view-vehicle-fuel').textContent = btn.dataset.fuel_type || '—';
             document.getElementById('view-vehicle-created').textContent = btn.dataset.created;
             document.getElementById('view-vehicle-updated').textContent = btn.dataset.updated;
 
