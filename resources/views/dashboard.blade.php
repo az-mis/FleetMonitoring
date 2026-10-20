@@ -230,7 +230,8 @@
                     $fb = $fleetBudget ?? ['total_allocated' => 0, 'total_consumed' => 0, 'total_remaining' => 0, 'consumed_percent' => 0, 'remaining_percent' => 100, 'card_count' => 0];
                     $fbConsumedPct   = (float) ($fb['consumed_percent']  ?? 0);
                     $fbRemainingPct  = (float) ($fb['remaining_percent'] ?? 100);
-                    $fbBarColor = $fbConsumedPct >= 90 ? 'bg-red-500' : ($fbConsumedPct >= 70 ? 'bg-amber-400' : 'bg-emerald-500');
+                    // Consumption is shown in red, matching the Consumed card above it
+                    $fbBarColor = 'bg-red-500';
                 @endphp
                 <section class="rounded-xl border border-gray-200/90 bg-white p-3 shadow-2xs">
                     <div class="mb-2 flex flex-wrap items-center justify-between gap-1.5">
@@ -281,7 +282,7 @@
                     <div>
                         <div class="flex justify-between mb-0.5 text-[0.5rem] font-bold text-slate-400 uppercase tracking-wide">
                             <span>Budget Consumption</span>
-                            <span class="{{ $fbConsumedPct >= 90 ? 'text-red-600' : ($fbConsumedPct >= 70 ? 'text-amber-600' : 'text-emerald-600') }}">{{ $fbConsumedPct }}% used</span>
+                            <span class="text-red-600">{{ $fbConsumedPct }}% used</span>
                         </div>
                         <div class="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
                             <div class="h-full rounded-full transition-all {{ $fbBarColor }}" style="width: {{ min(100, $fbConsumedPct) }}%"></div>
