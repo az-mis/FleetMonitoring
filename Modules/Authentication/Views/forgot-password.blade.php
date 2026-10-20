@@ -4,8 +4,9 @@
 
 @php
     // Reset links are only useful when the server can actually deliver email. Outside local
-    // development, a "log"/"array" mailer means nobody would receive the link.
-    $mailReady = ! in_array(config('mail.default'), ['log', 'array'], true) || app()->isLocal();
+    // development and QA (where the email is read from the log), a "log"/"array" mailer means
+    // nobody would receive the link.
+    $mailReady = ! in_array(config('mail.default'), ['log', 'array'], true) || app()->environment(['local', 'qa']);
 @endphp
 
 @section('content')

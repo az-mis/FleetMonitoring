@@ -16,6 +16,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Modules\Admin\Enums\UserRole;
+use Modules\Authentication\Notifications\ResetPasswordNotification;
 use Modules\Vehicle\Models\Vehicle;
 
 #[Fillable(['name', 'email', 'password', 'role', 'avatar', 'phone_number', 'location', 'birth_date', 'address', 'license_number', 'license_front', 'license_back', 'license_expiration_date'])]
@@ -78,6 +79,17 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return $this->deactivated_at === null;
+    }
+
+    /**
+     * "Forgot password?" email. A deactivated account gets none (it could not sign in anyway); the page still
+     * shows the same answer, so nobody learns which accounts exist or are deactivated.
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        if ($this->isActive()) {
+            $this->notify(new ResetPasswordNotification($token));
+        }
     }
 
     #[Scope]
