@@ -21,7 +21,8 @@
     @endphp
 
     <div class="mx-auto max-w-5xl space-y-5">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        {{-- Stays at the top while the long form scrolls, so the vehicle stays in view --}}
+        <div class="sticky -top-4 z-20 -mx-4 flex flex-col gap-3 border-b border-slate-200/80 bg-gray-50/95 px-4 py-3 backdrop-blur sm:-top-6 sm:-mx-6 sm:flex-row sm:items-end sm:justify-between sm:px-6">
             <div class="min-w-0">
                 <a href="{{ route('vehicles.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline">
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
