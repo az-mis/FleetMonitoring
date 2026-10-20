@@ -110,6 +110,34 @@
     </div>
 @endif
 
+@php
+    // Built here (instead of inline inside @json) because Blade's directive
+    // parser only tracks round-bracket balance, not square brackets — a
+    // multi-line array literal with 3+ keys directly inside @json(...) gets
+    // silently truncated at compile time and breaks the view.
+    $maintenanceRecordsForJs = $records->map(fn($r) => [
+        'id'                 => $r->id,
+        'vehicle_id'         => $r->vehicle_id,
+        'plate_number'       => $r->plate_number,
+        'vehicle_label'      => $r->vehicle_label,
+        'type'               => $r->type,
+        'title'              => $r->title,
+        'description'        => $r->description,
+        'status'             => $r->status,
+        'priority'           => $r->priority,
+        'scheduled_date'     => $r->scheduled_date?->format('Y-m-d'),
+        'scheduled_date_end' => $r->scheduled_date_end?->format('Y-m-d'),
+        'completed_date'     => $r->completed_date?->format('Y-m-d'),
+        'odometer'           => $r->odometer,
+        'trigger_km'         => $r->trigger_km,
+        'cost'               => $r->cost,
+        'vendor'             => $r->vendor,
+        'notes'              => $r->notes,
+    ])->values();
+@endphp
+
+{{-- Everything below is swapped in place when the search changes, so typing is never interrupted --}}
+<div id="maintenance-results">
 {{-- ── Stat cards ───────────────────────────────────────────────────── --}}
 <div class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
     @foreach([
@@ -335,6 +363,9 @@
         @endif
     </div>
 @endif
+    {{-- The page's records for the edit modal; swapped together with the list when searching --}}
+    <script type="application/json" id="maintenance-records-json">@json($maintenanceRecordsForJs)</script>
+</div>
 
 {{-- ══════════════════════════════════════════════════════════════════
      ADD / EDIT MODAL
@@ -609,34 +640,10 @@
 {{-- ══════════════════════════════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════════════════════════════ --}}
-@php
-    // Built here (instead of inline inside @json) because Blade's directive
-    // parser only tracks round-bracket balance, not square brackets — a
-    // multi-line array literal with 3+ keys directly inside @json(...) gets
-    // silently truncated at compile time and breaks the view.
-    $maintenanceRecordsForJs = $records->map(fn($r) => [
-        'id'                 => $r->id,
-        'vehicle_id'         => $r->vehicle_id,
-        'plate_number'       => $r->plate_number,
-        'vehicle_label'      => $r->vehicle_label,
-        'type'               => $r->type,
-        'title'              => $r->title,
-        'description'        => $r->description,
-        'status'             => $r->status,
-        'priority'           => $r->priority,
-        'scheduled_date'     => $r->scheduled_date?->format('Y-m-d'),
-        'scheduled_date_end' => $r->scheduled_date_end?->format('Y-m-d'),
-        'completed_date'     => $r->completed_date?->format('Y-m-d'),
-        'odometer'           => $r->odometer,
-        'trigger_km'         => $r->trigger_km,
-        'cost'               => $r->cost,
-        'vendor'             => $r->vendor,
-        'notes'              => $r->notes,
-    ])->values();
-@endphp
 <script>
 // ── Record data from PHP → JS ──────────────────────────────────────────────
-const maintenanceRecords = @json($maintenanceRecordsForJs);
+// Read from the results area, so a search that swaps the list also brings the matching records
+let maintenanceRecords = JSON.parse(document.getElementById('maintenance-records-json')?.textContent || '[]');
 // Upcoming approved trips per vehicle: maintenance on those days is allowed but warned about (decision D4)
 const approvedTrips = @json($approvedTrips);
 const sourceReportFromDriver = @json($sourceReport);
@@ -650,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // All active (scheduled/ongoing) records across all pages for calendar conflict detection
 // We only have the current page here, but that's enough for a scheduling hint.
-const allActiveRecords = maintenanceRecords.filter(r => r.status === 'scheduled' || r.status === 'ongoing');
+let allActiveRecords = maintenanceRecords.filter(r => r.status === 'scheduled' || r.status === 'ongoing');
 
 // ── Modal open/close ───────────────────────────────────────────────────────
 let currentEditId = null;
@@ -1053,14 +1060,47 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Search with debounce ───────────────────────────────────────────────────
+// The results are fetched and swapped in place (no page reload), so the cursor stays in the search box.
 let searchTimer;
+let searchRequest = 0;
 function onMaintenanceSearchInput() {
     clearTimeout(searchTimer);
     document.getElementById('maintenance-search-spinner')?.classList.remove('hidden');
-    document.getElementById('maintenance-search-clear')?.classList.add('hidden');
-    searchTimer = setTimeout(() => {
-        document.getElementById('maintenance-search-form')?.submit();
-    }, 420);
+    searchTimer = setTimeout(runMaintenanceSearch, 350);
+}
+
+async function runMaintenanceSearch() {
+    const term = document.getElementById('maintenance-search-input').value.trim();
+    const url = new URL(window.location.href);
+    term ? url.searchParams.set('search', term) : url.searchParams.delete('search');
+    url.searchParams.delete('page');
+    const request = ++searchRequest;
+
+    try {
+        const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!response.ok) throw new Error(response.statusText);
+        const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const fresh = page.getElementById('maintenance-results');
+        // A slower, older response must not replace a newer one
+        if (request !== searchRequest || !fresh) return;
+
+        document.getElementById('maintenance-results').replaceWith(fresh);
+        maintenanceRecords = JSON.parse(fresh.querySelector('#maintenance-records-json')?.textContent || '[]');
+        allActiveRecords = maintenanceRecords.filter(r => r.status === 'scheduled' || r.status === 'ongoing');
+        history.replaceState(null, '', url);
+        // Keep the location menu's links on the same search
+        document.querySelectorAll('#location-dropdown a').forEach(link => {
+            const target = new URL(link.href);
+            term ? target.searchParams.set('search', term) : target.searchParams.delete('search');
+            link.href = target.toString();
+        });
+        document.getElementById('maintenance-search-clear')?.classList.toggle('hidden', !term);
+    } catch (e) {
+        // Fall back to a normal page load if the swap fails
+        window.location.href = url.toString();
+    } finally {
+        if (request === searchRequest) document.getElementById('maintenance-search-spinner')?.classList.add('hidden');
+    }
 }
 
 // ── Per-page change ────────────────────────────────────────────────────────
