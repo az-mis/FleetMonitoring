@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\FleetSettings;
 use Closure;
 use Illuminate\Http\Request;
 use Modules\Admin\Enums\UserRole;
-use Modules\Settings\Models\FleetSetting;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -32,7 +32,7 @@ class EnsureModuleEnabled
     private function isEnabled(string $module): bool
     {
         try {
-            $flags = FleetSetting::where('setting_key', 'admin_modules')->value('setting_value') ?? [];
+            $flags = app(FleetSettings::class)->get('admin_modules', []);
         } catch (\Throwable $e) {
             report($e);
 

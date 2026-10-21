@@ -29,10 +29,11 @@ class ReportController extends Controller
 
     public function index(Request $request): View
     {
-        $ctx = $this->context($request);
+        // The page shows the first 15 trips and the count; print and export get the full list
+        $ctx = $this->context($request, tripLogLimit: 15);
 
         return view('reports.index', $ctx + [
-            'tripLogPreview' => $ctx['tripLog']->take(15),
+            'tripLogPreview' => $ctx['tripLog'],
             'locationOptions' => $this->locationOptions,
             'gssSheets' => collect(app(GssExportService::class)->sheets())->map->title(),
         ]);
@@ -100,7 +101,7 @@ class ReportController extends Controller
     }
 
     /** Shared data for the page, the print view and the exports. Admins are always locked to their own location. */
-    private function context(Request $request): array
+    private function context(Request $request, ?int $tripLogLimit = null): array
     {
         $user = $request->user();
         $roleValue = $user?->role?->value ?? $user?->role;
@@ -129,7 +130,8 @@ class ReportController extends Controller
             'tripsPerVehicle' => $this->reportService->tripsPerVehicle($location, $start, $end, 10),
             'maintenanceCostPerMonth' => $this->reportService->maintenanceCostPerMonth($location),
             'statusBreakdown' => $this->reportService->statusBreakdown($summary),
-            'tripLog' => $this->reportService->tripLog($location, $start, $end),
+            'tripLog' => $this->reportService->tripLog($location, $start, $end, $tripLogLimit),
+            'tripLogTotal' => $this->reportService->tripLogCount($location, $start, $end),
             'maintenanceLog' => $this->reportService->maintenanceLog($location, $start, $end),
             'costAnalysis' => $this->reportService->costPerKmAnalysis($location, $start, $end),
             'generatedBy' => $user->name,

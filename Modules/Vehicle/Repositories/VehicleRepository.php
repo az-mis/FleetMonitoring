@@ -14,6 +14,7 @@ class VehicleRepository implements VehicleRepositoryInterface
     {
         return Vehicle::query()
             ->with(['assignedDriver', 'creator', 'updater'])
+            ->withHealthData()
             ->when($location, fn ($q) => $q->where('location', $location))
             // Dashboard "Vehicle papers due" link: registration or insurance expired or expiring soon
             ->when(request('papers') === 'due', fn ($q) => $q->papersDue())

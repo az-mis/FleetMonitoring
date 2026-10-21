@@ -15,7 +15,7 @@
     $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
     $announcementKey = $isDriver ? 'driver_announcement' : 'admin_announcement';
     try {
-        $announcement = \Modules\Settings\Models\FleetSetting::where('setting_key', $announcementKey)->value('setting_value') ?? ['enabled' => false, 'message' => ''];
+        $announcement = app(\App\Support\FleetSettings::class)->get($announcementKey) ?? ['enabled' => false, 'message' => ''];
     } catch (\Throwable $exception) {
         $announcement = ['enabled' => false, 'message' => ''];
     }
@@ -40,7 +40,7 @@
         $driverVehicleIds = $driverVehicles->pluck('id')->all();
         
         try {
-            $driverModulesSetting = \Modules\Settings\Models\FleetSetting::where('setting_key', 'driver_modules')->value('setting_value');
+            $driverModulesSetting = app(\App\Support\FleetSettings::class)->get('driver_modules');
             $showAssignedVehicleSetting = $driverModulesSetting['showAssignedVehicle'] ?? true;
         } catch (\Throwable $e) {
             $showAssignedVehicleSetting = true;

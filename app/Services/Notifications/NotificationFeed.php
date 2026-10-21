@@ -29,6 +29,17 @@ final class NotificationFeed
     /** How many notifications the bell lists */
     public const SHOW = 50;
 
+    /** How often page loads look for new alerts, per area */
+    public const SYNC_EVERY_SECONDS = 60;
+
+    /** sync(), at most once a minute per area: the bell is on every admin page, the alerts change slowly */
+    public function syncIfDue(?string $location): void
+    {
+        if (Cache::add('fleet-notifications-synced:'.($location ?? 'all'), true, self::SYNC_EVERY_SECONDS)) {
+            $this->sync($location);
+        }
+    }
+
     /** Saves every alert that has appeared since the last look, for one area (null = all areas) */
     public function sync(?string $location): void
     {
@@ -208,6 +219,7 @@ final class NotificationFeed
 
         // Oil change due soon or overdue: one notification per oil cycle (a new cycle after the next oil change)
         Vehicle::query()
+            ->select(['id', 'plate_number', 'brand', 'model', 'location', 'odometer', 'last_change_oil_odometer', 'change_oil_interval_km'])
             ->when($location, fn ($q) => $q->where('location', $location))
             ->get()
             ->filter(fn (Vehicle $v) => in_array($v->change_oil_status['status'], ['overdue', 'due_soon'], true))

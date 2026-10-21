@@ -458,7 +458,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-3">
             <div>
                 <h3 class="font-bold text-gray-900">Trip Log</h3>
-                <p class="text-[0.6875rem] text-slate-400">Showing {{ $tripLogPreview->count() }} of {{ $tripLog->count() }} requests in this period. Export for the full list.</p>
+                <p class="text-[0.6875rem] text-slate-400">Showing {{ $tripLogPreview->count() }} of {{ $tripLogTotal }} requests in this period. Export for the full list.</p>
             </div>
         </div>
         <div class="overflow-x-auto">

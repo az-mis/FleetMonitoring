@@ -203,9 +203,7 @@
                                 @endif
                                 @if($card->monthly_allowance)
                                     @php
-                                        $spentThisMonth = (float) $card->logs
-                                            ->filter(fn ($log) => (float) $log->consumed_amount > 0 && $log->created_at?->isSameMonth(now()))
-                                            ->sum('consumed_amount');
+                                        $spentThisMonth = (float) $card->spent_this_month;
                                     @endphp
                                     <p class="text-[0.6875rem] {{ $spentThisMonth > (float) $card->monthly_allowance ? 'font-bold text-amber-700' : 'text-gray-500' }}">
                                         {{ now()->format('F') }}: ₱{{ number_format($spentThisMonth, 2) }} of ₱{{ number_format((float) $card->monthly_allowance, 2) }} allowance

@@ -215,6 +215,15 @@ class ReportService
             ->get();
     }
 
+    /** How many requests travel in the range (the trip log's full length) */
+    public function tripLogCount(?string $location, $start, $end): int
+    {
+        return VehicleRequest::query()
+            ->when($location, fn ($q) => $q->where('location', $location))
+            ->whereBetween('travel_date', [$start, $end])
+            ->count();
+    }
+
     /** Requests by status for the range (doughnut). */
     public function statusBreakdown(array $summary): array
     {

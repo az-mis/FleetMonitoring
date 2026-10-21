@@ -241,7 +241,7 @@
         $hasPhoto = filled($user?->avatar_url ?? null);
         $moduleFlags = ['vehicles' => true, 'vehicleAssigning' => true, 'vehicleRequests' => true, 'drivers' => true];
         try {
-            $storedFlags = \Modules\Settings\Models\FleetSetting::where('setting_key', 'admin_modules')->value('setting_value');
+            $storedFlags = app(\App\Support\FleetSettings::class)->get('admin_modules');
             $moduleFlags = array_replace($moduleFlags, $storedFlags ?? []);
         } catch (\Throwable $exception) {
             // Keep defaults until the settings migration is available.
@@ -281,7 +281,7 @@
             }
             try {
                 $notificationFeed = app(\App\Services\Notifications\NotificationFeed::class);
-                $notificationFeed->sync($userLoc);
+                $notificationFeed->syncIfDue($userLoc);
                 $bell = $notificationFeed->forUser(auth()->user(), $userLoc);
             } catch (\Throwable $e) {
                 report($e);

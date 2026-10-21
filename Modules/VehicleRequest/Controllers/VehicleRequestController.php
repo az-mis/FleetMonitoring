@@ -509,6 +509,8 @@ class VehicleRequestController
         $bookings = VehicleRequest::query()
             ->where('vehicle_id', $vehicle->id)
             ->whereIn('status', ['pending', 'approved'])
+            // Requests can only start today or later, so trips that have ended do not matter
+            ->whereRaw('COALESCE(travel_date_end, travel_date) >= ?', [today()->toDateString()])
             ->get(['status', 'travel_date', 'travel_date_end'])
             ->map(fn (VehicleRequest $r) => [
                 'status' => $r->status,
@@ -547,6 +549,7 @@ class VehicleRequestController
         $requests = VehicleRequest::query()
             ->whereIn('vehicle_id', $vehicles->pluck('id'))
             ->whereIn('status', ['pending', 'approved'])
+            ->whereRaw('COALESCE(travel_date_end, travel_date) >= ?', [today()->toDateString()])
             ->get(['vehicle_id', 'status', 'travel_date', 'travel_date_end'])
             ->groupBy('vehicle_id');
 

@@ -141,7 +141,8 @@ class Vehicle extends Model
 
     public function pmsItems(): HasMany
     {
-        return $this->hasMany(VehiclePmsItem::class)->orderBy('category')->orderBy('item_name');
+        // chaperone(): each loaded item already knows its vehicle, so its status does not query it again
+        return $this->hasMany(VehiclePmsItem::class)->orderBy('category')->orderBy('item_name')->chaperone('vehicle');
     }
 
     /**
@@ -212,6 +213,21 @@ class Vehicle extends Model
      */
     public function getHealthScoreAttribute(): array
     {
+        return $this->healthScore ??= $this->computeHealthScore();
+    }
+
+    /**
+     * What the health score needs, loaded for a whole list at once (instead of two queries per vehicle)
+     */
+    public function scopeWithHealthData(Builder $query): void
+    {
+        $query->with('pmsItems')->withCount(['maintenances as overdue_maintenance_count' => fn ($q) => $q
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->where('scheduled_date', '<', now()->toDateString())]);
+    }
+
+    private function computeHealthScore(): array
+    {
         $points = 0;
         $total = 0;
 
@@ -247,9 +263,9 @@ class Vehicle extends Model
         }
 
         // ── Active Maintenance (overdue) ──────────────────────────
-        $overdueMaint = $this->maintenances()
+        $overdueMaint = $this->overdue_maintenance_count ?? $this->maintenances()
             ->whereIn('status', ['scheduled', 'ongoing'])
-            ->whereDate('scheduled_date', '<', now()->toDateString())
+            ->where('scheduled_date', '<', now()->toDateString())
             ->count();
         $total += 2;
         $points += $overdueMaint === 0 ? 2 : 0;
@@ -308,6 +324,9 @@ class Vehicle extends Model
     }
 
     protected $appends = ['photo_url'];
+
+    /** health_score, worked out once per loaded vehicle (lists and the dashboard read it more than once) */
+    private ?array $healthScore = null;
 
     protected function photoUrl(): Attribute
     {

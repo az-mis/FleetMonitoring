@@ -2,12 +2,12 @@
 
 namespace App\Providers;
 
+use App\Support\FleetSettings;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use Modules\Settings\Models\FleetSetting;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,7 +16,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // System Settings values, read once per request
+        $this->app->scoped(FleetSettings::class);
     }
 
     /**
@@ -46,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('*', function ($view) {
             try {
-                $appLogo = FleetSetting::where('setting_key', 'app_logo')->value('setting_value');
+                $appLogo = app(FleetSettings::class)->get('app_logo');
                 $appLogoUrl = !empty($appLogo['path'])
                     ? Storage::disk('public')->url($appLogo['path'])
                     : null;

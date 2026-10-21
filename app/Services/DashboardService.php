@@ -238,6 +238,7 @@ class DashboardService
     {
         $vehicles = Vehicle::query()
             ->when($location, fn ($q) => $q->where('location', $location))
+            ->withHealthData()
             ->get();
 
         if ($vehicles->isEmpty()) {
@@ -289,11 +290,14 @@ class DashboardService
     {
         $events = [];
 
-        // 1. Vehicle Requests (Approved & Pending)
+        // 1. Vehicle Requests (Approved & Pending), from three months back to a year ahead (the calendar's range),
+        //    so the page does not carry every trip ever made
         $requests = VehicleRequest::query()
-            ->with('vehicle')
+            ->with('vehicle:id,plate_number')
             ->when($location, fn ($q) => $q->where('location', $location))
             ->whereIn('status', ['approved', 'pending'])
+            ->whereRaw('COALESCE(travel_date_end, travel_date) >= ?', [now()->subMonths(3)->startOfMonth()->toDateString()])
+            ->where('travel_date', '<', now()->addYear()->toDateString())
             ->get();
 
         foreach ($requests as $req) {

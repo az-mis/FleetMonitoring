@@ -31,7 +31,13 @@ class FleetCardController extends Controller
     {
         $userLoc = $this->fleetLocationScope();
 
-        $query = FleetCard::with(['vehicle', 'creator', 'office', 'logs.logger', 'logs.vehicleRequest'])
+        $query = FleetCard::with([
+            'vehicle', 'creator', 'office',
+            // Only the top-ups: the edit form lists them (the full history is in Expenses & Transaction History)
+            'logs' => fn ($q) => $q->where(fn ($r) => $r->where('distance_source', 'recharge')->orWhere('consumed_amount', '<', 0))->latest(),
+        ])
+            // This month's spend, for "October: ₱X of ₱Y allowance"
+            ->withSum(['logs as spent_this_month' => fn ($q) => $q->where('consumed_amount', '>', 0)->where('created_at', '>=', now()->startOfMonth())], 'consumed_amount')
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc));
 
         if ($request->filled('location')) {
@@ -40,10 +46,11 @@ class FleetCardController extends Controller
 
         $cards = $query->latest()->get();
 
+        // Only what the vehicle pickers show (the page embeds the whole list for them)
         $vehicles = Vehicle::query()
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
             ->orderBy('plate_number')
-            ->get();
+            ->get(['id', 'plate_number', 'brand', 'model', 'location', 'odometer', 'photo', 'fleet_card_allowance']);
 
         $destinations = Destination::query()
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
@@ -55,7 +62,7 @@ class FleetCardController extends Controller
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc))
             // Only approved trips can be charged (decision D5); pending requests may never happen
             ->where('status', 'approved')
-            ->whereNotIn('id', FleetCardLog::whereNotNull('vehicle_request_id')->pluck('vehicle_request_id'))
+            ->whereDoesntHave('fleetCardLogs')
             ->latest()
             ->take(50)
             ->get();
