@@ -257,14 +257,14 @@ $offices = \App\Models\Office::options();
                         <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (From) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDate" required value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                            <input type="date" name="travelDate" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD)->toDateString() }}" value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                         </div>
                     </div>
                     <div>
                         <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (To) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDateEnd" required value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                            <input type="date" name="travelDateEnd" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD + \Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_TRIP_DAYS - 1)->toDateString() }}" value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                         </div>
                     </div>
                 </div>

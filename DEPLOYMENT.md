@@ -106,16 +106,17 @@ Keep a secure, offline copy of the final `.env`, especially `APP_KEY`.
    chown -R www-data:www-data storage bootstrap/cache
    chmod -R ug+rwX storage bootstrap/cache
    ```
-10. **Configure the web server.** For Nginx, set the root to `/path/to/FleetMonitoring/public`, forward PHP to PHP-FPM, and add these security headers:
+10. **Configure the web server.** For Nginx, set the root to `/path/to/FleetMonitoring/public`, forward PHP to PHP-FPM, and allow 10 MB uploads:
     ```nginx
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     client_max_body_size 10M;
     ```
-11. **Behind a reverse proxy or load balancer?** If HTTPS ends at the proxy, configure trusted proxies in `bootstrap/app.php` (`$middleware->trustProxies(at: ...)`). Otherwise signed trip-ticket links and secure cookies can fail.
-12. Run the smoke test in section 6.
+    The app itself sends the security headers (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and `Strict-Transport-Security` over https), so they work on Nginx and Apache alike. Headers the web server already sets are left alone.
+11. **Behind a reverse proxy or load balancer?** If HTTPS ends at the proxy, set `TRUSTED_PROXIES` in `.env` to the proxy's IP address(es), comma-separated, or `*` for the one directly in front. Otherwise links come out as `http://`, and every visitor shares the proxy's address in the rate limits. Leave it empty when the web server itself serves HTTPS.
+12. **Move existing licence photos to private storage** (only when you copied data from another server; a fresh install has none):
+    ```bash
+    php artisan fleet:secure-licence-photos
+    ```
+13. Run the smoke test in section 6.
 
 ---
 
@@ -141,7 +142,7 @@ php artisan up
   0 1 * * * mysqldump --single-transaction --routines --triggers --no-tablespaces --set-gtid-purged=OFF -u fleet_app -p'PASSWORD' fleetdb | gzip > /backups/fleetdb-$(date +\%F).sql.gz
   ```
   Prefer a MySQL option file (`~/.my.cnf`) over writing the password on the command line.
-- [ ] **Back up `storage/app/public/`**. It holds vehicle photos, avatars, licence images and the logo.
+- [ ] **Back up `storage/app/public/` and `storage/app/private/`**. Public holds vehicle photos, avatars and the logo; private holds driver licence photos.
 - [ ] **Keep a secure copy of `.env`.** Without `APP_KEY`, encrypted data and sessions cannot be read.
 - [ ] **Practise a restore** into a separate database at least once before go-live, then every quarter:
   ```bash
@@ -184,8 +185,7 @@ Sign in once as each role and check:
    - One completion record per trip.
    - Keep maintenance and inspection history instead of deleting it with the vehicle.
    - A trip-ticket number sequence table.
-2. **Driver licence images** are stored on the public disk, so anyone with the URL can view them. Moving them to private storage is recommended.
-3. **Product questions:**
+2. **Product questions:**
    - Vehicle Assigning saves on dropdown change.
    - Changing a fleet card's location clears its vehicle.
    - Default Approving Officer names are hard-coded.

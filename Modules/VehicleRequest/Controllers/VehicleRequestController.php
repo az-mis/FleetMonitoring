@@ -35,6 +35,9 @@ class VehicleRequestController
     use AuthorizesFleetAccess;
     use ReturnsToList;
 
+    /** How long the printable trip-ticket link from Check Status works */
+    public const TRIP_TICKET_LINK_DAYS = 30;
+
     public function index(Request $request): View|RedirectResponse
     {
         // Admins are pinned to their own location; only super admins may choose one via ?location=
@@ -436,7 +439,12 @@ class VehicleRequestController
                 || ($vehicleRequest->confirmed_driver_id === null && (int) $vehicleRequest->vehicle?->assigned_driver_id === (int) $user->id),
             default => false,
         };
-        abort_unless($canView || $request->hasValidSignature(), 403);
+        if (! $canView && ! $request->hasValidSignature()) {
+            // A shared link stops working after a while; Check Status always gives a fresh one
+            abort(403, $request->has('signature')
+                ? 'This trip ticket link has expired. Open Check Status with your reference code to get a new one.'
+                : '');
+        }
         abort_unless($vehicleRequest->status === 'approved', 404);
         $vehicleRequest->load(['vehicle', 'confirmedDriver', 'approvedBy', 'completion']);
 

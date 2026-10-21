@@ -57,15 +57,21 @@ class User extends Authenticatable
     protected function licenseFrontUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->license_front ? Storage::disk('public')->url($this->license_front) : null,
+            get: fn () => $this->licenseUrl('front', $this->license_front),
         );
     }
 
     protected function licenseBackUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->license_back ? Storage::disk('public')->url($this->license_back) : null,
+            get: fn () => $this->licenseUrl('back', $this->license_back),
         );
+    }
+
+    /** Licence photos are private: a signed-in route, versioned so a new upload is not served from cache */
+    private function licenseUrl(string $side, ?string $path): ?string
+    {
+        return $path ? route('driver.license', ['driver' => $this->id, 'side' => $side, 'v' => substr(md5($path), 0, 8)]) : null;
     }
 
     protected function age(): Attribute

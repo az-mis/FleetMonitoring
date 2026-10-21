@@ -26,9 +26,15 @@ class StoreVehicleRequest extends FormRequest
         ]);
     }
 
+    /** Public requests: how far ahead a trip may start, and how long it may last (longer trips go through the office) */
+    public const MAX_DAYS_AHEAD = 180;
+
+    public const MAX_TRIP_DAYS = 30;
+
     public function messages(): array
     {
         return [
+            'travelDate.before_or_equal' => 'Trips can be requested up to '.self::MAX_DAYS_AHEAD.' days (about 6 months) ahead.',
             'travelDateEnd.required' => 'Please select the Travel Date (To). For a one-day trip, choose the same date as Travel Date (From).',
             'travelDateEnd.after_or_equal' => 'Travel Date (To) cannot be earlier than Travel Date (From).',
             'requesterContact.regex' => 'Contact number must start with 09 and be exactly 11 digits (e.g. 09171234567).',
@@ -50,7 +56,7 @@ class StoreVehicleRequest extends FormRequest
             'vehicleId' => ['required', 'integer', Rule::exists('vehicles', 'id')->where('location', (string) $this->input('location'))],
             'destination' => ['required', 'string', 'max:250'],
             'distance_km' => ['nullable', 'integer', 'min:0'],
-            'travelDate' => ['required', 'date', 'after_or_equal:today'],
+            'travelDate' => ['required', 'date', 'after_or_equal:today', 'before_or_equal:'.today()->addDays(self::MAX_DAYS_AHEAD)->toDateString()],
             'travelDateEnd' => ['required', 'date', 'after_or_equal:travelDate'],
             'purpose' => ['required', 'string', 'max:500'],
             'passengers' => ['nullable', 'array', 'max:20'],
@@ -73,6 +79,16 @@ class StoreVehicleRequest extends FormRequest
                 return;
             }
             $end = $this->input('travelDateEnd') ?: $start;
+
+            // One request covers at most MAX_TRIP_DAYS days (a request to 2099 would block the vehicle for everyone)
+            try {
+                $days = \Illuminate\Support\Carbon::parse($start)->diffInDays(\Illuminate\Support\Carbon::parse($end)) + 1;
+            } catch (\Throwable) {
+                $days = 0; // unreadable dates are reported by the date rules
+            }
+            if ($days > self::MAX_TRIP_DAYS) {
+                $validator->errors()->add('travelDateEnd', 'A trip can last at most '.self::MAX_TRIP_DAYS.' days. For longer travel, please contact the fleet office.');
+            }
 
             $conflict = VehicleMaintenance::query()
                 ->where('vehicle_id', $vehicleId)

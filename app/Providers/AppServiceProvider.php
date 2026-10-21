@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Support\FleetSettings;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -28,6 +30,16 @@ class AppServiceProvider extends ServiceProvider
         // Every password set in the app (Admins, Drivers, My Profile, reset, fleet:create-super-admin):
         // at least 12 characters with letters and numbers
         Password::defaults(fn () => Password::min(12)->letters()->numbers());
+
+        // Behind a proxy or load balancer that ends TLS (TRUSTED_PROXIES in .env): trust its forwarded https,
+        // host and client address, so links stay https and rate limits count real visitors
+        if (filled($proxies = config('app.trusted_proxies'))) {
+            TrustProxies::at($proxies === '*' ? '*' : array_map('trim', explode(',', (string) $proxies)));
+        }
+        // A production site on https always builds https links
+        if ($this->app->isProduction() && str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceHttps();
+        }
 
         // Plate searches ignore spaces and dashes: "SNE6227", "SNE 6227" and "sne-6227" all find SNE 6227
         QueryBuilder::macro('wherePlateLike', function (string $column, ?string $term, string $boolean = 'and') {

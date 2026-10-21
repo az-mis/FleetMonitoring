@@ -55,6 +55,12 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | Reverse proxy / load balancer in front of the app (TLS ends there): its address(es), comma-separated,
+    | or "*" to trust the one directly in front. Empty = no proxy. See bootstrap/app.php.
+    */
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

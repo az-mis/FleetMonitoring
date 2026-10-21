@@ -9,6 +9,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Modules\Admin\Enums\UserRole;
+use Modules\Driver\Controllers\DriverLicenseController;
 
 class DriverRepository implements DriverRepositoryInterface
 {
@@ -41,8 +42,8 @@ class DriverRepository implements DriverRepositoryInterface
             'birth_date' => $data['birth_date'] ?? null,
             'address' => $data['address'] ?? null,
             'license_number' => $data['license_number'] ?? null,
-            'license_front' => $this->storeFile($data['license_front'] ?? null, 'licenses'),
-            'license_back' => $this->storeFile($data['license_back'] ?? null, 'licenses'),
+            'license_front' => $this->storeLicense($data['license_front'] ?? null),
+            'license_back' => $this->storeLicense($data['license_back'] ?? null),
             'license_expiration_date' => $data['license_expiration_date'] ?? null,
         ]);
     }
@@ -74,13 +75,13 @@ class DriverRepository implements DriverRepositoryInterface
         }
 
         if (! empty($data['license_front'])) {
-            $this->deleteFile($driver->license_front);
-            $driver->license_front = $this->storeFile($data['license_front'], 'licenses');
+            $this->deleteLicense($driver->license_front);
+            $driver->license_front = $this->storeLicense($data['license_front']);
         }
 
         if (! empty($data['license_back'])) {
-            $this->deleteFile($driver->license_back);
-            $driver->license_back = $this->storeFile($data['license_back'], 'licenses');
+            $this->deleteLicense($driver->license_back);
+            $driver->license_back = $this->storeLicense($data['license_back']);
         }
 
         $driver->save();
@@ -91,8 +92,8 @@ class DriverRepository implements DriverRepositoryInterface
     public function delete(User $driver): bool
     {
         $this->deleteFile($driver->avatar);
-        $this->deleteFile($driver->license_front);
-        $this->deleteFile($driver->license_back);
+        $this->deleteLicense($driver->license_front);
+        $this->deleteLicense($driver->license_back);
 
         return (bool) $driver->delete();
     }
@@ -104,6 +105,21 @@ class DriverRepository implements DriverRepositoryInterface
         }
 
         return $file->store($folder, 'public');
+    }
+
+    /** Licence photos are government IDs: private disk, served by DriverLicenseController */
+    private function storeLicense(mixed $file): ?string
+    {
+        return $file ? $file->store('licenses', DriverLicenseController::DISK) : null;
+    }
+
+    /** Older photos may still be on the public disk */
+    private function deleteLicense(?string $path): void
+    {
+        if ($path) {
+            Storage::disk(DriverLicenseController::DISK)->delete($path);
+            Storage::disk('public')->delete($path);
+        }
     }
 
     private function deleteFile(?string $path): void

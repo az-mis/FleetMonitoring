@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\ThrottlePasswordResetRequests;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'module' => EnsureModuleEnabled::class,
         ]);
+        $middleware->append(AddSecurityHeaders::class);
         $middleware->web(append: [
             EnsureAccountIsActive::class,
             ThrottlePasswordResetRequests::class,

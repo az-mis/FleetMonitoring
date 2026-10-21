@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Modules\Driver\Controllers\DriverController;
+use Modules\Driver\Controllers\DriverLicenseController;
+
+// Licence photos are private: served only to staff who manage the driver, and to the driver
+Route::middleware(['web', 'auth', 'verified'])
+    ->get('driver/{driver}/license/{side}', [DriverLicenseController::class, 'show'])
+    ->whereIn('side', ['front', 'back'])
+    ->name('driver.license');
 
 Route::middleware(['web', 'auth', 'verified', 'module:drivers'])
     ->prefix('driver')
