@@ -78,6 +78,20 @@ class Vehicle extends Model
     /** Days before an expiry date that the papers count as "due" */
     public const PAPERS_DUE_DAYS = 30;
 
+    /** Conditions (Property & Registration) that keep a vehicle out of new trips */
+    public const UNUSABLE_CONDITIONS = ['Unserviceable', 'For disposal'];
+
+    /** Vehicles that may be booked: not marked Unserviceable or For disposal */
+    public function scopeBookable(Builder $query): void
+    {
+        $query->where(fn ($q) => $q->whereNull('condition')->orWhereNotIn('condition', self::UNUSABLE_CONDITIONS));
+    }
+
+    public function isBookable(): bool
+    {
+        return ! in_array($this->condition, self::UNUSABLE_CONDITIONS, true);
+    }
+
     protected function casts(): array
     {
         return [
@@ -143,8 +157,7 @@ class Vehicle extends Model
 
     public function pmsItems(): HasMany
     {
-        // chaperone(): each loaded item already knows its vehicle, so its status does not query it again
-        return $this->hasMany(VehiclePmsItem::class)->orderBy('category')->orderBy('item_name')->chaperone('vehicle');
+        return $this->hasMany(VehiclePmsItem::class)->orderBy('category')->orderBy('item_name');
     }
 
     /**
@@ -223,7 +236,9 @@ class Vehicle extends Model
      */
     public function scopeWithHealthData(Builder $query): void
     {
-        $query->with('pmsItems')->withCount(['maintenances as overdue_maintenance_count' => fn ($q) => $q
+        // chaperone(): each loaded item already knows its vehicle, so its status does not query it again
+        // (only here: on the PMS JSON it would copy the whole vehicle into every item)
+        $query->with(['pmsItems' => fn ($q) => $q->chaperone('vehicle')])->withCount(['maintenances as overdue_maintenance_count' => fn ($q) => $q
             ->whereIn('status', ['scheduled', 'ongoing'])
             ->where('scheduled_date', '<', now()->toDateString())]);
     }

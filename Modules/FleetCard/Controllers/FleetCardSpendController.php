@@ -62,19 +62,13 @@ class FleetCardSpendController extends Controller
         ]);
 
         $label = Office::whereKey($data['office_id'])->value('name');
-        $existing = FleetCardMonthlySpend::query()
-            ->where(['provider' => $data['provider'], 'division_label' => $label, 'year' => $data['year'], 'month' => $data['month']])
-            ->first();
-        // An admin may only replace an amount recorded for their own area (not a region-wide one)
-        if ($existing) {
-            $this->authorizeFleetLocation($existing->location);
-        }
 
+        // One statement per provider, division, month and area (no location = region-wide, Super Admin only):
+        // two areas can each record their own, and saving one never overwrites another area's
         FleetCardMonthlySpend::updateOrCreate(
-            ['provider' => $data['provider'], 'division_label' => $label, 'year' => $data['year'], 'month' => $data['month']],
+            ['provider' => $data['provider'], 'division_label' => $label, 'location' => $data['location'] ?? null, 'year' => $data['year'], 'month' => $data['month']],
             [
                 'office_id' => $data['office_id'],
-                'location' => $data['location'] ?? null,
                 'amount' => $data['amount'],
                 'source' => 'statement',
                 'excluded_from_total' => (bool) ($data['excluded_from_total'] ?? false),

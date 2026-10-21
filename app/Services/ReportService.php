@@ -80,7 +80,9 @@ class ReportService
 
     public function topDestinations(?string $location, $start = null, $end = null, int $limit = 6): array
     {
+        // Approved trips only: declined and still-pending requests are not trips that happened
         $requests = VehicleRequest::query()
+            ->where('status', 'approved')
             ->when($location, fn ($q) => $q->where('location', $location))
             ->when($start && $end, fn ($q) => $q->whereBetween('travel_date', [$start, $end]))
             ->pluck('destination');

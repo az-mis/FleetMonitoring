@@ -242,6 +242,11 @@ class VehicleRequestController
             return back()->with($outcome[0], $outcome[1]);
         }
 
+        // A vehicle marked Unserviceable or For disposal cannot take a new trip (an approved one can still be re-driven)
+        if ($vehicleRequest->status !== 'approved' && $vehicleRequest->vehicle && ! $vehicleRequest->vehicle->isBookable()) {
+            return back()->with('error', $vehicleRequest->vehicle->plate_number.' is marked '.$vehicleRequest->vehicle->condition.', so this request cannot be approved. Decline it or choose another vehicle.');
+        }
+
         // Never approve a trip nobody will drive: use the chosen driver, else the vehicle's default driver,
         // and store it so the trip ticket always names the driver.
         $driverId = ($data['confirmed_driver_id'] ?? null) ?: $vehicleRequest->vehicle?->assigned_driver_id;
@@ -331,6 +336,9 @@ class VehicleRequestController
         // The vehicle must be stationed at the request's location
         if (! Vehicle::whereKey($data['vehicle_id'])->where('location', $data['location'])->exists()) {
             return back()->withErrors(['vehicle_id' => 'The selected vehicle is not stationed at '.$data['location'].'.'])->withInput();
+        }
+        if (! Vehicle::find($data['vehicle_id'])?->isBookable()) {
+            return back()->withErrors(['vehicle_id' => 'This vehicle is marked '.Vehicle::find($data['vehicle_id'])?->condition.' and cannot be given new trips.'])->withInput();
         }
 
         // Vehicle conflict check (booking overlap with existing approved/pending requests)
@@ -522,7 +530,8 @@ class VehicleRequestController
         // no-store keeps the browser from showing a cached (already submitted)
         // copy of the form when the user presses Back after submitting.
         return response()->view('public.request-vehicle', [
-            'vehicles' => Vehicle::query()->orderBy('plate_number')->get(),
+            // Vehicles marked Unserviceable or For disposal are not offered
+            'vehicles' => Vehicle::query()->bookable()->orderBy('plate_number')->get(),
             // One-time token: each rendered form gets its own, and store() accepts it once.
             'formToken' => (string) Str::uuid(),
         ])->withHeaders([
@@ -576,6 +585,7 @@ class VehicleRequestController
 
         $vehicles = Vehicle::query()
             ->where('location', $location)
+            ->bookable()
             ->orderBy('plate_number')
             ->get();
 
@@ -867,6 +877,8 @@ class VehicleRequestController
         $completion = DB::transaction(function () use ($vehicleRequest, $data, $request, $odoBeg, $odoEnd, $distance, $divisor, $fuelUsed, $balTank, $issuedOffice, $purchasedTrip, $totalLiters, $endingBal) {
             // Lock the request so a double submit updates the same completion instead of creating two
             VehicleRequest::whereKey($vehicleRequest->id)->lockForUpdate()->first();
+            // What this Part B said before (a correction may need to undo the reading it set)
+            $previousEnd = TripTicketCompletion::where('vehicle_request_id', $vehicleRequest->id)->value('odo_ending');
 
             $completion = TripTicketCompletion::updateOrCreate(
                 ['vehicle_request_id' => $vehicleRequest->id],
@@ -902,6 +914,14 @@ class VehicleRequestController
                 $vehicle->update([
                     'odometer' => (int) round($odoEnd),
                 ]);
+            } elseif ($vehicle && $previousEnd !== null && (int) $vehicle->odometer === (int) $previousEnd && $odoEnd < (int) $previousEnd) {
+                // A typo corrected: this Part B had set the reading, so go back to the highest reading any other
+                // record shows (never below the corrected value)
+                $otherHighest = max(
+                    (int) TripTicketCompletion::where('vehicle_id', $vehicle->id)->where('vehicle_request_id', '!=', $vehicleRequest->id)->max('odo_ending'),
+                    (int) VehicleMaintenance::where('vehicle_id', $vehicle->id)->where('status', 'completed')->max('odometer'),
+                );
+                $vehicle->update(['odometer' => max($odoEnd, $otherHighest)]);
             }
 
             return $completion;

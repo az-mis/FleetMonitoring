@@ -67,10 +67,10 @@ $offices = \App\Models\Office::options();
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Your Full Name <span class="text-pub-accent">*</span></span></label>
+                    <label for="rv-requesterName" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Your Full Name <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <input name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <input id="rv-requesterName" name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                     </div>
                 </div>
 
@@ -159,10 +159,10 @@ $offices = \App\Models\Office::options();
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>From (Station) <span class="text-pub-accent">*</span></span></label>
+                    <label for="rv-location" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>From (Station) <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <select name="location" required class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <select id="rv-location" name="location" required class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                             <option value="">— Select Your Station —</option>
                             @foreach(\App\Support\FleetLocations::ALL as $loc)
                                 <option value="{{ $loc }}" @selected(old('location') === $loc)>{{ $loc }}</option>
@@ -254,17 +254,17 @@ $offices = \App\Models\Office::options();
             <div id="station-panel" class="hidden space-y-3">
                 <div class="form-row grid gap-3 sm:grid-cols-2">
                     <div>
-                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (From) <span class="text-pub-accent">*</span></span></label>
+                        <label for="rv-travelDate" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (From) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDate" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD)->toDateString() }}" value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                            <input id="rv-travelDate" type="date" name="travelDate" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD)->toDateString() }}" value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                         </div>
                     </div>
                     <div>
-                        <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (To) <span class="text-pub-accent">*</span></span></label>
+                        <label for="rv-travelDateEnd" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (To) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input type="date" name="travelDateEnd" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD + \Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_TRIP_DAYS - 1)->toDateString() }}" value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                            <input id="rv-travelDateEnd" type="date" name="travelDateEnd" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD + \Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_TRIP_DAYS - 1)->toDateString() }}" value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                         </div>
                     </div>
                 </div>
@@ -306,10 +306,10 @@ $offices = \App\Models\Office::options();
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Official Purpose <span class="text-pub-accent">*</span></span></label>
+                    <label for="rv-purpose" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Official Purpose <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                        <textarea name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-pub-border bg-pub-field py-2 pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">{{ old('purpose') }}</textarea>
+                        <textarea id="rv-purpose" name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-pub-border bg-pub-field py-2 pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">{{ old('purpose') }}</textarea>
                     </div>
                 </div>
                 <div>
@@ -339,17 +339,17 @@ $offices = \App\Models\Office::options();
             </div>
             <div class="form-row grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Contact Number <span class="text-pub-accent">*</span></span></label>
+                    <label for="rv-requesterContact" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Contact Number <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <input name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <input id="rv-requesterContact" name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                     </div>
                 </div>
                 <div>
-                    <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Previous Trip Ticket Date <span class="font-normal text-pub-muted">(Optional)</span></span></label>
+                    <label for="rv-previousTripTicketDate" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Previous Trip Ticket Date <span class="font-normal text-pub-muted">(Optional)</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                        <input type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <input id="rv-previousTripTicketDate" type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
                     </div>
                 </div>
             </div>

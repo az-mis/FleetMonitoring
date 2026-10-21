@@ -324,11 +324,11 @@
                             </div>
 
                             <div class="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg">
-                                <button type="button" @click="prevMonth()" aria-label="Previous month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
+                                <button type="button" @click="prevMonth()" :disabled="!canPrev" aria-label="Previous month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:shadow-none">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
                                 </button>
                                 <span class="px-1.5 text-[0.6875rem] font-black text-slate-800 min-w-[90px] text-center" x-text="monthYearTitle" aria-live="polite"></span>
-                                <button type="button" @click="nextMonth()" aria-label="Next month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer">
+                                <button type="button" @click="nextMonth()" :disabled="!canNext" aria-label="Next month" class="rounded p-2 text-slate-600 hover:bg-white hover:shadow-2xs transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:shadow-none">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                                 </button>
                             </div>
@@ -705,7 +705,22 @@
                             });
                         },
 
+                        // Trips are loaded from three months back to a year ahead (DashboardService::calendarEvents)
+                        monthOffset() {
+                            const now = new Date();
+                            return (this.viewYear * 12 + this.viewMonth) - (now.getFullYear() * 12 + now.getMonth());
+                        },
+
+                        get canPrev() {
+                            return this.monthOffset() > -3;
+                        },
+
+                        get canNext() {
+                            return this.monthOffset() < 12;
+                        },
+
                         nextMonth() {
+                            if (!this.canNext) return;
                             if (this.viewMonth === 11) {
                                 this.viewMonth = 0;
                                 this.viewYear++;
@@ -715,6 +730,7 @@
                         },
 
                         prevMonth() {
+                            if (!this.canPrev) return;
                             if (this.viewMonth === 0) {
                                 this.viewMonth = 11;
                                 this.viewYear--;
@@ -830,7 +846,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Completed Travels</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 leading-tight">Completed Travels</p>
                             <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $completedTravelsCount }}</strong> Past trips finished</p>
                         </div>
                     </div>
@@ -848,7 +864,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Future Assigned Trips</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 leading-tight">Future Assigned Trips</p>
                             <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $futureTripsCount }}</strong> Scheduled ahead</p>
                         </div>
                     </div>
@@ -863,7 +879,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Active Trips Today</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 leading-tight">Active Trips Today</p>
                             <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $activeTripsTodayCount }}</strong> Happening now</p>
                         </div>
                     </div>
@@ -879,7 +895,7 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 truncate">Total Dispatches</p>
+                            <p class="text-[0.5625rem] font-extrabold uppercase tracking-wider text-slate-400 leading-tight">Total Dispatches</p>
                             <p class="text-[0.6875rem] font-medium text-slate-500 truncate"><strong class="text-xs font-black text-slate-900">{{ $totalDispatchesCount }}</strong> All time trips</p>
                         </div>
                     </div>

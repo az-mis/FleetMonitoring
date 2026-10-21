@@ -118,7 +118,7 @@
                                                         'bg-amber-100 font-semibold text-amber-800' => $over,
                                                         'italic text-slate-500' => ! $over && $cell['source'] === 'logs',
                                                         'font-semibold text-slate-800' => ! $over && $cell['source'] !== 'logs',
-                                                    ]) title="{{ $cell['source'] === 'logs' ? 'From expenses logged on the cards' : ($cell['source'] === 'import' ? 'Imported from the GSS workbook' : 'From the provider statement') }}">{{ $money($cell['amount']) }}</span>
+                                                    ]) title="{{ $cell['source'] === 'logs' ? 'From expenses logged on the cards' : ($cell['source'] === 'import' ? 'Imported from the GSS workbook' : ($cell['source'] === 'mixed' ? 'Statements for some areas, logged expenses for the others' : 'From the provider statement')) }}">{{ $money($cell['amount']) }}</span>
                                                 @endif
                                             </td>
                                         @endforeach

@@ -62,7 +62,7 @@ class FleetCardLedgerTest extends TestCase
     {
         $admin = $this->admin('Palawan');
         $card = $this->fleetCard($this->vehicle('Palawan'), ['card_number' => 'FC-DUP']);
-        $payload = ['card_name' => 'Card', 'location' => 'Palawan', 'initial_budget' => 100, 'rate_peso' => 100, 'rate_km' => 5];
+        $payload = ['card_name' => 'Card', 'location' => 'Palawan', 'provider' => 'Petron', 'initial_budget' => 100, 'rate_peso' => 100, 'rate_km' => 5];
 
         $this->actingAs($admin)->post('/fleet-cards', $payload + ['card_number' => 'FC-DUP'])->assertSessionHasErrors('card_number');
         $this->actingAs($admin)->put("/fleet-cards/{$card->id}", $payload + ['card_number' => 'FC-DUP'])->assertSessionHasNoErrors();

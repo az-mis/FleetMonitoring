@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Modules\VehicleRequest\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Modules\Maintenance\Models\VehicleMaintenance;
+use Modules\Vehicle\Models\Vehicle;
 use Modules\VehicleRequest\Support\PersonName;
 
 class StoreVehicleRequest extends FormRequest
@@ -53,7 +55,9 @@ class StoreVehicleRequest extends FormRequest
             'requesterContact' => ['required', 'string', 'regex:/^09\d{9}$/'],
             'requesterIsPassenger' => ['nullable', 'boolean'],
             // The vehicle must be stationed at the selected location, so the request reaches that office's admins
-            'vehicleId' => ['required', 'integer', Rule::exists('vehicles', 'id')->where('location', (string) $this->input('location'))],
+            // ...and must not be marked Unserviceable or For disposal
+            'vehicleId' => ['required', 'integer', Rule::exists('vehicles', 'id')->where('location', (string) $this->input('location'))
+                ->where(fn ($q) => $q->whereNull('condition')->orWhereNotIn('condition', Vehicle::UNUSABLE_CONDITIONS))],
             'destination' => ['required', 'string', 'max:250'],
             'distance_km' => ['nullable', 'integer', 'min:0'],
             'travelDate' => ['required', 'date', 'after_or_equal:today', 'before_or_equal:'.today()->addDays(self::MAX_DAYS_AHEAD)->toDateString()],
@@ -82,7 +86,7 @@ class StoreVehicleRequest extends FormRequest
 
             // One request covers at most MAX_TRIP_DAYS days (a request to 2099 would block the vehicle for everyone)
             try {
-                $days = \Illuminate\Support\Carbon::parse($start)->diffInDays(\Illuminate\Support\Carbon::parse($end)) + 1;
+                $days = Carbon::parse($start)->diffInDays(Carbon::parse($end)) + 1;
             } catch (\Throwable) {
                 $days = 0; // unreadable dates are reported by the date rules
             }

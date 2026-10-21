@@ -139,7 +139,11 @@ class FleetCardSpendTest extends TestCase
         $regionWide = FleetCardMonthlySpend::create(['provider' => 'Shell', 'office_id' => $this->office('ORED'), 'division_label' => 'Office of the Regional Executive Director (ORED)', 'year' => 2026, 'month' => 2, 'amount' => 23488.63]);
         $romblon = FleetCardMonthlySpend::create(['provider' => 'Shell', 'office_id' => $this->office('RAED'), 'division_label' => 'Regional Agricultural Engineering Division (RAED)', 'location' => 'Romblon', 'year' => 2026, 'month' => 2, 'amount' => 999]);
 
-        $this->actingAs($admin)->post('/fleet-cards/monthly-spend', ['office_id' => $this->office('ORED'), 'amount' => 1] + $payload)->assertForbidden();
+        // Palawan records its own ORED figure; the region-wide one stays as it was
+        $this->actingAs($admin)->post('/fleet-cards/monthly-spend', ['office_id' => $this->office('ORED'), 'amount' => 1] + $payload)->assertSessionHasNoErrors();
+        $this->assertEquals(23488.63, (float) $regionWide->fresh()->amount);
+        $this->assertNull($regionWide->fresh()->location);
+        $this->assertSame('Palawan', FleetCardMonthlySpend::where('amount', 1)->value('location'));
         $this->actingAs($admin)->delete("/fleet-cards/monthly-spend/{$regionWide->id}")->assertForbidden();
         $this->actingAs($admin)->delete("/fleet-cards/monthly-spend/{$romblon->id}")->assertForbidden();
         $this->actingAs($admin)->get('/fleet-cards/monthly-spend?year=2026')->assertOk()->assertDontSee('999.00');
@@ -147,6 +151,6 @@ class FleetCardSpendTest extends TestCase
 
         $this->actingAs($admin)->delete("/fleet-cards/monthly-spend/{$spend->id}")->assertSessionHas('success');
         $this->actingAs($this->superAdmin())->delete("/fleet-cards/monthly-spend/{$regionWide->id}")->assertSessionHas('success');
-        $this->assertSame(1, FleetCardMonthlySpend::count());
+        $this->assertSame(2, FleetCardMonthlySpend::count()); // Romblon's and Palawan's ORED
     }
 }

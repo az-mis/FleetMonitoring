@@ -138,8 +138,9 @@ class DashboardService
 
         $pending = $loc(VehicleRequest::query())->where('status', 'pending')->count();
         $approvedTotal = $loc(VehicleRequest::query())->where('status', 'approved')->count();
-        $approvedThisMonth = $loc(VehicleRequest::query())->where('status', 'approved')->where('created_at', '>=', $startOfThisMonth)->count();
-        $approvedLastMonth = $loc(VehicleRequest::query())->where('status', 'approved')->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
+        // Counted by when they were approved (older trips without an approval date: when they were requested)
+        $approvedThisMonth = $loc(VehicleRequest::query())->where('status', 'approved')->whereRaw('COALESCE(approved_at, created_at) >= ?', [$startOfThisMonth])->count();
+        $approvedLastMonth = $loc(VehicleRequest::query())->where('status', 'approved')->whereRaw('COALESCE(approved_at, created_at) BETWEEN ? AND ?', [$startOfLastMonth, $endOfLastMonth])->count();
 
         $vehicleTotal = $loc(Vehicle::query())->count();
         $onTripIds = $this->vehicleIdsOnTripToday($location);

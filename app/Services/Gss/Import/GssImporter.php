@@ -464,7 +464,8 @@ final class GssImporter
                 if ($this->seen($sheet, $key, $c, $r)) {
                     continue;
                 }
-                $match = ['provider' => $provider, 'division_label' => $label, 'year' => $this->year, 'month' => $month];
+                // The workbook's Index for Fleetcard is region-wide: no location
+                $match = ['provider' => $provider, 'division_label' => $label, 'location' => null, 'year' => $this->year, 'month' => $month];
                 $spend = FleetCardMonthlySpend::where($match)->first();
                 // An amount GSS recorded in the system from the provider's statement is kept
                 if ($spend?->source === 'statement') {
@@ -578,8 +579,14 @@ final class GssImporter
                 'approved_at' => ($recorded['start'] ?? $travel['start'])->toDateTimeString(),
             ];
             if ($trip) {
-                // A trip cancelled in the system since the last import stays cancelled
-                $trip->update($values);
+                // A trip cancelled in the system since the last import stays cancelled. A trip edited in the
+                // system since (a new driver, other dates) keeps those edits: only its empty fields are filled.
+                if ($this->mayOverwrite($trip)) {
+                    $trip->update($values);
+                } else {
+                    $this->fillBlanks($trip, $values);
+                    $reasons[] = 'Changed in the system since it was imported: only empty fields were filled from the workbook.';
+                }
                 $outcome = 'updated';
             } else {
                 $trip = VehicleRequest::create($values + ['reference_code' => $this->referenceCode(), 'status' => 'approved', 'trip_ticket_number' => $ticket]);
@@ -623,12 +630,16 @@ final class GssImporter
             if ($this->seen($sheet, $key, $c, $r)) {
                 continue;
             }
+            // Ticket numbers repeat across areas (0001-10-2026 exists in several), so the trip must be this vehicle's
             $vehicle = $this->findVehicle($plate);
-            $trip = VehicleRequest::query()->where('trip_ticket_number', $ticket)
-                ->when($vehicle, fn ($q) => $q->orderByRaw('vehicle_id = ? desc', [$vehicle->id]))
-                ->first();
+            if (! $vehicle) {
+                $this->skip($sheet, $r, $key, 'Vehicle "'.($plate ?? '').'" not found, so the trip cannot be matched.', $c);
+
+                continue;
+            }
+            $trip = VehicleRequest::query()->where('trip_ticket_number', $ticket)->where('vehicle_id', $vehicle->id)->first();
             if (! $trip) {
-                $this->skip($sheet, $r, $key, "No trip with ticket {$ticket} (the Trip Ticket Monitoring row may be missing or skipped).", $c);
+                $this->skip($sheet, $r, $key, "No trip with ticket {$ticket} for {$vehicle->plate_number} (the Trip Ticket Monitoring row may be missing or skipped).", $c);
 
                 continue;
             }
@@ -797,8 +808,13 @@ final class GssImporter
                 'requisitioner_office_id' => $this->office(GssCellParser::text($c['B'] ?? null)),
             ];
             if ($earlier = $this->previousModel(VehicleMaintenance::class)) {
-                // The row changed in an updated workbook: its new values replace what it filled in before
-                $earlier->update(array_filter($values, fn ($v) => $v !== null));
+                // The row changed in an updated workbook: its new values replace what it filled in before, but only
+                // on a record the import created and nobody changed since; a repair entered in the system keeps its text
+                if ($this->mayOverwrite($earlier)) {
+                    $earlier->update(array_filter($values, fn ($v) => $v !== null));
+                } else {
+                    $this->fillBlanks($earlier, $values);
+                }
                 $record = $earlier;
                 $outcome = 'updated';
             } elseif ($record) {
@@ -1027,6 +1043,29 @@ final class GssImporter
         return $class::find($this->previous->record_id);
     }
 
+    /**
+     * Whether a changed workbook row may replace the values of the record it imported before: only when the import
+     * created that record and nothing in the system has changed it since (its last save is not after the import's)
+     */
+    private function mayOverwrite(Model $model): bool
+    {
+        return $this->previous !== null
+            && $this->previous->outcome === 'created'
+            && $model->updated_at !== null
+            && $model->updated_at->lte($this->previous->updated_at);
+    }
+
+    /** Fill only what is still empty on a record (nothing typed in the system is replaced) */
+    private function fillBlanks(Model $model, array $values): void
+    {
+        foreach ($values as $field => $value) {
+            if ($value !== null && blank($model->{$field})) {
+                $model->{$field} = $value;
+            }
+        }
+        $model->save();
+    }
+
     private function sameValues(array $before, array $now): bool
     {
         $norm = fn (array $values) => collect($values)->map(fn ($v) => is_float($v) && floor($v) === $v ? (string) (int) $v : (string) $v)->sortKeys()->all();
@@ -1036,9 +1075,13 @@ final class GssImporter
 
     private function done(string $sheet, int $row, string $key, Model $model, string $outcome, array $reasons, array $raw): void
     {
+        // A record the import created stays marked "created" through later updates (see mayOverwrite)
+        $storedOutcome = $outcome === 'updated' && $this->previous?->outcome === 'created'
+            && $this->previous->record_type === $model::class && (int) $this->previous->record_id === (int) $model->getKey()
+            ? 'created' : $outcome;
         ImportRecord::updateOrCreate(['source' => $this->source, 'key' => $key], [
             'sheet' => Str::limit($sheet, 60, ''), 'row' => $row,
-            'record_type' => $model::class, 'record_id' => $model->getKey(), 'outcome' => $outcome,
+            'record_type' => $model::class, 'record_id' => $model->getKey(), 'outcome' => $storedOutcome,
             'needs_review' => $reasons !== [], 'reason' => $reasons ? implode(' ', $reasons) : null, 'raw' => $this->rawForStorage($raw),
         ]);
         // A row found again under a new key (e.g. its date was corrected) takes over the earlier record

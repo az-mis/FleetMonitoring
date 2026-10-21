@@ -252,6 +252,57 @@ class GssImportTest extends TestCase
         $this->assertGreaterThan(0, $second['counts']['TRIP TICKET MONITORING']['unchanged']);
     }
 
+    public function test_a_changed_workbook_does_not_undo_edits_made_in_the_system(): void
+    {
+        $this->vehicle('Palawan', ['plate_number' => 'SNE 9139']);
+        $this->vehicle('Palawan', ['plate_number' => 'SNE 9140']);
+        $sheet = fn (string $destination) => ['TRIP TICKET MONITORING' => [
+            4 => ['A' => 'PALAWAN'],
+            5 => ['A' => '26-03-001', 'B' => 46090, 'E' => 46091, 'H' => $destination, 'I' => 'SNE 9139'],
+            6 => ['A' => '26-03-002', 'B' => 46090, 'E' => 46092, 'H' => $destination, 'I' => 'SNE 9140'],
+        ]];
+        app(GssImporter::class)->run($this->workbook($sheet('Narra')), 2026, commit: true);
+
+        // Later, the office corrects the first trip in the system
+        $this->travel(5)->minutes();
+        VehicleRequest::where('trip_ticket_number', '26-03-001')->firstOrFail()->update(['destination' => 'Narra, Quezon (corrected in the system)']);
+
+        // An updated workbook changes both rows
+        $this->travel(5)->minutes();
+        app(GssImporter::class)->run($this->workbook($sheet('Aborlan')), 2026, commit: true);
+
+        $this->assertSame('Narra, Quezon (corrected in the system)', VehicleRequest::where('trip_ticket_number', '26-03-001')->value('destination'));
+        $this->assertSame('Aborlan', VehicleRequest::where('trip_ticket_number', '26-03-002')->value('destination'), 'an untouched imported trip takes the new value');
+    }
+
+    public function test_a_fuel_row_only_attaches_to_its_own_vehicles_trip(): void
+    {
+        $this->vehicle('Oriental Mindoro', ['plate_number' => 'SNE 6225']);
+        $this->vehicle('Romblon', ['plate_number' => 'SAB 1111']);
+        $file = $this->workbook([
+            'TRIP TICKET MONITORING' => [
+                4 => ['A' => 'ORIENTAL MINDORO'],
+                5 => ['A' => '0001-10-2026', 'B' => 46297, 'E' => 46298, 'I' => 'SNE 6225'],
+                6 => ['A' => 'ROMBLON'],
+                7 => ['A' => '0001-10-2026', 'B' => 46297, 'E' => 46298, 'I' => 'SAB 1111'],
+            ],
+            'FUEL WEEKLY CONSUMPTION' => [
+                2 => ['A' => 'NO.'],
+                // Romblon's fuel row; the same ticket number also exists in Oriental Mindoro
+                4 => ['A' => 1, 'B' => 'TOYOTA', 'D' => 'SAB 1111', 'F' => 46298, 'G' => '0001-10-2026', 'H' => 20, 'J' => 30, 'K' => 10, 'L' => 120],
+                // A plate the system does not know is skipped, not attached to some trip with that ticket
+                5 => ['A' => 2, 'B' => 'ISUZU', 'D' => 'ZZZ 9999', 'F' => 46298, 'G' => '0001-10-2026', 'H' => 5, 'L' => 40],
+            ],
+        ]);
+
+        app(GssImporter::class)->run($file, 2026, commit: true);
+
+        $romblon = VehicleRequest::where('location', 'Romblon')->firstOrFail();
+        $ormin = VehicleRequest::where('location', 'Oriental Mindoro')->firstOrFail();
+        $this->assertEquals(120, (float) $romblon->completion?->distance_travelled);
+        $this->assertNull($ormin->completion, 'the other area\'s trip with the same ticket number is left alone');
+    }
+
     public function test_existing_vehicles_only_get_their_empty_fields_filled(): void
     {
         $vehicle = $this->vehicle('Palawan', ['plate_number' => 'SNE 6227', 'brand' => 'Toyota', 'model' => 'Hilux Conquest', 'color' => 'White', 'par_number' => 'KEEP-ME']);

@@ -1961,32 +1961,6 @@
         </div>
     </div>
 
-    {{-- INSPECTION HISTORY MODAL --}}
-    <div id="vehicle-inspection-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-        <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
-                <div class="flex items-center gap-3">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                    </span>
-                    <div>
-                        <h3 class="text-base font-black text-slate-900" id="hist-modal-title">Inspection Logs</h3>
-                        <p class="text-xs text-slate-500" id="hist-modal-subtitle">Plate: —</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeInspectionHistoryModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-
-            <div id="hist-modal-content" class="overflow-y-auto py-4 space-y-3 flex-1 pr-1 scrollbar-thin">
-                <div class="text-center py-8 text-slate-400 text-xs">Loading inspection logs...</div>
-            </div>
-        </div>
-    </div>
-
     <script>
         // HTML-escape user-provided values before interpolating them into innerHTML templates.
         function escHtml(v) {
@@ -2207,98 +2181,6 @@
                 console.error(err);
                 alert('An error occurred while saving the inspection.');
             });
-        }
-
-        function openInspectionHistoryModal(btn) {
-            const historyUrl = btn.dataset.historyUrl;
-            const plate = btn.dataset.plate_number;
-
-            document.getElementById('hist-modal-title').textContent = `Inspection Logs (${plate})`;
-            document.getElementById('hist-modal-content').innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">Loading inspection logs...</div>';
-
-            const modal = document.getElementById('vehicle-inspection-history-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            fetch(historyUrl, { headers: { 'Accept': 'application/json' } })
-            .then(res => res.json())
-            .then(data => {
-                const list = data.inspections || [];
-                const container = document.getElementById('hist-modal-content');
-
-                if (list.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center py-10 text-slate-400">
-                            <p class="text-xs font-semibold">No inspection records found</p>
-                            <p class="text-[0.6875rem] text-slate-400">Click "Inspect" on the vehicle row to conduct the first inspection.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let html = '';
-                list.forEach(item => {
-                    const statusBadge = item.overall_status === 'failed'
-                        ? '<span class="rounded-full bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 text-[0.625rem] font-bold">Failed</span>'
-                        : (item.overall_status === 'needs_attention'
-                            ? '<span class="rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[0.625rem] font-bold">Needs Attention</span>'
-                            : '<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[0.625rem] font-bold">Passed</span>');
-
-                    const dateStr = new Date(item.inspected_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    const inspectorName = item.inspector?.name || 'Admin';
-
-                    let itemsHtml = '';
-                    (item.items || []).forEach(it => {
-                        const icon = it.status === 'pass' ? '✓' : (it.status === 'attention' ? '⚠️' : '✕');
-                        const color = it.status === 'pass' ? 'text-emerald-600' : (it.status === 'attention' ? 'text-amber-600' : 'text-red-600 font-bold');
-                        itemsHtml += `
-                            <div class="flex items-center justify-between py-1 border-b border-slate-50 text-[0.6875rem]">
-                                <span class="text-slate-700">${escHtml(it.item_name)} <span class="text-[0.625rem] text-slate-400">(${escHtml(it.category)})</span></span>
-                                <span class="${color}">${icon} ${escHtml(String(it.status ?? '').toUpperCase())} ${it.remarks ? '— ' + escHtml(it.remarks) : ''}</span>
-                            </div>
-                        `;
-                    });
-
-                    html += `
-                        <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-2 text-xs">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <div>
-                                    <span class="font-bold text-slate-900">${dateStr}</span>
-                                    <span class="text-[0.6875rem] text-slate-400 ml-2">by ${escHtml(inspectorName)}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    ${item.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[0.625rem] font-bold">🛢️ Oil Changed</span>' : ''}
-                                    ${statusBadge}
-                                </div>
-                            </div>
-                            <div class="text-[0.6875rem] text-slate-600">
-                                <strong>Odometer:</strong> ${Number(item.odometer_km).toLocaleString()} km
-                                ${item.notes ? `<div class="mt-1 text-slate-500 italic">"${escHtml(item.notes)}"</div>` : ''}
-                            </div>
-                            <div class="pt-2">
-                                <details class="cursor-pointer">
-                                    <summary class="text-[0.6875rem] font-bold text-blue-600 hover:underline">View Checklist Breakdown (${(item.items || []).length} items)</summary>
-                                    <div class="mt-2 space-y-0.5 max-h-48 overflow-y-auto pr-1">
-                                        ${itemsHtml}
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML = html;
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('hist-modal-content').innerHTML = '<div class="text-center py-8 text-red-500 text-xs">Failed to load inspection history.</div>';
-            });
-        }
-
-        function closeInspectionHistoryModal() {
-            const modal = document.getElementById('vehicle-inspection-history-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
         }
 
         // ══════════════════════════════════════════════════════════════════════

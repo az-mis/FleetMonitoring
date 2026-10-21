@@ -9,6 +9,7 @@ use App\Models\Office;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Modules\Destination\Models\Destination;
 use Modules\FleetCard\Models\FleetCard;
@@ -121,7 +122,7 @@ class FleetCardController extends Controller
             'rate_peso' => 'required|numeric|min:0.01',
             'rate_km' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string',
-            'provider' => ['nullable', Rule::in(FleetCard::PROVIDERS)],
+            'provider' => ['required', Rule::in(FleetCard::PROVIDERS)], // Monthly Spend groups cards by provider
             'office_id' => ['nullable', 'integer', Rule::exists('offices', 'id')],
             'monthly_allowance' => 'nullable|numeric|min:0|max:99999999',
             'allowed_products' => 'nullable|string|max:60',
@@ -145,7 +146,7 @@ class FleetCardController extends Controller
         }
 
         $validated = $request->validate([
-            'card_number' => 'required|string|max:100|unique:fleet_cards,card_number,' . $fleetCard->id,
+            'card_number' => 'required|string|max:100|unique:fleet_cards,card_number,'.$fleetCard->id,
             'card_name' => 'required|string|max:150',
             'vehicle_id' => ['nullable', Rule::exists('vehicles', 'id')->where('location', (string) $request->input('location'))],
             'location' => 'required|string|max:100',
@@ -153,7 +154,7 @@ class FleetCardController extends Controller
             'rate_peso' => 'required|numeric|min:0.01',
             'rate_km' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string',
-            'provider' => ['nullable', Rule::in(FleetCard::PROVIDERS)],
+            'provider' => ['required', Rule::in(FleetCard::PROVIDERS)], // Monthly Spend groups cards by provider
             'office_id' => ['nullable', 'integer', Rule::exists('offices', 'id')],
             'monthly_allowance' => 'nullable|numeric|min:0|max:99999999',
             'allowed_products' => 'nullable|string|max:60',
@@ -235,6 +236,7 @@ class FleetCardController extends Controller
         $this->authorizeFleetLocation($fleetCard->location);
 
         $fleetCard->delete();
+
         return $this->backToList('fleet-cards.index')->with('success', 'Fleet Card deleted successfully!');
     }
 
@@ -247,7 +249,7 @@ class FleetCardController extends Controller
         abort_unless($log->fleet_card_id === $fleetCard->id, 403);
         abort_if($log->distance_source === 'recharge', 400, 'Use destroy-recharge for top-up entries.');
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($fleetCard, $log) {
+        DB::transaction(function () use ($fleetCard, $log) {
             $fleetCard = FleetCard::whereKey($fleetCard->id)->lockForUpdate()->firstOrFail();
             // Re-read under the lock: a double click must not refund the same expense twice
             $log = FleetCardLog::whereKey($log->id)->lockForUpdate()->first();
@@ -267,6 +269,7 @@ class FleetCardController extends Controller
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Expense log deleted and balance restored.']);
         }
+
         return $this->backToList('fleet-cards.index')->with('success', 'Expense log deleted and balance restored!');
     }
 

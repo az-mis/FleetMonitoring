@@ -6,6 +6,7 @@ namespace Modules\Settings\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Modules\Admin\Enums\UserRole;
 use Modules\Settings\Models\FleetSetting;
@@ -39,8 +40,9 @@ class ContentSettingsController
             $settings[$key] = array_replace($default, $model?->setting_value ?? []);
         }
         $appLogo = FleetSetting::where('setting_key', 'app_logo')->value('setting_value');
-        $customLogoUrl = $appLogo['path'] ?? null ? \Illuminate\Support\Facades\Storage::disk('public')->url($appLogo['path']) : null;
+        $customLogoUrl = $appLogo['path'] ?? null ? Storage::disk('public')->url($appLogo['path']) : null;
         $isSuperAdmin = $request->user()?->role === UserRole::SUPER_ADMIN;
+
         return view('settings::content', compact('settings', 'settingModels', 'customLogoUrl', 'isSuperAdmin'));
     }
 
@@ -64,6 +66,7 @@ class ContentSettingsController
         foreach ($data as $key => $value) {
             FleetSetting::updateOrCreate(['setting_key' => $key], ['setting_value' => $value, 'updated_by' => $request->user()->id]);
         }
+
         return back()->with('success', 'Module settings updated.');
     }
 
@@ -100,6 +103,7 @@ class ContentSettingsController
 
         $label = ucfirst(str_replace('_', ' ', $itemKey));
         $statusStr = $val ? 'enabled' : 'disabled';
+
         return back()->with('success', "Setting '{$label}' updated to {$statusStr}.");
     }
 
@@ -116,12 +120,12 @@ class ContentSettingsController
             'enabled' => ['required', 'boolean'],
         ]);
 
-        $key = $target . '_announcement';
+        $key = $target.'_announcement';
         $existing = FleetSetting::where('setting_key', $key)->value('setting_value') ?? ['enabled' => false, 'message' => '', 'history' => []];
         $history = $existing['history'] ?? [];
         $newEnabled = (bool) $data['enabled'];
 
-        if (!empty($existing['message'])) {
+        if (! empty($existing['message'])) {
             array_unshift($history, [
                 'message' => $existing['message'],
                 'enabled' => $newEnabled,
@@ -142,8 +146,9 @@ class ContentSettingsController
             ]
         );
 
-        $label = ucfirst($target) . ' Announcement Broadcast';
+        $label = ucfirst($target).' Announcement Broadcast';
         $statusStr = $newEnabled ? 'enabled' : 'disabled';
+
         return back()->with('success', "{$label} is now {$statusStr}.");
     }
 
@@ -156,7 +161,7 @@ class ContentSettingsController
             $this->authorizeSuperAdmin($request);
         }
 
-        $key = $target . '_announcement';
+        $key = $target.'_announcement';
         $data = $request->validate([
             'message' => ['nullable', 'string', 'max:500'],
         ]);
@@ -167,7 +172,7 @@ class ContentSettingsController
         $newMessage = trim($data['message'] ?? '');
         $enabled = (bool) ($existing['enabled'] ?? false);
 
-        if (!empty($newMessage) && $newMessage !== ($existing['message'] ?? '')) {
+        if (! empty($newMessage) && $newMessage !== ($existing['message'] ?? '')) {
             array_unshift($history, [
                 'message' => $newMessage,
                 'enabled' => $enabled,
@@ -188,7 +193,8 @@ class ContentSettingsController
             ]
         );
 
-        $label = ucfirst($target) . ' Announcement';
+        $label = ucfirst($target).' Announcement';
+
         return back()->with('success', "{$label} message saved successfully.");
     }
 
@@ -214,8 +220,8 @@ class ContentSettingsController
             ]
         );
 
-        if (!empty($existing['path']) && $existing['path'] !== $path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing['path'])) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($existing['path']);
+        if (! empty($existing['path']) && $existing['path'] !== $path && Storage::disk('public')->exists($existing['path'])) {
+            Storage::disk('public')->delete($existing['path']);
         }
 
         return back()->with('success', 'App logo updated successfully.');
@@ -225,11 +231,12 @@ class ContentSettingsController
     {
         $this->authorizeSuperAdmin($request);
         $existing = FleetSetting::where('setting_key', 'app_logo')->value('setting_value');
-        if (!empty($existing['path']) && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing['path'])) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($existing['path']);
+        if (! empty($existing['path']) && Storage::disk('public')->exists($existing['path'])) {
+            Storage::disk('public')->delete($existing['path']);
         }
 
-        FleetSetting::where('setting_key', 'app_logo')->delete();
+        // A model delete, so the per-request settings cache is cleared too (FleetSetting::booted)
+        FleetSetting::where('setting_key', 'app_logo')->first()?->delete();
 
         return back()->with('success', 'App logo reset to default.');
     }

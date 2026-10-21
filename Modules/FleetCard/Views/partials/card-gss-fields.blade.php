@@ -2,8 +2,8 @@
 @php $input = 'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none'; @endphp
 <div class="grid grid-cols-2 gap-2">
     <div>
-        <label for="{{ $prefix }}-card-provider" class="block text-xs font-bold text-gray-700 mb-1">Provider</label>
-        <select id="{{ $prefix }}-card-provider" name="provider" class="{{ $input }}">
+        <label for="{{ $prefix }}-card-provider" class="block text-xs font-bold text-gray-700 mb-1">Provider <span class="text-red-500">*</span></label>
+        <select id="{{ $prefix }}-card-provider" name="provider" required class="{{ $input }}">
             <option value="">—</option>
             @foreach (\Modules\FleetCard\Models\FleetCard::PROVIDERS as $provider)
                 <option value="{{ $provider }}">{{ $provider }}</option>
