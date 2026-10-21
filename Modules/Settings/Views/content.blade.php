@@ -9,7 +9,7 @@
         <div class="min-w-0">
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">System Settings</h1>
             <p class="text-sm text-slate-500">
-                {{ $isSuperAdmin ? 'Text size on this device, application logo, module access, and announcements' : 'Text size on this device and what Drivers see on their Dashboard' }}
+                {{ $isSuperAdmin ? 'Text size on this device, application logo, module access, and announcements' : 'Text size on this device, and what Drivers see (set by the Super Admin)' }}
             </p>
         </div>
 
@@ -366,100 +366,35 @@
                 </div>
             </div>
         @else
-            {{-- Standard Admin Cards --}}
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {{-- Driver Dashboard Content --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-                    <div class="flex items-center gap-2.5 border-b border-slate-100 pb-4">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-extrabold text-slate-900">Driver Dashboard Content</h3>
-                            <p class="text-[0.6875rem] text-slate-400">Controls what signed-in drivers see on dashboard.</p>
-                        </div>
+            {{-- Regional admins: what drivers see is set by the Super Admin for every area, shown here read-only --}}
+            @php
+                $showAssigned = $settings['driver_modules']['showAssignedVehicle'] ?? true;
+                $driverAnnouncement = $settings['driver_announcement'] ?? [];
+                $driverAnnouncementOn = (bool) ($driverAnnouncement['enabled'] ?? false) && filled($driverAnnouncement['message'] ?? '');
+            @endphp
+            <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+                <div class="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                     </div>
-
-                    <div class="mt-5 flex items-center justify-between rounded-xl bg-slate-50/70 p-3.5 border border-slate-100">
-                        <div class="flex items-center gap-3">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-slate-600 shadow-xs">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M14 17h1a2 2 0 1 0 4 0h1v-5l-3-4h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-xs font-bold text-slate-800">Assigned Vehicle Card</p>
-                                <p class="text-[0.625rem] text-slate-400">Vehicle assigned to the signed-in driver.</p>
-                            </div>
-                        </div>
-                        
-                        @php $isActive = $settings['driver_modules']['showAssignedVehicle'] ?? true; @endphp
-                        <button type="button" role="switch" aria-checked="{{ $isActive ? 'true' : 'false' }}" aria-label="Assigned Vehicle Card"
-                            onclick="promptToggleConfirmation('driver_modules', 'showAssignedVehicle', 'Assigned Vehicle Card', {{ $isActive ? 'false' : 'true' }})"
-                            class="relative inline-flex items-center cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
-                            <div class="w-10 h-5.5 {{ $isActive ? 'bg-emerald-600' : 'bg-slate-200' }} rounded-full transition-colors relative">
-                                <div class="absolute top-[2px] left-[2px] bg-white border-slate-300 border rounded-full h-4.5 w-4.5 transition-transform {{ $isActive ? 'translate-x-[18px]' : '' }}"></div>
-                            </div>
-                        </button>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900">What drivers see</h3>
+                        <p class="text-[0.6875rem] text-slate-400">Set by the Super Admin for every area. Ask them to change it.</p>
                     </div>
                 </div>
-
-                {{-- Driver Announcement Card --}}
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm flex flex-col justify-between">
-                    <form method="POST" action="{{ route('content-settings.announcement.update', 'driver') }}" class="space-y-4">
-                        @csrf
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                            <div class="flex items-center gap-2.5">
-                                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-extrabold text-slate-900">Driver Announcement</h3>
-                                    <p class="text-[0.6875rem] text-slate-400">Broadcast alert banner for driver accounts.</p>
-                                </div>
-                            </div>
-
-                            @php $driverAnnActive = $settings['driver_announcement']['enabled'] ?? false; @endphp
-                            <div class="flex items-center gap-2">
-                                <span class="text-[0.625rem] font-bold text-slate-600">Show banner</span>
-                                <button type="button" role="switch" aria-checked="{{ $driverAnnActive ? 'true' : 'false' }}" aria-label="Driver Announcement active"
-                                    onclick="promptAnnouncementToggleConfirmation('driver', 'Driver Announcement', {{ $driverAnnActive ? 'false' : 'true' }})"
-                                    class="relative inline-flex items-center cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
-                                    <div class="w-9 h-5 {{ $driverAnnActive ? 'bg-emerald-600' : 'bg-slate-200' }} rounded-full transition-colors relative">
-                                        <div class="absolute top-[2px] left-[2px] bg-white border-slate-300 border rounded-full h-4 w-4 transition-transform {{ $driverAnnActive ? 'translate-x-[16px]' : '' }}"></div>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <textarea
-                                name="message"
-                                rows="3"
-                                maxlength="500"
-                                aria-label="Driver announcement message"
-                                placeholder="e.g. Maintenance scheduled for Saturday."
-                                class="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-slate-50/50"
-                            >{{ old('message', $settings['driver_announcement']['message'] ?? '') }}</textarea>
-                        </div>
-
-                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-                            <button type="button" id="openDriverHistoryBtn" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-700 transition cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-                                History Log ({{ count($settings['driver_announcement']['history'] ?? []) }})
-                            </button>
-
-                            <button type="submit" class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                                Save message
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                <dl class="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5">
+                        <dt class="text-xs font-bold text-slate-800">Assigned Vehicle Card</dt>
+                        <dd class="mt-1 text-[0.6875rem] {{ $showAssigned ? 'font-semibold text-emerald-700' : 'text-slate-500' }}">{{ $showAssigned ? 'Shown on the driver dashboard' : 'Hidden' }}</dd>
+                    </div>
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5">
+                        <dt class="text-xs font-bold text-slate-800">Driver Announcement</dt>
+                        <dd class="mt-1 text-[0.6875rem] {{ $driverAnnouncementOn ? 'font-semibold text-emerald-700' : 'text-slate-500' }}">{{ $driverAnnouncementOn ? 'Showing:' : 'Not showing' }}</dd>
+                        @if ($driverAnnouncementOn)
+                            <dd class="mt-1 text-[0.6875rem] italic text-slate-600">"{{ $driverAnnouncement['message'] }}"</dd>
+                        @endif
+                    </div>
+                </dl>
             </div>
         @endif
     </div>

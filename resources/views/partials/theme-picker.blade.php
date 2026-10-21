@@ -51,7 +51,7 @@
         </div>
     </fieldset>
 
-    <p class="mt-4 text-xs text-gray-500">Saved on this browser only, like the text size. The sign-in and request pages on this device use it too.</p>
+    <p class="mt-4 text-xs text-gray-500">Saved on this browser only, like the text size.</p>
 </section>
 
 <script>

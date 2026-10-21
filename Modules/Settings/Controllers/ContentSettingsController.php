@@ -44,9 +44,10 @@ class ContentSettingsController
         return view('settings::content', compact('settings', 'settingModels', 'customLogoUrl', 'isSuperAdmin'));
     }
 
+    // Changing settings is for the Super Admin only: they apply to every area (regional admins see them read-only)
     public function update(Request $request): RedirectResponse
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeSuperAdmin($request);
         $data = $request->validate([
             'admin_modules' => ['array'],
             'admin_modules.*' => ['boolean'],
@@ -68,7 +69,7 @@ class ContentSettingsController
 
     public function updateToggle(Request $request): RedirectResponse
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeSuperAdmin($request);
         $data = $request->validate([
             'group' => ['required', 'string', 'in:admin_modules,driver_modules'],
             // Only known switches may be written into the settings JSON
@@ -104,7 +105,7 @@ class ContentSettingsController
 
     public function toggleAnnouncement(Request $request, string $target): RedirectResponse
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeSuperAdmin($request);
         abort_unless(in_array($target, ['driver', 'admin'], true), 404);
 
         if ($target === 'admin') {
@@ -148,7 +149,7 @@ class ContentSettingsController
 
     public function updateAnnouncement(Request $request, string $target): RedirectResponse
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeSuperAdmin($request);
         abort_unless(in_array($target, ['driver', 'admin'], true), 404);
 
         if ($target === 'admin') {
