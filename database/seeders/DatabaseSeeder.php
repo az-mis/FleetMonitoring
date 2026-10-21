@@ -16,6 +16,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Sample data only: never on the live server (create the first account with php artisan fleet:create-super-admin)
+        if (app()->isProduction()) {
+            $this->command?->error('Refusing to seed the test user and sample vehicles in production.');
+
+            return;
+        }
+
         // User::factory(10)->create();
 
         User::factory()->create([

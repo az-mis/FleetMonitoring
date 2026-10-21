@@ -234,7 +234,7 @@
                         </svg>
                         Change Password
                     </h4>
-                    <p class="mt-1 text-[0.625rem] text-gray-500">Enter your current password, then choose a new one of at least 8 characters.</p>
+                    <p class="mt-1 text-[0.625rem] text-gray-500">Enter your current password, then choose a new one of at least 12 characters, with letters and numbers.</p>
                 </div>
 
                 <div class="grid gap-3 md:grid-cols-3">
@@ -250,7 +250,7 @@
                         <label for="new-password" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
                             New Password <span class="text-red-500">*</span>
                         </label>
-                        <input id="new-password" type="password" name="password" required minlength="8" autocomplete="new-password" @if (! $passwordErrors->has('current_password') && $passwordErrors->has('password')) autofocus @endif @if ($passwordErrors->has('password')) aria-invalid="true" @endif class="{{ $passwordInput }} {{ $passwordErrors->has('password') ? 'border-red-300' : 'border-gray-300' }}">
+                        <input id="new-password" type="password" name="password" required minlength="12" autocomplete="new-password" @if (! $passwordErrors->has('current_password') && $passwordErrors->has('password')) autofocus @endif @if ($passwordErrors->has('password')) aria-invalid="true" @endif class="{{ $passwordInput }} {{ $passwordErrors->has('password') ? 'border-red-300' : 'border-gray-300' }}">
                         @error('password', 'updatePassword')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
                     </div>
 
@@ -258,7 +258,7 @@
                         <label for="new-password-confirmation" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
                             Confirm New Password <span class="text-red-500">*</span>
                         </label>
-                        <input id="new-password-confirmation" type="password" name="password_confirmation" required minlength="8" autocomplete="new-password" class="{{ $passwordInput }} border-gray-300">
+                        <input id="new-password-confirmation" type="password" name="password_confirmation" required minlength="12" autocomplete="new-password" class="{{ $passwordInput }} border-gray-300">
                     </div>
                 </div>
             </section>

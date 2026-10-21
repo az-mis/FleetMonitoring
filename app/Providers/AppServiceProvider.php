@@ -6,6 +6,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Modules\Settings\Models\FleetSetting;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Every password set in the app (Admins, Drivers, My Profile, reset, fleet:create-super-admin):
+        // at least 12 characters with letters and numbers
+        Password::defaults(fn () => Password::min(12)->letters()->numbers());
+
         // Plate searches ignore spaces and dashes: "SNE6227", "SNE 6227" and "sne-6227" all find SNE 6227
         QueryBuilder::macro('wherePlateLike', function (string $column, ?string $term, string $boolean = 'and') {
             /** @var QueryBuilder $this */

@@ -164,16 +164,14 @@ return [
     'features' => [
         Features::resetPasswords(),
         // Features::emailVerification(),
-        Features::updateProfileInformation(),
-        Features::updatePasswords(),
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-            // 'window' => 0,
-        ]),
-        Features::passkeys([
-            'confirmPassword' => true,
-        ]),
+        // Off on purpose: administrators manage names and sign-in emails (Admins / Drivers pages), and
+        // My Profile edits the rest through ProfileController. Fortify's own endpoint would let any user
+        // change their sign-in email without re-entering the password.
+        // Features::updateProfileInformation(),
+        Features::updatePasswords(), // My Profile -> Change Password
+        // Off until the app has screens for them (their routes would otherwise exist without rate limiters):
+        // Features::twoFactorAuthentication(['confirm' => true, 'confirmPassword' => true]),
+        // Features::passkeys(['confirmPassword' => true]),
     ],
 
 ];

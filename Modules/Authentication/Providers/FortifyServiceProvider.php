@@ -68,5 +68,8 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by($throttleKey);
         });
+
+        // Forgot-password form, per address (the broker already allows one link a minute per email)
+        RateLimiter::for('forgot-password', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
     }
 }

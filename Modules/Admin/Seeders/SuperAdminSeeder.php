@@ -13,6 +13,13 @@ class SuperAdminSeeder extends Seeder
 {
     public function run(): void
     {
+        // Sample data only: never on the live server (create the first account with php artisan fleet:create-super-admin)
+        if (app()->isProduction()) {
+            $this->command?->error('Refusing to seed the default Super Admin (password "password") in production.');
+
+            return;
+        }
+
         User::firstOrCreate(
             ['email' => 'superadmin@fleetmonitoring.test'],
             [

@@ -7,7 +7,7 @@ Tick each box on the production server. Never copy the development `.env` to pro
 
 ## 1. Server requirements
 
-- [ ] **PHP 8.3 or newer**. Development and testing used PHP 8.4.25.
+- [ ] **PHP 8.4.1 or newer** (the installed Symfony 8.1 components need it; `composer install` fails on PHP 8.3). Development and testing used PHP 8.4.25.
 - [ ] **PHP extensions**:
   - Laravel: `ctype`, `filter`, `hash`, `mbstring`, `openssl`, `session`, `tokenizer`, `json`, `pcre`
   - Database: `pdo_mysql`
@@ -86,25 +86,16 @@ Keep a secure, offline copy of the final `.env`, especially `APP_KEY`.
    ```bash
    php artisan storage:link
    ```
-7. **Create the first Super Admin with your own strong password.** Do **not** run `php artisan db:seed`:
-   - `DatabaseSeeder` creates a "Test User" account and fake vehicles.
-   - `SuperAdminSeeder` creates `superadmin@fleetmonitoring.test` with the password `password`.
+7. **Create the first Super Admin.** Do **not** run `php artisan db:seed`; its sample-data seeders refuse to run in production anyway:
+   - `DatabaseSeeder` (a "Test User" account and fake vehicles) and `SuperAdminSeeder` (`superadmin@fleetmonitoring.test` with the password `password`) stop with "Refusing to seed … in production".
    - `QaSeeder` creates QA accounts with the password `password`. It refuses to run unless the database name ends in `_qa`.
 
-   Run:
+   Run (it asks for the password at a hidden prompt, twice, then shows how many characters you typed so you can confirm):
    ```bash
-   php artisan tinker
+   php artisan fleet:create-super-admin --name="Full Name" --email="name@your-domain"
    ```
-   Then, inside tinker (replace the values):
-   ```php
-   App\Models\User::forceCreate([
-       'name' => 'Full Name',
-       'email' => 'name@your-domain',
-       'password' => Illuminate\Support\Facades\Hash::make('a-long-unique-password'),
-       'role' => Modules\Admin\Enums\UserRole::SUPER_ADMIN,
-       'email_verified_at' => now(),
-   ]);
-   ```
+   Or add `--generate` to have it make a strong password and show it once. Passwords need at least 12 characters with letters and numbers.
+
    Create Admin and Driver accounts afterwards from inside the app. Every Admin must have a location.
 8. **Cache configuration, routes and views** for speed:
    ```bash
@@ -179,6 +170,7 @@ Sign in once as each role and check:
 - [ ] **Public visitors:**
   - The Request a Vehicle form submits.
   - Check Status shows the reference code and, once approved, a working trip ticket link.
+- [ ] **Mail works:** `php artisan fleet:mail-test you@your-domain` reports "Test email sent", and the email arrives.
 - [ ] **Forgot password** sends an email, and the link resets the password.
 - [ ] Trigger a 404 (for example `/does-not-exist`). It must show a simple error page, **not** a stack trace.
 - [ ] `storage/logs/` contains no new errors.
@@ -193,12 +185,7 @@ Sign in once as each role and check:
    - Keep maintenance and inspection history instead of deleting it with the vehicle.
    - A trip-ticket number sequence table.
 2. **Driver licence images** are stored on the public disk, so anyone with the URL can view them. Moving them to private storage is recommended.
-3. **Unused Fortify endpoints** (two-factor, passkeys, profile-information) are enabled but not used by the app.
-   - Profile-information lets a signed-in user change their own email, although the profile page says email is managed by the administrator.
-   - Consider disabling these in `config/fortify.php`.
-4. **Password policy:** passwords currently need 8 characters minimum. Consider a stronger rule (`Password::defaults()` in `AppServiceProvider`).
-5. **Self-service password change:** Fortify's update-password endpoint is enabled, but there is no "change my password" screen. Users rely on administrators or the Forgot Password email.
-6. **Product questions:**
+3. **Product questions:**
    - Vehicle Assigning saves on dropdown change.
    - Changing a fleet card's location clears its vehicle.
    - Default Approving Officer names are hard-coded.

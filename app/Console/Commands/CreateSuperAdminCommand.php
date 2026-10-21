@@ -37,7 +37,7 @@ class CreateSuperAdminCommand extends Command
         if ($this->option('generate')) {
             $password = $confirmation = Str::password(16, symbols: false);
         } else {
-            $password = password('Password', required: true, hint: 'At least 8 characters; nothing shows while you type');
+            $password = password('Password', required: true, hint: 'At least 12 characters with letters and numbers; nothing shows while you type');
             $confirmation = password('Type the password again', required: true);
 
             // Hidden typing shows nothing, and some terminals keep stray keystrokes: let the person check the count

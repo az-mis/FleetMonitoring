@@ -227,6 +227,7 @@
                             required
                         >
                         <input type="hidden" name="password_confirmation" id="add-driver-password-confirm">
+                        <p class="mt-1 text-xs text-gray-500">At least 12 characters, with letters and numbers.</p>
                         @if (old('_driver_form') !== 'edit') @error('password')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
                     </div>
 

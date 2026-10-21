@@ -12,4 +12,4 @@ Route::middleware(['web', 'auth'])->group(function () {
 });
 
 // Public / API endpoint for fetching destinations by location
-Route::get('/api/destinations-by-location', [DestinationController::class, 'listByLocation'])->name('destinations.by-location');
+Route::get('/api/destinations-by-location', [DestinationController::class, 'listByLocation'])->middleware('throttle:60,1')->name('destinations.by-location');

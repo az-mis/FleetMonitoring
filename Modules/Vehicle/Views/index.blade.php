@@ -2253,8 +2253,8 @@
                         const color = it.status === 'pass' ? 'text-emerald-600' : (it.status === 'attention' ? 'text-amber-600' : 'text-red-600 font-bold');
                         itemsHtml += `
                             <div class="flex items-center justify-between py-1 border-b border-slate-50 text-[0.6875rem]">
-                                <span class="text-slate-700">${it.item_name} <span class="text-[0.625rem] text-slate-400">(${it.category})</span></span>
-                                <span class="${color}">${icon} ${it.status.toUpperCase()} ${it.remarks ? '— ' + it.remarks : ''}</span>
+                                <span class="text-slate-700">${escHtml(it.item_name)} <span class="text-[0.625rem] text-slate-400">(${escHtml(it.category)})</span></span>
+                                <span class="${color}">${icon} ${escHtml(String(it.status ?? '').toUpperCase())} ${it.remarks ? '— ' + escHtml(it.remarks) : ''}</span>
                             </div>
                         `;
                     });
@@ -2264,7 +2264,7 @@
                             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                                 <div>
                                     <span class="font-bold text-slate-900">${dateStr}</span>
-                                    <span class="text-[0.6875rem] text-slate-400 ml-2">by ${inspectorName}</span>
+                                    <span class="text-[0.6875rem] text-slate-400 ml-2">by ${escHtml(inspectorName)}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     ${item.change_oil_done ? '<span class="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-[0.625rem] font-bold">🛢️ Oil Changed</span>' : ''}
@@ -2273,7 +2273,7 @@
                             </div>
                             <div class="text-[0.6875rem] text-slate-600">
                                 <strong>Odometer:</strong> ${Number(item.odometer_km).toLocaleString()} km
-                                ${item.notes ? `<div class="mt-1 text-slate-500 italic">"${item.notes}"</div>` : ''}
+                                ${item.notes ? `<div class="mt-1 text-slate-500 italic">"${escHtml(item.notes)}"</div>` : ''}
                             </div>
                             <div class="pt-2">
                                 <details class="cursor-pointer">

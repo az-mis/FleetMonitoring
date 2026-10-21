@@ -33,7 +33,9 @@ class EnsureModuleEnabled
     {
         try {
             $flags = FleetSetting::where('setting_key', 'admin_modules')->value('setting_value') ?? [];
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            report($e);
+
             return true; // Settings table not migrated yet: keep the default (enabled)
         }
 

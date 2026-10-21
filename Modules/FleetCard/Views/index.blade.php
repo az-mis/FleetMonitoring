@@ -1159,14 +1159,14 @@ function pickAddVehicle(id) {
     prefillAddAllowance(vehicle);
     if (vehicle) {
         if (vehicle.photo_url) {
-            thumb.innerHTML = `<img src="${vehicle.photo_url}" class="h-full w-full object-contain">`;
+            thumb.innerHTML = `<img src="${escHtml(vehicle.photo_url)}" alt="" class="h-full w-full object-contain">`;
             thumb.classList.remove('hidden');
         } else {
             thumb.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>`;
             thumb.classList.remove('hidden');
         }
         label.className = 'min-w-0 flex-1 text-gray-900';
-        label.innerHTML = `<span class="font-bold">${vehicle.plate_number}</span> <span class="text-xs text-gray-500">(${vehicle.brand} ${vehicle.model})</span>`;
+        label.innerHTML = `<span class="font-bold">${escHtml(vehicle.plate_number)}</span> <span class="text-xs text-gray-500">(${escHtml(vehicle.brand)} ${escHtml(vehicle.model)})</span>`;
     }
 }
 
@@ -1233,14 +1233,14 @@ function pickEditVehicle(id) {
     const vehicle = vehiclesData.find(v => v.id == id);
     if (vehicle) {
         if (vehicle.photo_url) {
-            thumb.innerHTML = `<img src="${vehicle.photo_url}" class="h-full w-full object-contain">`;
+            thumb.innerHTML = `<img src="${escHtml(vehicle.photo_url)}" alt="" class="h-full w-full object-contain">`;
             thumb.classList.remove('hidden');
         } else {
             thumb.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>`;
             thumb.classList.remove('hidden');
         }
         label.className = 'min-w-0 flex-1 text-gray-900';
-        label.innerHTML = `<span class="font-bold">${vehicle.plate_number}</span> <span class="text-xs text-gray-500">(${vehicle.brand} ${vehicle.model})</span>`;
+        label.innerHTML = `<span class="font-bold">${escHtml(vehicle.plate_number)}</span> <span class="text-xs text-gray-500">(${escHtml(vehicle.brand)} ${escHtml(vehicle.model)})</span>`;
     }
 }
 
