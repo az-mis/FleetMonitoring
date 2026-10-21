@@ -8,6 +8,8 @@
         $locationOptions = \App\Support\FleetLocations::ALL;
         $selectedLocation = request('location');
         $locationButtonLabel = $selectedLocation ?: 'All Locations';
+        // An area admin's drivers always belong to the admin's area, so only a Super Admin picks one
+        $canChooseArea = auth()->user()?->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN;
     @endphp
 
     {{-- Page header --}}
@@ -233,18 +235,20 @@
 
                     {{-- Assigned Location / Office Province --}}
                     <div>
-                        <label for="add-driver-location" class="block text-sm font-medium text-gray-700">Assigned Location / Office Province</label>
+                        <label for="add-driver-location" class="block text-sm font-medium text-gray-700">Assigned Location / Office Province <span class="text-red-500">*</span></label>
                         <select
                             name="location"
                             id="add-driver-location"
-                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            @if ($canChooseArea) required @else disabled @endif
+                            class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ $canChooseArea ? '' : 'cursor-not-allowed bg-gray-50 text-gray-500' }}"
                         >
-                            <option value="">— All Locations (No restriction) —</option>
+                            <option value="">Select location</option>
                             @foreach($locationOptions as $loc)
-                                <option value="{{ $loc }}" {{ old('_driver_form') === 'create' && old('location') === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                <option value="{{ $loc }}" {{ (old('_driver_form') === 'create' ? old('location') : auth()->user()?->location) === $loc ? 'selected' : '' }}>{{ $loc }}</option>
                             @endforeach
                         </select>
-                        <p class="mt-1 text-xs text-gray-400">Drivers assigned to a specific province will be prioritized for vehicle assignments in that location.</p>
+                        @if (old('_driver_form') !== 'edit') @error('location')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror @endif
+                        <p class="mt-1 text-xs text-gray-400">{{ $canChooseArea ? 'Drivers assigned to a specific province will be prioritized for vehicle assignments in that location.' : 'New drivers join your area. Only a Super Admin can change a driver\'s area.' }}</p>
                     </div>
 
                     {{-- Birth Date + License No. --}}
@@ -481,11 +485,12 @@
 
                     {{-- Assigned Location / Office Province --}}
                     <div>
-                        <label for="edit-driver-location" class="block text-[0.6875rem] font-bold text-gray-700">Assigned Location / Office Province</label>
+                        <label for="edit-driver-location" class="block text-[0.6875rem] font-bold text-gray-700">Assigned Location / Office Province <span class="text-red-500">*</span></label>
                         <select
                             name="location"
                             id="edit-driver-location"
-                            class="mt-0.5 w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                            @if ($canChooseArea) required @else disabled @endif
+                            class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ $canChooseArea ? 'cursor-pointer bg-white text-gray-900' : 'cursor-not-allowed bg-gray-50 text-gray-500' }}"
                         >
                             <option value="">Select Location / Province</option>
                             @foreach ($locationOptions as $opt)

@@ -61,13 +61,14 @@ class UpdateVehicleRequest extends FormRequest
                 $vehicle->vehicle_type,
             ]))],
             'fuel_type' => ['nullable', 'string', 'max:50'],
-            'location' => ['nullable', 'string', 'max:120'],
+            'location' => ['required', 'string', 'max:120'],
         ];
     }
 
     public function messages(): array
     {
         return [
+            'location.required' => 'Choose the area this vehicle belongs to.',
             'plate_number.regex' => 'Plate number may only contain letters, numbers, dashes, and spaces.',
             'odometer.min' => 'The odometer cannot be lower than the current reading ('.number_format((int) $this->route('vehicle')?->odometer).' km). Ask a Super Admin to correct a wrong reading.',
         ];

@@ -44,13 +44,14 @@ class StoreVehicleRequest extends FormRequest
             'change_oil_interval_km' => ['nullable', 'integer', 'min:500'],
             'vehicle_type' => ['required', 'string', 'max:50', Rule::exists('vehicle_types', 'name')],
             'fuel_type' => ['nullable', 'string', 'max:50'],
-            'location' => ['nullable', 'string', 'max:120'],
+            'location' => ['required', 'string', 'max:120'],
         ];
     }
 
     public function messages(): array
     {
         return [
+            'location.required' => 'Choose the area this vehicle belongs to.',
             'plate_number.regex' => 'Plate number may only contain letters, numbers, dashes, and spaces.',
         ];
     }
