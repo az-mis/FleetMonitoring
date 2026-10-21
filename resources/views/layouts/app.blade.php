@@ -270,7 +270,9 @@
         // Drivers get an empty bell; admins and super admins get their saved notifications below
         $bell = ['items' => [], 'unread' => 0];
 
-        if (in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true)) {
+        // An admin without an area sees nothing (as everywhere else in the app), not every area's alerts
+        $isArealess = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN && blank(auth()->user()->location);
+        if (! $isArealess && in_array(auth()->user()?->role, [\Modules\Admin\Enums\UserRole::SUPER_ADMIN, \Modules\Admin\Enums\UserRole::ADMIN], true)) {
             $userLoc = auth()->user()?->role === \Modules\Admin\Enums\UserRole::ADMIN ? auth()->user()->location : null;
             try {
                 $pendingTravelCount = \Modules\VehicleRequest\Models\VehicleRequest::where("status", "pending")

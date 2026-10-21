@@ -113,6 +113,8 @@ class MaintenanceService
             $data['completed_date'] = now()->toDateString();
         }
 
+        $wasCompleted = $record->status === 'completed';
+
         $record->update([
             ...$data,
             'plate_number'  => $vehicle->plate_number,
@@ -120,7 +122,9 @@ class MaintenanceService
             'location'      => $vehicle->location,
         ]);
 
-        if ($record->status === 'completed') {
+        // Only when the job becomes completed: re-saving an old completed job (say, to fix the shop name)
+        // must not set the vehicle's PMS items back to that date
+        if ($record->status === 'completed' && ! $wasCompleted) {
             $this->syncCompletedMaintenanceWithVehicleAndPms($record, $vehicle);
         }
 
@@ -149,25 +153,37 @@ class MaintenanceService
             }
         }
 
-        // 2. If a specific PMS item was linked to this maintenance, update it
-        if ($record->pms_item_id && $pmsItem = $record->pmsItem) {
-            $pmsItem->update([
-                'last_done_km'   => $doneKm,
-                'last_done_date' => $doneDate,
-            ]);
-        } else {
-            // Find any matching PMS item by name or type
-            $matchingPmsItem = $vehicle->pmsItems()
-                ->where(function ($q) use ($record) {
-                    $q->where('item_name', 'like', "%{$record->type}%")
-                      ->orWhere('item_name', 'like', "%{$record->title}%");
-                })->first();
+        // 2. The PMS item this job did: the linked one, or the only item whose name contains the type or title.
+        //    With two or more possible items ("Brake" fits Brake Fluid and Brake Pads) none is guessed.
+        $pmsItem = $record->pms_item_id ? $record->pmsItem : null;
+        if (! $pmsItem) {
+            $like = fn (?string $text) => '%'.addcslashes(trim((string) $text), '\\%_').'%';
+            $candidates = $vehicle->pmsItems()
+                ->where(function ($q) use ($record, $like) {
+                    if (filled($record->type)) {
+                        $q->orWhere('item_name', 'like', $like($record->type));
+                    }
+                    if (filled($record->title)) {
+                        $q->orWhere('item_name', 'like', $like($record->title));
+                    }
+                })
+                ->limit(2)
+                ->get();
+            $pmsItem = $candidates->count() === 1 ? $candidates->first() : null;
+        }
 
-            if ($matchingPmsItem) {
-                $matchingPmsItem->update([
-                    'last_done_km'   => $doneKm,
-                    'last_done_date' => $doneDate,
-                ]);
+        // Never move an item back: only a reading or date newer than the one it has
+        if ($pmsItem) {
+            $updates = [];
+            if ($doneKm !== null && ($pmsItem->last_done_km === null || (int) $doneKm > (int) $pmsItem->last_done_km)) {
+                $updates['last_done_km'] = $doneKm;
+            }
+            $doneDay = \Illuminate\Support\Carbon::parse($doneDate)->startOfDay();
+            if ($pmsItem->last_done_date === null || $doneDay->gt($pmsItem->last_done_date)) {
+                $updates['last_done_date'] = $doneDay->toDateString();
+            }
+            if ($updates !== []) {
+                $pmsItem->update($updates);
             }
         }
     }

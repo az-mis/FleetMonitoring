@@ -17,6 +17,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -37,6 +38,15 @@ class VehicleRequestController
 
     /** How long the printable trip-ticket link from Check Status works */
     public const TRIP_TICKET_LINK_DAYS = 30;
+
+    /**
+     * The printable trip-ticket link Check Status gives the public. The signature covers the path and query only,
+     * not http/https or the host, so it still checks out behind a proxy that ends HTTPS; it always carries an expiry.
+     */
+    public static function publicTripTicketUrl(VehicleRequest $vehicleRequest): string
+    {
+        return URL::temporarySignedRoute('trip-ticket', now()->addDays(self::TRIP_TICKET_LINK_DAYS), $vehicleRequest, false);
+    }
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -199,25 +209,37 @@ class VehicleRequestController
         }
 
         if ($data['status'] === 'declined') {
-            $hasTripRecords = $vehicleRequest->completion()->exists()
-                || FleetCardLog::where('vehicle_request_id', $vehicleRequest->id)->exists();
-            if ($vehicleRequest->status === 'approved' && $hasTripRecords) {
-                return back()->with('error', 'This trip already has a completion or fleet card record, so it can no longer be declined.');
-            }
-            // A trip can be called off up to its start date; once that day has passed it has taken place
-            if ($vehicleRequest->status === 'approved' && $vehicleRequest->travel_date->lt(today())) {
-                return back()->with('error', 'This trip started on '.$vehicleRequest->travel_date->format('M j, Y').', so it can no longer be cancelled.');
-            }
+            // Same locks, same order as approving: an approval and a decline at the same moment are taken one
+            // after the other, and the checks below see the request as it is after the first one
+            $outcome = DB::transaction(function () use ($vehicleRequest, $data): array {
+                Vehicle::whereKey($vehicleRequest->vehicle_id)->lockForUpdate()->first();
+                $fresh = VehicleRequest::whereKey($vehicleRequest->id)->lockForUpdate()->firstOrFail();
 
-            $wasApproved = $vehicleRequest->status === 'approved';
-            $vehicleRequest->update([
-                'status' => 'declined',
-                'decline_reason' => $data['decline_reason'],
-            ]);
+                if ($fresh->status === 'declined') {
+                    return ['error', 'This request has already been declined and can no longer be changed.'];
+                }
+                $hasTripRecords = $fresh->completion()->exists()
+                    || FleetCardLog::where('vehicle_request_id', $fresh->id)->exists();
+                if ($fresh->status === 'approved' && $hasTripRecords) {
+                    return ['error', 'This trip already has a completion or fleet card record, so it can no longer be declined.'];
+                }
+                // A trip can be called off up to its start date; once that day has passed it has taken place
+                if ($fresh->status === 'approved' && $fresh->travel_date->lt(today())) {
+                    return ['error', 'This trip started on '.$fresh->travel_date->format('M j, Y').', so it can no longer be cancelled.'];
+                }
 
-            return back()->with('success', $wasApproved
-                ? "Trip {$vehicleRequest->trip_ticket_number} cancelled. The vehicle and driver are free again for those dates."
-                : "Request from {$vehicleRequest->requester_name} declined.");
+                $wasApproved = $fresh->status === 'approved';
+                $fresh->update([
+                    'status' => 'declined',
+                    'decline_reason' => $data['decline_reason'],
+                ]);
+
+                return ['success', $wasApproved
+                    ? "Trip {$fresh->trip_ticket_number} cancelled. The vehicle and driver are free again for those dates."
+                    : "Request from {$fresh->requester_name} declined."];
+            });
+
+            return back()->with($outcome[0], $outcome[1]);
         }
 
         // Never approve a trip nobody will drive: use the chosen driver, else the vehicle's default driver,
@@ -439,7 +461,10 @@ class VehicleRequestController
                 || ($vehicleRequest->confirmed_driver_id === null && (int) $vehicleRequest->vehicle?->assigned_driver_id === (int) $user->id),
             default => false,
         };
-        if (! $canView && ! $request->hasValidSignature()) {
+        // Guests need a link from Check Status: signed (path only, see publicTripTicketUrl) and with an expiry.
+        // Links made before links expired carry no expiry and are refused.
+        $validLink = $request->filled('expires') && $request->hasValidSignature(false);
+        if (! $canView && ! $validLink) {
             // A shared link stops working after a while; Check Status always gives a fresh one
             abort(403, $request->has('signature')
                 ? 'This trip ticket link has expired. Open Check Status with your reference code to get a new one.'

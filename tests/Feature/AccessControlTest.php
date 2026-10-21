@@ -189,7 +189,9 @@ class AccessControlTest extends TestCase
         $trip = $this->tripRequest($vehicle, ['status' => 'approved', 'trip_ticket_number' => '26-10-001']);
 
         $this->get("/trip-ticket/{$trip->id}")->assertForbidden();
-        $this->get(URL::signedRoute('trip-ticket', $trip))->assertOk()->assertSee('26-10-001');
+        $this->get(\Modules\VehicleRequest\Controllers\VehicleRequestController::publicTripTicketUrl($trip))->assertOk()->assertSee('26-10-001');
+        // A link signed the old way (no expiry) no longer opens
+        $this->get(URL::signedRoute('trip-ticket', $trip))->assertForbidden();
         $this->actingAs($this->admin('Palawan'))->get("/trip-ticket/{$trip->id}")->assertOk();
         $this->actingAs($this->admin('Oriental Mindoro'))->get("/trip-ticket/{$trip->id}")->assertForbidden();
     }

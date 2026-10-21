@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'module' => EnsureModuleEnabled::class,
         ]);
         $middleware->append(AddSecurityHeaders::class);
+        // A password change (or reset) signs the account out everywhere else; the device that made the change stays
+        $middleware->authenticateSessions();
         $middleware->web(append: [
             EnsureAccountIsActive::class,
             ThrottlePasswordResetRequests::class,

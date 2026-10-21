@@ -30,4 +30,17 @@ abstract class TestCase extends BaseTestCase
 
         return parent::setUpTraits();
     }
+
+    /**
+     * A real sign-in starts a new session. Tests switch users inside one session, so forget the previous user's
+     * password fingerprint (auth.session would otherwise sign the new user out as if their password had changed).
+     */
+    public function actingAs(\Illuminate\Contracts\Auth\Authenticatable $user, $guard = null)
+    {
+        if ($this->app->bound('session.store') && auth()->guard($guard)->id() !== $user->getAuthIdentifier()) {
+            $this->app['session.store']->forget('password_hash_'.($guard ?? config('auth.defaults.guard')));
+        }
+
+        return parent::actingAs($user, $guard);
+    }
 }

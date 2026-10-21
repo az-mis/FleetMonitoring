@@ -91,7 +91,7 @@
                 </dl>
 
                 @if ($status === 'approved')
-                    <a href="{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('trip-ticket', now()->addDays(\Modules\VehicleRequest\Controllers\VehicleRequestController::TRIP_TICKET_LINK_DAYS), $requestRecord) }}" target="_blank" rel="noopener" class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-pub-primary px-4 text-sm font-bold text-pub-on-primary shadow-lg shadow-emerald-950/40 transition hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent">
+                    <a href="{{ \Modules\VehicleRequest\Controllers\VehicleRequestController::publicTripTicketUrl($requestRecord) }}" target="_blank" rel="noopener" class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-pub-primary px-4 text-sm font-bold text-pub-on-primary shadow-lg shadow-emerald-950/40 transition hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                         Open printable trip ticket
                     </a>

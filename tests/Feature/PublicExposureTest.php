@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Modules\Admin\Enums\UserRole;
@@ -106,8 +105,12 @@ class PublicExposureTest extends TestCase
 
         $this->get(route('check-status', ['code' => $trip->reference_code]))->assertOk()->assertSee('expires=', false);
 
-        $link = URL::temporarySignedRoute('trip-ticket', now()->addDays(VehicleRequestController::TRIP_TICKET_LINK_DAYS), $trip);
+        $link = VehicleRequestController::publicTripTicketUrl($trip);
+        $this->assertStringStartsWith('/trip-ticket/', $link);
         $this->get($link)->assertOk();
+        // The signature does not depend on http/https or the host, so it survives a proxy that ends HTTPS
+        $this->get('https://fleet.da.gov.ph'.$link)->assertOk();
+        $this->get('http://10.0.0.5'.$link)->assertOk();
 
         $this->travel(VehicleRequestController::TRIP_TICKET_LINK_DAYS + 1)->days();
         $this->get($link)->assertForbidden()->assertSee('This trip ticket link has expired');
