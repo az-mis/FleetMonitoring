@@ -2,7 +2,9 @@
 
 namespace Modules\FleetCard\Services;
 
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Modules\Destination\Models\Destination;
 use Modules\FleetCard\Models\FleetCard;
 use Modules\FleetCard\Models\FleetCardLog;
@@ -26,17 +28,18 @@ class FleetCardService
             $distanceSource = 'manual';
         }
 
-        $costPerKm = $card->cost_per_km;
-        $consumed = $finalDistance * $costPerKm;
-        $newBalance = max(0, $card->current_balance - $consumed);
+        // Same pricing as recordExpense: km ÷ the vehicle's km per litre × price per litre
+        $costPerKm = $card->pricePerKm();
+        $consumed = round($finalDistance * ($costPerKm ?? 0), 2);
 
         return [
             'distance_source' => $distanceSource,
             'distance_km' => $finalDistance,
-            'cost_per_km' => $costPerKm,
+            'cost_per_km' => $costPerKm ?? 0,
+            'needs_fuel_economy' => $finalDistance > 0 && $costPerKm === null,
             'consumed_amount' => $consumed,
             'current_balance' => $card->current_balance,
-            'new_balance' => $newBalance,
+            'new_balance' => (float) $card->current_balance - $consumed,
         ];
     }
 
@@ -80,30 +83,37 @@ class FleetCardService
                 ? (float) $data['fuel_price_per_liter']
                 : (float) $card->rate_peso;
 
-            $costPerKm = $card->cost_per_km;
-            $consumedAmount = 0.0;
             $litersUsed = null;
-            $savedFuelPrice = null;
+            $trip = $vehicleRequestId ? VehicleRequest::with(['completion', 'vehicle'])->find($vehicleRequestId) : null;
 
-            if ($distanceSource === 'destination_master' && $vehicleRequestId) {
-                $vReq = VehicleRequest::with('completion')->find($vehicleRequestId);
-                
+            if ($distanceSource === 'destination_master' && $trip) {
                 // Prioritize Part B completion actual distance travelled over estimated route distance
-                if ($vReq?->completion && (float) $vReq->completion->distance_travelled > 0) {
-                    $finalDistance = (float) $vReq->completion->distance_travelled;
+                if ($trip->completion && (float) $trip->completion->distance_travelled > 0) {
+                    $finalDistance = (float) $trip->completion->distance_travelled;
                 }
-
-                $fuelUsed = (float) ($vReq?->completion?->fuel_used_liters ?? 0);
-                if ($fuelUsed > 0 && $fuelPricePerLiter > 0) {
-                    $consumedAmount = round($fuelUsed * $fuelPricePerLiter, 2);
+                // Litres from Part B are the most accurate charge
+                $fuelUsed = (float) ($trip->completion?->fuel_used_liters ?? 0);
+                if ($fuelUsed > 0) {
                     $litersUsed = $fuelUsed;
-                    $savedFuelPrice = $fuelPricePerLiter;
-                } else {
-                    $consumedAmount = round($finalDistance * $costPerKm, 2);
                 }
-            } else {
-                $consumedAmount = round($finalDistance * $costPerKm, 2);
             }
+
+            // Distance only: the litres it took, from the vehicle's fuel economy (km ÷ km per litre)
+            $vehicle = $trip?->vehicle ?? $card->vehicle;
+            if ($litersUsed === null && $finalDistance > 0) {
+                $kmPerLiter = (float) ($vehicle?->fuel_economy_km_per_liter ?? 0);
+                if ($kmPerLiter <= 0) {
+                    throw ValidationException::withMessages([
+                        'distance_km' => 'Set the fuel economy (km per litre) of '.($vehicle?->plate_number ?? 'the card\'s vehicle')
+                            .' on its Property & Registration page first, or charge the trip from its Part B litres.',
+                    ]);
+                }
+                $litersUsed = round($finalDistance / $kmPerLiter, 2);
+            }
+
+            $consumedAmount = round(($litersUsed ?? 0) * $fuelPricePerLiter, 2);
+            $savedFuelPrice = $litersUsed !== null ? $fuelPricePerLiter : null;
+            $pricePerKm = $finalDistance > 0 ? round($consumedAmount / $finalDistance, 2) : 0.0;
 
             $balanceBefore = (float) $card->current_balance;
             $balanceAfter = $balanceBefore - $consumedAmount;
@@ -113,25 +123,29 @@ class FleetCardService
             $card->updated_by = auth()->id();
             $card->save();
 
-            // Create Log
-            return FleetCardLog::create([
-                'fleet_card_id' => $card->id,
-                'vehicle_id' => $card->vehicle_id,
-                'vehicle_request_id' => $vehicleRequestId,
-                'distance_source' => $distanceSource,
-                'category' => $data['category'] ?? 'fuel',
-                'start_odometer' => $startOdo,
-                'end_odometer' => $endOdo,
-                'distance_km' => $finalDistance,
-                'liters_used' => $litersUsed,
-                'fuel_price_per_liter' => $savedFuelPrice,
-                'rate_peso_per_km' => $costPerKm,
-                'consumed_amount' => $consumedAmount,
-                'balance_before' => $balanceBefore,
-                'balance_after' => $balanceAfter,
-                'remarks' => $data['remarks'] ?? 'Trip expense deduction',
-                'logged_by' => auth()->id(),
-            ]);
+            // Create Log (the database allows one charge per trip: a second quick click lands here)
+            try {
+                return FleetCardLog::create([
+                    'fleet_card_id' => $card->id,
+                    'vehicle_id' => $card->vehicle_id,
+                    'vehicle_request_id' => $vehicleRequestId,
+                    'distance_source' => $distanceSource,
+                    'category' => $data['category'] ?? 'fuel',
+                    'start_odometer' => $startOdo,
+                    'end_odometer' => $endOdo,
+                    'distance_km' => $finalDistance,
+                    'liters_used' => $litersUsed,
+                    'fuel_price_per_liter' => $savedFuelPrice,
+                    'rate_peso_per_km' => $pricePerKm,
+                    'consumed_amount' => $consumedAmount,
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $balanceAfter,
+                    'remarks' => $data['remarks'] ?? 'Trip expense deduction',
+                    'logged_by' => auth()->id(),
+                ]);
+            } catch (UniqueConstraintViolationException) {
+                throw ValidationException::withMessages(['vehicle_request_id' => 'This trip ticket has already been charged to a fleet card.']);
+            }
         });
     }
 
@@ -145,8 +159,8 @@ class FleetCardService
             $balanceBefore = (float) $card->current_balance;
             $balanceAfter = $balanceBefore + $amount;
 
+            // The starting budget stays as set; top-ups are counted from their own log entries
             $card->current_balance = $balanceAfter;
-            $card->initial_budget = max((float) $card->initial_budget, $balanceAfter);
             $card->updated_by = auth()->id();
             $card->save();
 
@@ -173,15 +187,15 @@ class FleetCardService
         DB::transaction(function () use ($card, $log) {
             abort_unless($log->fleet_card_id === $card->id && $log->distance_source === 'recharge', 400);
             $card = FleetCard::whereKey($card->id)->lockForUpdate()->firstOrFail();
+            // Re-read under the lock: a double click must not take the top-up back twice
+            $log = FleetCardLog::whereKey($log->id)->lockForUpdate()->first();
+            if (! $log) {
+                return;
+            }
 
-            $topUpAmount = abs((float) $log->consumed_amount);
-            $newBalance = max(0, (float) $card->current_balance - $topUpAmount);
-
-            // If initial budget was pushed up by top up, adjust it down or back to base
-            $newBudget = max($newBalance, (float) $card->initial_budget - $topUpAmount);
-
-            $card->current_balance = $newBalance;
-            $card->initial_budget = $newBudget;
+            // Take back exactly this top-up. The balance may go below zero if it was already spent:
+            // that is what the ledger says, and hiding it would make the card disagree with its logs.
+            $card->current_balance = (float) $card->current_balance - abs((float) $log->consumed_amount);
             $card->updated_by = auth()->id();
             $card->save();
 

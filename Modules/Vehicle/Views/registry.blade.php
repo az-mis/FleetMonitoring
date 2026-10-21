@@ -143,6 +143,12 @@
                     @else
                         <div><label for="fleet_card_allowance" class="{{ $label }}">Fleet card allowance (₱ / month)</label><input type="number" step="0.01" min="0" id="fleet_card_allowance" name="fleet_card_allowance" value="{{ old('fleet_card_allowance', $vehicle->fleet_card_allowance) }}" placeholder="e.g. 15000" class="{{ $field }}"></div>
                     @endif
+                    {{-- Prices fleet card charges by distance: km ÷ km per litre × price per litre --}}
+                    <div>
+                        <label for="fuel_economy_km_per_liter" class="{{ $label }}">Fuel economy (km per litre)</label>
+                        <input type="number" step="0.1" min="1" max="60" id="fuel_economy_km_per_liter" name="fuel_economy_km_per_liter" value="{{ old('fuel_economy_km_per_liter', $vehicle->fuel_economy_km_per_liter) }}" placeholder="e.g. 10" aria-describedby="fuel_economy_note" class="{{ $field }}">
+                        <p id="fuel_economy_note" class="mt-1 text-[0.6875rem] text-slate-500">Needed to charge a fleet card by distance (odometer or km) when no litres are recorded.</p>
+                    </div>
                 </div>
             </section>
 

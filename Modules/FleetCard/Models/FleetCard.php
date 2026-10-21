@@ -4,6 +4,7 @@ namespace Modules\FleetCard\Models;
 
 use App\Models\Office;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -67,39 +68,63 @@ class FleetCard extends Model
     }
 
     /**
-     * Compute cost per kilometer (e.g., 100 pesos / 5 km = 20 pesos/km)
+     * Price of one kilometre: the fuel price per litre divided by the vehicle's fuel economy (km per litre).
+     * Null when the vehicle has no fuel economy set, so a distance-only charge cannot be priced.
      */
+    public function pricePerKm(?Vehicle $vehicle = null): ?float
+    {
+        $kmPerLiter = (float) (($vehicle ?? $this->vehicle)?->fuel_economy_km_per_liter ?? 0);
+
+        return $kmPerLiter > 0 && (float) $this->rate_peso > 0 ? round((float) $this->rate_peso / $kmPerLiter, 4) : null;
+    }
+
     public function getCostPerKmAttribute(): float
     {
-        if ((float) $this->rate_km <= 0) {
-            return 0.0;
-        }
-
-        return (float) $this->rate_peso / (float) $this->rate_km;
+        return $this->pricePerKm() ?? 0.0;
     }
 
-    /**
-     * Compute remaining distance range capacity based on current balance
-     */
+    /** About how far the balance still goes at the vehicle's fuel economy */
     public function getRemainingKmCapacityAttribute(): float
     {
-        $costPerKm = $this->cost_per_km;
-        if ($costPerKm <= 0) {
-            return 0.0;
-        }
+        $pricePerKm = $this->pricePerKm();
 
-        return (float) $this->current_balance / $costPerKm;
+        return $pricePerKm ? max(0.0, (float) $this->current_balance / $pricePerKm) : 0.0;
     }
 
-    /**
-     * Percent of budget remaining
-     */
+    /** Top-ups and expenses summed in the query, for lists (top-ups are logged with a negative amount) */
+    public function scopeWithLedgerTotals(Builder $query): void
+    {
+        $query->withSum(['logs as top_ups_sum' => fn ($q) => $q->where('consumed_amount', '<', 0)], 'consumed_amount')
+            ->withSum(['logs as spent_sum' => fn ($q) => $q->where('consumed_amount', '>', 0)], 'consumed_amount');
+    }
+
+    public function getTotalTopUpsAttribute(): float
+    {
+        $sum = array_key_exists('top_ups_sum', $this->attributes)
+            ? $this->attributes['top_ups_sum']
+            : $this->logs()->where('consumed_amount', '<', 0)->sum('consumed_amount');
+
+        return abs((float) $sum);
+    }
+
+    public function getTotalSpentAttribute(): float
+    {
+        return (float) (array_key_exists('spent_sum', $this->attributes)
+            ? $this->attributes['spent_sum']
+            : $this->logs()->where('consumed_amount', '>', 0)->sum('consumed_amount'));
+    }
+
+    /** Everything put on the card: the starting budget plus every top-up */
+    public function getTotalAllocatedAttribute(): float
+    {
+        return (float) $this->initial_budget + $this->total_top_ups;
+    }
+
+    /** Percent of everything put on the card that is still left */
     public function getBalancePercentageAttribute(): float
     {
-        if ((float) $this->initial_budget <= 0) {
-            return 0.0;
-        }
+        $allocated = $this->total_allocated;
 
-        return round(((float) $this->current_balance / (float) $this->initial_budget) * 100, 1);
+        return $allocated > 0 ? round(((float) $this->current_balance / $allocated) * 100, 1) : 0.0;
     }
 }

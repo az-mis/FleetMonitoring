@@ -72,6 +72,7 @@ class Vehicle extends Model
         'has_ewd',
         'tools',
         'fleet_card_allowance',
+        'fuel_economy_km_per_liter',
     ];
 
     /** Days before an expiry date that the papers count as "due" */
@@ -87,6 +88,7 @@ class Vehicle extends Model
             'insurance_to' => 'date',
             'has_ewd' => 'boolean',
             'fleet_card_allowance' => 'decimal:2',
+            'fuel_economy_km_per_liter' => 'decimal:2',
         ];
     }
 

@@ -46,6 +46,8 @@ trait CreatesFleetData
             'odometer' => 10000,
             'last_change_oil_odometer' => 8000,
             'change_oil_interval_km' => 5000,
+            // With the test cards' ₱100 per litre this is ₱20 per km
+            'fuel_economy_km_per_liter' => 5,
             'vehicle_type' => 'Pick-up',
             'fuel_type' => 'diesel',
             'location' => $location,

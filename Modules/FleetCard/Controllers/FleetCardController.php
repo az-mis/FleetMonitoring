@@ -37,6 +37,7 @@ class FleetCardController extends Controller
             'logs' => fn ($q) => $q->where(fn ($r) => $r->where('distance_source', 'recharge')->orWhere('consumed_amount', '<', 0))->latest(),
         ])
             // This month's spend, for "October: ₱X of ₱Y allowance"
+            ->withLedgerTotals()
             ->withSum(['logs as spent_this_month' => fn ($q) => $q->where('consumed_amount', '>', 0)->where('created_at', '>=', now()->startOfMonth())], 'consumed_amount')
             ->when($userLoc, fn ($q) => $q->where('location', $userLoc));
 
@@ -67,10 +68,10 @@ class FleetCardController extends Controller
             ->take(50)
             ->get();
 
-        // Calculate summary cards metrics
-        $totalInitialBudget = $cards->sum('initial_budget');
+        // Summary: everything put on the cards (starting budgets + top-ups), what was spent, what is left
+        $totalInitialBudget = $cards->sum(fn (FleetCard $card) => $card->total_allocated);
         $totalCurrentBalance = $cards->sum('current_balance');
-        $totalConsumed = max(0, $totalInitialBudget - $totalCurrentBalance);
+        $totalConsumed = $cards->sum(fn (FleetCard $card) => $card->total_spent);
 
         $recentLogs = FleetCardLog::with(['fleetCard.vehicle', 'logger', 'vehicleRequest'])
             ->whereHas('fleetCard', function ($q) use ($userLoc, $request) {
@@ -164,7 +165,8 @@ class FleetCardController extends Controller
         // If the initial budget was changed, adjust current balance by the budget difference
         if (abs($newInitialBudget - $oldInitialBudget) > 0.001) {
             $diff = $newInitialBudget - $oldInitialBudget;
-            $validated['current_balance'] = max(0, (float) $fleetCard->current_balance + $diff);
+            // No clamp at zero: the balance must stay starting budget + top-ups − expenses
+            $validated['current_balance'] = (float) $fleetCard->current_balance + $diff;
         }
 
         $validated['updated_by'] = auth()->id();
@@ -247,16 +249,15 @@ class FleetCardController extends Controller
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($fleetCard, $log) {
             $fleetCard = FleetCard::whereKey($fleetCard->id)->lockForUpdate()->firstOrFail();
+            // Re-read under the lock: a double click must not refund the same expense twice
+            $log = FleetCardLog::whereKey($log->id)->lockForUpdate()->first();
+            if (! $log) {
+                return;
+            }
 
             // Refund only this expense. Resetting to the log's balance_before would also wipe out
             // every transaction recorded after it.
             $restoredBalance = (float) $fleetCard->current_balance + (float) $log->consumed_amount;
-
-            // If initial_budget is somehow less than balance_before (data corruption),
-            // restore initial_budget as well so the card reflects the correct ceiling
-            if ($restoredBalance > (float) $fleetCard->initial_budget) {
-                $fleetCard->initial_budget = $restoredBalance;
-            }
 
             $fleetCard->current_balance = $restoredBalance;
             $fleetCard->save();

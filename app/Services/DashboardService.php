@@ -441,11 +441,13 @@ class DashboardService
     {
         $cards = FleetCard::query()
             ->when($location, fn ($q) => $q->where('location', $location))
-            ->get(['initial_budget', 'current_balance']);
+            ->withLedgerTotals()
+            ->get(['id', 'initial_budget', 'current_balance']);
 
-        $totalAllocated = (float) $cards->sum('initial_budget');
+        // Allocated = starting budgets + top-ups; consumed = the expenses actually logged
+        $totalAllocated = (float) $cards->sum(fn (FleetCard $card) => $card->total_allocated);
         $totalRemaining = (float) $cards->sum('current_balance');
-        $totalConsumed = max(0.0, $totalAllocated - $totalRemaining);
+        $totalConsumed = (float) $cards->sum(fn (FleetCard $card) => $card->total_spent);
         $consumedPercent = $totalAllocated > 0
             ? round(($totalConsumed / $totalAllocated) * 100, 1)
             : 0.0;

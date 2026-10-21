@@ -68,6 +68,7 @@ class VehicleRegistryController extends Controller
             'has_ewd' => ['nullable', 'boolean'],
             'tools' => ['nullable', 'string', 'max:255'],
             'fleet_card_allowance' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'fuel_economy_km_per_liter' => ['nullable', 'numeric', 'min:1', 'max:60'],
         ], [
             'insurance_to.after_or_equal' => 'The insurance end date must be on or after its start date.',
             'acquisition_date.before_or_equal' => 'The acquisition date cannot be in the future.',

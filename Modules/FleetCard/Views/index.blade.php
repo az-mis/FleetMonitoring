@@ -219,7 +219,7 @@
                         <div class="space-y-1">
                             <div class="flex items-center justify-between text-[0.6875rem]">
                                 <span class="font-bold text-gray-700">Remaining: <span class="text-emerald-700 font-extrabold text-xs">₱{{ number_format($card->current_balance, 2) }}</span></span>
-                                <span class="text-gray-400 font-medium">Budget: ₱{{ number_format($card->initial_budget, 2) }}</span>
+                                <span class="text-gray-400 font-medium" title="Starting budget ₱{{ number_format($card->initial_budget, 2) }} + top-ups ₱{{ number_format($card->total_top_ups, 2) }}">Budget: ₱{{ number_format($card->total_allocated, 2) }}</span>
                             </div>
                             <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
                                 <div class="h-full rounded-full transition-all duration-500 {{ $barColor }}" style="width: {{ min(100, max(0, $pct)) }}%"></div>
@@ -238,7 +238,7 @@
                             <div>
                                 <span class="text-gray-400 text-[0.625rem] block">Est. Fuel Capacity:</span>
                                 <p class="font-extrabold text-gray-800 text-xs">
-                                    ~{{ $card->rate_peso > 0 ? number_format((float)$card->current_balance / (float)$card->rate_peso, 1) : 0 }} L
+                                    ~{{ $card->rate_peso > 0 ? number_format(max(0, (float) $card->current_balance) / (float) $card->rate_peso, 1) : 0 }} L
                                     <span class="text-[0.625rem] text-gray-400 font-normal block truncate">Available capacity</span>
                                 </p>
                             </div>
@@ -770,7 +770,7 @@
                                 @endphp
                                 <button
                                     type="button"
-                                    onclick="pickTripTicket('{{ $r->id }}', @js($labelDisplay), {{ $dist }}, {{ $fuelUsed }})"
+                                    onclick="pickTripTicket('{{ $r->id }}', @js($labelDisplay), {{ $dist }}, {{ $fuelUsed }}, {{ (float) ($r->vehicle?->fuel_economy_km_per_liter ?? 0) }})"
                                     class="tt-option-item w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 transition cursor-pointer flex flex-col gap-0.5"
                                     data-search="{{ $searchText }}"
                                 >
@@ -1407,6 +1407,7 @@ function openExpenseModal(card) {
     document.getElementById('expense-dest-select').value = '';
     document.getElementById('expense-dest-select').setAttribute('data-distance', '0');
     document.getElementById('expense-dest-select').setAttribute('data-liters-used', '0');
+    document.getElementById('expense-dest-select').setAttribute('data-km-per-liter', '0');
     const priceInput = document.getElementById('expense-fuel-price-per-liter');
     if (priceInput) {
         priceInput.value = card.rate_peso ? parseFloat(card.rate_peso).toFixed(2) : '';
@@ -1477,11 +1478,12 @@ function filterTripTicketOptions() {
     document.getElementById('tt-empty-state')?.classList.toggle('hidden', count > 0);
 }
 
-function pickTripTicket(id, labelText, distance, fuelUsed) {
+function pickTripTicket(id, labelText, distance, fuelUsed, kmPerLiter) {
     const hiddenInput = document.getElementById('expense-dest-select');
     hiddenInput.value = id;
     hiddenInput.setAttribute('data-distance', distance || 0);
     hiddenInput.setAttribute('data-liters-used', fuelUsed || 0);
+    hiddenInput.setAttribute('data-km-per-liter', kmPerLiter || 0);
 
     const label = document.getElementById('tt-picker-label');
     if (label) {
@@ -1509,9 +1511,11 @@ function updateLiveCalc() {
     if (!currentActiveCard) return;
 
     const source = document.getElementById('expense-source-select').value;
+    // Same pricing as the server: litres (from Part B, or km ÷ the vehicle's km per litre) × price per litre
     const ratePeso = parseFloat(currentActiveCard.rate_peso) || 0;
-    const rateKm = parseFloat(currentActiveCard.rate_km) || 1;
-    const costPerKm = rateKm > 0 ? (ratePeso / rateKm) : 0;
+    const cardKmPerLiter = parseFloat(currentActiveCard.vehicle?.fuel_economy_km_per_liter) || 0;
+    const rateLabel = (price, kmPerLiter) => '₱' + price.toFixed(2) + ' / L' + (kmPerLiter > 0 ? ' · ' + kmPerLiter + ' km/L' : '');
+    const needsEconomy = "Set the vehicle's fuel economy (km/L) first";
     const currentBal = parseFloat(currentActiveCard.current_balance) || 0;
 
     let consumed = 0.0;
@@ -1531,18 +1535,23 @@ function updateLiveCalc() {
             liveLitersEl.innerText = litersUsed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        if (litersUsed > 0 && pricePerLiter > 0) {
-            consumed = litersUsed * pricePerLiter;
-        } else if (litersUsed === 0 && distance > 0) {
-            // Fallback to distance * costPerKm if no Part B completion logged yet
-            consumed = distance * costPerKm;
+        const tripKmPerLiter = parseFloat(destInput ? destInput.getAttribute('data-km-per-liter') : 0) || cardKmPerLiter;
+        const price = pricePerLiter > 0 ? pricePerLiter : ratePeso;
+        let missingEconomy = false;
+        if (litersUsed > 0) {
+            consumed = litersUsed * price;
+        } else if (distance > 0) {
+            // No Part B litres yet: litres = km ÷ the trip vehicle's km per litre
+            if (tripKmPerLiter > 0) {
+                consumed = (distance / tripKmPerLiter) * price;
+            } else {
+                missingEconomy = true;
+            }
         }
 
         const rateBadge = document.getElementById('live-rate-badge');
         if (rateBadge) {
-            rateBadge.innerText = pricePerLiter > 0
-                ? ('₱' + pricePerLiter.toFixed(2) + ' / L')
-                : ('₱' + costPerKm.toFixed(2) + ' / km');
+            rateBadge.innerText = missingEconomy ? needsEconomy : rateLabel(price, litersUsed > 0 ? 0 : tripKmPerLiter);
         }
     } else {
         // Option 1 & Option 3: Base on Distance
@@ -1556,11 +1565,12 @@ function updateLiveCalc() {
             distance = parseFloat(document.getElementById('expense-manual-km').value) || 0;
         }
 
-        consumed = distance * costPerKm;
+        const missingEconomy = distance > 0 && cardKmPerLiter <= 0;
+        consumed = cardKmPerLiter > 0 ? (distance / cardKmPerLiter) * ratePeso : 0;
 
         const rateBadge = document.getElementById('live-rate-badge');
         if (rateBadge) {
-            rateBadge.innerText = '₱' + costPerKm.toFixed(2) + ' / km';
+            rateBadge.innerText = missingEconomy ? needsEconomy : rateLabel(ratePeso, cardKmPerLiter);
         }
 
         const liveDistEl = document.getElementById('live-distance');
@@ -1569,7 +1579,7 @@ function updateLiveCalc() {
         }
     }
 
-    const newBal = Math.max(0, currentBal - consumed);
+    const newBal = currentBal - consumed;
 
     document.getElementById('live-consumed').innerText = '₱' + consumed.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('live-current-balance').innerText = '₱' + currentBal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
