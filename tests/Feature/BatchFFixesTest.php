@@ -78,6 +78,17 @@ class BatchFFixesTest extends TestCase
         $this->assertSame('pending', $pending->fresh()->status);
     }
 
+    public function test_a_vehicle_for_repair_stays_bookable_but_is_flagged_on_the_public_form(): void
+    {
+        $this->vehicle('Palawan', ['plate_number' => 'FIX 0001', 'condition' => 'For repair']);
+        $this->vehicle('Palawan', ['plate_number' => 'OK 0001', 'condition' => 'Serviceable']);
+
+        $vehicles = collect($this->getJson('/request-vehicle/station-availability?location=Palawan')->assertOk()->json('vehicles'))->keyBy('plate');
+
+        $this->assertTrue($vehicles['FIX 0001']['for_repair']);
+        $this->assertFalse($vehicles['OK 0001']['for_repair']);
+    }
+
     public function test_correcting_a_part_b_typo_brings_the_odometer_back_down(): void
     {
         $admin = $this->admin('Palawan');

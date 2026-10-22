@@ -841,10 +841,11 @@ $offices = \App\Models\Office::options();
                         </div>
                     </div>
 
-                    <div style="margin-top:8px;padding-top:4px;">
+                    <div style="margin-top:8px;padding-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
                         <div style="display:inline-flex;align-items:center;border-radius:6px;padding:2px 7px;font-size:0.625rem;font-weight:800;background:${note.bg};color:${note.textClr || '#fff'};">
                             ${note.head}
                         </div>
+                        ${v.for_repair ? '<div style="display:inline-flex;align-items:center;border-radius:6px;padding:2px 7px;font-size:0.625rem;font-weight:800;background:rgba(217,119,6,.6);color:#fff;">🔧 For Repair</div>' : ''}
                     </div>
                 </button>`;
             }).join('');

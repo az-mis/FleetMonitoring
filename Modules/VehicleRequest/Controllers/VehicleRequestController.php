@@ -622,6 +622,8 @@ class VehicleRequestController
                     'photo' => $v->photo_url,
                     // Public page: say whether a driver is assigned, never who (no name, ID or photo; decision D11)
                     'has_driver' => (bool) $v->assigned_driver_id,
+                    // Still bookable, but the requester should know before choosing it
+                    'for_repair' => $v->condition === 'For repair',
                     'bookings' => $bookings->values(),
                 ];
             })->values(),
