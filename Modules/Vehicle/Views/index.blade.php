@@ -475,6 +475,21 @@
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            {{-- Condition (same choices as Property & Registration) --}}
+                            <div class="sm:col-span-5">
+                                <label for="rv-condition" class="{{ $rvLabel }}">Condition <span class="text-slate-400 font-normal">(Optional)</span></label>
+                                <select name="condition" id="rv-condition" class="{{ $rvSelect }} {{ $rvBorder('condition') }}">
+                                    <option value="">—</option>
+                                    @foreach(\Modules\Vehicle\Controllers\VehicleRegistryController::CONDITIONS as $condition)
+                                        <option value="{{ $condition }}" @selected($rvOld('condition') === $condition)>{{ $condition }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-slate-400">Unserviceable and For disposal vehicles can't be requested.</p>
+                                @error('condition')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -934,6 +949,23 @@
                             </p>
                             @if ($evIsOld)
                                 @error('location')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
+                        </div>
+
+                        {{-- Condition (same choices as Property & Registration) --}}
+                        <div class="sm:col-span-6">
+                            <label for="ev-condition" class="{{ $rvLabel }}">Condition <span class="text-slate-400 font-normal">(Optional)</span></label>
+                            <select name="condition" id="ev-condition" class="{{ $rvSelect }} {{ $evBorder('condition') }}">
+                                <option value="">—</option>
+                                @foreach(\Modules\Vehicle\Controllers\VehicleRegistryController::CONDITIONS as $condition)
+                                    <option value="{{ $condition }}" @selected($evOld('condition') === $condition)>{{ $condition }}</option>
+                                @endforeach
+                            </select>
+                            <p class="mt-1 text-xs text-slate-400">Unserviceable and For disposal vehicles can't be requested.</p>
+                            @if ($evIsOld)
+                                @error('condition')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
                             @endif
@@ -1411,6 +1443,7 @@
                 document.getElementById('ev-change_oil_interval_km').value = btn.dataset.change_oil_interval_km || 5000;
                 setEditSelectValue('ev-vehicle_type', btn.dataset.vehicle_type || '');
                 document.getElementById('ev-fuel_type').value = btn.dataset.fuel_type || '';
+                document.getElementById('ev-condition').value = btn.dataset.condition || '';
 
                 const locVal = btn.dataset.location || '';
                 document.getElementById('ev-location').value = locVal;

@@ -8,6 +8,7 @@ use App\Rules\UniqueIdentifier;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Admin\Enums\UserRole;
+use Modules\Vehicle\Controllers\VehicleRegistryController;
 
 class StoreVehicleRequest extends FormRequest
 {
@@ -45,6 +46,8 @@ class StoreVehicleRequest extends FormRequest
             'vehicle_type' => ['required', 'string', 'max:50', Rule::exists('vehicle_types', 'name')],
             'fuel_type' => ['nullable', 'string', 'max:50'],
             'location' => ['required', 'string', 'max:120'],
+            // Same choices as Property & Registration; Unserviceable and For disposal keep it out of new trips
+            'condition' => ['sometimes', 'nullable', Rule::in(VehicleRegistryController::CONDITIONS)],
         ];
     }
 

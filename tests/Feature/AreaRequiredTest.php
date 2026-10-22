@@ -83,6 +83,23 @@ class AreaRequiredTest extends TestCase
         $this->assertDoesNotMatchRegularExpression($dropdown, $page->getContent());
     }
 
+    public function test_condition_can_be_set_when_registering_or_updating_a_vehicle(): void
+    {
+        $super = $this->superAdmin();
+
+        $this->actingAs($super)->post('/vehicles', $this->vehiclePayload(['location' => 'Palawan', 'condition' => 'For repair']))->assertSessionHasNoErrors();
+        $vehicle = Vehicle::where('plate_number', 'NBC 4521')->firstOrFail();
+        $this->assertSame('For repair', $vehicle->condition);
+
+        $this->actingAs($super)->put("/vehicles/{$vehicle->id}", $this->vehiclePayload(['location' => 'Palawan', 'condition' => 'Broken']))->assertSessionHasErrors('condition');
+        $this->actingAs($super)->put("/vehicles/{$vehicle->id}", $this->vehiclePayload(['location' => 'Palawan', 'condition' => 'Serviceable']))->assertSessionHasNoErrors();
+        $this->assertSame('Serviceable', $vehicle->fresh()->condition);
+
+        // A save that leaves the field out keeps the condition as it was
+        $this->actingAs($super)->put("/vehicles/{$vehicle->id}", $this->vehiclePayload(['location' => 'Palawan']))->assertSessionHasNoErrors();
+        $this->assertSame('Serviceable', $vehicle->fresh()->condition);
+    }
+
     public function test_a_vehicle_needs_an_area(): void
     {
         $super = $this->superAdmin();

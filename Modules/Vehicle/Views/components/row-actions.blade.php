@@ -43,6 +43,7 @@
         data-vehicle_type="{{ $vehicle->vehicle_type }}"
         data-fuel_type="{{ $vehicle->fuel_type }}"
         data-location="{{ $vehicle->location }}"
+        data-condition="{{ $vehicle->condition }}"
         data-created="{{ $vehicle->created_at?->format('M j, Y g:i A') }}"
         data-updated="{{ $vehicle->updated_at?->format('M j, Y g:i A') }}"
         data-created-by="{{ $vehicle->creator ? $vehicle->creator->name . ($vehicle->creator->role ? ' (' . $vehicle->creator->role->label() . ')' : '') : '' }}"

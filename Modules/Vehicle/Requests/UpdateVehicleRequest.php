@@ -8,6 +8,7 @@ use App\Rules\UniqueIdentifier;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Admin\Enums\UserRole;
+use Modules\Vehicle\Controllers\VehicleRegistryController;
 use Modules\Vehicle\Models\Vehicle;
 use Modules\Vehicle\Models\VehicleType;
 
@@ -62,6 +63,8 @@ class UpdateVehicleRequest extends FormRequest
             ]))],
             'fuel_type' => ['nullable', 'string', 'max:50'],
             'location' => ['required', 'string', 'max:120'],
+            // Same choices as Property & Registration; Unserviceable and For disposal keep it out of new trips
+            'condition' => ['sometimes', 'nullable', Rule::in(VehicleRegistryController::CONDITIONS)],
         ];
     }
 

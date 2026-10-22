@@ -65,6 +65,7 @@ class VehicleRepository implements VehicleRepositoryInterface
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
+            'condition' => $data['condition'] ?? null,
             'created_by' => auth()->id(),
             'updated_by' => auth()->id(),
         ]);
@@ -87,6 +88,7 @@ class VehicleRepository implements VehicleRepositoryInterface
             'vehicle_type' => $data['vehicle_type'] ?? null,
             'fuel_type' => $data['fuel_type'] ?? null,
             'location' => $data['location'] ?? null,
+            'condition' => array_key_exists('condition', $data) ? $data['condition'] : $vehicle->condition,
             'updated_by' => auth()->id(),
         ];
 
