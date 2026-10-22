@@ -26,7 +26,7 @@
     <div>
         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">{{ $isAdmin ? 'Vehicle Reports' : 'Report Vehicle Issue' }}</h1>
         <p class="text-sm text-slate-500">
-            {{ $isAdmin ? $reports->count() . ' driver report(s)' : 'Tell your admin about a problem with your assigned vehicle' }}
+            {{ $isAdmin ? $reports->count() . ' ' . \Illuminate\Support\Str::plural('driver report', $reports->count()) : 'Tell your admin about a problem with your assigned vehicle' }}
         </p>
     </div>
 

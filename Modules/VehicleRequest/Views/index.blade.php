@@ -14,7 +14,7 @@
     <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Travel Requests</h1>
-            <p class="text-sm text-slate-500">Review and confirm staff travel requests submitted via QR code</p>
+            <p class="text-sm text-slate-500">Review and confirm travel requests submitted through the request form</p>
         </div>
 
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">

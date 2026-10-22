@@ -118,7 +118,7 @@ class FleetCardSpendTest extends TestCase
             ->assertSee('₱2,000.00 spent of ₱1,500.00')
             ->assertSee('March: ₱2,000.00 of ₱1,500.00 allowance');
         $this->actingAs($admin)->get('/fleet-cards/monthly-spend')->assertOk()
-            ->assertSee('Monthly spend 2026')->assertSee('Agribusiness &amp; Marketing Assistance Division (AMAD)', false)->assertSee('2,000.00');
+            ->assertSee('Monthly Spend 2026')->assertSee('Agribusiness &amp; Marketing Assistance Division (AMAD)', false)->assertSee('2,000.00');
     }
 
     public function test_admin_records_statement_amounts_for_their_own_area_only(): void

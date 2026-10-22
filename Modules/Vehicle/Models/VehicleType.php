@@ -31,9 +31,14 @@ class VehicleType extends Model
         static::deleted(fn () => self::flushRegistry());
     }
 
-    /** Label used on the category chips on the Vehicles page ("Car" -> "Cars"). */
+    /** Label used on the category chips on the Vehicles page ("Car" -> "Cars", "SUV" -> "SUVs"). */
     public function chipLabel(): string
     {
+        // Str::plural keeps an all-caps word all-caps ("SUVS"); an abbreviation takes a small "s"
+        if (preg_match('/^[A-Z0-9]{2,}$/', $this->name)) {
+            return $this->name.'s';
+        }
+
         return Str::plural($this->name);
     }
 

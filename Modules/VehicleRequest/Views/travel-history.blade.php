@@ -145,8 +145,43 @@
                 </div>
             </div>
 
-            {{-- Table --}}
-            <div class="overflow-x-auto rounded-lg border border-slate-100">
+            {{-- Phones: one card per trip, so nothing needs a sideways swipe --}}
+            <div class="space-y-2 md:hidden">
+                @forelse($mappedTrips as $trip)
+                    <div data-status="{{ $trip['is_upcoming'] ? 'upcoming' : 'completed' }}" data-search="{{ $trip['search_text'] }}" x-show="matchesRow($el.dataset.status, $el.dataset.search)" class="rounded-lg border border-slate-100 p-3 text-xs text-slate-700">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="flex items-start gap-1.5 font-extrabold text-slate-900">
+                                <x-icon name="pin" class="mt-px h-4 w-4 shrink-0 text-red-500" />
+                                <span class="break-words">{{ $trip['destination'] }}</span>
+                            </p>
+                            @if($trip['is_upcoming'])
+                                <span class="shrink-0 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[0.625rem] font-bold text-blue-700">Scheduled</span>
+                            @else
+                                <span class="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-700">Completed</span>
+                            @endif
+                        </div>
+                        @if($trip['purpose'])
+                            <p class="mt-1 text-[0.6875rem] text-slate-600">{{ $trip['purpose'] }}</p>
+                        @endif
+                        <p class="mt-2 font-semibold text-slate-800">{{ $trip['formatted_date'] }} · <span class="font-bold text-slate-900">{{ $trip['vehicle_plate'] }}</span></p>
+                        <p class="mt-0.5 text-[0.6875rem] text-slate-500">
+                            {{ $trip['requester_name'] }} (Requester){{ $trip['more_passengers_count'] > 0 ? ' +'.$trip['more_passengers_count'].' more' : '' }}
+                        </p>
+                        <div class="mt-2.5 flex gap-2">
+                            <button type="button" @click="openModal({{ json_encode($trip) }})" class="flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[0.6875rem] font-bold text-slate-700 hover:bg-slate-50 cursor-pointer">View Details</button>
+                            <a href="{{ $trip['ticket_url'] }}" target="_blank" class="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-center text-[0.6875rem] font-bold text-emerald-700 hover:bg-emerald-100">Ticket</a>
+                        </div>
+                    </div>
+                @empty
+                    <p class="py-10 text-center text-xs font-medium text-slate-400">No travel records found.</p>
+                @endforelse
+                @if($totalCount > 0)
+                    <p x-show="!hasVisibleRows()" style="display: none;" class="py-10 text-center text-xs font-medium text-slate-500">No trips match this view.</p>
+                @endif
+            </div>
+
+            {{-- Tablets and up: the table --}}
+            <div class="hidden overflow-x-auto rounded-lg border border-slate-100 md:block">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-100 bg-slate-50/70 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-500">

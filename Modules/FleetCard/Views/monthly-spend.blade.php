@@ -22,7 +22,7 @@
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
                     Fleet Cards
                 </a>
-                <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Monthly spend {{ $year }}</h1>
+                <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Monthly Spend {{ $year }}</h1>
                 <p class="text-sm text-slate-500">{{ $location ?: 'All locations' }} · per division, as in the Index for Fleetcard sheet</p>
             </div>
             <form method="GET" class="flex flex-wrap items-end gap-2">
@@ -72,10 +72,11 @@
         <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm" aria-labelledby="grid-heading">
             <div class="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
                 <h2 id="grid-heading" class="text-sm font-extrabold text-slate-900">Spend per division (₱)</h2>
+                {{-- How to read the amounts: words in each style, not sample figures that could pass for real ones --}}
                 <p class="flex flex-wrap items-center gap-3 text-[0.6875rem] text-slate-500">
-                    <span><span class="font-semibold text-slate-800">1,234.00</span> statement</span>
-                    <span><span class="italic text-slate-500">1,234.00</span> from logged expenses</span>
-                    <span><span class="rounded bg-amber-100 px-1 font-semibold text-amber-800">1,234.00</span> over allowance</span>
+                    <span><span class="font-semibold text-slate-800">Bold</span> = statement</span>
+                    <span><span class="italic text-slate-500">Italic</span> = from logged expenses</span>
+                    <span><span class="rounded bg-amber-100 px-1 font-semibold text-amber-800">Highlighted</span> = over allowance</span>
                 </p>
             </div>
 

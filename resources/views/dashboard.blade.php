@@ -925,10 +925,10 @@
                                             @endif
                                         </div>
                                         <div class="min-w-0">
-                                            <h3 class="text-xs font-black text-slate-900 truncate">
-                                                {{ $vehicle->brand }} {{ $vehicle->model }} — <span class="font-extrabold text-slate-800">{{ $vehicle->plate_number }}</span>
-                                            </h3>
-                                            <p class="mt-0.5 text-[0.6875rem] font-medium text-slate-500 truncate">
+                                            {{-- Plate first and never cut off: it's what a driver looks for on a phone --}}
+                                            <h3 class="text-sm font-black text-slate-900">{{ $vehicle->plate_number }}</h3>
+                                            <p class="text-xs font-semibold text-slate-700 break-words">{{ trim($vehicle->brand.' '.$vehicle->model) }}</p>
+                                            <p class="mt-0.5 text-[0.6875rem] font-medium leading-snug text-slate-500">
                                                 Color: <span class="font-semibold text-slate-700">{{ $vehicle->color ?: 'N/A' }}</span> ·
                                                 Year: <span class="font-semibold text-slate-700">{{ $vehicle->year ?: 'N/A' }}</span> ·
                                                 Type: <span class="font-semibold text-slate-700">{{ $vehicle->vehicle_type ?: 'N/A' }}</span>
