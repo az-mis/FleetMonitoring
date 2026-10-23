@@ -10,7 +10,18 @@
         // super admins, the admin's own assigned location for everyone else. Only fall back
         // to the query string if it wasn't passed in.
         $selectedLocation = $selectedLocation ?? request('location');
-        $locationButtonLabel = $selectedLocation ?: 'All Locations';
+        $noLocation = \Modules\Vehicle\Models\Vehicle::NO_LOCATION;
+        $locationButtonLabel = $selectedLocation === $noLocation ? 'No Location' : ($selectedLocation ?: 'All Locations');
+
+        // Filters menu: which filters are on, and links that change one setting while keeping the rest
+        $activeFilters = $activeFilters ?? [];
+        $filterOptions = \Modules\Vehicle\Services\VehicleService::LIST_FILTERS;
+        $filterGroups = \Modules\Vehicle\Services\VehicleService::LIST_FILTER_GROUPS;
+        $listQueryKeys = array_merge(['search', 'per_page', 'location'], array_keys($filterOptions));
+        $vehicleListUrl = fn (array $changes = []) => route('vehicles.index', array_filter(
+            array_merge(request()->only($listQueryKeys), $changes),
+            fn ($value) => $value !== null && $value !== ''
+        ));
     @endphp
 
     {{-- Page header --}}
@@ -68,20 +79,28 @@
                         </button>
 
                         <div id="vehicle-location-menu" class="absolute left-0 z-20 mt-2 hidden w-64 sm:left-auto sm:right-0 overflow-hidden rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/5">
-                            <a href="{{ route('vehicles.index', array_filter(['search' => request('search'), 'per_page' => request('per_page')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ !$selectedLocation ? 'bg-emerald-50 text-emerald-800' : '' }}">
+                            <a href="{{ $vehicleListUrl(['location' => null]) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ !$selectedLocation ? 'bg-emerald-50 text-emerald-800' : '' }}">
                                 <span>All Locations</span>
                                 @if(!$selectedLocation)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                                 @endif
                             </a>
                             @foreach($locationOptions as $opt)
-                                <a href="{{ route('vehicles.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => $opt])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
+                                <a href="{{ $vehicleListUrl(['location' => $opt]) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
                                     <span>{{ $opt }}</span>
                                     @if($selectedLocation === $opt)
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                                     @endif
                                 </a>
                             @endforeach
+                            {{-- Vehicles not yet given a location (e.g. imported without one) --}}
+                            <div class="my-1 border-t border-slate-100"></div>
+                            <a href="{{ $vehicleListUrl(['location' => $noLocation]) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $noLocation ? 'bg-emerald-50 text-emerald-800' : '' }}">
+                                <span>No Location <span class="font-medium text-slate-400">({{ $noLocationCount ?? 0 }})</span></span>
+                                @if($selectedLocation === $noLocation)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                @endif
+                            </a>
                         </div>
                     </div>
                 @else
@@ -93,6 +112,46 @@
                         <span class="max-w-[9rem] truncate">{{ $selectedLocation ?: 'All Locations' }}</span>
                     </div>
                 @endif
+
+                {{-- Filters: assigned driver, health score, change oil, papers --}}
+                <div class="relative">
+                    <button
+                        type="button"
+                        id="vehicle-filters-button"
+                        onclick="toggleVehicleFiltersMenu()"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="vehicle-filters-menu"
+                        class="inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition cursor-pointer {{ $activeFilters ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50' }}"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 {{ $activeFilters ? 'text-emerald-700' : 'text-slate-400' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+                        </svg>
+                        <span>Filters</span>
+                        @if ($activeFilters)
+                            <span class="flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-700 px-1 text-[0.625rem] font-bold text-white">{{ count($activeFilters) }}</span>
+                        @endif
+                    </button>
+
+                    <form id="vehicle-filters-menu" onsubmit="return applyVehicleFilters(event)" class="absolute left-0 z-20 mt-2 hidden w-72 space-y-3 rounded-xl bg-white p-4 shadow-xl ring-1 ring-black/5 sm:left-auto sm:right-0">
+                        @foreach ($filterGroups as $key => $groupLabel)
+                            <div>
+                                <label for="vehicle-filter-{{ $key }}" class="mb-1 block text-[0.6875rem] font-bold text-slate-700">{{ $groupLabel }}</label>
+                                <select id="vehicle-filter-{{ $key }}" name="{{ $key }}" class="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                    <option value="">Any</option>
+                                    @foreach ($filterOptions[$key] as $value => $optionLabel)
+                                        <option value="{{ $value }}" @selected(($activeFilters[$key] ?? null) === $value)>{{ $optionLabel }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endforeach
+
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                            <a href="{{ $vehicleListUrl(array_fill_keys(array_keys($filterOptions), null)) }}" class="text-xs font-semibold text-slate-500 hover:text-slate-700">Clear all</a>
+                            <button type="submit" class="inline-flex items-center rounded-lg bg-[#005a36] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#00432a] cursor-pointer">Apply filters</button>
+                        </div>
+                    </form>
+                </div>
 
                 {{-- View toggle buttons (segmented switch) --}}
                 <div class="flex h-10 shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1">
@@ -178,10 +237,26 @@
         </button>
     </div>
 
-    @if (request('papers') === 'due')
+    {{-- Active filters, each removable on its own (papers has its own banner below) --}}
+    @php $chipFilters = array_diff_key($activeFilters, ['papers' => true]); @endphp
+    @if ($chipFilters)
+        <div class="mb-3 flex flex-wrap items-center gap-2" role="status">
+            <span class="text-xs font-semibold text-slate-500">Filtered by:</span>
+            @foreach ($chipFilters as $key => $value)
+                <a href="{{ $vehicleListUrl([$key => null]) }}" title="Remove this filter" class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100">
+                    <span>{{ $filterGroups[$key] }}: {{ $filterOptions[$key][$value] }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                    <span class="sr-only">Remove</span>
+                </a>
+            @endforeach
+            <a href="{{ $vehicleListUrl(array_fill_keys(array_keys($filterOptions), null)) }}" class="text-xs font-semibold text-slate-500 underline hover:text-slate-700">Clear filters</a>
+        </div>
+    @endif
+
+    @if (($activeFilters['papers'] ?? null) === 'due')
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800" role="status">
             <span>Showing vehicles whose registration or insurance has expired or expires within {{ \Modules\Vehicle\Models\Vehicle::PAPERS_DUE_DAYS }} days.</span>
-            <a href="{{ route('vehicles.index', array_filter(['location' => request('location')])) }}" class="font-semibold underline">Show all vehicles</a>
+            <a href="{{ $vehicleListUrl(['papers' => null]) }}" class="font-semibold underline">Show all vehicles</a>
         </div>
     @endif
 
@@ -1588,6 +1663,43 @@
                 document.getElementById('vehicle-location-chevron')?.classList.remove('rotate-180');
             }
         });
+
+        function toggleVehicleFiltersMenu(force) {
+            const menu = document.getElementById('vehicle-filters-menu');
+            const open = typeof force === 'boolean' ? force : menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !open);
+            document.getElementById('vehicle-filters-button')?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        document.addEventListener('click', function (e) {
+            const menu = document.getElementById('vehicle-filters-menu');
+            if (menu && !menu.classList.contains('hidden') && !e.target.closest('#vehicle-filters-button') && !menu.contains(e.target)) {
+                toggleVehicleFiltersMenu(false);
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !document.getElementById('vehicle-filters-menu')?.classList.contains('hidden')) {
+                toggleVehicleFiltersMenu(false);
+                document.getElementById('vehicle-filters-button')?.focus();
+            }
+        });
+
+        // Keeps the current search, location and page size (the live search updates the address bar)
+        function applyVehicleFilters(event) {
+            event.preventDefault();
+            const url = new URL(window.location.href);
+            new FormData(event.target).forEach((value, key) => {
+                if (value) {
+                    url.searchParams.set(key, value);
+                } else {
+                    url.searchParams.delete(key);
+                }
+            });
+            url.searchParams.delete('page');
+            window.location.href = url.toString();
+            return false;
+        }
 
         function clearVehicleSearch(event) {
             event.preventDefault();

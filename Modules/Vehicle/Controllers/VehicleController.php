@@ -37,13 +37,16 @@ class VehicleController extends Controller
 
         $user = auth()->user();
         $isSuperAdmin = $user?->role === UserRole::SUPER_ADMIN;
+        // Super admins pick a location (or "none": vehicles with no location yet); admins see their own
         $location = $isSuperAdmin ? request('location') : $user?->location;
+        $filters = $this->vehicleService->listFilters(request()->query());
 
         $perPage = min(max((int) request('per_page', 10), 1), 100);
         $vehicles = $this->vehicleService->list(
             search: request('search'),
             location: $location,
-            perPage: $perPage
+            perPage: $perPage,
+            filters: $filters
         );
         if ($lastPage = $this->pageOutOfRange($vehicles)) {
             return $lastPage;
@@ -55,6 +58,8 @@ class VehicleController extends Controller
             'vehicles' => $vehicles,
             'isSuperAdmin' => $isSuperAdmin,
             'selectedLocation' => $location,
+            'activeFilters' => $filters,
+            'noLocationCount' => $isSuperAdmin ? Vehicle::query()->atLocation(Vehicle::NO_LOCATION)->count() : 0,
             'vehicleTypes' => $this->vehicleService->vehicleTypes(),
             'typeCounts' => $typeCounts['counts'],
             'totalVehicleCount' => $typeCounts['total'],

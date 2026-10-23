@@ -10,14 +10,14 @@ use Modules\Vehicle\Models\Vehicle;
 
 class VehicleRepository implements VehicleRepositoryInterface
 {
-    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null, array $filters = []): LengthAwarePaginator
     {
-        return Vehicle::query()
-            ->with(['assignedDriver', 'creator', 'updater'])
-            ->withHealthData()
-            ->when($location, fn ($q) => $q->where('location', $location))
+        $query = Vehicle::query()
+            ->atLocation($location)
+            ->when(($filters['driver'] ?? null) === 'assigned', fn ($q) => $q->whereNotNull('assigned_driver_id'))
+            ->when(($filters['driver'] ?? null) === 'unassigned', fn ($q) => $q->whereNull('assigned_driver_id'))
             // Dashboard "Vehicle papers due" link: registration or insurance expired or expiring soon
-            ->when(request('papers') === 'due', fn ($q) => $q->papersDue())
+            ->when(($filters['papers'] ?? null) === 'due', fn ($q) => $q->papersDue())
             ->when($search, function ($q) use ($search) {
                 $terms = preg_split('/\s+/', trim($search), -1, PREG_SPLIT_NO_EMPTY);
 
@@ -40,7 +40,21 @@ class VehicleRepository implements VehicleRepositoryInterface
                             }
                         });
                 });
-            })
+            });
+
+        $health = $filters['health'] ?? null;
+        $oil = $filters['oil'] ?? null;
+        if ($health || $oil) {
+            // Health score and change-oil status are worked out in PHP, so match them on the filtered set first
+            $matching = (clone $query)->withHealthData()->get()->filter(fn (Vehicle $vehicle) => (! $health || strtolower($vehicle->health_score['label']) === $health)
+                && (! $oil || $vehicle->change_oil_status['status'] === $oil)
+            );
+            $query->whereKey($matching->modelKeys());
+        }
+
+        return $query
+            ->with(['assignedDriver', 'creator', 'updater'])
+            ->withHealthData()
             ->latest()
             ->paginate($perPage)
             ->appends(request()->query());

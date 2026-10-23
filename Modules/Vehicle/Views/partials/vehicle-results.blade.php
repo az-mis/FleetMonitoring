@@ -9,6 +9,10 @@
         <p class="mt-1 text-sm text-gray-500">
             @if (request('search'))
                 No results match "{{ request('search') }}".
+            @elseif (request()->hasAny(array_keys(\Modules\Vehicle\Services\VehicleService::LIST_FILTERS)))
+                No vehicles match the selected filters.
+            @elseif (request('location') === \Modules\Vehicle\Models\Vehicle::NO_LOCATION)
+                Every vehicle has a location.
             @else
                 Get started by registering your first vehicle.
             @endif

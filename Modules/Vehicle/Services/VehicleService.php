@@ -13,14 +13,51 @@ use Modules\Vehicle\Repositories\VehicleRepositoryInterface;
 
 class VehicleService
 {
+    /** Vehicles list filters: query key => [value => label] (the Filters menu and its chips use the labels) */
+    public const LIST_FILTERS = [
+        'driver' => ['unassigned' => 'No driver assigned', 'assigned' => 'Has a driver'],
+        'health' => ['good' => 'Good (80–100%)', 'fair' => 'Fair (50–79%)', 'poor' => 'Poor (below 50%)'],
+        'oil' => ['overdue' => 'Change oil overdue', 'due_soon' => 'Change oil due soon', 'ok' => 'Oil OK'],
+        'papers' => ['due' => 'Registration or insurance due'],
+    ];
+
+    /** Names of the filter groups, in menu order */
+    public const LIST_FILTER_GROUPS = [
+        'driver' => 'Assigned driver',
+        'health' => 'Health score',
+        'oil' => 'Change oil',
+        'papers' => 'Papers',
+    ];
+
     public function __construct(
         private readonly VehicleRepositoryInterface $repository,
     ) {
     }
 
-    public function list(?string $search = null, ?string $location = null, int $perPage = 10): LengthAwarePaginator
+    /**
+     * @param  array<string, string>  $filters  Validated list filters (see listFilters())
+     */
+    public function list(?string $search = null, ?string $location = null, int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        return $this->repository->paginate(perPage: $perPage, search: $search, location: $location);
+        return $this->repository->paginate(perPage: $perPage, search: $search, location: $location, filters: $filters);
+    }
+
+    /**
+     * The known list filters present in the input; unknown keys and values are dropped.
+     *
+     * @return array<string, string>
+     */
+    public function listFilters(array $input): array
+    {
+        $filters = [];
+        foreach (self::LIST_FILTERS as $key => $options) {
+            $value = $input[$key] ?? null;
+            if (is_string($value) && array_key_exists($value, $options)) {
+                $filters[$key] = $value;
+            }
+        }
+
+        return $filters;
     }
 
     public function createVehicle(array $data): Vehicle
@@ -57,7 +94,7 @@ class VehicleService
         $total = 0;
 
         $types = Vehicle::query()
-            ->when($location, fn ($q) => $q->where('location', $location))
+            ->atLocation($location)
             ->pluck('vehicle_type');
 
         foreach ($types as $rawType) {

@@ -81,6 +81,19 @@ class Vehicle extends Model
     /** Conditions (Property & Registration) that keep a vehicle out of new trips */
     public const UNUSABLE_CONDITIONS = ['Unserviceable', 'For disposal'];
 
+    /** The ?location= value that lists vehicles not yet given a location (Super Admin's Vehicles list) */
+    public const NO_LOCATION = 'none';
+
+    /** Vehicles at one location; NO_LOCATION means vehicles with no location yet, null means all */
+    public function scopeAtLocation(Builder $query, ?string $location): void
+    {
+        if ($location === self::NO_LOCATION) {
+            $query->where(fn ($q) => $q->whereNull('location')->orWhere('location', ''));
+        } elseif ($location) {
+            $query->where('location', $location);
+        }
+    }
+
     /** Vehicles that may be booked: not marked Unserviceable or For disposal */
     public function scopeBookable(Builder $query): void
     {
