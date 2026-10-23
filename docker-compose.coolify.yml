@@ -1,0 +1,64 @@
+# Coolify (Docker Compose build pack): the web app and the queue worker,
+# built from the same Dockerfile and sharing the uploads volume. The database is a
+# separate Coolify MySQL resource, reached through Coolify's predefined network
+# ("Connect To Predefined Network" on). Every value is set in Coolify's Environment
+# Variables tab; none is written here. See docs/deploy/COOLIFY.md in the repository.
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - '8080'
+    volumes:
+      - fleet-storage:/var/www/html/storage/app
+    environment: &environment
+      APP_NAME: ${APP_NAME:-FMS}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+      AUTH_REGISTRATION_ENABLED: ${AUTH_REGISTRATION_ENABLED:-false}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DB_CONNECTION: ${DB_CONNECTION:-mysql}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      SESSION_LIFETIME: ${SESSION_LIFETIME:-120}
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-false}
+      SESSION_ENCRYPT: ${SESSION_ENCRYPT:-true}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_SCHEME: ${MAIL_SCHEME:-smtp}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-DA MIS MIMAROPA}
+
+  # Emails and other background work, written after each save commits.
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=60 --max-time=3600
+    stop_grace_period: 90s
+    healthcheck:
+      disable: true
+    volumes:
+      - fleet-storage:/var/www/html/storage/app
+    environment: *environment
+
+# Uploaded documents, photos, logos and import files: kept between deployments. Back it up with the database.
+volumes:
+  fleet-storage:
