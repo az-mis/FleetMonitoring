@@ -24,15 +24,43 @@
         ));
     @endphp
 
-    {{-- Page header --}}
-    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
+    {{-- Page header: title and the page's main actions --}}
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0">
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Vehicles</h1>
             <p class="text-sm text-slate-500">Manage your fleet vehicles</p>
         </div>
 
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <form method="GET" action="{{ route('vehicles.index') }}" id="vehicle-search-form" class="flex w-full min-w-0 items-center gap-2 sm:w-72 xl:w-96" onsubmit="return false;">
+        <div class="flex flex-wrap items-center gap-2">
+            <button
+                type="button"
+                onclick="openPmsRulesModal()"
+                class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/80 px-3.5 text-xs font-bold text-amber-900 shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition cursor-pointer"
+                title="Configure routine PMS service rules across vehicle types"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+                <span>PMS Rules & Templates</span>
+            </button>
+
+            <button
+                type="button"
+                onclick="openRegisterVehicleModal()"
+                class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm hover:bg-[#00432a] transition cursor-pointer"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                <span>Register Vehicle</span>
+            </button>
+        </div>
+    </div>
+
+    {{-- Toolbar: search, location, filters and list/grid view --}}
+    <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-col gap-2 md:flex-row md:items-center md:flex-1 md:min-w-0">
+            <form method="GET" action="{{ route('vehicles.index') }}" id="vehicle-search-form" class="flex w-full min-w-0 items-center gap-2 md:max-w-md lg:max-w-lg" onsubmit="return false;">
                 <div class="relative w-full">
                     <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="7"/>
@@ -57,7 +85,7 @@
                 <a href="{{ route('vehicles.index') }}" id="vehicle-search-clear" onclick="return clearVehicleSearch(event)" class="shrink-0 text-xs font-semibold text-slate-500 hover:text-slate-700 {{ request('search') ? '' : 'hidden' }}">Clear</a>
             </form>
 
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="relative flex flex-wrap items-center gap-2">
                 {{-- Location filter (moved up from the chips row) --}}
                 @if ($isSuperAdmin)
                     <div class="relative">
@@ -113,8 +141,8 @@
                     </div>
                 @endif
 
-                {{-- Filters: assigned driver, health score, change oil, papers --}}
-                <div class="relative">
+                {{-- Filters: assigned driver, health score, change oil, papers (on phones the menu spans the toolbar) --}}
+                <div class="sm:relative">
                     <button
                         type="button"
                         id="vehicle-filters-button"
@@ -133,7 +161,7 @@
                         @endif
                     </button>
 
-                    <form id="vehicle-filters-menu" onsubmit="return applyVehicleFilters(event)" class="absolute left-0 z-20 mt-2 hidden w-72 space-y-3 rounded-xl bg-white p-4 shadow-xl ring-1 ring-black/5 sm:left-auto sm:right-0">
+                    <form id="vehicle-filters-menu" onsubmit="return applyVehicleFilters(event)" class="absolute inset-x-0 z-20 mt-2 hidden space-y-3 rounded-xl bg-white p-4 shadow-xl ring-1 ring-black/5 sm:inset-x-auto sm:right-0 sm:w-72">
                         @foreach ($filterGroups as $key => $groupLabel)
                             <div>
                                 <label for="vehicle-filter-{{ $key }}" class="mb-1 block text-[0.6875rem] font-bold text-slate-700">{{ $groupLabel }}</label>
@@ -186,29 +214,6 @@
                         </svg>
                     </button>
                 </div>
-
-                <button
-                    type="button"
-                    onclick="openPmsRulesModal()"
-                    class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/80 px-3.5 text-xs font-bold text-amber-900 shadow-2xs hover:bg-amber-100 hover:border-amber-300 transition cursor-pointer"
-                    title="Configure routine PMS service rules across vehicle types"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-                    </svg>
-                    <span>PMS Rules & Templates</span>
-                </button>
-
-                <button
-                    type="button"
-                    onclick="openRegisterVehicleModal()"
-                    class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#005a36] px-4 text-xs font-extrabold text-white shadow-sm hover:bg-[#00432a] transition cursor-pointer"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    <span>Register Vehicle</span>
-                </button>
             </div>
         </div>
     </div>
