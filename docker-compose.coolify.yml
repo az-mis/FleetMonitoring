@@ -1,8 +1,8 @@
 # Coolify (Docker Compose build pack): the web app and the queue worker,
 # built from the same Dockerfile and sharing the uploads volume. The database is a
 # separate Coolify MySQL resource, reached through Coolify's predefined network
-# ("Connect To Predefined Network" on). Every value is set in Coolify's Environment
-# Variables tab; none is written here. See docs/deploy/COOLIFY.md in the repository.
+# ("Connect To Predefined Network" on). Values are set in Coolify's Environment Variables
+# tab; only safe defaults are written here, never a secret. See the Deployment Guide (FMS-DOC-02).
 services:
   web:
     build:
@@ -31,14 +31,17 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       SESSION_DRIVER: ${SESSION_DRIVER:-database}
       SESSION_LIFETIME: ${SESSION_LIFETIME:-120}
-      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-false}
+      # The site is served over HTTPS: session cookies are only sent over HTTPS
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
       SESSION_ENCRYPT: ${SESSION_ENCRYPT:-true}
       CACHE_STORE: ${CACHE_STORE:-database}
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
       FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}
-      MAIL_MAILER: ${MAIL_MAILER:-log}
+      # "Forgot password?" needs a real mailer ("log" sends nothing). Defaults to the office's Gmail SMTP;
+      # MAIL_USERNAME, MAIL_PASSWORD (Google App Password) and MAIL_FROM_ADDRESS must be set in Coolify.
+      MAIL_MAILER: ${MAIL_MAILER:-smtp}
       MAIL_SCHEME: ${MAIL_SCHEME:-smtp}
-      MAIL_HOST: ${MAIL_HOST}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
