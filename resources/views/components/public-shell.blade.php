@@ -71,7 +71,7 @@
         </main>
 
         <footer class="px-4 pb-6 text-center text-xs text-pub-muted">
-            © {{ date('Y') }} {{ config('app.name') }} · Official Government Fleet Management System · Authorized personnel only
+            © {{ date('Y') }} DA MIMAROPA · Powered by MIS · Developed by Alvin Zoleta
         </footer>
     </div>
 

@@ -41,4 +41,13 @@ class UiPolishTest extends TestCase
             ->assertSee('submitted through the request form')->assertDontSee('QR code');
         $this->actingAs($this->superAdmin())->get('/vehicle-reports')->assertOk()->assertDontSee('report(s)');
     }
+
+    public function test_public_pages_show_the_office_footer(): void
+    {
+        $footer = '© '.date('Y').' DA MIMAROPA · Powered by MIS · Developed by Alvin Zoleta';
+
+        foreach (['/', '/request-vehicle', '/check-status', '/login', '/forgot-password'] as $page) {
+            $this->get($page)->assertOk()->assertSee($footer, false);
+        }
+    }
 }
