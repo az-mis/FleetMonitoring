@@ -1,6 +1,23 @@
-<x-public-shell title="Request a Vehicle" active="request" width="max-w-3xl">
+<x-public-shell title="Request a Vehicle" active="request" width="max-w-3xl"
+    kicker="Request a Vehicle" heading="Book an official vehicle"
+    lede="No account needed. You will get a reference code to track your request."
+    :points="[
+        [1, 'Submit your request', 'Fill in your details, trip and passengers.'],
+        [2, 'An administrator reviews it', 'They approve it and confirm the driver.'],
+        [3, 'Track and print', 'Check the status with your code and print your trip ticket.'],
+    ]">
     <x-slot:head>
     <style>
+        /* Booking calendar: a dot for each day's bookings, the picked range, and past or too-far days greyed out */
+        #cal-grid .cal-day { position: relative; width: 100%; height: 2.5rem; border: 0; border-radius: 8px; background: transparent; font-family: inherit; font-size: 0.8125rem; font-weight: 500; color: var(--color-pub-text); cursor: pointer; }
+        #cal-grid .cal-day:hover:not(:disabled) { background: var(--color-pub-subtle); }
+        #cal-grid .cal-day:disabled { color: #d0d5dd; cursor: not-allowed; }
+        #cal-grid .cal-day.is-today { font-weight: 700; color: var(--color-pub-accent); }
+        #cal-grid .cal-day.is-range { background: var(--color-pub-highlight); border-radius: 0; }
+        #cal-grid .cal-day.is-sel { background: var(--color-pub-primary); color: #fff; font-weight: 700; }
+        #cal-grid .cal-day[data-mark]::after { content: ""; position: absolute; left: 50%; bottom: 5px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 999px; background: var(--mark); }
+        #cal-grid .cal-day.is-sel::after { background: #fff; }
+
         /* ── Phone-friendly form (screens under 640px) ─────────────────────────
            - 16px input text stops iOS Safari from zooming the page on focus
            - 44px controls are comfortable to tap with a thumb */
@@ -37,10 +54,10 @@
     </style>
     </x-slot:head>
 
-    <div class="public-card p-4 sm:p-6">
-        <div class="mb-4">
-            <h1 class="text-xl font-bold tracking-tight">Request a vehicle</h1>
-            <p class="mt-1 text-[0.8125rem] text-pub-muted">Book a government vehicle for official travel. No account needed. You'll get a reference code to track it.</p>
+    <div>
+        <div class="mb-6">
+            <h1 class="text-[1.65rem] font-bold tracking-tight">Request a vehicle</h1>
+            <p class="mt-1.5 text-[0.9375rem] leading-6 text-pub-muted">Book a government vehicle for official travel. No account needed. You'll get a reference code to track it.</p>
         </div>
         @if (isset($errors) && $errors->any())
             <div class="mb-5 rounded-xl border border-pub-danger-border bg-pub-danger-soft p-4 text-sm text-pub-danger" role="alert">
@@ -53,7 +70,7 @@
             </div>
         @endif
 
-        <form class="space-y-3" method="POST" autocomplete="off" action="{{ route('request-vehicle.store') }}">
+        <form class="@container space-y-4" method="POST" autocomplete="off" action="{{ route('request-vehicle.store') }}">
             @csrf
             <input type="hidden" name="form_token" value="{{ $formToken ?? '' }}">
 @php
@@ -61,16 +78,16 @@ $offices = \App\Models\Office::options();
 @endphp
 
             <div class="flex items-center gap-2.5">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">1</span>
-                <h2 class="text-sm font-semibold text-pub-text">Your details</h2>
-                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
+                <span class="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-pub-highlight text-xs font-bold text-pub-accent">1</span>
+                <h2 class="text-base font-semibold tracking-tight text-pub-text">Your details</h2>
+                <span class="h-px flex-1 bg-pub-line" aria-hidden="true"></span>
             </div>
-            <div class="form-row grid gap-3 sm:grid-cols-2">
+            <div class="form-row grid gap-3 @xl:grid-cols-2">
                 <div>
                     <label for="rv-requesterName" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Your Full Name <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <input id="rv-requesterName" name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <input id="rv-requesterName" name="requesterName" required value="{{ old('requesterName') }}" placeholder="e.g. Juan Dela Cruz" class="h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
                     </div>
                 </div>
 
@@ -91,7 +108,7 @@ $offices = \App\Models\Office::options();
                         aria-expanded="false"
                         aria-controls="office-dropdown-panel"
                         onclick="toggleOfficeDropdown()"
-                        class="group flex h-10 w-full items-center justify-between rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-left text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40 focus-visible:ring-2 focus-visible:ring-pub-accent/60 transition cursor-pointer relative"
+                        class="group flex h-11 w-full items-center justify-between rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-3 text-left text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15 focus-visible:ring-2 focus-visible:ring-pub-accent/60 transition cursor-pointer relative"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
                         <span id="office-dropdown-selected-label" class="truncate {{ old('requesterOffice') ? 'text-pub-text' : 'text-pub-faint' }}">{{ old('requesterOffice') ?: '— Select your office / division —' }}</span>
@@ -103,7 +120,7 @@ $offices = \App\Models\Office::options();
                     {{-- Dropdown Menu Panel --}}
                     <div
                         id="office-dropdown-panel"
-                        class="absolute left-0 right-0 sm:left-auto sm:w-96 top-full z-50 mt-1.5 hidden rounded-xl border border-pub-border bg-pub-panel p-2 shadow-2xl backdrop-blur-md"
+                        class="absolute left-0 right-0 sm:left-auto sm:w-96 top-full z-50 mt-1.5 hidden rounded-xl border border-pub-line bg-pub-panel p-2 shadow-xl"
                     >
                         {{-- Search Bar inside Dropdown --}}
                         <div class="relative mb-2">
@@ -117,7 +134,7 @@ $offices = \App\Models\Office::options();
                                 aria-label="Search office"
                                 oninput="filterOfficeOptions()"
                                 placeholder="Search office..."
-                                class="w-full rounded-lg border border-pub-border bg-pub-field py-1.5 pl-8 pr-3 text-xs text-pub-text placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
+                                class="w-full rounded-lg border border-pub-border bg-pub-field py-1.5 pl-8 pr-3 text-xs text-pub-text placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
                             >
                         </div>
 
@@ -152,17 +169,17 @@ $offices = \App\Models\Office::options();
             </div>
 
 
-            <div class="flex items-center gap-2.5 pt-1">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">2</span>
-                <h2 class="text-sm font-semibold text-pub-text">Trip details</h2>
-                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
+            <div class="flex items-center gap-2.5 pt-5">
+                <span class="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-pub-highlight text-xs font-bold text-pub-accent">2</span>
+                <h2 class="text-base font-semibold tracking-tight text-pub-text">Trip details</h2>
+                <span class="h-px flex-1 bg-pub-line" aria-hidden="true"></span>
             </div>
-            <div class="form-row grid gap-3 sm:grid-cols-2">
+            <div class="form-row grid gap-3 @xl:grid-cols-2">
                 <div>
                     <label for="rv-location" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>From (Station) <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <select id="rv-location" name="location" required class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <select id="rv-location" name="location" required class="h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
                             <option value="">— Select Your Station —</option>
                             @foreach(\App\Support\FleetLocations::ALL as $loc)
                                 <option value="{{ $loc }}" @selected(old('location') === $loc)>{{ $loc }}</option>
@@ -192,7 +209,7 @@ $offices = \App\Models\Office::options();
                         aria-labelledby="public-dest-label"
                         onclick="togglePublicDestDropdown()"
                         onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown')) { event.preventDefault(); togglePublicDestDropdown(); }"
-                        class="group flex min-h-10 w-full items-center justify-between rounded-xl border border-pub-border bg-pub-field pl-3 pr-3 text-left text-sm text-pub-text focus-within:border-pub-accent focus-within:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent/60 transition cursor-pointer relative"
+                        class="group flex min-h-11 w-full items-center justify-between rounded-lg border border-pub-border bg-pub-field shadow-xs pl-3 pr-3 text-left text-sm text-pub-text focus-within:border-pub-accent focus-within:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent/60 transition cursor-pointer relative"
                     >
                         <div id="public-dest-pills-container" class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 py-1">
                             <span id="public-dest-placeholder" class="text-pub-faint">
@@ -215,7 +232,7 @@ $offices = \App\Models\Office::options();
                         aria-labelledby="public-dest-label"
                         onkeydown="if (event.key === 'Escape') { event.preventDefault(); closePublicDestDropdown(); document.getElementById('public-dest-dropdown-trigger')?.focus(); }"
                         style="max-height: 230px; overflow-y: auto; overscroll-behavior: contain;"
-                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-pub-border bg-pub-panel p-2 shadow-2xl backdrop-blur-md max-h-[230px] overflow-y-auto overscroll-contain scrollbar-thin"
+                        class="absolute left-0 right-0 top-full z-50 mt-1.5 hidden rounded-xl border border-pub-line bg-pub-panel p-2 shadow-xl max-h-[230px] overflow-y-auto overscroll-contain scrollbar-thin"
                     >
                         {{-- Search & Direct Add Input --}}
                         <div class="sticky top-0 z-10 bg-pub-panel pb-2 pt-0.5">
@@ -230,7 +247,7 @@ $offices = \App\Models\Office::options();
                                     oninput="filterPublicDestOptions()"
                                     onkeydown="onPublicDestSearchKeyDown(event)"
                                     placeholder="Type place name or search registered locations..."
-                                    class="w-full rounded-lg border border-pub-border bg-pub-field py-1.5 pl-8 pr-3 text-xs text-pub-text placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
+                                    class="w-full rounded-lg border border-pub-border bg-pub-field py-1.5 pl-8 pr-3 text-xs text-pub-text placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
                                 >
                             </div>
                             <p class="text-xs text-pub-muted mt-1 px-1">Tip: Select multiple registered places below or type any custom location and press Enter.</p>
@@ -252,41 +269,41 @@ $offices = \App\Models\Office::options();
 
             {{-- Station calendar + vehicle cards. Hidden until a station is chosen. --}}
             <div id="station-panel" class="hidden space-y-3">
-                <div class="form-row grid gap-3 sm:grid-cols-2">
+                <div class="form-row grid gap-3 @xl:grid-cols-2">
                     <div>
                         <label for="rv-travelDate" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (From) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input id="rv-travelDate" type="date" name="travelDate" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD)->toDateString() }}" value="{{ old('travelDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                            <input id="rv-travelDate" type="date" name="travelDate" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD)->toDateString() }}" value="{{ old('travelDate') }}" class="h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
                         </div>
                     </div>
                     <div>
                         <label for="rv-travelDateEnd" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Travel Date (To) <span class="text-pub-accent">*</span></span></label>
                         <div class="group relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                            <input id="rv-travelDateEnd" type="date" name="travelDateEnd" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD + \Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_TRIP_DAYS - 1)->toDateString() }}" value="{{ old('travelDateEnd') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                            <input id="rv-travelDateEnd" type="date" name="travelDateEnd" required min="{{ today()->toDateString() }}" max="{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD + \Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_TRIP_DAYS - 1)->toDateString() }}" value="{{ old('travelDateEnd') }}" class="h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
                         </div>
                     </div>
                 </div>
 
-                <div id="booking-calendar" class="rounded-xl border border-pub-border bg-pub-field p-2.5 backdrop-blur">
-                    <div class="mb-2 flex items-center justify-between">
-                        <button type="button" id="cal-prev" aria-label="Previous month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-pub-border bg-pub-highlight text-base text-pub-text transition hover:bg-pub-highlight">‹</button>
-                        <span id="cal-month-label" class="text-xs font-bold text-pub-text"></span>
-                        <button type="button" id="cal-next" aria-label="Next month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-pub-border bg-pub-highlight text-base text-pub-text transition hover:bg-pub-highlight">›</button>
+                <div id="booking-calendar" class="rounded-xl border border-pub-line bg-pub-panel p-4">
+                    <div class="mb-3 flex items-center justify-between">
+                        <button type="button" id="cal-prev" aria-label="Previous month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-pub-line bg-pub-panel text-base text-pub-body transition hover:bg-pub-subtle disabled:cursor-not-allowed disabled:opacity-40">‹</button>
+                        <span id="cal-month-label" class="text-sm font-bold text-pub-text"></span>
+                        <button type="button" id="cal-next" aria-label="Next month" class="flex h-8 w-8 items-center justify-center rounded-lg border border-pub-line bg-pub-panel text-base text-pub-body transition hover:bg-pub-subtle disabled:cursor-not-allowed disabled:opacity-40">›</button>
                     </div>
-                    <div class="grid grid-cols-7 gap-[3px] text-center">
+                    <div class="grid grid-cols-7 gap-1 text-center">
                         @foreach(['S','M','T','W','T','F','S'] as $d)
-                            <div class="py-0.5 text-[0.6875rem] font-bold text-pub-muted">{{ $d }}</div>
+                            <div class="pb-1 text-xs font-semibold text-pub-faint">{{ $d }}</div>
                         @endforeach
                     </div>
-                    <div id="cal-grid" class="grid grid-cols-7 gap-[3px] text-center"></div>
+                    <div id="cal-grid" class="grid grid-cols-7 gap-1 text-center"></div>
                     <p class="mt-2 text-xs text-pub-muted">Tip: click your travel date to see the available vehicles, then click your end date. Click the same date again for a one-day trip.</p>
                     <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-pub-muted">
-                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:transparent;border:1px solid var(--color-pub-faint)"></span>No requests yet</span>
-                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#2f855a"></span>Approved Trip</span>
-                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#dd6b20"></span>Pending Request</span>
-                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-sm" style="background:#b91c1c"></span>Maintenance</span>
+                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-full" style="background:transparent;border:1px solid var(--color-pub-faint)"></span>No requests yet</span>
+                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-full" style="background:#2f855a"></span>Approved Trip</span>
+                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-full" style="background:#dd6b20"></span>Pending Request</span>
+                        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-full" style="background:#b91c1c"></span>Maintenance</span>
                     </div>
                 </div>
 
@@ -294,22 +311,22 @@ $offices = \App\Models\Office::options();
                     <label class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Select Vehicle <span class="text-pub-accent">*</span></span></label>
                     <p id="vehicle-hint" class="mb-2 text-xs text-pub-muted"></p>
                     <input type="hidden" name="vehicleId" id="vehicle-id-input" value="{{ old('vehicleId') }}">
-                    <div id="vehicle-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
+                    <div id="vehicle-cards" class="grid grid-cols-1 gap-2.5 @md:grid-cols-2 @2xl:grid-cols-3"></div>
                     <p class="mt-2 text-xs text-pub-muted">The admin confirms the driver when approving your request. The driver's name appears on your printable trip ticket.</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2.5 pt-1">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">3</span>
-                <h2 class="text-sm font-semibold text-pub-text">Purpose and passengers</h2>
-                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
+            <div class="flex items-center gap-2.5 pt-5">
+                <span class="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-pub-highlight text-xs font-bold text-pub-accent">3</span>
+                <h2 class="text-base font-semibold tracking-tight text-pub-text">Purpose and passengers</h2>
+                <span class="h-px flex-1 bg-pub-line" aria-hidden="true"></span>
             </div>
-            <div class="form-row grid gap-3 sm:grid-cols-2">
+            <div class="form-row grid gap-3 @xl:grid-cols-2">
                 <div>
                     <label for="rv-purpose" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Official Purpose <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                        <textarea id="rv-purpose" name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-xl border border-pub-border bg-pub-field py-2 pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">{{ old('purpose') }}</textarea>
+                        <textarea id="rv-purpose" name="purpose" required rows="3" placeholder="Describe the official reason or event for this travel request..." class="w-full rounded-lg border border-pub-border bg-pub-field shadow-xs py-2 pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">{{ old('purpose') }}</textarea>
                     </div>
                 </div>
                 <div>
@@ -323,7 +340,7 @@ $offices = \App\Models\Office::options();
                         @foreach($oldPassengers as $index => $pass)
                             <div class="group relative">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-8 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                                <input name="passengers[]" value="{{ $pass }}" placeholder="Passenger {{ $index + 1 }} full name" class="h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-8 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
                                 <button type="button" data-remove-passenger aria-label="Remove passenger" title="Remove passenger" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:0;border-radius:999px;background:var(--color-pub-highlight);color:var(--color-pub-danger);font-size:0.9375rem;line-height:1;cursor:pointer;">×</button>
                             </div>
                         @endforeach
@@ -332,30 +349,30 @@ $offices = \App\Models\Office::options();
                 </div>
             </div>
 
-            <div class="flex items-center gap-2.5 pt-1">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pub-highlight text-[0.6875rem] font-bold text-pub-accent">4</span>
-                <h2 class="text-sm font-semibold text-pub-text">Contact</h2>
-                <span class="h-px flex-1 bg-pub-highlight" aria-hidden="true"></span>
+            <div class="flex items-center gap-2.5 pt-5">
+                <span class="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-pub-highlight text-xs font-bold text-pub-accent">4</span>
+                <h2 class="text-base font-semibold tracking-tight text-pub-text">Contact</h2>
+                <span class="h-px flex-1 bg-pub-line" aria-hidden="true"></span>
             </div>
-            <div class="form-row grid gap-3 sm:grid-cols-2">
+            <div class="form-row grid gap-3 @xl:grid-cols-2">
                 <div>
                     <label for="rv-requesterContact" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Contact Number <span class="text-pub-accent">*</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <input id="rv-requesterContact" name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <input id="rv-requesterContact" name="requesterContact" value="{{ old('requesterContact') }}" placeholder="09171234567" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" required title="Must start with 09 and be exactly 11 digits" class="h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-3 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
                     </div>
                 </div>
                 <div>
                     <label for="rv-previousTripTicketDate" class="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pub-text"><span>Previous Trip Ticket Date <span class="font-normal text-pub-muted">(Optional)</span></span></label>
                     <div class="group relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/></svg>
-                        <input id="rv-previousTripTicketDate" type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-10 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40">
+                        <input id="rv-previousTripTicketDate" type="date" name="previousTripTicketDate" value="{{ old('previousTripTicketDate') }}" class="h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-3 text-sm text-pub-text focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
                     </div>
                 </div>
             </div>
 
-            <div class="border-t border-pub-border pt-4">
-                <button type="submit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-pub-primary px-4 text-sm font-bold text-pub-on-primary shadow-lg shadow-emerald-950/40 transition hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent">
+            <div class="border-t border-pub-line pt-5">
+                <button type="submit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-pub-primary px-4 text-sm font-semibold text-pub-on-primary shadow-xs transition hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent">
                     Submit request
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
@@ -722,12 +739,22 @@ $offices = \App\Models\Office::options();
             return { start, end };
         }
 
+        // Dates that can be requested, by the server's clock (the same window the form validation allows):
+        // past days and days too far ahead are greyed out and can't be clicked.
+        const firstBookable = '{{ today()->toDateString() }}';
+        const lastBookable = '{{ today()->addDays(\Modules\VehicleRequest\Requests\StoreVehicleRequest::MAX_DAYS_AHEAD)->toDateString() }}';
+        const calPrev = document.getElementById('cal-prev');
+        const calNext = document.getElementById('cal-next');
+
         function renderCalendar() {
             const map = stationDayMap();
             const range = selectedRange();
             const firstOfMonth = new Date(viewYear, viewMonth, 1);
             const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
             calMonthLabel.textContent = firstOfMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+            // No paging back before this month, or past the last month with a bookable day
+            calPrev.disabled = toKey(viewYear, viewMonth, 1) <= firstBookable.slice(0, 8) + '01';
+            calNext.disabled = toKey(viewYear, viewMonth, daysInMonth) >= lastBookable;
 
             const colors = { maintenance: '#b91c1c', approved: '#2f855a', pending: '#dd6b20' };
             const labels = { maintenance: 'Maintenance', approved: 'Approved trip', pending: 'Pending request' };
@@ -736,14 +763,16 @@ $offices = \App\Models\Office::options();
             for (let day = 1; day <= daysInMonth; day++) {
                 const key = toKey(viewYear, viewMonth, day);
                 const info = map.get(key);
-                const inRange = range && key >= range.start && key <= range.end;
-                const bg = info ? colors[info.worst] : 'transparent';
-                const color = info ? '#ffffff' : (inRange ? 'var(--color-pub-text)' : 'var(--color-pub-muted)');
-                const ring = inRange ? 'outline:2.5px solid var(--color-pub-accent);outline-offset:-2.5px;' : '';
-                const title = info
-                    ? `${info.busy} of ${stationVehicles.length} vehicle(s) booked · ${labels[info.worst]}`
-                    : 'No requests yet';
-                html += `<button type="button" data-date="${key}" title="${esc(title)}" style="width:100%;border:0;font-family:inherit;font-size:0.6875rem;padding:4px 0;border-radius:5px;background:${bg};color:${color};font-weight:${info || inRange ? 700 : 500};cursor:pointer;${ring}">${day}</button>`;
+                const closed = key < firstBookable || key > lastBookable;
+                const classes = ['cal-day',
+                    range && (key === range.start || key === range.end) && 'is-sel',
+                    range && key > range.start && key < range.end && 'is-range',
+                    key === firstBookable && 'is-today'].filter(Boolean).join(' ');
+                const title = closed
+                    ? (key < firstBookable ? 'Past date' : 'Too far ahead to request')
+                    : info ? `${info.busy} of ${stationVehicles.length} vehicle(s) booked · ${labels[info.worst]}` : 'No requests yet';
+                const mark = info && !closed ? ` data-mark="${info.worst}" style="--mark:${colors[info.worst]}"` : '';
+                html += `<button type="button" data-date="${key}" class="${classes}" title="${esc(title)}"${mark}${closed ? ' disabled' : ''}>${day}</button>`;
             }
             calGrid.innerHTML = html;
         }
@@ -866,7 +895,7 @@ $offices = \App\Models\Office::options();
         }
         calGrid.addEventListener('click', (event) => {
             const btn = event.target.closest('button[data-date]');
-            if (!btn) return;
+            if (!btn || btn.disabled) return;
             const key = btn.dataset.date;
             calendarFocused = true;
             const keepYear = viewYear, keepMonth = viewMonth;
@@ -1047,7 +1076,7 @@ $offices = \App\Models\Office::options();
             wrapper.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint transition-colors group-focus-within:text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
             const input = document.createElement('input');
             input.name = 'passengers[]';
-            input.className = 'h-9 w-full rounded-xl border border-pub-border bg-pub-field pl-9 pr-8 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40';
+            input.className = 'h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs pl-9 pr-8 text-sm placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15';
             wrapper.appendChild(input);
             const remove = document.createElement('button');
             remove.type = 'button';

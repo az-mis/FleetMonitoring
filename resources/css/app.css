@@ -48,29 +48,34 @@ html[data-text-size='largest'] {
     --color-topbar-mobile-hover: rgb(255 255 255 / 0.1);
     --color-topbar-mobile-border: rgb(6 95 70 / 0.3);
 
-    /* Public pages (home, sign-in, request form, status): always light, whatever the theme */
-    --color-pub-bg: #eef4f0;
+    /* Public pages (home, request form, status, sign-in): always light, whatever the theme. Concept C palette:
+       neutral greys with the DA green as the accent. */
+    --color-pub-bg: #ffffff;
     --color-pub-panel: #ffffff;
-    --color-pub-text: #10231a;
-    --color-pub-muted: #5a6b62;
-    --color-pub-faint: #75857d;
+    --color-pub-subtle: #f9fafb;
+    --color-pub-text: #101828;
+    --color-pub-body: #344054;
+    --color-pub-muted: #475467;
+    --color-pub-faint: #667085;
     --color-pub-accent: #00663d;
     --color-pub-accent-2: #3f8f2f;
     --color-pub-field: #ffffff;
-    --color-pub-border: #d5dfd9;
-    --color-pub-highlight: #e6f4ec;
+    --color-pub-border: #d0d5dd;
+    --color-pub-line: #e4e7ec;
+    --color-pub-highlight: #ecf6f0;
     --color-pub-primary: #00663d;
-    --color-pub-primary-hover: #00512f;
+    --color-pub-primary-hover: #00573a;
     --color-pub-on-primary: #ffffff;
     --color-pub-cta: #00663d;
-    --color-pub-cta-hover: #00512f;
+    --color-pub-cta-hover: #00573a;
     --color-pub-on-cta: #ffffff;
-    --color-pub-danger: #b91c1c;
-    --color-pub-danger-soft: #fef2f2;
-    --color-pub-danger-border: #fecaca;
-    --color-pub-warning: #92400e;
-    --color-pub-warning-soft: #fffbeb;
-    --color-pub-warning-border: #fde68a;
+    --color-pub-deep: #052417;
+    --color-pub-danger: #b42318;
+    --color-pub-danger-soft: #fef3f2;
+    --color-pub-danger-border: #fecdca;
+    --color-pub-warning: #b54708;
+    --color-pub-warning-soft: #fffaeb;
+    --color-pub-warning-border: #fedf89;
 }
 
 :root {
@@ -82,10 +87,8 @@ html[data-text-size='largest'] {
     --section-vehicles: #fdba74;
     --section-administration: #c4b5fd;
     --pub-scheme: light;
-    --pub-wash: linear-gradient(180deg, rgb(238 244 240 / 0.86), rgb(238 244 240 / 0.93) 55%, rgb(238 244 240 / 0.97));
-    --pub-glow: radial-gradient(60rem 28rem at 50% -8%, rgb(0 102 61 / 0.1), transparent);
     --pub-card-bg: #ffffff;
-    --pub-card-shadow: 0 30px 60px -24px rgb(16 35 26 / 0.25);
+    --pub-card-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
 }
 
 html[data-theme='light'] {
@@ -111,11 +114,19 @@ html[data-theme='light'] {
     --section-administration: #6d28d9;
 }
 
-/* Cards on the public pages (home, sign-in, request form, status) */
+/* Bordered panel on the public pages (Concept C keeps content on the white panel; this is for boxed blocks) */
 @utility public-card {
-    border-radius: 1.25rem;
-    border: 1px solid var(--color-pub-border);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-pub-line);
     background-color: var(--pub-card-bg);
-    backdrop-filter: blur(18px);
     box-shadow: var(--pub-card-shadow);
+}
+
+/* Public pages on short laptop screens: the brand panel stays one screen tall, so it drops its footer note,
+   then its points, rather than cutting them off */
+@media (min-width: 64rem) and (max-height: 680px) {
+    .pub-side-legal { display: none; }
+}
+@media (min-width: 64rem) and (max-height: 560px) {
+    .pub-side-points { display: none; }
 }

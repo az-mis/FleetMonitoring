@@ -1,60 +1,55 @@
-<x-public-shell title="Fleet Management System" active="home" width="max-w-5xl" :center="true">
+<x-public-shell title="Fleet Management System" active="home">
     @php
-        $actions = [
-            ['title' => 'Request a Vehicle', 'text' => 'Book an official vehicle for travel. No account needed.', 'url' => route('request-vehicle'), 'primary' => true,
-                'icon' => '<path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/>'],
-            ['title' => 'Check Request Status', 'text' => 'Track your request and print your trip ticket.', 'url' => route('check-status'), 'primary' => false,
-                'icon' => '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'],
-            ['title' => 'Staff Login', 'text' => 'For administrators and drivers.', 'url' => route('login'), 'primary' => false,
-                'icon' => '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/>'],
-        ];
-        $features = [
-            ['Role-based access', 'Separate, secure workflows for admins and drivers.', '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>'],
-            ['Live availability', 'See vehicles and drivers free on each date.', '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'],
-            ['Printable trip tickets', 'Official travel authorizations in one click.', '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>'],
-        ];
+        $chevron = '<svg class="h-[18px] w-[18px] shrink-0 text-pub-faint transition group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
     @endphp
 
-    <section class="text-center">
-        <span class="inline-flex items-center gap-2 rounded-full border border-pub-border bg-pub-highlight px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-pub-accent">
-            <span class="h-1.5 w-1.5 rounded-full bg-pub-accent"></span>
-            Fleet Management System
-        </span>
-        <h1 class="mx-auto mt-5 max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
-            Smart fleet operations <span class="bg-gradient-to-r from-pub-accent to-pub-accent-2 bg-clip-text text-transparent">&amp; monitoring</span>
-        </h1>
-        <p class="mx-auto mt-5 max-w-2xl text-pretty text-base leading-7 text-pub-muted">
-            One place to request official vehicles, assign drivers and track every trip in real time.
-        </p>
-    </section>
+    <h2 class="text-[1.65rem] font-bold tracking-tight">Welcome</h2>
+    <p class="mt-1.5 text-[0.9375rem] text-pub-muted">What would you like to do today?</p>
 
-    <section class="mt-10 grid grid-cols-1 gap-3 sm:mt-12 md:grid-cols-3" aria-label="Get started">
-        @foreach ($actions as $action)
-            <a href="{{ $action['url'] }}"
-               class="group flex items-start gap-4 rounded-2xl p-5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent {{ $action['primary'] ? 'bg-pub-primary text-pub-on-primary shadow-xl shadow-emerald-950/40 hover:bg-pub-primary-hover' : 'public-card hover:border-pub-border hover:bg-pub-highlight' }}">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl {{ $action['primary'] ? 'bg-pub-on-primary/10' : 'bg-pub-highlight text-pub-accent' }}">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $action['icon'] !!}</svg>
+    <div class="mt-7 grid gap-3">
+        <a href="{{ route('request-vehicle') }}" class="group flex items-center gap-4 rounded-xl border border-pub-accent bg-pub-panel p-[1.1rem] shadow-[0_0_0_1px_var(--color-pub-accent),0_10px_24px_-14px_rgb(0_102_61/0.5)] transition focus:outline-none focus-visible:ring-4 focus-visible:ring-pub-accent/25">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] bg-pub-primary text-pub-on-primary">
+                <svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold">
+                    Request a Vehicle
+                    <span class="rounded-md bg-pub-highlight px-1.5 py-0.5 text-[0.6875rem] font-semibold text-pub-accent">No account needed</span>
                 </span>
-                <span class="min-w-0 flex-1 text-left">
-                    <span class="flex items-center justify-between gap-2 text-base font-bold">
-                        {{ $action['title'] }}
-                        <svg class="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                    </span>
-                    <span class="mt-1 block text-sm leading-5 {{ $action['primary'] ? 'text-pub-on-primary/75' : 'text-pub-muted' }}">{{ $action['text'] }}</span>
-                </span>
-            </a>
-        @endforeach
-    </section>
+                <span class="mt-0.5 block text-sm text-pub-muted">Book an official vehicle for travel.</span>
+            </span>
+            {!! $chevron !!}
+        </a>
 
-    <section class="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-x-8 gap-y-4 border-t border-pub-border pt-8 sm:grid-cols-3" aria-label="Features">
-        @foreach ($features as [$title, $text, $icon])
-            <div class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icon !!}</svg>
-                <div>
-                    <p class="text-sm font-semibold">{{ $title }}</p>
-                    <p class="mt-0.5 text-[0.8125rem] leading-5 text-pub-muted">{{ $text }}</p>
-                </div>
+        <form method="GET" action="{{ route('check-status') }}" class="rounded-xl border border-pub-line bg-pub-subtle p-[1.1rem]">
+            <label for="code" class="flex items-center gap-2 text-[0.9375rem] font-bold">
+                <svg class="h-[18px] w-[18px] text-pub-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                Check Request Status
+            </label>
+            <p class="mt-0.5 text-[0.8125rem] leading-5 text-pub-muted">Enter the 7-character reference code you received to track your request and print your trip ticket.</p>
+            <div class="mt-3 flex gap-2">
+                <input id="code" name="code" required minlength="7" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 7K4RXWM"
+                       class="h-11 min-w-0 flex-1 rounded-lg border border-pub-border bg-pub-field px-3.5 font-mono text-base font-semibold uppercase tracking-[0.22em] text-pub-text shadow-xs transition placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-pub-faint focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15">
+                <button type="submit" class="h-11 shrink-0 rounded-lg bg-pub-primary px-4 text-sm font-semibold text-pub-on-primary shadow-xs transition hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-pub-accent/25">Track</button>
             </div>
-        @endforeach
-    </section>
+        </form>
+
+        <p class="mt-2 flex items-center gap-3 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-pub-faint before:h-px before:flex-1 before:bg-pub-line after:h-px after:flex-1 after:bg-pub-line">Staff</p>
+
+        <a href="{{ route('login') }}" class="group flex items-center gap-4 rounded-xl border border-pub-line bg-pub-panel p-[1.1rem] shadow-xs transition hover:border-emerald-300 hover:shadow-[0_8px_20px_-14px_rgb(16_24_40/0.25)] focus:outline-none focus-visible:ring-4 focus-visible:ring-pub-accent/25">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] bg-pub-highlight text-pub-accent">
+                <svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="block text-base font-bold">Staff Login</span>
+                <span class="mt-0.5 block text-sm text-pub-muted">For administrators and drivers.</span>
+            </span>
+            {!! $chevron !!}
+        </a>
+    </div>
+
+    <div class="mt-7 flex gap-3 rounded-[10px] bg-pub-subtle px-4 py-3.5 text-[0.8125rem] leading-5 text-pub-muted">
+        <svg class="mt-px h-[18px] w-[18px] shrink-0 text-pub-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        <p>Lost your reference code or need help with a request? Ask the fleet office at your station and give them your name and travel date.</p>
+    </div>
 </x-public-shell>

@@ -4,12 +4,12 @@
 
 @section('content')
     <div class="mb-5">
-        <h1 class="text-2xl font-bold tracking-tight text-pub-text">Sign In</h1>
+        <h1 class="text-[1.65rem] font-bold tracking-tight text-pub-text">Sign In</h1>
         <p class="mt-1.5 text-sm leading-6 text-pub-muted">Enter your account credentials to access your dashboard.</p>
     </div>
 
     @session('status')
-        <div class="mb-4 rounded-xl border border-pub-border bg-pub-highlight px-4 py-3 text-sm text-pub-text" role="status">
+        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-pub-text" role="status">
             {{ $value }}
         </div>
     @endsession
@@ -18,9 +18,9 @@
         @csrf
 
         <div>
-            <label for="email" class="block text-[0.8125rem] font-semibold text-pub-text">Email address</label>
+            <label for="email" class="block text-[0.8125rem] font-semibold text-pub-body">Email address</label>
             <div class="relative mt-1.5">
-                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path>
                 </svg>
                 <input
@@ -33,7 +33,7 @@
                     autocomplete="username"
                     @error('email') aria-invalid="true" aria-describedby="email-error" @enderror
                     placeholder="name@agency.gov.ph"
-                    class="block h-11 w-full rounded-xl border border-pub-border bg-pub-field py-2.5 pl-10 pr-3 text-sm text-pub-text placeholder:text-pub-faint transition focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
+                    class="block h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs py-2.5 pl-10 pr-3 text-sm text-pub-text placeholder:text-pub-faint transition focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
                 >
             </div>
             @error('email')
@@ -42,9 +42,9 @@
         </div>
 
         <div>
-            <label for="password" class="block text-[0.8125rem] font-semibold text-pub-text">Password</label>
+            <label for="password" class="block text-[0.8125rem] font-semibold text-pub-body">Password</label>
             <div class="relative mt-1.5">
-                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pub-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
                 </svg>
                 <input
@@ -55,7 +55,7 @@
                     autocomplete="current-password"
                     @error('password') aria-invalid="true" aria-describedby="password-error" @enderror
                     placeholder="••••••••••••"
-                    class="block h-11 w-full rounded-xl border border-pub-border bg-pub-field py-2.5 pl-10 pr-10 text-sm text-pub-text placeholder:text-pub-faint transition focus:border-pub-accent focus:outline-none focus:ring-2 focus:ring-pub-accent/40"
+                    class="block h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs py-2.5 pl-10 pr-10 text-sm text-pub-text placeholder:text-pub-faint transition focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
                 >
                 <button type="button" id="toggle-password" class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-pub-muted transition hover:text-pub-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent" aria-label="Show password">
                     <svg id="eye-closed" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -78,7 +78,7 @@
 
         <button
             type="submit"
-            class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-pub-primary px-4 text-sm font-bold text-pub-on-primary shadow-lg shadow-emerald-950/40 hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pub-accent focus-visible:ring-offset-2 focus-visible:ring-offset-pub-panel transition"
+            class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-pub-primary px-4 text-sm font-semibold text-pub-on-primary shadow-xs hover:bg-pub-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-pub-accent/25 transition"
         >
             Sign in <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
@@ -95,7 +95,7 @@
         });
     </script>
 
-    <p class="mt-6 border-t border-pub-border pt-5 text-center text-[0.8125rem] text-pub-muted">
+    <p class="mt-6 border-t border-pub-line pt-5 text-center text-[0.8125rem] text-pub-muted">
         Need a vehicle?
         <a href="{{ route('request-vehicle') }}" class="font-semibold text-pub-accent hover:text-pub-accent hover:underline">Request one without signing in</a>
     </p>
