@@ -60,13 +60,17 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             try {
                 $appLogo = app(FleetSettings::class)->get('app_logo');
-                $appLogoUrl = !empty($appLogo['path'])
-                    ? Storage::disk('public')->url($appLogo['path'])
-                    : null;
             } catch (\Throwable $e) {
-                $appLogoUrl = null;
+                $appLogo = null;
             }
-            $view->with('appLogoUrl', $appLogoUrl);
+            $url = fn (string $key) => ! empty($appLogo[$key]) ? Storage::disk('public')->url($appLogo[$key]) : null;
+
+            $view->with([
+                'appLogoUrl' => $url('path'),
+                // Browser-tab and home-screen icons made from the custom logo (partials/favicon)
+                'appIconUrl' => $url('icon'),
+                'appTouchIconUrl' => $url('touch_icon'),
+            ]);
         });
     }
 }

@@ -215,13 +215,14 @@ class ContentSettingsController
         FleetSetting::updateOrCreate(
             ['setting_key' => 'app_logo'],
             [
-                'setting_value' => ['path' => $path],
+                // The browser-tab and home-screen icons are made from the logo too (see makeBrandIcons)
+                'setting_value' => ['path' => $path] + $this->makeBrandIcons($path),
                 'updated_by' => $request->user()->id,
             ]
         );
 
-        if (! empty($existing['path']) && $existing['path'] !== $path && Storage::disk('public')->exists($existing['path'])) {
-            Storage::disk('public')->delete($existing['path']);
+        if (($existing['path'] ?? null) !== $path) {
+            $this->deleteLogoFiles($existing);
         }
 
         return back()->with('success', 'App logo updated successfully.');
@@ -230,14 +231,61 @@ class ContentSettingsController
     public function removeLogo(Request $request): RedirectResponse
     {
         $this->authorizeSuperAdmin($request);
-        $existing = FleetSetting::where('setting_key', 'app_logo')->value('setting_value');
-        if (! empty($existing['path']) && Storage::disk('public')->exists($existing['path'])) {
-            Storage::disk('public')->delete($existing['path']);
-        }
+        $this->deleteLogoFiles(FleetSetting::where('setting_key', 'app_logo')->value('setting_value'));
 
         // A model delete, so the per-request settings cache is cleared too (FleetSetting::booted)
         FleetSetting::where('setting_key', 'app_logo')->first()?->delete();
 
         return back()->with('success', 'App logo reset to default.');
+    }
+
+    /**
+     * Square PNG copies of the logo: 192px for the browser tab (transparent edges) and 180px for
+     * phone home screens (on white, since iOS turns transparency black). A logo GD cannot read gets
+     * none, and the tab then shows the logo file itself.
+     *
+     * @return array{icon?: string, touch_icon?: string}
+     */
+    private function makeBrandIcons(string $path): array
+    {
+        $disk = Storage::disk('public');
+        $source = function_exists('imagecreatefromstring') ? @imagecreatefromstring((string) $disk->get($path)) : false;
+        if ($source === false) {
+            return [];
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $base = 'branding/'.pathinfo($path, PATHINFO_FILENAME);
+        $icons = [];
+
+        foreach (['icon' => [192, false], 'touch_icon' => [180, true]] as $key => [$size, $onWhite]) {
+            $canvas = imagecreatetruecolor($size, $size);
+            imagealphablending($canvas, false);
+            imagesavealpha($canvas, true);
+            imagefill($canvas, 0, 0, $onWhite ? imagecolorallocate($canvas, 255, 255, 255) : imagecolorallocatealpha($canvas, 0, 0, 0, 127));
+            imagealphablending($canvas, true);
+
+            // Fit the whole logo inside the square, centred
+            $scale = min($size / $width, $size / $height);
+            $fitWidth = max(1, (int) round($width * $scale));
+            $fitHeight = max(1, (int) round($height * $scale));
+            imagecopyresampled($canvas, $source, intdiv($size - $fitWidth, 2), intdiv($size - $fitHeight, 2), 0, 0, $fitWidth, $fitHeight, $width, $height);
+
+            ob_start();
+            imagepng($canvas);
+            $disk->put($icons[$key] = "{$base}-{$size}.png", (string) ob_get_clean());
+        }
+
+        return $icons;
+    }
+
+    /** The logo and the icons made from it */
+    private function deleteLogoFiles(?array $setting): void
+    {
+        $files = array_filter([$setting['path'] ?? null, $setting['icon'] ?? null, $setting['touch_icon'] ?? null]);
+        if ($files) {
+            Storage::disk('public')->delete($files);
+        }
     }
 }
