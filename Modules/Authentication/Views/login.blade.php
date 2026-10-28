@@ -69,11 +69,17 @@
             @error('password')
                 <p id="password-error" class="mt-1.5 text-xs font-semibold text-pub-danger" role="alert">{{ $message }}</p>
             @enderror
-            @if (Route::has('password.request'))
-                <div class="mt-2 flex justify-end">
+            <div class="mt-2.5 flex items-center justify-between gap-3">
+                {{-- Fortify keeps this browser signed in (a "remember me" cookie) for auth.guards.web.remember minutes --}}
+                <label for="remember" class="inline-flex cursor-pointer items-center gap-2 text-[0.8125rem] text-pub-body">
+                    <input id="remember" type="checkbox" name="remember" value="1" @checked(old('remember'))
+                        class="h-4 w-4 cursor-pointer rounded border-pub-border accent-pub-primary focus:outline-none focus-visible:ring-4 focus-visible:ring-pub-accent/15">
+                    Remember me
+                </label>
+                @if (Route::has('password.request'))
                     <a href="{{ route('password.request') }}" class="text-xs font-semibold text-pub-accent hover:text-pub-text hover:underline focus:outline-none focus-visible:underline">Forgot password?</a>
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
 
         <button
