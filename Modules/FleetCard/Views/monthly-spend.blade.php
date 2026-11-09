@@ -18,11 +18,8 @@
     <div class="mx-auto max-w-7xl space-y-5">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div class="min-w-0">
-                <a href="{{ route('fleet-cards.index', array_filter(['location' => $canPickLocation ? $location : null])) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline">
-                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                    Fleet Cards
-                </a>
-                <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Monthly Spend {{ $year }}</h1>
+                <x-back-link :href="route('fleet-cards.index', array_filter(['location' => $canPickLocation ? $location : null]))">Fleet Cards</x-back-link>
+                <h1 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">Monthly Spend {{ $year }}</h1>
                 <p class="text-sm text-slate-500">{{ $location ?: 'All locations' }} · per division, as in the Index for Fleetcard sheet</p>
             </div>
             <form method="GET" class="flex flex-wrap items-end gap-2">

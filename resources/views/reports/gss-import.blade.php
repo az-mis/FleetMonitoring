@@ -15,11 +15,8 @@
 
     <div class="mx-auto max-w-5xl space-y-5">
         <div>
-            <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline">
-                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                Reports
-            </a>
-            <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{{ $committed ? 'Workbook imported' : 'Workbook checked' }}</h1>
+            <x-back-link :href="route('reports.index')">Reports</x-back-link>
+            <h1 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">{{ $committed ? 'Workbook imported' : 'Workbook checked' }}</h1>
             <p class="text-sm text-slate-500">{{ $import['file_name'] }} · {{ $import['year'] }}</p>
         </div>
 

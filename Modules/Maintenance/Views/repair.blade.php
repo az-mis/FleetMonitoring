@@ -26,11 +26,8 @@
         {{-- Stays at the top while the long form scrolls, so the vehicle stays in view --}}
         <div class="sticky -top-4 z-20 -mx-4 flex flex-col gap-3 border-b border-slate-200/80 bg-gray-50/95 px-4 py-3 backdrop-blur sm:-top-6 sm:-mx-6 sm:flex-row sm:items-end sm:justify-between sm:px-6">
             <div class="min-w-0">
-                <a href="{{ route('maintenance.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline">
-                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                    Maintenance
-                </a>
-                <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{{ $record->plate_number }} <span class="font-semibold text-slate-500">· {{ $record->title }}</span></h1>
+                <x-back-link :href="route('maintenance.index')">Maintenance</x-back-link>
+                <h1 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">{{ $record->plate_number }} <span class="font-semibold text-slate-500">· {{ $record->title }}</span></h1>
                 <p class="text-sm text-slate-500">{{ $record->type }} · {{ ucfirst($record->status) }} · {{ $schedule }}{{ $record->location ? ' · '.$record->location : '' }}</p>
             </div>
             <div class="flex flex-wrap gap-2 text-xs">
