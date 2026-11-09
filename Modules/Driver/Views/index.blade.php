@@ -389,6 +389,11 @@
     @endif
 
 
+    {{-- "Send activation link" in the Edit Driver modal submits this (forms can't nest); the action is set when the modal opens --}}
+    <form id="send-activation-form" method="POST" action="" class="hidden">
+        @csrf
+    </form>
+
     {{-- Edit Driver modal --}}
     <div id="edit-driver-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
         <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl my-auto" role="dialog" aria-modal="true" aria-labelledby="edit-driver-modal-title">
@@ -476,10 +481,21 @@
                                 name="email"
                                 id="edit-driver-email"
                                 value="{{ old('_driver_form') === 'edit' ? old('email') : '' }}"
-                                class="mt-0.5 w-full rounded-lg border border-slate-200 bg-slate-100/70 px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none cursor-not-allowed {{ old('_driver_form') === 'edit' && $errors->has('email') ? 'border-red-300' : '' }}"
+                                oninput="onEditDriverEmailInput()"
+                                class="mt-0.5 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_driver_form') === 'edit' && $errors->has('email') ? 'border-red-300' : '' }}"
                                 required
-                                readonly
                             >
+                            {{-- The address the driver had when the form opened, so a change can be spotted (also after a failed save) --}}
+                            <input type="hidden" name="_original_email" id="edit-driver-original-email" value="{{ old('_original_email') }}">
+                            @if (old('_driver_form') === 'edit')
+                                @error('email')
+                                    <p class="mt-0.5 text-[0.625rem] text-red-600">{{ $message }}</p>
+                                @enderror
+                            @endif
+                            <p id="edit-driver-email-hint" class="mt-1 text-[0.625rem] leading-snug text-slate-500">
+                                A new email gets an activation link, so the driver can create their own password.
+                                <button type="submit" form="send-activation-form" id="edit-driver-send-activation" class="font-bold text-emerald-700 hover:underline">Send activation link</button>
+                            </p>
                         </div>
                     </div>
 
@@ -695,6 +711,7 @@
                     <div class="text-sm">
                         <p class="text-gray-700">Are you sure you want to update <span id="edit-driver-confirm-name" class="font-bold text-gray-900">Juan Dela Cruz</span>?</p>
                         <p id="edit-driver-confirm-location-wrapper" class="mt-1 text-xs text-gray-500">• Location: <span id="edit-driver-confirm-location" class="font-medium text-gray-700">Quezon City Satellite Office</span></p>
+                        <p id="edit-driver-confirm-email-wrapper" class="mt-1 hidden text-xs text-gray-500">• New email: <span id="edit-driver-confirm-email" class="font-medium text-gray-700"></span>. An activation link will be sent to it.</p>
                     </div>
                 </div>
 
@@ -1124,6 +1141,7 @@
                 document.getElementById('edit-driver-action-field').value = btn.dataset.updateUrl;
                 document.getElementById('edit-driver-name').value = btn.dataset.name;
                 document.getElementById('edit-driver-email').value = btn.dataset.email;
+                document.getElementById('edit-driver-original-email').value = btn.dataset.email;
                 document.getElementById('edit-driver-location').value = btn.dataset.location || '';
                 document.getElementById('edit-driver-phone').value = btn.dataset.phoneNumber || '';
                 document.getElementById('edit-driver-address').value = btn.dataset.address || '';
@@ -1149,6 +1167,10 @@
                     removeBtn?.classList.remove('inline-flex');
                 }
             }
+
+            // driver.activation is the driver's update URL plus /activation (also after a failed save, when btn is null)
+            document.getElementById('send-activation-form').action = document.getElementById('edit-driver-action-field').value + '/activation';
+            onEditDriverEmailInput();
 
             document.getElementById('edit-driver-step-confirm')?.classList.add('hidden');
             document.getElementById('edit-driver-step-form')?.classList.remove('hidden');
@@ -1230,9 +1252,25 @@
                 locWrapper.classList.add('hidden');
             }
 
+            const newEmail = editDriverEmailChanged();
+            document.getElementById('edit-driver-confirm-email').textContent = newEmail || '';
+            document.getElementById('edit-driver-confirm-email-wrapper').classList.toggle('hidden', !newEmail);
+
             document.getElementById('edit-driver-step-form').classList.add('hidden');
             document.getElementById('edit-driver-step-confirm').classList.remove('hidden');
             return false;
+        }
+
+        /** The new address when the admin changed the email, otherwise null */
+        function editDriverEmailChanged() {
+            const now = document.getElementById('edit-driver-email').value.trim();
+            const before = document.getElementById('edit-driver-original-email').value.trim();
+            return before && now.toLowerCase() !== before.toLowerCase() ? now : null;
+        }
+
+        /** "Send activation link" re-sends to the saved address, so it only shows while the email is unchanged */
+        function onEditDriverEmailInput() {
+            document.getElementById('edit-driver-send-activation').classList.toggle('hidden', !!editDriverEmailChanged());
         }
 
         function backToEditDriverForm() {

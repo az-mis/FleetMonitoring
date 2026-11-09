@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Modules\Admin\Enums\UserRole;
+use Modules\Authentication\Support\AccountActivation;
 use Modules\Driver\Requests\StoreDriverRequest;
 use Modules\Driver\Requests\UpdateDriverRequest;
 use Modules\Driver\Services\DriverService;
@@ -86,11 +87,54 @@ class DriverController extends Controller
         if (auth()->user()?->role === UserRole::ADMIN) {
             $data['location'] = auth()->user()->location;
         }
+        $oldEmail = $driver->email;
         $this->driverService->updateDriver($driver, $data);
+        $driver->refresh();
 
-        return $this->backToList('driver.index')
-            ->with('success', "{$driver->name} updated.")
-            ->with('driver_name', $driver->name);
+        $response = $this->backToList('driver.index')->with('driver_name', $driver->name);
+
+        // A new email address (often a real one replacing a placeholder) gets an activation link, so the driver
+        // can create their own password
+        if (strcasecmp($oldEmail, $driver->email) !== 0) {
+            return $this->sendActivationLink($driver)
+                ? $response->with('success', "{$driver->name} updated. An activation link was sent to {$driver->email}.")
+                : $response->with('error', "{$driver->name} updated, but the activation email to {$driver->email} could not be sent. Use Send activation link to try again.");
+        }
+
+        return $response->with('success', "{$driver->name} updated.");
+    }
+
+    /** Send the activation link again, e.g. after it expired or the driver lost the email */
+    public function sendActivation(User $driver): RedirectResponse
+    {
+        Gate::authorize('manage-drivers');
+        $this->authorizeLocation($driver);
+
+        if (! $driver->isActive()) {
+            return back()->with('error', "{$driver->name} is deactivated. Reactivate the driver first.");
+        }
+
+        return $this->sendActivationLink($driver)
+            ? back()->with('success', "An activation link was sent to {$driver->email}.")
+            : back()->with('error', "The activation email to {$driver->email} could not be sent. Check the mail settings, then try again.");
+    }
+
+    private function sendActivationLink(User $driver): bool
+    {
+        // A server whose mailer only writes to the log can't deliver it (same rule as the Forgot Password page)
+        if (in_array(config('mail.default'), ['log', 'array'], true) && ! app()->environment(['local', 'qa', 'testing'])) {
+            return false;
+        }
+
+        try {
+            AccountActivation::send($driver);
+
+            return true;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return false;
+        }
     }
 
     public function destroy(User $driver): RedirectResponse

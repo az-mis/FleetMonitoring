@@ -19,6 +19,9 @@ Route::middleware(['web', 'auth', 'verified', 'module:drivers'])
         // Deactivate instead of delete, so a driver's trips and reports keep their name (decision D10)
         Route::patch('{driver}/deactivate', [DriverController::class, 'deactivate'])->name('deactivate');
         Route::patch('{driver}/reactivate', [DriverController::class, 'reactivate'])->name('reactivate');
+        Route::post('{driver}/activation', [DriverController::class, 'sendActivation'])
+            ->middleware('throttle:10,1')
+            ->name('activation');
 
         Route::resource('/', DriverController::class)
             ->parameters(['' => 'driver'])
