@@ -6,7 +6,11 @@
 @section('content')
     @php
         $initial = strtoupper(substr($user->name, 0, 1));
-        $locationLabel = $user->location ?: ($user->role?->value === 'super_admin' ? 'All Locations (Super Admin)' : 'Not assigned');
+        $isSuperAdmin = $user->role === \Modules\Admin\Enums\UserRole::SUPER_ADMIN;
+        $isDriver = $user->role === \Modules\Admin\Enums\UserRole::DRIVER;
+        $locationLabel = $user->location ?: ($isSuperAdmin ? 'All Locations' : 'Not assigned');
+        // Who manages the locked fields: the Super Admin for admins, the station's fleet administrator for drivers
+        $managedBy = $isDriver ? 'your fleet administrator' : 'the Super Admin';
 
         // Same field styles as the Edit Driver form
         $pfLabel = 'mb-1.5 block text-[0.8125rem] font-semibold text-slate-700';
@@ -99,21 +103,30 @@
                         </div>
 
                         <div>
-                            <label for="profile-email" class="{{ $pfLabel }}">Email Address</label>
-                            <div class="relative">
-                                <input id="profile-email" value="{{ $user->email }}" disabled class="{{ $pfLocked }}">
-                                @include('profile.partials.lock-icon')
-                            </div>
-                            <p class="{{ $pfHint }}">Account email is managed by your administrator.</p>
+                            @if ($isSuperAdmin)
+                                <label for="profile-email" class="{{ $pfLabel }}">Email Address <span class="text-red-500">*</span></label>
+                                <input id="profile-email" type="email" name="email" value="{{ old('email', $user->email) }}" required maxlength="255" autocomplete="email" class="{{ $pfInput }} {{ $pfBorder('email') }}">
+                                @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                                <p class="{{ $pfHint }}">You sign in with this address.</p>
+                            @else
+                                <label for="profile-email" class="{{ $pfLabel }}">Email Address</label>
+                                <div class="relative">
+                                    <input id="profile-email" value="{{ $user->email }}" disabled class="{{ $pfLocked }}">
+                                    @include('profile.partials.lock-icon')
+                                </div>
+                                <p class="{{ $pfHint }}">Your sign-in email is managed by {{ $managedBy }}.</p>
+                            @endif
                         </div>
 
                         <div>
-                            <label for="profile-location" class="{{ $pfLabel }}">Assigned Location / Office Province</label>
+                            <label for="profile-location" class="{{ $pfLabel }}">{{ $isSuperAdmin ? 'Coverage' : 'Assigned Location / Office Province' }}</label>
                             <div class="relative">
                                 <input id="profile-location" value="{{ $locationLabel }}" disabled class="{{ $pfLocked }}">
-                                @include('profile.partials.lock-icon')
+                                @unless ($isSuperAdmin)
+                                    @include('profile.partials.lock-icon')
+                                @endunless
                             </div>
-                            <p class="{{ $pfHint }}">Office assignment is managed by your administrator.</p>
+                            <p class="{{ $pfHint }}">{{ $isSuperAdmin ? 'As Super Admin you see and manage every location.' : "Your office assignment is managed by {$managedBy}." }}</p>
                         </div>
                     </div>
 
@@ -129,7 +142,8 @@
                         @error('address')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </div>
 
-                    {{-- Driver's license (read-only, kept by the administrator) --}}
+                    {{-- Driver's license (drivers only; read-only, kept by the fleet administrator) --}}
+                    @if ($isDriver)
                     <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:col-span-12">
                         <div class="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h4"/></svg>
@@ -178,6 +192,7 @@
                             </p>
                         @endif
                     </div>
+                    @endif
                 </div>
             </div>
 

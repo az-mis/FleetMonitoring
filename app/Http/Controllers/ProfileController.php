@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Modules\Admin\Enums\UserRole;
 
@@ -24,7 +25,13 @@ class ProfileController extends Controller
             ? ['required', 'string', 'regex:/^09\d{9}$/']
             : ['required', 'string', 'max:40'];
 
+        // Only a Super Admin changes their own email here; everyone else's is set by whoever manages their account
+        $emailRules = $request->user()->role === UserRole::SUPER_ADMIN
+            ? ['email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($request->user()->id)]]
+            : [];
+
         $data = $request->validate([
+            ...$emailRules,
             'name' => ['required', 'string', 'max:255'],
             'phone_number' => $phoneRules,
             'birth_date' => ['nullable', 'date', 'before:today'],
