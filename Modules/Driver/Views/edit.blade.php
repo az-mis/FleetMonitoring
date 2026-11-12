@@ -97,15 +97,21 @@
 
             <div class="border-t border-gray-100 pt-5">
                 <label for="password" class="block text-sm font-medium text-gray-700">New password <span class="font-normal text-gray-400">(optional)</span></label>
-                <input type="password" name="password" id="password"
-                    class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror">
+                <div class="relative mt-1.5">
+                    <input type="password" name="password" id="password"
+                        class="w-full rounded-lg border border-gray-300 py-2.5 pl-3 pr-10 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror">
+                    <x-password-eye for="password" />
+                </div>
                 @error('password') <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm new password</label>
-                <input type="password" name="password_confirmation" id="password_confirmation"
-                    class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                <div class="relative mt-1.5">
+                    <input type="password" name="password_confirmation" id="password_confirmation"
+                        class="w-full rounded-lg border border-gray-300 py-2.5 pl-3 pr-10 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <x-password-eye for="password_confirmation" />
+                </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">

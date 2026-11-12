@@ -66,17 +66,6 @@
                 Activate and Sign In
             </button>
         </form>
-
-        <script>
-            document.querySelectorAll('[data-toggle-password]').forEach((button) => button.addEventListener('click', () => {
-                const input = document.getElementById(button.dataset.togglePassword);
-                const hidden = input.type === 'password';
-                input.type = hidden ? 'text' : 'password';
-                button.querySelector('[data-eye="closed"]').classList.toggle('hidden', !hidden);
-                button.querySelector('[data-eye="open"]').classList.toggle('hidden', hidden);
-                button.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
-            }));
-        </script>
     @else
         <div class="mb-5">
             <h1 class="text-[1.65rem] font-bold tracking-tight text-pub-text">This Link No Longer Works</h1>

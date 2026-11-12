@@ -76,7 +76,8 @@ class DriverAccountActivationTest extends TestCase
             ->assertSee('id="send-activation-form"', false)
             ->assertSee('Send activation link')
             ->assertSee('oninput="onEditDriverEmailInput()"', false)
-            ->assertSee('name="_original_email"', false);
+            ->assertSee('name="_original_email"', false)
+            ->assertSee('data-toggle-password="add-driver-password"', false);
     }
 
     public function test_the_link_lets_the_driver_create_a_password_and_signs_them_in_once(): void

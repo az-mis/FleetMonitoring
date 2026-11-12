@@ -206,7 +206,10 @@
 
                     <div>
                         <label for="add-password" class="text-xs font-extrabold text-slate-700">Temporary Password <span class="text-red-500">*</span></label>
-                        <input type="password" name="password" id="add-password" placeholder="Set temporary password" oninput="document.getElementById('add-password_confirmation').value = this.value" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') !== 'edit' && $errors->has('password') ? 'border-red-300' : '' }}" required>
+                        <div class="relative mt-1">
+                            <input type="password" name="password" id="add-password" placeholder="Set temporary password" oninput="document.getElementById('add-password_confirmation').value = this.value" class="w-full rounded-lg border border-slate-300 py-2 pl-3 pr-10 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 {{ old('_admin_form') !== 'edit' && $errors->has('password') ? 'border-red-300' : '' }}" required>
+                            <x-password-eye for="add-password" />
+                        </div>
                         <input type="hidden" name="password_confirmation" id="add-password_confirmation">
                         <p class="mt-1 text-[0.6875rem] text-slate-500">At least 12 characters, with letters and numbers.</p>
                         @if (old('_admin_form') !== 'edit')

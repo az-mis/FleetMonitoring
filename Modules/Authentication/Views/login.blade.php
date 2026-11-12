@@ -95,8 +95,9 @@
             const password = document.getElementById('password');
             const hidden = password.type === 'password';
             password.type = hidden ? 'text' : 'password';
-            document.getElementById('eye-closed').classList.toggle('hidden', !hidden);
-            document.getElementById('eye-open').classList.toggle('hidden', hidden);
+            // Slashed eye while the password is hidden, open eye while it shows
+            document.getElementById('eye-closed').classList.toggle('hidden', hidden);
+            document.getElementById('eye-open').classList.toggle('hidden', !hidden);
             this.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
         });
     </script>

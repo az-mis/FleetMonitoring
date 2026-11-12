@@ -31,16 +31,19 @@
 
         <div>
             <label for="password" class="block text-[0.8125rem] font-semibold text-pub-body">New password</label>
-            <input
-                id="password"
-                type="password"
-                name="password"
-                required
-                autofocus
-                autocomplete="new-password"
-                @error('password') aria-invalid="true" aria-describedby="password-error" @enderror
-                class="mt-1.5 block h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs px-3 py-2.5 text-sm text-pub-text transition focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
-            >
+            <div class="relative mt-1.5">
+                <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    required
+                    autofocus
+                    autocomplete="new-password"
+                    @error('password') aria-invalid="true" aria-describedby="password-error" @enderror
+                    class="block h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs py-2.5 pl-3 pr-10 text-sm text-pub-text transition focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
+                >
+                @include('authentication::partials.password-eye', ['for' => 'password'])
+            </div>
             @error('password')
                 <p id="password-error" class="mt-1.5 text-xs font-semibold text-pub-danger" role="alert">{{ $message }}</p>
             @enderror
@@ -48,14 +51,17 @@
 
         <div>
             <label for="password_confirmation" class="block text-[0.8125rem] font-semibold text-pub-body">Confirm new password</label>
-            <input
-                id="password_confirmation"
-                type="password"
-                name="password_confirmation"
-                required
-                autocomplete="new-password"
-                class="mt-1.5 block h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs px-3 py-2.5 text-sm text-pub-text transition focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
-            >
+            <div class="relative mt-1.5">
+                <input
+                    id="password_confirmation"
+                    type="password"
+                    name="password_confirmation"
+                    required
+                    autocomplete="new-password"
+                    class="block h-11 w-full rounded-lg border border-pub-border bg-pub-field shadow-xs py-2.5 pl-3 pr-10 text-sm text-pub-text transition focus:border-pub-accent focus:outline-none focus:ring-4 focus:ring-pub-accent/15"
+                >
+                @include('authentication::partials.password-eye', ['for' => 'password_confirmation'])
+            </div>
         </div>
 
         <button

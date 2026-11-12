@@ -100,7 +100,9 @@ class PasswordResetTest extends TestCase
 
         $this->get("/reset-password/{$token}?email=".urlencode($admin->email))
             ->assertOk()
-            ->assertSee($token, false);
+            ->assertSee($token, false)
+            ->assertSee('data-toggle-password="password"', false)
+            ->assertSee('data-toggle-password="password_confirmation"', false);
 
         $this->post('/reset-password', [
             'token' => $token,
@@ -128,6 +130,7 @@ class PasswordResetTest extends TestCase
 
     public function test_confirm_password_page_renders_for_signed_in_users(): void
     {
-        $this->actingAs($this->admin())->get('/user/confirm-password')->assertOk()->assertSee('Confirm Your Password');
+        $this->actingAs($this->admin())->get('/user/confirm-password')->assertOk()->assertSee('Confirm Your Password')
+            ->assertSee('data-toggle-password="password"', false);
     }
 }

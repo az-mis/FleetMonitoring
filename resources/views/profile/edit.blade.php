@@ -7,268 +7,239 @@
     @php
         $initial = strtoupper(substr($user->name, 0, 1));
         $locationLabel = $user->location ?: ($user->role?->value === 'super_admin' ? 'All Locations (Super Admin)' : 'Not assigned');
+
+        // Same field styles as the Edit Driver form
+        $pfLabel = 'mb-1.5 block text-[0.8125rem] font-semibold text-slate-700';
+        $pfInput = 'h-11 w-full rounded-lg border bg-white px-3 text-sm text-slate-800 placeholder-slate-400 transition focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600';
+        $pfBorder = fn (string $field, string $bag = 'default') => $errors->getBag($bag)->has($field) ? 'border-red-400' : 'border-slate-200';
+        $pfLocked = 'h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 pr-9 text-sm text-slate-500';
+        $pfHint = 'mt-1.5 text-xs leading-snug text-slate-500';
+
+        $expDate = $user->license_expiration_date;
+        $daysLeft = $expDate ? (int) round(now()->startOfDay()->diffInDays($expDate->copy()->startOfDay(), false)) : null;
+        $isExp = ! is_null($daysLeft) && $daysLeft < 0;
+        $isUrgent = ! is_null($daysLeft) && $daysLeft >= 0 && $daysLeft <= 7;
+        $isWarning = ! is_null($daysLeft) && $daysLeft > 7 && $daysLeft <= 30;
     @endphp
 
-    <div class="space-y-4">
+    <div class="space-y-5">
         {{-- Page header --}}
         <div>
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">My Profile</h1>
             <p class="text-sm text-slate-500">Manage your personal account settings and credentials</p>
         </div>
 
-        <form method="POST" action="{{ route('my-profile.update') }}" enctype="multipart/form-data" class="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <form method="POST" action="{{ route('my-profile.update') }}" enctype="multipart/form-data" class="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             @csrf
             @method('PUT')
+            <input id="remove-avatar" type="checkbox" name="remove_avatar" value="1" class="hidden">
 
-            <div class="h-16 bg-gradient-to-br from-[#155f35] via-[#1d8148] to-[#269d59]"></div>
-
-            <div class="-mt-9 px-5 pb-4 sm:px-6">
-                <div class="flex flex-col items-center text-center">
-                    <div id="avatar-container" class="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-emerald-700 text-3xl font-extrabold text-white shadow-lg ring-1 ring-emerald-100">
-                        <img id="avatar-preview-img" src="{{ $user->avatar_url ?? '' }}" alt="{{ $user->name }}" class="{{ $user->avatar_url ? '' : 'hidden' }} h-full w-full object-cover">
-                        <span id="avatar-fallback" class="{{ $user->avatar_url ? 'hidden' : '' }} flex h-full w-full items-center justify-center">
-                            {{ $initial }}
-                        </span>
-                    </div>
-                    <input id="profile-avatar" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" class="sr-only" onchange="previewProfileAvatar(this)">
-                    <input id="remove-avatar" type="checkbox" name="remove_avatar" value="1" class="hidden">
-                    <p class="mt-1.5 text-xs text-gray-500">Photo: JPG, PNG or WebP (max 5MB)</p>
-                    @error('avatar')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
-
-                    <h3 class="mt-1 text-lg font-extrabold text-gray-900">{{ $user->name }}</h3>
-                    <p class="mt-0.5 text-sm text-gray-500">
-                        <span class="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">{{ $user->role?->label() }}</span>
-                        <span class="mx-1">•</span><span class="break-all">{{ $user->email }}</span>
+            {{-- Header: who you are --}}
+            <div class="flex items-center gap-3 bg-[#005a36] px-5 py-4 text-white sm:px-6">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#005a36]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+                <div class="min-w-0">
+                    <h2 class="truncate text-lg font-bold leading-tight tracking-tight sm:text-xl">{{ $user->name }}</h2>
+                    <p class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/85 sm:text-[0.8125rem]">
+                        <span class="rounded-full bg-white/15 px-2 py-0.5 font-semibold text-white ring-1 ring-white/25">{{ $user->role?->label() }}</span>
+                        <span class="truncate">{{ $user->email }}</span>
                     </p>
-
-                    <div class="mt-2 flex flex-wrap items-center justify-center gap-2">
-                        <label for="profile-avatar" id="profile-avatar-label" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                                <path d="M3 21v-5h5"/>
-                                <path d="M3 12a9 9 0 0 1 15.56-6.26L21 8"/>
-                                <path d="M16 8h5V3"/>
-                            </svg>
-                            <span id="avatar-btn-text">{{ $user->avatar_url ? 'Replace' : 'Upload' }}</span>
-                        </label>
-                        <button type="button" id="avatar-remove-btn" onclick="removeProfileAvatar()" class="{{ $user->avatar_url ? 'inline-flex' : 'hidden' }} items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-100 cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18"/>
-                                <path d="M8 6V4h8v2"/>
-                                <path d="m19 6-1 14H6L5 6"/>
-                            </svg>
-                            Remove
-                        </button>
-                    </div>
                 </div>
+            </div>
 
-                <div class="mt-4 grid gap-4 md:grid-cols-2 text-left">
-                    {{-- Left Column: ACCOUNT CREDENTIALS --}}
-                    <section class="rounded-xl border border-gray-100 bg-gray-50/70 p-4">
-                        <div class="mb-3 border-b border-gray-200/60 pb-2">
-                            <h4 class="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="8" r="4"/>
-                                    <path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
-                                </svg>
-                                Account Credentials
-                            </h4>
+            <div class="px-5 py-5 sm:px-6 sm:py-6">
+                <div class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12">
+
+                    {{-- Photo: the largest thing on the page --}}
+                    <div class="sm:col-span-5">
+                        <p class="mb-2 text-sm font-bold text-slate-900">Profile Photo</p>
+
+                        <div id="avatar-container" class="relative flex h-56 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-linear-to-b from-emerald-50 to-slate-100 sm:h-64">
+                            <div id="avatar-fallback" class="{{ $user->avatar_url ? 'hidden' : 'flex' }} h-28 w-28 items-center justify-center rounded-full bg-white text-5xl font-bold text-emerald-800 shadow-sm ring-4 ring-emerald-100">
+                                {{ $initial }}
+                            </div>
+                            <img id="avatar-preview-img" src="{{ $user->avatar_url ?? '' }}" alt="{{ $user->name }}" class="{{ $user->avatar_url ? '' : 'hidden' }} absolute inset-0 h-full w-full object-cover">
+                            <button type="button" id="avatar-remove-btn" onclick="removeProfileAvatar()" title="Remove photo" aria-label="Remove photo" class="{{ $user->avatar_url ? 'flex' : 'hidden' }} absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-white text-red-600 shadow-md ring-1 ring-black/5 transition hover:bg-red-50 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>
+                            </button>
                         </div>
 
-                        <div class="space-y-3">
-                            <div>
-                                <label for="profile-name" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
-                                    Full Name <span class="text-red-500">*</span>
-                                </label>
-                                <input id="profile-name" name="name" value="{{ old('name', $user->name) }}" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('name')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
-                            </div>
+                        <input id="profile-avatar" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" class="peer sr-only" onchange="previewProfileAvatar(this)">
+                        <label
+                            for="profile-avatar"
+                            id="profile-avatar-label"
+                            ondragover="handleProfilePhotoDrag(event, true)"
+                            ondragleave="handleProfilePhotoDrag(event, false)"
+                            ondrop="handleProfilePhotoDrop(event)"
+                            class="mt-3 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-3 py-3.5 text-center transition hover:border-emerald-500 hover:bg-emerald-50/40 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500"
+                        >
+                            <span class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
+                                <span id="avatar-btn-text">{{ $user->avatar_url ? 'Change Photo' : 'Upload Photo' }}</span>
+                            </span>
+                            <span class="text-xs text-slate-500">Click to upload or drag and drop</span>
+                            <span class="text-[0.6875rem] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
+                        </label>
+                        @error('avatar')<p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
 
-                            <div>
-                                <label for="profile-phone" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
-                                    Phone Number <span class="text-red-500">*</span>
-                                </label>
-                                <input id="profile-phone" type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required @if ($user->role === \Modules\Admin\Enums\UserRole::DRIVER) pattern="09[0-9]{9}" maxlength="11" inputmode="numeric" placeholder="09171234567" title="Must start with 09 and be exactly 11 digits (e.g. 09171234567)" @endif class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('phone_number')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="profile-email" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
-                                    Email Address
-                                </label>
-                                <div class="relative">
-                                    <input id="profile-email" value="{{ $user->email }}" disabled class="w-full rounded-lg border border-gray-200 bg-gray-100/70 px-3 py-2 pr-8 text-xs text-gray-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect width="18" height="11" x="3" y="11" rx="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                </div>
-                                <p class="mt-1 text-[0.625rem] text-gray-500">Account email is managed by your administrator.</p>
-                            </div>
-
-                            <div>
-                                <label for="profile-location" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
-                                    Assigned Location / Office Province
-                                </label>
-                                <div class="relative">
-                                    <input id="profile-location" value="{{ $locationLabel }}" disabled class="w-full rounded-lg border border-gray-200 bg-gray-100/70 px-3 py-2 pr-8 text-xs text-gray-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect width="18" height="11" x="3" y="11" rx="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                </div>
-                                <p class="mt-1 text-[0.625rem] text-gray-500">Office assignment is managed by your administrator.</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    {{-- Right Column: DRIVER DETAILS --}}
-                    <section class="rounded-xl border border-gray-100 bg-gray-50/70 p-4">
-                        <div class="mb-3 border-b border-gray-200/60 pb-2">
-                            <h4 class="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="9" cy="7" r="4"/>
-                                </svg>
-                                Driver Details
-                            </h4>
+                    {{-- Name / Phone / Email / Location --}}
+                    <div class="grid grid-cols-1 content-start gap-x-4 gap-y-4 sm:col-span-7">
+                        <div>
+                            <label for="profile-name" class="{{ $pfLabel }}">Full Name <span class="text-red-500">*</span></label>
+                            <input id="profile-name" name="name" value="{{ old('name', $user->name) }}" required class="{{ $pfInput }} {{ $pfBorder('name') }}">
+                            @error('name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </div>
 
-                        <div class="space-y-3">
-                            <div>
-                                <label for="profile-birth-date" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Birth Date</label>
-                                <input id="profile-birth-date" type="date" name="birth_date" value="{{ old('birth_date', optional($user->birth_date)->format('Y-m-d')) }}" max="{{ now()->subDay()->toDateString() }}" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('birth_date')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
-                            </div>
+                        <div>
+                            <label for="profile-phone" class="{{ $pfLabel }}">Phone Number <span class="text-red-500">*</span></label>
+                            <input id="profile-phone" type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required @if ($user->role === \Modules\Admin\Enums\UserRole::DRIVER) pattern="09[0-9]{9}" maxlength="11" inputmode="numeric" placeholder="09171234567" title="Must start with 09 and be exactly 11 digits (e.g. 09171234567)" @endif class="{{ $pfInput }} {{ $pfBorder('phone_number') }}">
+                            @error('phone_number')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </div>
 
-                            <div>
-                                <label for="profile-address" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Residential Address</label>
-                                <input id="profile-address" name="address" maxlength="255" value="{{ old('address', $user->address) }}" placeholder="e.g. Calapan City, Oriental Mindoro" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                                @error('address')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
+                        <div>
+                            <label for="profile-email" class="{{ $pfLabel }}">Email Address</label>
+                            <div class="relative">
+                                <input id="profile-email" value="{{ $user->email }}" disabled class="{{ $pfLocked }}">
+                                @include('profile.partials.lock-icon')
                             </div>
+                            <p class="{{ $pfHint }}">Account email is managed by your administrator.</p>
+                        </div>
 
+                        <div>
+                            <label for="profile-location" class="{{ $pfLabel }}">Assigned Location / Office Province</label>
+                            <div class="relative">
+                                <input id="profile-location" value="{{ $locationLabel }}" disabled class="{{ $pfLocked }}">
+                                @include('profile.partials.lock-icon')
+                            </div>
+                            <p class="{{ $pfHint }}">Office assignment is managed by your administrator.</p>
+                        </div>
+                    </div>
+
+                    {{-- Birth date / Address --}}
+                    <div class="sm:col-span-6">
+                        <label for="profile-birth-date" class="{{ $pfLabel }}">Birth Date <span class="font-normal text-slate-400">(Optional)</span></label>
+                        <input id="profile-birth-date" type="date" name="birth_date" value="{{ old('birth_date', optional($user->birth_date)->format('Y-m-d')) }}" max="{{ now()->subDay()->toDateString() }}" class="{{ $pfInput }} {{ $pfBorder('birth_date') }}">
+                        @error('birth_date')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="sm:col-span-6">
+                        <label for="profile-address" class="{{ $pfLabel }}">Residential Address <span class="font-normal text-slate-400">(Optional)</span></label>
+                        <input id="profile-address" name="address" maxlength="255" value="{{ old('address', $user->address) }}" placeholder="e.g. Calapan City, Oriental Mindoro" class="{{ $pfInput }} {{ $pfBorder('address') }}">
+                        @error('address')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    {{-- Driver's license (read-only, kept by the administrator) --}}
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:col-span-12">
+                        <div class="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h4"/></svg>
+                            <span>Driver's License <span class="font-normal text-slate-400">(Managed by your fleet administrator)</span></span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label for="profile-license-number" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Driver's License Number</label>
+                                <label for="profile-license-number" class="{{ $pfLabel }}">License Number</label>
                                 <div class="relative">
-                                    <input id="profile-license-number" value="{{ $user->license_number ?: 'Not set' }}" disabled class="w-full rounded-lg border border-gray-200 bg-gray-100/70 px-3 py-2 pr-8 text-xs text-gray-600 font-medium">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect width="18" height="11" x="3" y="11" rx="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
+                                    <input id="profile-license-number" value="{{ $user->license_number ?: 'Not set' }}" disabled class="{{ $pfLocked }} font-medium text-slate-600">
+                                    @include('profile.partials.lock-icon')
                                 </div>
                             </div>
-
                             <div>
-                                <label for="profile-license-expiration" class="mb-1 block text-[0.6875rem] font-bold text-gray-700">Driver's License Expiration</label>
+                                <label for="profile-license-expiration" class="{{ $pfLabel }}">License Expiration</label>
                                 <div class="relative">
-                                    @php
-                                        $expDate = $user->license_expiration_date;
-                                        $daysLeft = $expDate ? (int) round(now()->startOfDay()->diffInDays($expDate->startOfDay(), false)) : null;
-                                        $isExp = !is_null($daysLeft) && $daysLeft < 0;
-                                        $isUrgent = !is_null($daysLeft) && $daysLeft >= 0 && $daysLeft <= 7;
-                                        $isWarning = !is_null($daysLeft) && $daysLeft > 7 && $daysLeft <= 30;
-                                    @endphp
-                                    <input id="profile-license-expiration" value="{{ optional($expDate)->format('Y-m-d') ?: 'Not set' }}" disabled class="w-full rounded-lg border {{ $isExp || $isUrgent ? 'border-red-300 bg-red-50/50' : ($isWarning ? 'border-amber-300 bg-amber-50/50' : 'border-gray-200 bg-gray-100/70') }} px-3 py-2 pr-32 text-xs text-gray-700 font-semibold">
-                                    @if($expDate)
-                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase {{ $isExp ? 'bg-red-600 text-white' : ($isUrgent ? 'bg-red-600 text-white animate-pulse' : ($isWarning ? 'bg-amber-500 text-white' : 'bg-emerald-100 text-emerald-800')) }}">
-                                            @if($isExp)
-                                                EXPIRED
-                                            @elseif($isUrgent || $isWarning)
-                                                EXPIRES IN {{ $daysLeft }} {{ Illuminate\Support\Str::plural('DAY', $daysLeft) }}
+                                    <input id="profile-license-expiration" value="{{ optional($expDate)->format('M d, Y') ?: 'Not set' }}" disabled class="h-11 w-full rounded-lg border {{ $isExp || $isUrgent ? 'border-red-300 bg-red-50/60' : ($isWarning ? 'border-amber-300 bg-amber-50/60' : 'border-slate-200 bg-slate-50') }} px-3 pr-36 text-sm font-semibold text-slate-700">
+                                    @if ($expDate)
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-0.5 text-[0.625rem] font-extrabold uppercase {{ $isExp ? 'bg-red-600 text-white' : ($isUrgent ? 'animate-pulse bg-red-600 text-white' : ($isWarning ? 'bg-amber-500 text-white' : 'bg-emerald-100 text-emerald-800')) }}">
+                                            @if ($isExp)
+                                                Expired
+                                            @elseif ($isUrgent || $isWarning)
+                                                Expires in {{ $daysLeft }} {{ \Illuminate\Support\Str::plural('day', $daysLeft) }}
                                             @else
-                                                ✓ VALID
+                                                ✓ Valid
                                             @endif
                                         </span>
                                     @endif
                                 </div>
-                                @if($isExp)
-                                    <p class="mt-1.5 flex items-center gap-1.5 text-[0.6875rem] font-bold text-red-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                        License expired on {{ $expDate->format('M d, Y') }}! Please submit your renewed license to your administrator.
-                                    </p>
-                                @elseif($isUrgent)
-                                    <p class="mt-1.5 flex items-center gap-1.5 text-[0.6875rem] font-bold text-red-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                        Urgent: Your license expires in {{ $daysLeft }} {{ Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }})!
-                                    </p>
-                                @elseif($isWarning)
-                                    <p class="mt-1.5 flex items-center gap-1.5 text-[0.6875rem] font-bold text-amber-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                        Notice: License expires in {{ $daysLeft }} {{ Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }}).
-                                    </p>
-                                @else
-                                    <p class="mt-1 text-[0.625rem] text-gray-500">Managed and verified by your fleet administrator.</p>
-                                @endif
                             </div>
                         </div>
-                    </section>
+                        @if ($isExp)
+                            <p class="mt-3 flex items-center gap-1.5 text-xs font-bold text-red-600">
+                                @include('profile.partials.warning-icon', ['color' => 'text-red-600'])
+                                License expired on {{ $expDate->format('M d, Y') }}! Please submit your renewed license to your administrator.
+                            </p>
+                        @elseif ($isUrgent)
+                            <p class="mt-3 flex items-center gap-1.5 text-xs font-bold text-red-600">
+                                @include('profile.partials.warning-icon', ['color' => 'text-red-600'])
+                                Urgent: Your license expires in {{ $daysLeft }} {{ \Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }})!
+                            </p>
+                        @elseif ($isWarning)
+                            <p class="mt-3 flex items-center gap-1.5 text-xs font-bold text-amber-700">
+                                @include('profile.partials.warning-icon', ['color' => 'text-amber-600'])
+                                Notice: License expires in {{ $daysLeft }} {{ \Illuminate\Support\Str::plural('day', $daysLeft) }} ({{ $expDate->format('M d, Y') }}).
+                            </p>
+                        @endif
+                    </div>
                 </div>
+            </div>
 
-                <div class="mt-5 flex justify-end border-t border-gray-100 pt-4">
-                    <button type="submit" class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-emerald-700 px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-emerald-800 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 6 9 17l-5-5"/>
-                        </svg>
-                        Save Changes
-                    </button>
-                </div>
+            {{-- Actions --}}
+            <div class="flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-5 py-4 sm:px-6">
+                <button type="submit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#005a36] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#00432a] cursor-pointer sm:w-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+                    Save Changes
+                </button>
             </div>
         </form>
 
         {{-- Change password: posts to Fortify's user-password.update; errors use the updatePassword bag --}}
         @php
             $passwordErrors = $errors->getBag('updatePassword');
-            $passwordInput = 'w-full rounded-lg border bg-white px-3 py-2 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500';
         @endphp
-        <form id="change-password" method="POST" action="{{ route('user-password.update') }}" class="mx-auto max-w-3xl scroll-mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+        <form id="change-password" method="POST" action="{{ route('user-password.update') }}" class="mx-auto max-w-4xl scroll-mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             @csrf
             @method('PUT')
             <input type="text" name="username" value="{{ $user->email }}" autocomplete="username" class="hidden" aria-hidden="true" tabindex="-1">
 
-            <section class="rounded-xl border border-gray-100 bg-gray-50/70 p-4">
-                <div class="mb-3 border-b border-gray-200/60 pb-2">
-                    <h4 class="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="18" height="11" x="3" y="11" rx="2"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
-                        Change Password
-                    </h4>
-                    <p class="mt-1 text-[0.625rem] text-gray-500">Enter your current password, then choose a new one of at least 12 characters, with letters and numbers.</p>
+            <div class="px-5 py-5 sm:px-6 sm:py-6">
+                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                    <div class="mb-1 flex items-center gap-2 text-sm font-bold text-slate-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <h3>Change Password</h3>
+                    </div>
+                    <p class="mb-4 text-xs text-slate-500">Enter your current password, then choose a new one of at least 12 characters, with letters and numbers.</p>
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div>
+                            <label for="current-password" class="{{ $pfLabel }}">Current Password <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input id="current-password" type="password" name="current_password" required autocomplete="current-password" @if ($passwordErrors->has('current_password')) autofocus aria-invalid="true" @endif class="{{ $pfInput }} {{ $pfBorder('current_password', 'updatePassword') }} pr-10">
+                                <x-password-eye for="current-password" />
+                            </div>
+                            @error('current_password', 'updatePassword')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="new-password" class="{{ $pfLabel }}">New Password <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input id="new-password" type="password" name="password" required minlength="12" autocomplete="new-password" @if (! $passwordErrors->has('current_password') && $passwordErrors->has('password')) autofocus @endif @if ($passwordErrors->has('password')) aria-invalid="true" @endif class="{{ $pfInput }} {{ $pfBorder('password', 'updatePassword') }} pr-10">
+                                <x-password-eye for="new-password" />
+                            </div>
+                            @error('password', 'updatePassword')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="new-password-confirmation" class="{{ $pfLabel }}">Confirm New Password <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input id="new-password-confirmation" type="password" name="password_confirmation" required minlength="12" autocomplete="new-password" class="{{ $pfInput }} border-slate-200 pr-10">
+                                <x-password-eye for="new-password-confirmation" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <div class="grid gap-3 md:grid-cols-3">
-                    <div>
-                        <label for="current-password" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
-                            Current Password <span class="text-red-500">*</span>
-                        </label>
-                        <input id="current-password" type="password" name="current_password" required autocomplete="current-password" @if ($passwordErrors->has('current_password')) autofocus aria-invalid="true" @endif class="{{ $passwordInput }} {{ $passwordErrors->has('current_password') ? 'border-red-300' : 'border-gray-300' }}">
-                        @error('current_password', 'updatePassword')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div>
-                        <label for="new-password" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
-                            New Password <span class="text-red-500">*</span>
-                        </label>
-                        <input id="new-password" type="password" name="password" required minlength="12" autocomplete="new-password" @if (! $passwordErrors->has('current_password') && $passwordErrors->has('password')) autofocus @endif @if ($passwordErrors->has('password')) aria-invalid="true" @endif class="{{ $passwordInput }} {{ $passwordErrors->has('password') ? 'border-red-300' : 'border-gray-300' }}">
-                        @error('password', 'updatePassword')<p class="mt-1 text-[0.6875rem] text-red-600">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div>
-                        <label for="new-password-confirmation" class="mb-1 flex items-center gap-1 text-[0.6875rem] font-bold text-gray-700">
-                            Confirm New Password <span class="text-red-500">*</span>
-                        </label>
-                        <input id="new-password-confirmation" type="password" name="password_confirmation" required minlength="12" autocomplete="new-password" class="{{ $passwordInput }} border-gray-300">
-                    </div>
-                </div>
-            </section>
-
-            <div class="mt-5 flex justify-end border-t border-gray-100 pt-4">
-                <button type="submit" class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-emerald-700 px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-emerald-800 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="18" height="11" x="3" y="11" rx="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
+            <div class="flex items-center justify-end border-t border-slate-100 bg-white px-5 py-4 sm:px-6">
+                <button type="submit" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#005a36] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#00432a] cursor-pointer sm:w-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     Change Password
                 </button>
             </div>
@@ -276,13 +247,18 @@
     </div>
 
     <script>
-        (function () {
-            const avatarInput = document.getElementById('profile-avatar');
-            const avatarLabel = document.getElementById('profile-avatar-label');
-            if (!avatarInput || !avatarLabel) return;
-            avatarInput.addEventListener('focus', () => avatarLabel.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-1'));
-            avatarInput.addEventListener('blur', () => avatarLabel.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-1'));
-        })();
+        function showProfilePhoto(src) {
+            const img = document.getElementById('avatar-preview-img');
+            const fallback = document.getElementById('avatar-fallback');
+            const removeBtn = document.getElementById('avatar-remove-btn');
+            img.src = src || '';
+            img.classList.toggle('hidden', !src);
+            fallback.classList.toggle('hidden', !!src);
+            fallback.classList.toggle('flex', !src);
+            removeBtn.classList.toggle('hidden', !src);
+            removeBtn.classList.toggle('flex', !!src);
+            document.getElementById('avatar-btn-text').textContent = src ? 'Change Photo' : 'Upload Photo';
+        }
 
         function previewProfileAvatar(input) {
             if (!input.files || !input.files[0]) return;
@@ -301,59 +277,35 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function (e) {
-                const img = document.getElementById('avatar-preview-img');
-                const fallback = document.getElementById('avatar-fallback');
-                const removeBtn = document.getElementById('avatar-remove-btn');
-                const removeInput = document.getElementById('remove-avatar');
-                const btnText = document.getElementById('avatar-btn-text');
-
-                if (img) {
-                    img.src = e.target.result;
-                    img.classList.remove('hidden');
-                }
-                if (fallback) {
-                    fallback.classList.add('hidden');
-                }
-                if (removeBtn) {
-                    removeBtn.classList.remove('hidden');
-                    removeBtn.classList.add('inline-flex');
-                }
-                if (removeInput) {
-                    removeInput.checked = false;
-                }
-                if (btnText) {
-                    btnText.textContent = 'Replace';
-                }
+            reader.onload = (e) => {
+                document.getElementById('remove-avatar').checked = false;
+                showProfilePhoto(e.target.result);
             };
             reader.readAsDataURL(file);
         }
 
         function removeProfileAvatar() {
-            const fileInput = document.getElementById('profile-avatar');
-            const removeInput = document.getElementById('remove-avatar');
-            const img = document.getElementById('avatar-preview-img');
-            const fallback = document.getElementById('avatar-fallback');
-            const removeBtn = document.getElementById('avatar-remove-btn');
-            const btnText = document.getElementById('avatar-btn-text');
+            document.getElementById('profile-avatar').value = '';
+            document.getElementById('remove-avatar').checked = true;
+            showProfilePhoto('');
+        }
 
-            if (fileInput) fileInput.value = '';
-            if (removeInput) removeInput.checked = true;
+        function handleProfilePhotoDrag(event, over) {
+            event.preventDefault();
+            const zone = document.getElementById('profile-avatar-label');
+            zone.classList.toggle('border-emerald-500', over);
+            zone.classList.toggle('bg-emerald-50/60', over);
+        }
 
-            if (img) {
-                img.src = '';
-                img.classList.add('hidden');
-            }
-            if (fallback) {
-                fallback.classList.remove('hidden');
-            }
-            if (removeBtn) {
-                removeBtn.classList.add('hidden');
-                removeBtn.classList.remove('inline-flex');
-            }
-            if (btnText) {
-                btnText.textContent = 'Upload';
-            }
+        function handleProfilePhotoDrop(event) {
+            handleProfilePhotoDrag(event, false);
+            const file = event.dataTransfer?.files?.[0];
+            if (!file) return;
+            const input = document.getElementById('profile-avatar');
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            input.files = transfer.files;
+            previewProfileAvatar(input);
         }
     </script>
 @endsection

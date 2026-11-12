@@ -59,14 +59,20 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" name="password" id="password"
-                        class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror" required>
+                    <div class="relative mt-1.5">
+                        <input type="password" name="password" id="password"
+                            class="w-full rounded-lg border border-gray-300 py-2.5 pl-3 pr-10 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 @error('password') border-red-300 @enderror" required>
+                        <x-password-eye for="password" />
+                    </div>
                     @error('password') <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm password</label>
-                    <input type="password" name="password_confirmation" id="password_confirmation"
-                        class="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" required>
+                    <div class="relative mt-1.5">
+                        <input type="password" name="password_confirmation" id="password_confirmation"
+                            class="w-full rounded-lg border border-gray-300 py-2.5 pl-3 pr-10 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" required>
+                        <x-password-eye for="password_confirmation" />
+                    </div>
                 </div>
             </div>
 
