@@ -39,6 +39,7 @@ class DriverController extends Controller
             location: $location,
             perPage: $perPage,
             status: $status,
+            withoutPhoto: request('photo') === 'missing',
         );
         if ($lastPage = $this->pageOutOfRange($drivers)) {
             return $lastPage;

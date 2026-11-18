@@ -19,6 +19,7 @@ class VehicleService
         'health' => ['good' => 'Good (80–100%)', 'fair' => 'Fair (50–79%)', 'poor' => 'Poor (below 50%)'],
         'oil' => ['overdue' => 'Change oil overdue', 'due_soon' => 'Change oil due soon', 'ok' => 'Oil OK'],
         'papers' => ['due' => 'Registration or insurance due'],
+        'photo' => ['missing' => 'No photo yet'],
     ];
 
     /** Names of the filter groups, in menu order */
@@ -27,6 +28,7 @@ class VehicleService
         'health' => 'Health score',
         'oil' => 'Change oil',
         'papers' => 'Papers',
+        'photo' => 'Photo',
     ];
 
     public function __construct(

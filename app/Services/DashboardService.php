@@ -56,6 +56,10 @@ class DashboardService
 
         $vehiclesWithoutDriver = $loc(Vehicle::query())->whereNull('assigned_driver_id')->count();
 
+        // Records still missing a photo (active drivers only; deactivated ones no longer matter)
+        $driversWithoutPhoto = $loc(User::query())->where('role', UserRole::DRIVER)->active()->withoutPhoto()->count();
+        $vehiclesWithoutPhoto = $loc(Vehicle::query())->withoutPhoto()->count();
+
         $papersDue = $loc(Vehicle::query())->papersDue()->count();
         $papersExpired = $loc(Vehicle::query())
             ->where(fn ($q) => $q->whereDate('registration_expiry', '<', now()->toDateString())->orWhereDate('insurance_to', '<', now()->toDateString()))
@@ -121,6 +125,22 @@ class DashboardService
                 'detail' => null,
                 'severity' => 'low',
                 'url' => route('vehicle-assigning.index', $locationParam),
+            ] : null,
+            $driversWithoutPhoto > 0 ? [
+                'key' => 'drivers_without_photo',
+                'label' => 'Drivers Without a Photo',
+                'value' => $driversWithoutPhoto,
+                'detail' => null,
+                'severity' => 'low',
+                'url' => route('driver.index', $locationParam + ['status' => 'active', 'photo' => 'missing']),
+            ] : null,
+            $vehiclesWithoutPhoto > 0 ? [
+                'key' => 'vehicles_without_photo',
+                'label' => 'Vehicles Without a Photo',
+                'value' => $vehiclesWithoutPhoto,
+                'detail' => null,
+                'severity' => 'low',
+                'url' => route('vehicles.index', $locationParam + ['photo' => 'missing']),
             ] : null,
         ]));
     }

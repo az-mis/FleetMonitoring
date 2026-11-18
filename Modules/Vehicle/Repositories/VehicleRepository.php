@@ -18,6 +18,8 @@ class VehicleRepository implements VehicleRepositoryInterface
             ->when(($filters['driver'] ?? null) === 'unassigned', fn ($q) => $q->whereNull('assigned_driver_id'))
             // Dashboard "Vehicle papers due" link: registration or insurance expired or expiring soon
             ->when(($filters['papers'] ?? null) === 'due', fn ($q) => $q->papersDue())
+            // Dashboard "Vehicles without a photo" link
+            ->when(($filters['photo'] ?? null) === 'missing', fn ($q) => $q->withoutPhoto())
             ->when($search, function ($q) use ($search) {
                 $terms = preg_split('/\s+/', trim($search), -1, PREG_SPLIT_NO_EMPTY);
 

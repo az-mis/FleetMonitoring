@@ -19,9 +19,9 @@ class DriverService
         private readonly DriverRepositoryInterface $repository,
     ) {}
 
-    public function list(?string $search = null, ?string $location = null, int $perPage = 10, ?string $status = null): LengthAwarePaginator
+    public function list(?string $search = null, ?string $location = null, int $perPage = 10, ?string $status = null, bool $withoutPhoto = false): LengthAwarePaginator
     {
-        return $this->repository->paginate(perPage: $perPage, search: $search, location: $location, status: $status);
+        return $this->repository->paginate(perPage: $perPage, search: $search, location: $location, status: $status, withoutPhoto: $withoutPhoto);
     }
 
     public function createDriver(array $data): User

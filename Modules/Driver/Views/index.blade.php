@@ -53,7 +53,7 @@
                 <div class="flex h-10 shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1" role="group" aria-label="Driver status">
                     @foreach ($statusOptions as $value => $label)
                         <a
-                            href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => request('location'), 'status' => $value])) }}"
+                            href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => request('location'), 'status' => $value, 'photo' => request('photo')])) }}"
                             @if ($currentStatus === $value) aria-current="true" @endif
                             class="flex h-full items-center rounded-lg px-2.5 text-xs font-semibold transition {{ $currentStatus === $value ? 'bg-[#005a36] text-white' : 'text-slate-500 hover:text-slate-700' }}"
                         >{{ $label }}</a>
@@ -76,14 +76,14 @@
                     </button>
 
                     <div id="driver-location-menu" class="absolute left-0 z-20 mt-2 hidden w-64 sm:left-auto sm:right-0 overflow-hidden rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black/5">
-                        <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'status' => request('status')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
+                        <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'status' => request('status'), 'photo' => request('photo')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition {{ blank($selectedLocation) ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-gray-50' }}">
                             <span>All Locations</span>
                             @if(blank($selectedLocation))
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                             @endif
                         </a>
                         @foreach ($locationOptions as $opt)
-                            <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => $opt, 'status' => request('status')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
+                            <a href="{{ route('driver.index', array_filter(['search' => request('search'), 'per_page' => request('per_page'), 'location' => $opt, 'status' => request('status'), 'photo' => request('photo')])) }}" class="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-gray-50 {{ $selectedLocation === $opt ? 'bg-emerald-50 text-emerald-800' : '' }}">
                                 <span>{{ $opt }}</span>
                                 @if($selectedLocation === $opt)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -140,6 +140,13 @@
             </div>
         </div>
     </div>
+
+    @if (request('photo') === 'missing')
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800" role="status">
+            <span>Showing drivers with no photo yet. Open a driver to add one.</span>
+            <a href="{{ route('driver.index', array_filter(['location' => request('location'), 'status' => request('status')])) }}" class="font-semibold underline">Show all drivers</a>
+        </div>
+    @endif
 
     <div id="driver-results">
         @include('driver::partials.driver-results', ['drivers' => $drivers])

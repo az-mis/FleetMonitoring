@@ -104,6 +104,13 @@ class User extends Authenticatable
         $query->whereNull('deactivated_at');
     }
 
+    /** Users with no profile photo uploaded yet */
+    #[Scope]
+    protected function withoutPhoto(Builder $query): void
+    {
+        $query->where(fn ($q) => $q->whereNull('avatar')->orWhere('avatar', ''));
+    }
+
     public function assignedVehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class, 'assigned_driver_id');

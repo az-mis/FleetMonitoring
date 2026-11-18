@@ -13,12 +13,14 @@ use Modules\Driver\Controllers\DriverLicenseController;
 
 class DriverRepository implements DriverRepositoryInterface
 {
-    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null, ?string $status = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?string $search = null, ?string $location = null, ?string $status = null, bool $withoutPhoto = false): LengthAwarePaginator
     {
         return User::query()
             ->with(['assignedVehicles'])
             ->where('role', UserRole::DRIVER->value)
             ->when($location, fn ($q) => $q->where('location', $location))
+            // Dashboard "Drivers without a photo" link
+            ->when($withoutPhoto, fn ($q) => $q->withoutPhoto())
             ->when($status === 'active', fn ($q) => $q->whereNull('deactivated_at'))
             ->when($status === 'inactive', fn ($q) => $q->whereNotNull('deactivated_at'))
             ->when($search, fn ($q) => $q->where(fn ($inner) => $inner

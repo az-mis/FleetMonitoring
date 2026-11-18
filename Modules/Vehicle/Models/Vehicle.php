@@ -136,6 +136,12 @@ class Vehicle extends Model
         $query->where(fn ($q) => $q->whereDate('registration_expiry', '<=', $limit)->orWhereDate('insurance_to', '<=', $limit));
     }
 
+    /** Vehicles with no photo uploaded yet */
+    public function scopeWithoutPhoto(Builder $query): void
+    {
+        $query->where(fn ($q) => $q->whereNull('photo')->orWhere('photo', ''));
+    }
+
     /** Registration status worked out from the expiry date: label + tone (success, warning, danger, neutral) */
     public function registrationStatus(): array
     {
