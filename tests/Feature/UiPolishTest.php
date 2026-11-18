@@ -50,4 +50,20 @@ class UiPolishTest extends TestCase
             $this->get($page)->assertOk()->assertSee($footer, false);
         }
     }
+
+    public function test_a_cancelled_trip_shows_no_trip_number(): void
+    {
+        $vehicle = $this->vehicle('Palawan');
+        $this->tripRequest($vehicle, ['status' => 'approved', 'trip_ticket_number' => '26-11-700', 'reference_code' => 'LIVE001']);
+        $this->tripRequest($vehicle, ['status' => 'declined', 'trip_ticket_number' => '26-11-701', 'reference_code' => 'GONE001', 'decline_reason' => 'Event moved']);
+
+        $page = $this->actingAs($this->superAdmin())->get('/vehicle-requests?status=all')->assertOk()->getContent();
+        $list = substr($page, strpos($page, '<tbody'), strpos($page, '</tbody>') - strpos($page, '<tbody'));
+
+        // The approved trip shows its number; the cancelled one shows its reference code instead
+        $this->assertStringContainsString('26-11-700', $list);
+        $this->assertStringContainsString('GONE001', $list);
+        $this->assertStringContainsString('Trip cancelled', $list);
+        $this->assertDoesNotMatchRegularExpression('/>\s*26-11-701\s*</', $list);
+    }
 }

@@ -309,8 +309,8 @@
                 <table class="min-w-full divide-y divide-gray-100 text-left text-xs">
                     <thead class="bg-gray-50/80 font-bold uppercase tracking-wider text-slate-500">
                         <tr>
-                            <th class="px-3 py-3 font-semibold">VEHICLE</th>
-                            <th class="px-3 py-3 font-semibold">REFERENCE / TRIP NO.</th>
+                            <th class="sm:sticky sm:left-0 sm:z-10 w-[72px] min-w-[72px] bg-gray-50 px-3 py-3 font-semibold">VEHICLE</th>
+                            <th class="sm:sticky sm:left-[72px] sm:z-10 sm:shadow-[6px_0_6px_-6px_rgba(15,23,42,0.18)] bg-gray-50 px-3 py-3 font-semibold">REFERENCE / TRIP NO.</th>
                             <th class="px-3 py-3 font-semibold">PLATE & TRAVEL DATE</th>
                             <th class="px-3 py-3 font-semibold">OFFICE PROVINCE</th>
                             <th class="px-3 py-3 font-semibold">DRIVER</th>
@@ -325,9 +325,9 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100 text-slate-700">
                         @foreach ($requests as $item)
-                            <tr class="hover:bg-slate-50/70 transition">
-                                {{-- Vehicle Thumbnail --}}
-                                <td class="whitespace-nowrap px-3 py-3">
+                            <tr class="group hover:bg-slate-50/70 transition">
+                                {{-- Vehicle Thumbnail (stays in view while the table scrolls sideways, from tablet width up) --}}
+                                <td class="sm:sticky sm:left-0 sm:z-10 w-[72px] min-w-[72px] bg-white group-hover:bg-slate-50 whitespace-nowrap px-3 py-3">
                                     @if ($item->vehicle?->photo_url)
                                         <img src="{{ $item->vehicle->photo_url }}" alt="{{ $item->vehicle->plate_number }}" class="h-9 w-12 shrink-0 rounded object-cover shadow-sm border border-slate-100">
                                     @else
@@ -342,9 +342,10 @@
                                     @endif
                                 </td>
 
-                                {{-- Reference / Trip No. --}}
-                                <td class="whitespace-nowrap px-3 py-3">
-                                    @if ($item->trip_ticket_number)
+                                {{-- Reference / Trip No. (stays in view too) --}}
+                                <td class="sm:sticky sm:left-[72px] sm:z-10 sm:shadow-[6px_0_6px_-6px_rgba(15,23,42,0.18)] bg-white group-hover:bg-slate-50 whitespace-nowrap px-3 py-3">
+                                    {{-- Only an approved trip has a trip number; a cancelled trip keeps it on record but shows its reference code --}}
+                                    @if ($item->status === 'approved' && $item->trip_ticket_number)
                                         <span class="inline-block rounded bg-emerald-50 px-2 py-0.5 font-mono text-[0.6875rem] font-bold text-emerald-800 ring-1 ring-emerald-200">
                                             {{ $item->trip_ticket_number }}
                                         </span>
@@ -353,7 +354,9 @@
                                             <span class="inline-block rounded bg-indigo-50 px-2 py-0.5 font-mono text-[0.6875rem] font-bold text-indigo-700 ring-1 ring-indigo-200">
                                                 {{ $item->reference_code }}
                                             </span>
-                                            <p class="text-[0.625rem] text-slate-400 mt-0.5 font-medium">Pending approval</p>
+                                            <p class="text-[0.625rem] text-slate-400 mt-0.5 font-medium">
+                                                {{ match (true) { $item->status === 'pending' => 'Pending approval', filled($item->trip_ticket_number) => 'Trip cancelled', default => 'Declined' } }}
+                                            </p>
                                         </div>
                                     @endif
                                 </td>
@@ -544,7 +547,7 @@
                                             'status' => $item->status,
                                             'trip_ticket_number' => $item->trip_ticket_number,
                                             'approved_by_name' => $item->approvedBy?->name,
-                                            'trip_ticket_url' => $item->trip_ticket_number ? route('trip-ticket', $item) : null,
+                                            'trip_ticket_url' => $item->status === 'approved' && $item->trip_ticket_number ? route('trip-ticket', $item) : null,
                                             'has_completion' => (bool) $item->completion,
                                             'completion' => $item->completion,
                                             'vehicle_id' => $item->vehicle_id,
@@ -2399,7 +2402,8 @@
             // ── Trip Ticket No. row ──────────────────────────────────────────
             const tripTicketRow = document.getElementById('modal-trip-ticket-row');
             const tripTicketEl  = document.getElementById('modal-detail-trip-ticket');
-            if (data.trip_ticket_number) {
+            // A cancelled trip keeps its number on record, but only an approved trip shows one
+            if (data.trip_ticket_number && data.status === 'approved') {
                 tripTicketEl.textContent = data.trip_ticket_number;
                 tripTicketRow.classList.remove('hidden');
             } else {

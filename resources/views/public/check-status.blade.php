@@ -83,7 +83,11 @@
             <dl class="grid grid-cols-1 gap-x-6 gap-y-4 rounded-xl border border-pub-line p-5 sm:grid-cols-2">
                 @foreach ([
                     'Reference' => $requestRecord->reference_code,
-                    'Trip ticket' => $requestRecord->trip_ticket_number ?: 'Issued once approved',
+                    'Trip ticket' => match (true) {
+                        $requestRecord->status === 'approved' && filled($requestRecord->trip_ticket_number) => $requestRecord->trip_ticket_number,
+                        $requestRecord->status === 'declined' => 'None (no trip)',
+                        default => 'Issued once approved',
+                    },
                     'Vehicle' => $requestRecord->vehicle?->plate_number ? $requestRecord->vehicle->plate_number.' · '.$requestRecord->vehicle->brand.' '.$requestRecord->vehicle->model : 'Pending assignment',
                     'Travel date' => $requestRecord->travel_date->format('M j, Y').($requestRecord->travel_date_end && ! $requestRecord->travel_date_end->isSameDay($requestRecord->travel_date) ? ' – '.$requestRecord->travel_date_end->format('M j, Y') : ''),
                     'Destination' => str_replace(';;', ', ', (string) $requestRecord->destination),
